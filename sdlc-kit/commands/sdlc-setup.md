@@ -20,7 +20,9 @@ existing file becomes a shown merge plan, not a silent clobber.
 ### 1. Preflight (both modes)
 
 1. Locate the kit folder; halt if its `templates/`, `skills/`, and `reference/` are
-   missing.
+   missing. Read `sdlc-kit/VERSION` — this resolves `{{KIT_VERSION}}`, and today's date
+   resolves `{{ADOPTION_DATE}}`. If `VERSION` is absent the kit predates version
+   stamping: record `{{KIT_VERSION}}` as `unknown (pre-0.2.0)` rather than guessing.
 2. **Verify skills** (see `reference/SKILLS.md`): the TDD skill is NOT built into
    Claude Code — it is vendored in `sdlc-kit/skills/` and installed in step 2a/2b
    below; HALT if `sdlc-kit/skills/tdd.md` is missing. The built-in `code-review`
@@ -49,10 +51,13 @@ questionnaire.
   `reference/GATE_RECIPES.md` as the recommended option): linter, type checker (or
   compile step, or none), test framework, package/build manager, formatter.
 - **Round 3 — process fit:** how the owner will run the app for acceptance review (the
-  run command); CI provider (default GitHub Actions) and coverage floor (default 70%);
-  any always-active rules for CLAUDE.md (portability, serialization, DI seams for
-  external services); anything the owner already knows about Phase 1 (recorded for
-  `/plan-phase`, not acted on now).
+  run command); CI provider (default GitHub Actions); any always-active rules for
+  CLAUDE.md (portability, serialization, DI seams for external services); anything the
+  owner already knows about Phase 1 (recorded for `/plan-phase`, not acted on now).
+
+  **Do not ask for a coverage floor and do not propose a number.** No CI run exists yet,
+  so any figure would be invented. Record `coverage floor: TBD from first CI run` and
+  follow the procedure in `reference/GATE_RECIPES.md`.
 
 Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
@@ -62,7 +67,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    test; run lint + typecheck + tests per `GATE_RECIPES.md`. Do not proceed red.
 3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md`,
    `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status: PRE-PHASE-1), `spec/TESTING.md`
-   (layer strategy + mandatory-mock table for THIS stack).
+   (layer strategy + mandatory-mock table for THIS stack). `{{GATE_BASELINE}}` is
+   `green — 0 lint / 0 type / 0 test failures (established <date> on the walking
+   skeleton)`, which step 2 just proved. Never write a baseline you have not measured.
 4. Install commands and skills into `.claude/commands/` (project-scoped, so the team
    inherits them via git):
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`
@@ -77,7 +84,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 5. Install the edit-time hook: instantiate `settings.template.json` →
    `.claude/settings.json` using the hook recipe for the language; verify by editing a
    scratch source file with a deliberate lint error and confirming the hook blocks.
-6. Offer to scaffold CI (workflow running the same gate + coverage floor).
+6. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
+   enforce a floor yet — the floor is set from the first green CI run
+   (`reference/GATE_RECIPES.md`).
 
 ### 2b. Existing Project mode — analyze, then propose, then generate
 
@@ -90,9 +99,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    gate commands (prefer what CI already runs), proposed hook, spec set to generate,
    and how existing docs will be treated (merge plan for an existing CLAUDE.md —
    preserve-and-extend, shown as a diff before writing). Interview in rounds for what
-   analysis could not determine: coverage floor, acceptance-review surface and run
-   command, in-flight work (open branches/PRs to record in START HERE), known
-   trouble spots for the backlog, always-active rules worth encoding.
+   analysis could not determine: acceptance-review surface and run command, in-flight
+   work (open branches/PRs to record in START HERE), known trouble spots for the
+   backlog, always-active rules worth encoding. If CI already enforces a coverage floor,
+   record the existing number as-is; if it does not, record
+   `coverage floor: TBD from first CI run` and do not propose one.
 3. **Generate** (same placeholder-resolution rules as New mode):
    - `CLAUDE.md` — merge, never replace; existing instructions win on conflict and
      conflicts are surfaced to the owner.
@@ -104,12 +115,21 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - Commands and the vendored TDD skill set into `.claude/commands/` (same rules as
      New mode step 4); hook into `.claude/settings.json` (merge with any existing
      hooks).
-4. **Baseline the gate honestly.** Run it. Green → record "gate baseline: green".
-   Red → do NOT block setup and do NOT fix code now: record exact counts in
-   PROJECT_INDEX (`N lint / N type / N test failures`), set status STABILIZATION, and
-   note in `spec/SDLC.md` that any *increase* is a regression while the backlog burns
-   down. If the local runtime differs from CI's, record "CI is authoritative" in
-   Notes & gotchas.
+4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in
+   `spec/SDLC.md` with what you measured — this is the placeholder step 3 could not fill,
+   because the measurement did not exist yet. Leave it unresolved until now rather than
+   guessing; the close-out `{{` check in step 3.1 is what catches you forgetting.
+   - Green → `green — 0 lint / 0 type / 0 test failures (measured <date>)`.
+   - Red → do NOT block setup and do NOT fix code now. Record the exact counts
+     (`N lint / N type / N test failures (measured <date>)`) as the baseline in
+     `spec/SDLC.md`, mirror them in PROJECT_INDEX, and set status STABILIZATION. The
+     surrounding template text already says an increase is a regression — do not restate
+     it, and do not edit any command file to match these numbers. Commands read the
+     baseline from `spec/SDLC.md`; that is the whole point of recording it there.
+
+   If the local runtime differs from CI's, record "CI is authoritative" in Notes &
+   gotchas — and treat the disagreement itself as worth understanding, not as a number to
+   split the difference on.
 
 ### 3. Close-out (both modes)
 

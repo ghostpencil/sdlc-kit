@@ -37,8 +37,15 @@ unit that gets packaged as a release artifact; the root holds docs *about* the k
 (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`, this plan, `LICENSE`). Kit-relative paths in
 this plan — `commands/end-slice.md` and so on — mean `sdlc-kit/commands/end-slice.md`.
 Manifest hashes are keyed **relative to the kit root**, so the restructure does not break
-continuity with `v0.1.0`: the content and installed-relative path of every file an adopter
-holds are unchanged.
+continuity with `v0.1.0`.
+
+> **Correction (B0, verified against the tag).** An earlier draft of this section claimed
+> the restructure left *every* installable file byte-identical. It did not:
+> `commands/sdlc-setup.md` changed, because its close-out step pointed at a kit-local
+> `README.md` that the restructure deleted. The change is a doc pointer with no behavioral
+> effect, and it does **not** affect §4 — TFit holds the `v0.1.0` content and is compared
+> against the `v0.1.0` manifest. The general rule stands and is now load-bearing:
+> **a manifest is only ever compared against the version the project claims to be on.**
 
 **Command files may not state facts about the adopting project.** This is the root-cause
 rule behind finding #1 and it is now a kit invariant. Commands defer to `spec/SDLC.md`;
@@ -59,8 +66,8 @@ inlined. The kit's own Core Rule is *minimize context*; these fixes must not vio
 ## 2. Batch order and rationale
 
 ```
-B0  version identity + manifest        ← unblocks delivery AND the migration
-B1  the two shipped defects            ← small, high-value → cut v0.2.0 here
+B0  version identity + manifest        ← DONE (2026-07-19)
+B1  the two shipped defects            ← DONE (2026-07-19) → v0.2.0 ready to tag
      └─ MIGRATE TFit to v0.2.0         ← prove the update path on a small, safe diff
 B2  cheap general wins
 B3  enforceable checks (the reframe)
@@ -347,6 +354,12 @@ verifies:
 1. No command file states a fact about the adopting project (the §1 invariant; this is what
    would have caught #1).
 2. Every `{{PLACEHOLDER}}` in `templates/` has a corresponding question in `sdlc-setup.md`.
+   **Note from B0 — do not implement this as a literal name match.** It was tried: of the
+   32 placeholders in `templates/`, only 8 are named verbatim in `sdlc-setup.md`. The rest
+   are asked for semantically (`{{GATE_LINT_CMD}}` comes from "linter", `{{RUN_COMMAND}}`
+   from "how the owner will run the app"), so a name-matching check reports 24 false
+   positives and is useless. The check has to be a reading pass — which is an argument for
+   `/kit-check` being an agent-run command rather than a grep.
 3. No command contradicts `SDLC.template.md` — which is canonical by its own first
    paragraph.
 4. The README file tree matches the filesystem.

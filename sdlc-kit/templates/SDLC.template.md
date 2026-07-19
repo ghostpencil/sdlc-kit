@@ -4,6 +4,13 @@ Canonical description of the development process. The commands `/plan-phase`,
 `/next-slice`, `/end-slice`, and `/end-phase` (in `.claude/commands/`) automate it; if
 this file and a command disagree, this file wins — fix the command.
 
+Commands state nothing project-specific; every project fact lives in this file. Anything
+here that a command would need to know — the gate commands, the gate baseline, the scope
+of this process — is recorded below and read from here.
+
+**Kit version:** {{KIT_VERSION}} (adopted {{ADOPTION_DATE}}). Update procedure: see the
+kit's home repository README.
+
 ---
 
 ## Shape
@@ -45,10 +52,17 @@ fix application, bookkeeping, commits) proceeds without asking.
 {{GATE_TEST_CMD}}        # full test suite
 ```
 
-The typecheck baseline is green — any new error is a regression, never an accepted cost.
-<!-- Existing Project mode: if adopted with a non-green baseline, record the current
-     error/failure count here and treat any INCREASE as a regression until the
-     STABILIZATION backlog drives it to zero. -->
+### Gate baseline
+
+**Baseline: {{GATE_BASELINE}}**
+
+Green means green **against that baseline** — zero for a clean adoption, the recorded
+counts for a project adopted mid-flight. Any *increase* is a regression and is fixed in
+the slice that caused it, never accepted as a cost. The baseline only ever moves down, as
+the STABILIZATION backlog burns it toward zero; when it changes, it is re-recorded here in
+the same commit.
+
+This is the single place the baseline is defined. Commands read it from here.
 
 The same checks run in CI ({{CI_DESCRIPTION}}). Branch protection on `{{MAIN_BRANCH}}`
 requires the CI check on PRs.

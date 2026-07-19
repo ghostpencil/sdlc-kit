@@ -1,0 +1,72 @@
+name: Release
+
+# Packages sdlc-kit/ as a downloadable artifact on tag push, so the archive can never
+# drift from the tag it claims to be. The README quick start points at these assets.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check VERSION matches the tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          file="$(cat sdlc-kit/VERSION)"
+          if [ "$tag" != "$file" ]; then
+            echo "::error::tag $GITHUB_REF_NAME says $tag but sdlc-kit/VERSION says $file"
+            exit 1
+          fi
+
+      - name: Check MANIFEST.sha256 is current
+        # A stale manifest is worse than none: it would report drift on files that never
+        # changed, and clear files that did.
+        run: cd sdlc-kit && sha256sum -c MANIFEST.sha256
+
+      - name: Check the bundle is self-sufficient
+        # MIT requires the license text to travel with redistributed copies.
+        run: |
+          for f in LICENSE THIRD_PARTY_NOTICES.md README.md VERSION MANIFEST.sha256; do
+            test -f "sdlc-kit/$f" || { echo "::error::sdlc-kit/$f missing from bundle"; exit 1; }
+          done
+
+      - name: Check the manifest covers every file
+        # `sha256sum -c` proves listed files are unchanged; it says nothing about files
+        # missing from the list. Without this, a new file ships unverifiable.
+        run: |
+          cd sdlc-kit
+          find . -type f -not -name MANIFEST.sha256 | sed 's|^\./||' | sort > /tmp/actual
+          cut -d' ' -f3- MANIFEST.sha256 | sort > /tmp/listed
+          if ! diff -u /tmp/listed /tmp/actual; then
+            echo "::error::MANIFEST.sha256 does not list every file in the bundle"
+            exit 1
+          fi
+
+      - name: Package
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          tar -czf "sdlc-kit-$v.tar.gz" sdlc-kit
+          zip -qr "sdlc-kit-$v.zip" sdlc-kit
+          sha256sum "sdlc-kit-$v.tar.gz" "sdlc-kit-$v.zip" > "sdlc-kit-$v.CHECKSUMS.txt"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md).
+
+Extract \`sdlc-kit/\` into the root of your project, copy \`sdlc-kit/commands/sdlc-setup.md\` into \`.claude/commands/\`, and run \`/sdlc-setup\`.
+
+Verify the bundle with \`cd sdlc-kit && sha256sum -c MANIFEST.sha256\`." \
+            "sdlc-kit-$v.tar.gz" "sdlc-kit-$v.zip" "sdlc-kit-$v.CHECKSUMS.txt"

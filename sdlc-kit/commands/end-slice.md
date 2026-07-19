@@ -21,8 +21,12 @@ except for owner-facing design questions. Process reference: `spec/SDLC.md`.
 Run the gate exactly as defined in `spec/SDLC.md` (lint → typecheck → full test suite).
 
 All steps must be green. If not, fix the failures first (TDD skill rules apply if tests
-change), then re-run. Do not proceed on red. The typecheck baseline is green — any new
-error is a regression, never an accepted cost.
+change), then re-run. Do not proceed on red.
+
+Green means green **against the gate baseline recorded in `spec/SDLC.md`** — zero for a
+clean adoption, the recorded counts for a project adopted with a red baseline. Any
+increase is a regression and is fixed in this slice. Read the baseline from `spec/SDLC.md`;
+never assume it is zero.
 
 ### 3. Slice code review
 

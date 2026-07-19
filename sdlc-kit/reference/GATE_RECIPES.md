@@ -108,8 +108,29 @@ the whole crate if it's fast, otherwise rely on the gate.
 
 ## Coverage
 
-CI should additionally enforce a coverage floor (Dungeon Daddy uses ≥70%). Keep the
-floor in CI, not in the local gate — local runs stay fast, CI stays authoritative.
+Keep the floor in CI, not in the local gate — local runs stay fast, CI stays
+authoritative.
+
+**Never compute the floor, and never carry one over from another project.** *A remembered
+constant is not a measurement.* An aspirational floor fails every build from day one and
+gets switched off within a week, which is strictly worse than having none: it trains the
+team to route around the gate.
+
+The procedure:
+
+1. Ship without a floor. Let CI run and report coverage.
+2. Set the floor from the **first green CI run**, just below the observed figure — using
+   CI's *exact* invocation. Scoping flags matter: on one project the same suite reported
+   figures 9 points apart depending on what was included, so a floor copied from a local
+   run would have been meaningless.
+3. It only ever raises. Lowering the floor to make a build pass defeats its only purpose;
+   if a change drops coverage, that is the finding.
+
+Existing coverage debt is a backlog item, not a merge blocker. Adopting a project at 34%
+means the floor starts near 34%.
+
+Two environments disagreeing about coverage is itself a finding — find out why before
+adjusting the threshold. The gap is a symptom, not the disease.
 
 ## No tooling at all?
 

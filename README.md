@@ -52,7 +52,8 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
 
    ```bash
    cd /path/to/target-project
-   # grab the sdlc-kit archive from the latest release and extract it here, giving ./sdlc-kit/
+   curl -sL https://github.com/ghostpencil/sdlc-kit/releases/latest/download/sdlc-kit-<version>.tar.gz | tar -xz
+   cd sdlc-kit && sha256sum -c MANIFEST.sha256 && cd ..   # verify; shasum -a 256 -c on macOS
    ```
 
    Releases: <https://github.com/ghostpencil/sdlc-kit/releases>
@@ -110,6 +111,9 @@ which you do not need to install.
 
 ```
 sdlc-kit/                            ← THE KIT — copy this folder into your project
+├── VERSION                          ← the kit version this bundle is
+├── MANIFEST.sha256                  ← checksums of every file in the bundle
+├── README.md                        ← install + verify, for people who only have the bundle
 ├── commands/                        ← installed into <project>/.claude/commands/
 │   ├── sdlc-setup.md                ← the two-mode setup command (start here)
 │   ├── plan-phase.md
@@ -132,10 +136,13 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 ├── reference/                       ← consulted by /sdlc-setup; not installed
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language
 │   └── SKILLS.md                    ← required/recommended skills and how to install
-└── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (all MIT)
+├── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (all MIT)
+└── LICENSE                          ← MIT (must travel with the bundle)
 
+.github/workflows/release.yml        ← packages the kit as a release asset on tag push
 README.md                            ← you are here
 CLAUDE.md                            ← instructions for agents working ON the kit
+CHANGELOG.md                         ← kit version history
 FIELD_REPORT.md                      ← findings from the first external adoption
 IMPROVEMENT_PLAN.md                  ← what is being done about them
 LICENSE                              ← MIT
@@ -146,6 +153,86 @@ Paths written as `commands/…` or `templates/…` elsewhere in the docs are rel
 
 Templates use `{{PLACEHOLDER}}` markers; `/sdlc-setup` resolves every one of them with
 you before finishing (and greps for leftover `{{` as its own exit check).
+
+---
+
+## Updating an adopted project
+
+Adopting the kit copies files into your project. Later kit releases do not reach them on
+their own — this is the procedure that brings them forward without destroying what your
+project has recorded.
+
+### Who owns what
+
+The whole procedure rests on this split:
+
+| Path in your project | Owner | Update behavior |
+|---|---|---|
+| `.claude/commands/*.md` (from `commands/`, `skills/`) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | **project** | **Never overwritten.** These hold your gate baseline, owner decisions, backlog, and gotchas. |
+
+`templates/` and `reference/` are read only at `/sdlc-setup` time and are never
+re-applied to an already-adopted project. A kit release that changes only those is an
+adoption-only change — it affects new adoptions, not yours. `CHANGELOG.md` marks each
+entry accordingly.
+
+### The procedure
+
+1. **Find the version you are on.** `spec/SDLC.md` records it (*Kit version: X.Y.Z*).
+   Projects adopted before 0.2.0 have no stamp; see *No version stamp* below.
+
+2. **Get both versions of the kit.**
+
+   ```bash
+   git clone https://github.com/ghostpencil/sdlc-kit /tmp/kit
+   git -C /tmp/kit worktree add /tmp/kit-old vX.Y.Z    # the version you are on
+   ```
+
+3. **Classify every installed file** against the manifest of the version you are *on* —
+   not the new one. That is what makes the answer provable rather than hopeful.
+
+   ```bash
+   cd /path/to/your-project/.claude/commands
+   for f in *.md; do
+     want=$(grep -E "(commands|skills)/(.*/)?$f\$" /tmp/kit-old/sdlc-kit/MANIFEST.sha256 | cut -d' ' -f1)
+     have=$(sha256sum "$f" | cut -d' ' -f1)
+     if   [ -z "$want" ];        then echo "UNKNOWN   $f  (not from the kit — yours)"
+     elif [ "$want" = "$have" ]; then echo "UNCHANGED $f  (safe to overwrite)"
+     else                             echo "DRIFTED   $f  (review the diff — your call)"
+     fi
+   done
+   ```
+
+4. **Act on the classification.**
+   - `UNCHANGED` → provably untouched since adoption. Copy the new version over it.
+   - `DRIFTED` → you or setup edited it. Diff it against both versions and decide, file
+     by file. **Never auto-overwrite a drifted file** — `spec/SDLC.md` explicitly invites
+     you to fix a command that disagrees with it, so drift is often deliberate.
+   - `UNKNOWN` → not a kit file. Leave it alone.
+
+5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
+   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, or `.claude/settings.json`.
+   They hold your recorded baseline and decisions; the kit cannot regenerate them.
+
+6. **Re-record the version** in `spec/SDLC.md` (*Kit version: X.Y.Z*, dated). From here
+   every later update is mechanical.
+
+7. **Land it as a normal PR** (`chore/update-sdlc-kit-X.Y.Z`) — the same way the adoption
+   landed. Read `CHANGELOG.md` for the versions you skipped; entries marked
+   *[installable]* are the ones that changed what you just copied.
+
+### No version stamp (adopted before 0.2.0)
+
+Manifests did not exist before 0.2.0, but they can be reconstructed from any tag, which is
+enough to make the same check work retroactively:
+
+```bash
+git -C /tmp/kit archive v0.1.0 | tar -tf - | grep -E '^(sdlc-kit/)?(commands|skills)/'
+# hash each of those paths out of the tag and compare with your installed copies
+```
+
+If your files match a released version's contents, you are provably on that version and
+step 3 applies unchanged. If they match nothing, treat every file as `DRIFTED`.
 
 ## FAQ
 

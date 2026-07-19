@@ -20,6 +20,10 @@ Process reference: `spec/SDLC.md`.
 
 Run the gate exactly as defined in `spec/SDLC.md` (lint → typecheck → full test suite).
 
+Green means green **against the gate baseline recorded in `spec/SDLC.md`** — zero for a
+clean adoption, the recorded counts for a project adopted with a red baseline. Any
+increase is a regression. Read the baseline from `spec/SDLC.md`; never assume it is zero.
+
 Also run whatever phase-level verification the phase spec calls for (smoke test,
 end-to-end run, manual script). Fix and re-run until green.
 
