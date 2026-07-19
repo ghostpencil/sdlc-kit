@@ -34,6 +34,11 @@ look at: the phase's user-visible behaviors from the spec's acceptance checklist
 any live-data notes from PROJECT_INDEX. The owner exercises the product themselves (run
 command in CLAUDE.md) — do not perform this review on the owner's behalf.
 
+If the checklist includes failure paths, prefer breaking the connection over corrupting
+the data: stopping the server (or the backing service) leaves the product up while its
+writes go nowhere — the failure paths exercised are identical, and authoritative data is
+never at risk.
+
 Findings become fix commits (through the gate again). Large findings mean a new slice —
 stop and say so. Proceed only on explicit owner OK.
 

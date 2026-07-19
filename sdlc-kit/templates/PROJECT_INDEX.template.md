@@ -23,7 +23,9 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 ## Deferred backlog
 
 <!-- Review findings and small follow-ups deferred at /end-slice / /end-phase.
-     One line each: what, where, why deferred. This is a menu, not a mandate — a big
+     One line each: what, where, why deferred — and where it came from, e.g.
+     "(slice review, 2026-07-19)" or "(whole-arc review, PR #2)". Provenance is what
+     makes the pile triageable months later. This is a menu, not a mandate — a big
      enough pile becomes a cleanup slice by owner decision at the next phase boundary. -->
 
 - (empty)
@@ -33,12 +35,24 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 | Phase | Title | PR | Merged | Notes |
 |---|---|---|---|---|
 {{PHASE_HISTORY_ROWS}}
-<!-- Existing Project mode: seed a few rows from git history so the arc of the project
-     is visible ("pre-SDLC" is a fine PR value). New Project mode: leave empty. -->
+<!-- Existing Project mode: seed an adoption marker —
+       | — | **SDLC adopted** | pre-SDLC | <date> | via /sdlc-setup |
+     — plus a few back-filled pre-SDLC rows from git history, recorded so the arc of
+     the project is visible, not because they followed this process ("pre-SDLC" is a
+     fine PR value). New Project mode: leave empty. -->
+
+## Environment gotchas
+
+<!-- Machine/OS/tooling facts that bite a fresh session or a new contributor: toolchain
+     or venv paths, OS-specific behavior, services that must be running for the gate,
+     where credentials live, "CI is authoritative because local runtime differs" and
+     why. One line each; delete when fixed. -->
+
+- (none)
 
 ## Notes & gotchas
 
 {{NOTES}}
 <!-- Durable, non-obvious facts a fresh session needs and cannot derive from code:
-     environment quirks, data-compatibility rules, seeds/fixtures, "CI is authoritative
-     because local runtime differs", etc. Keep each to 1–3 lines. -->
+     data-compatibility rules, seeds/fixtures, decisions too small for a spec.
+     Environment facts go in Environment gotchas above. Keep each to 1–3 lines. -->

@@ -69,8 +69,8 @@ inlined. The kit's own Core Rule is *minimize context*; these fixes must not vio
 B0  version identity + manifest        ← DONE — v0.2.0 tagged, released, assets verified
 B1  the two shipped defects            ← DONE (2026-07-19)
      └─ MIGRATE TFit to v0.2.0         ← DONE — committed on a branch, deliberately unpushed
-B2  cheap general wins                 ← NEXT
-B3  enforceable checks (the reframe)
+B2  cheap general wins                 ← DONE (2026-07-19) — see §8
+B3  enforceable checks (the reframe)   ← NEXT
 B4  reference/REVIEW_LENSES.md
 B5  remainder
 B6  kit self-check invariants
@@ -535,3 +535,32 @@ shares its blind spots.** Where a real artifact can be used instead of a fixture
   make the kit worse." A second failure mode is now evident: **checks that look like
   enforcement but cannot fail.** That is the report's own thesis (partial isolation reads
   as complete) applied to the kit's tooling.
+
+---
+
+## 8. Field notes from executing B2
+
+Three deviations from the batch as written, all recorded so B6 can use them:
+
+1. **#9's pointer was wrong in this plan (and the report).** It says "add it to the gate
+   section of `CLAUDE.md`" — but the instantiated CLAUDE.md has no gate section; the gate
+   is defined in `spec/SDLC.md`. Shipping that sentence verbatim would have been a command
+   pointing at a file that doesn't hold the fact — the same defect class as finding #1,
+   caught only by checking the reference against the template before writing it.
+   Retargeted to `spec/SDLC.md` + Environment gotchas. **B6 invariant candidate: every
+   file-and-section pointer in a command must name a place that exists in what the kit
+   actually installs.**
+2. **The release workflow *verifies* `MANIFEST.sha256`; it does not regenerate it.** So
+   any commit touching the bundle must regenerate the manifest in the same commit, or the
+   next tag push fails. Done here, from index content (not the working tree — §7.1), with
+   the discrimination check §7.2 demands: exactly the 5 edited files changed hash, the
+   other 18 did not.
+3. **#13b's home half-existed.** *Notes & gotchas* already named "environment quirks" in
+   its comment — the field report's "no home" claim was imprecise, like its #2. Implemented
+   as a dedicated *Environment gotchas* section and the Notes comment narrowed, so there is
+   one home, not two; `sdlc-setup.md`'s "CI is authoritative" pointer retargeted to match.
+
+Also: `end-slice.md` §5 gained provenance tags alongside the template (the two files state
+the same convention; the command is the one read at slice close), and the #9 rule was
+mirrored into `SDLC.template.md`'s bookkeeping rules per invariant 2 — the canonical file
+must state any process rule a command enforces.

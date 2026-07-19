@@ -61,7 +61,12 @@ EOF
 
 Update `spec/PROJECT_INDEX.md`:
 - Mark the slice done in the current phase's status/START HERE section.
-- Append deferred review findings to the backlog with rationale.
+- Append deferred review findings to the backlog with rationale and provenance
+  (e.g. "(slice review, <date>)").
+- If this slice added a tool, runtime, or service the gate now requires, record it (gate
+  section of `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and add it to CI in
+  the same commit — a gate dependency discovered by a contributor's red run is a
+  documentation bug.
 - Note the next slice up, so `/next-slice` in a fresh session can orient without help.
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).

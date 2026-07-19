@@ -50,10 +50,13 @@ questionnaire.
 - **Round 2 — toolchain** (offer the language's conventional defaults from
   `reference/GATE_RECIPES.md` as the recommended option): linter, type checker (or
   compile step, or none), test framework, package/build manager, formatter.
-- **Round 3 — process fit:** how the owner will run the app for acceptance review (the
-  run command); CI provider (default GitHub Actions); any always-active rules for
-  CLAUDE.md (portability, serialization, DI seams for external services); anything the
-  owner already knows about Phase 1 (recorded for `/plan-phase`, not acted on now).
+- **Round 3 — process fit:** does this process govern the whole repo, or a subset — and
+  what is explicitly out of scope (default: the whole repo; mixed repos — app + docs,
+  app + infra — name the boundary); how the owner will run the app for acceptance
+  review (the run command); CI provider (default GitHub Actions); any always-active
+  rules for CLAUDE.md (portability, serialization, DI seams for external services);
+  anything the owner already knows about Phase 1 (recorded for `/plan-phase`, not
+  acted on now).
 
   **Do not ask for a coverage floor and do not propose a number.** No CI run exists yet,
   so any figure would be invented. Record `coverage floor: TBD from first CI run` and
@@ -94,12 +97,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    languages + versions; build system; how tests are actually run (CI config is the
    best witness); lint/typecheck config present or absent; existing CLAUDE.md /
    README / docs / ADRs; branch + PR conventions from `git log`; app entry point / run
-   command; test layout and any existing mocking conventions.
+   command; test layout and any existing mocking conventions; whether the repo holds
+   more than the app (docs site, infra, data pipelines — anything the process might
+   not govern).
 2. **Present findings + proposal — the feedback halt.** Show: detected stack, proposed
    gate commands (prefer what CI already runs), proposed hook, spec set to generate,
    and how existing docs will be treated (merge plan for an existing CLAUDE.md —
    preserve-and-extend, shown as a diff before writing). Interview in rounds for what
-   analysis could not determine: acceptance-review surface and run command, in-flight
+   analysis could not determine: whether this process governs the whole repo or a
+   subset, and what is explicitly out of scope (step 1's survey of what else the repo
+   holds seeds this question); acceptance-review surface and run command, in-flight
    work (open branches/PRs to record in START HERE), known trouble spots for the
    backlog, always-active rules worth encoding. If CI already enforces a coverage floor,
    record the existing number as-is; if it does not, record
@@ -127,9 +134,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      it, and do not edit any command file to match these numbers. Commands read the
      baseline from `spec/SDLC.md`; that is the whole point of recording it there.
 
-   If the local runtime differs from CI's, record "CI is authoritative" in Notes &
-   gotchas — and treat the disagreement itself as worth understanding, not as a number to
-   split the difference on.
+   If the local runtime differs from CI's, record "CI is authoritative" (and why) in
+   Environment gotchas — and treat the disagreement itself as worth understanding, not
+   as a number to split the difference on.
 
 ### 3. Close-out (both modes)
 

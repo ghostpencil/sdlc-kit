@@ -1,5 +1,10 @@
 # {{PROJECT_NAME}} — SDLC
 
+**Scope: {{SDLC_SCOPE}}**
+<!-- What this process governs and what is explicitly out of scope. "The whole repo" is
+     the common answer; a mixed repo (app + docs, app + infra, monorepo packages) names
+     the boundary here so no session has to guess it. -->
+
 Canonical description of the development process. The commands `/plan-phase`,
 `/next-slice`, `/end-slice`, and `/end-phase` (in `.claude/commands/`) automate it; if
 this file and a command disagree, this file wins — fix the command.
@@ -66,6 +71,12 @@ This is the single place the baseline is defined. Commands read it from here.
 
 The same checks run in CI ({{CI_DESCRIPTION}}). Branch protection on `{{MAIN_BRANCH}}`
 requires the CI check on PRs.
+
+If local and CI disagree about a measurement — a pass/fail, an error count, a coverage
+figure — CI is authoritative. And the disagreement is itself a finding: work out *why*
+before adjusting any threshold, because the gap is usually a symptom (a git-ignored
+file, an environment difference, a test reaching a real service), not noise to average
+away.
 
 A PostToolUse hook (`.claude/settings.json`) runs the lint/typecheck steps on every
 edited source file, so most gate failures surface at edit time rather than at slice end.
@@ -137,3 +148,7 @@ Run `/end-phase` when the last slice is done:
   with the date.
 - Deferred review findings go to the backlog, not into scope creep; a big enough pile
   becomes a cleanup slice by owner decision.
+- A slice that adds a tool, runtime, or service the gate now requires records it (the
+  gate section above; Environment gotchas in PROJECT_INDEX) and adds it to CI in the
+  same commit. A gate dependency discovered by a contributor's red run is a
+  documentation bug.

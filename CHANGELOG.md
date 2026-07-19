@@ -27,8 +27,33 @@ An entry marked **[installable]** changes a file an adopted project holds
   with a denominator check, since the failure mode is a plausible result rather than an
   error.
 
-This changes no file inside `sdlc-kit/`, so the bundle and its manifest are unchanged and
-0.2.0 is not superseded — adopters on 0.2.0 need not re-copy anything.
+The three fixes above changed no file inside `sdlc-kit/`. The entries below do, and reach
+adopters at the next release; the bundle manifest is regenerated in the same commits (the
+release workflow *verifies* the manifest rather than regenerating it, so a stale one
+fails the next tag push).
+
+### Added
+- **[adoption-only]** `{{SDLC_SCOPE}}` in `SDLC.template.md`, directly below the title,
+  and **[installable]** `/sdlc-setup` now asks in both modes whether the process governs
+  the whole repo or a subset, and what is explicitly out of scope. Mixed repos are
+  common; the first adoption had to record this decision in three files by hand.
+- **[adoption-only]** `SDLC.template.md`, CI section: when local and CI disagree about a
+  measurement, CI is authoritative — and the disagreement is itself a finding to explain
+  before any threshold moves. The kit previously never contemplated the two disagreeing.
+- **[installable]** `end-slice.md` §5 (and the matching bookkeeping rule in
+  `SDLC.template.md`): a slice that adds a tool, runtime, or service the gate now
+  requires records it and adds it to CI in the same commit — a gate dependency
+  discovered by a contributor's red run is a documentation bug.
+- **[installable]** `end-phase.md` §3: to exercise failure paths during acceptance
+  without risking authoritative data, prefer breaking the connection over corrupting
+  the data — stop the server; the failure paths are identical and no real data moves.
+- **[adoption-only]** `PROJECT_INDEX.template.md`: a dedicated *Environment gotchas*
+  section (previously these facts had no home of their own inside *Notes & gotchas*);
+  the Existing-mode adoption-row convention for Phase History
+  (`| — | **SDLC adopted** | pre-SDLC | … |`, back-filled rows marked as recorded for
+  the arc, not as process history); and backlog provenance tags
+  (`"(slice review, <date>)"`) — the practice the field report's own retrospective
+  called the most useful part of the run.
 
 ## 0.2.0 — 2026-07-19
 
