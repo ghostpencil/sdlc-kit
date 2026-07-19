@@ -1,0 +1,125 @@
+# {{PROJECT_NAME}} — SDLC
+
+Canonical description of the development process. The commands `/plan-phase`,
+`/next-slice`, `/end-slice`, and `/end-phase` (in `.claude/commands/`) automate it; if
+this file and a command disagree, this file wins — fix the command.
+
+---
+
+## Shape
+
+Work is organized as **phases → slices → TDD cycles**.
+
+- A **phase** delivers one feature or a set of related features. It lives on one branch
+  (`feat/phase-NN-<slug>`), has a spec (`spec/PHASE_NN_*.md`) that breaks it into slices,
+  and ends in a single PR to `{{MAIN_BRANCH}}`.
+- A **slice** is one coherent behavior within a phase — small enough for a single session.
+  Each slice is built test-first, reviewed, committed, and recorded before context is cleared.
+- A **TDD cycle** is one red–green–refactor step inside a slice.
+
+During **STABILIZATION** there are no feature phases; the same slice loop applies to
+bug-fix/cleanup slices on a cleanup branch (`chore/cleanup-<slug>`).
+
+## Owner halt points
+
+The process runs autonomously except at these five points. Everything else (gates, reviews,
+fix application, bookkeeping, commits) proceeds without asking.
+
+1. **Phase scope** — the owner decides what the next phase (or cleanup slice) covers.
+   Recorded as OWNER-DECIDED in `spec/PROJECT_INDEX.md` START HERE.
+2. **Slice scope confirmation** — one question at the start of `/next-slice`.
+3. **Design questions** — any spec conflict or owner-facing design decision surfaced
+   mid-slice halts with a question; it is never resolved silently.
+4. **Acceptance review** — the owner personally exercises the phase's visible behavior at
+   phase end ({{ACCEPTANCE_SURFACE}}). The agent does not perform this review on the
+   owner's behalf.
+5. **Merge approval** — the owner approves the PR merge.
+
+## The Gate
+
+"The gate" means all of the following, in order, all green:
+
+```
+{{GATE_LINT_CMD}}        # lint
+{{GATE_TYPECHECK_CMD}}   # typecheck / compile check — omit only if the language has neither
+{{GATE_TEST_CMD}}        # full test suite
+```
+
+The typecheck baseline is green — any new error is a regression, never an accepted cost.
+<!-- Existing Project mode: if adopted with a non-green baseline, record the current
+     error/failure count here and treat any INCREASE as a regression until the
+     STABILIZATION backlog drives it to zero. -->
+
+The same checks run in CI ({{CI_DESCRIPTION}}). Branch protection on `{{MAIN_BRANCH}}`
+requires the CI check on PRs.
+
+A PostToolUse hook (`.claude/settings.json`) runs the lint/typecheck steps on every
+edited source file, so most gate failures surface at edit time rather than at slice end.
+
+## Phase start
+
+Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping, or when
+`/next-slice` finds nothing to slice):
+
+1. Candidate phases presented with a recommendation; owner picks the scope *(halt 1)*.
+2. Requirements interview in rounds (≤4 questions each) until a round surfaces nothing
+   new, then an adversarial gap analysis (walkthrough, trust-boundary sweep, cross-system
+   sweep, persistence/compatibility sweep, testability sweep, contradiction sweep,
+   minimal-version attack). Every gap becomes a question or a numbered decision — never
+   an assumption.
+3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
+   numbered owner decisions, behaviors, non-goals, data/migration impact, user-visible
+   surface + acceptance-review checklist, slices with exit criteria, risks.
+4. Owner approves the decisions + slice breakdown *(same halt, second checkpoint)*.
+5. Branch `feat/phase-NN-<slug>` created off `{{MAIN_BRANCH}}`; `spec/PROJECT_INDEX.md`
+   flipped to BUILD with the spec pointer; docs committed. Then `/clear` and `/next-slice`.
+
+## Slice loop (repeat per slice)
+
+Run `/next-slice` in a **fresh session**:
+
+1. Read `CLAUDE.md` + `spec/PROJECT_INDEX.md`, then the phase spec. Load no other specs
+   until needed (context-minimization rule).
+2. Identify the next unstarted slice and its exit criteria; confirm scope with the owner
+   in one question *(halt 2)*.
+3. Ensure the phase branch is checked out (create it if phase start was skipped).
+4. Read `spec/TESTING.md`, invoke the TDD skill, implement the slice in small
+   red–green–refactor steps. Design questions halt *(halt 3)*.
+
+Run `/end-slice` when the slice's exit criteria are met:
+
+5. Run the gate.
+6. Slice code review (code-review skill on the diff). Apply CRITICAL/HIGH fixes now;
+   defer the rest to the PROJECT_INDEX backlog with a one-line rationale each. Re-run
+   the gate if anything changed.
+7. Commit (heredoc for multi-line messages, via the Bash tool).
+8. Update `spec/PROJECT_INDEX.md` — slice marked done, deferred items appended — and
+   commit the docs change.
+9. Owner clears context (`/clear`). Every slice starts from a fresh window.
+
+## Phase end
+
+Run `/end-phase` when the last slice is done:
+
+1. Run the gate; run whatever phase-level verification the phase spec calls for
+   (smoke test, end-to-end run, manual script).
+2. **Owner acceptance review** *(halt 4)* — owner runs `{{RUN_COMMAND}}` and verifies the
+   phase's visible behavior against the spec's checklist. Findings become fix commits
+   (back to the slice loop if large).
+3. Push and open the PR (`gh`), body summarizing the phase against its exit criteria.
+4. Whole-arc review: `pr-review-toolkit:review-pr` on the PR. Apply fix batches, re-run
+   the gate, push. Deeper option when warranted: `/code-review ultra <PR#>`
+   (owner-triggered).
+5. **Merge approval** *(halt 5)*, then merge.
+6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: PROJECT_INDEX Phase History row + status
+   flip, deferred-pile consolidation, spec cleanup, memory updates worth keeping.
+
+## Bookkeeping rules
+
+- `spec/PROJECT_INDEX.md` is the single source of truth for phase/slice status, the
+  deferred backlog, and START HERE. It is updated at every slice end and phase end —
+  never left for "later".
+- Owner decisions are recorded where they were made (PROJECT_INDEX or the phase spec)
+  with the date.
+- Deferred review findings go to the backlog, not into scope creep; a big enough pile
+  becomes a cleanup slice by owner decision.
