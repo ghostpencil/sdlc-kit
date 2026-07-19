@@ -121,8 +121,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 3. Report: what was generated, skill/plugin verification results, gate baseline, and
    the handoff — **`/clear`, then `/plan-phase`** (New, or Existing with a green gate)
    or **`/clear`, then `/next-slice`** on the STABILIZATION backlog (Existing, red
-   gate). Point the team at `sdlc-kit/README.md` and the onboarding checklist in
-   `reference/SKILLS.md`.
+   gate). Point the team at the onboarding checklist in `sdlc-kit/reference/SKILLS.md`,
+   and at the kit's home repo (<https://github.com/ghostpencil/sdlc-kit>) for the full
+   process overview.
 
 ## Notes
 

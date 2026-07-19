@@ -45,16 +45,28 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
 
 ### Both modes
 
-1. Get this repo into the root of the target repository as a plain `sdlc-kit/` folder:
+1. Get the `sdlc-kit/` folder into the root of the target repository. It must keep that
+   name — `/sdlc-setup` looks for it by name.
+
+   **Download a release** (recommended — no git surgery, and the bundle is checksummed):
 
    ```bash
    cd /path/to/target-project
-   git clone https://github.com/ghostpencil/sdlc-kit
-   rm -rf sdlc-kit/.git      # plain files, not a nested repo — commit them with your project
+   # grab the sdlc-kit archive from the latest release and extract it here, giving ./sdlc-kit/
    ```
 
-   (Or copy an existing checkout; either way the folder must be named `sdlc-kit/` —
-   the setup command looks for it by that name.)
+   Releases: <https://github.com/ghostpencil/sdlc-kit/releases>
+
+   **Or clone this repo** and lift the kit folder out of it:
+
+   ```bash
+   cd /path/to/target-project
+   git clone --depth 1 https://github.com/ghostpencil/sdlc-kit /tmp/sdlc-kit-src
+   cp -r /tmp/sdlc-kit-src/sdlc-kit ./sdlc-kit    # the kit only — not the repo's own docs
+   ```
+
+   Either way you end up with plain files (not a nested git repo) that you commit
+   alongside your project.
 2. Copy `sdlc-kit/commands/sdlc-setup.md` into the target's `.claude/commands/`
    (create the folder if needed).
 3. Open Claude Code in the target repo and run **`/sdlc-setup`**.
@@ -92,9 +104,12 @@ One slice per session. `/clear` after every `/end-slice`. That's the rhythm.
 
 ## What's in the kit
 
+This repository is split in two: **`sdlc-kit/` is the product** — the only folder that
+goes into your project — and everything at the root is documentation *about* the kit,
+which you do not need to install.
+
 ```
-sdlc-kit/
-├── README.md                        ← you are here
+sdlc-kit/                            ← THE KIT — copy this folder into your project
 ├── commands/                        ← installed into <project>/.claude/commands/
 │   ├── sdlc-setup.md                ← the two-mode setup command (start here)
 │   ├── plan-phase.md
@@ -113,13 +128,21 @@ sdlc-kit/
 │   ├── CLAUDE.template.md           → CLAUDE.md           (agent instructions)
 │   ├── PROJECT_INDEX.template.md    → spec/PROJECT_INDEX.md (source of truth)
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
-│   └── settings.template.json      → .claude/settings.json (edit-time gate hook)
-├── reference/
+│   └── settings.template.json       → .claude/settings.json (edit-time gate hook)
+├── reference/                       ← consulted by /sdlc-setup; not installed
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language
 │   └── SKILLS.md                    ← required/recommended skills and how to install
-├── LICENSE                          ← MIT
 └── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (all MIT)
+
+README.md                            ← you are here
+CLAUDE.md                            ← instructions for agents working ON the kit
+FIELD_REPORT.md                      ← findings from the first external adoption
+IMPROVEMENT_PLAN.md                  ← what is being done about them
+LICENSE                              ← MIT
 ```
+
+Paths written as `commands/…` or `templates/…` elsewhere in the docs are relative to
+`sdlc-kit/`, which is also how they read once the folder is inside your project.
 
 Templates use `{{PLACEHOLDER}}` markers; `/sdlc-setup` resolves every one of them with
 you before finishing (and greps for leftover `{{` as its own exit check).
