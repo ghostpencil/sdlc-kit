@@ -11,6 +11,25 @@ An entry marked **[installable]** changes a file an adopted project holds
 
 ## Unreleased
 
+### Fixed
+- The *Updating an adopted project* procedure hashed the **working tree**, which reports
+  every file as drifted for any Windows adopter whose project does not pin line endings —
+  the kit stores LF, their checkout holds CRLF. The check looked like it worked and was
+  uniformly wrong. It now hashes committed content (`git cat-file -p :path`), which is LF
+  on every platform. Found by running the documented procedure against a real adopted
+  project rather than a synthetic one.
+- The retroactive path for projects adopted before 0.2.0 is now a complete script, and
+  notes that `v0.1.0` predates the restructure (kit files at `commands/`, not
+  `sdlc-kit/commands/`).
+- Both scripts now avoid a trap that produced confident wrong answers: probing for a path
+  with `git cat-file … | sha256sum` reports the *pipeline's* status, so a missing path
+  yields the hash of empty input and silently matches the wrong entry. Documented, along
+  with a denominator check, since the failure mode is a plausible result rather than an
+  error.
+
+This changes no file inside `sdlc-kit/`, so the bundle and its manifest are unchanged and
+0.2.0 is not superseded — adopters on 0.2.0 need not re-copy anything.
+
 ## 0.2.0 — 2026-07-19
 
 Version identity, an update path, and the two defects the first field report found in the

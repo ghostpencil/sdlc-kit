@@ -191,17 +191,40 @@ entry accordingly.
 3. **Classify every installed file** against the manifest of the version you are *on* —
    not the new one. That is what makes the answer provable rather than hopeful.
 
+   > **Hash committed content, not the working tree.** The kit stores text as LF, but if
+   > your project does not pin line endings (`.gitattributes`) and you are on Windows,
+   > your checkout holds CRLF. Hashing those files directly reports **every file as
+   > drifted** — the check appears to work and is uniformly wrong. `git cat-file -p :path`
+   > reads the committed bytes, which are LF on every platform. This applies only to files
+   > inside your repo; a downloaded release archive is already LF and verifies with plain
+   > `sha256sum -c MANIFEST.sha256`.
+
    ```bash
-   cd /path/to/your-project/.claude/commands
-   for f in *.md; do
-     want=$(grep -E "(commands|skills)/(.*/)?$f\$" /tmp/kit-old/sdlc-kit/MANIFEST.sha256 | cut -d' ' -f1)
-     have=$(sha256sum "$f" | cut -d' ' -f1)
-     if   [ -z "$want" ];        then echo "UNKNOWN   $f  (not from the kit — yours)"
-     elif [ "$want" = "$have" ]; then echo "UNCHANGED $f  (safe to overwrite)"
-     else                             echo "DRIFTED   $f  (review the diff — your call)"
+   cd /path/to/your-project
+   MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
+
+   for f in $(git ls-files .claude/commands); do
+     base=${f#.claude/commands/}
+     # commands/ and skills/ both install into .claude/commands/, so try both prefixes.
+     want=$(awk -v b="$base" '$2 == "commands/" b || $2 == "skills/" b {print $1}' "$MAN")
+     have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
+     if   [ -z "$want" ];        then echo "UNKNOWN   $base  (not from the kit — yours)"
+     elif [ "$want" = "$have" ]; then echo "UNCHANGED $base  (safe to overwrite)"
+     else                             echo "DRIFTED   $base  (review the diff — your call)"
      fi
    done
    ```
+
+   Two traps worth knowing, because both produce confident wrong answers rather than
+   errors:
+
+   - **Never write `git cat-file … | sha256sum` as the test of whether a path exists.** A
+     pipeline reports the *last* command's status, so a missing path yields the hash of
+     empty input and silently "matches" the wrong entry. Look the path up in the manifest,
+     as above, rather than probing for it.
+   - **Check the denominator.** The loop should report exactly as many files as
+     `git ls-files .claude/commands | wc -l`. If it reports fewer, your prefix matching is
+     dropping files — `tdd-references/` lives in a subdirectory and is the usual casualty.
 
 4. **Act on the classification.**
    - `UNCHANGED` → provably untouched since adoption. Copy the new version over it.
@@ -223,16 +246,41 @@ entry accordingly.
 
 ### No version stamp (adopted before 0.2.0)
 
-Manifests did not exist before 0.2.0, but they can be reconstructed from any tag, which is
-enough to make the same check work retroactively:
+Manifests did not exist before 0.2.0, so there is no `MANIFEST.sha256` to compare against.
+Hash the tag's contents directly instead — the result is exactly as provable, since the
+manifest is only ever a cache of those same hashes.
+
+Note that `v0.1.0` predates the repo restructure: its kit files live at `commands/` and
+`skills/`, without the `sdlc-kit/` prefix that later versions use.
 
 ```bash
-git -C /tmp/kit archive v0.1.0 | tar -tf - | grep -E '^(sdlc-kit/)?(commands|skills)/'
-# hash each of those paths out of the tag and compare with your installed copies
+cd /path/to/your-project
+KIT=/tmp/kit                       # a clone of the kit repo
+OLD=v0.1.0                         # the version you believe you are on
+PRE=""                             # use PRE=sdlc-kit/ for v0.2.0 and later
+
+for f in $(git ls-files .claude/commands); do
+  base=${f#.claude/commands/}
+  want=""
+  for cand in "${PRE}commands/$base" "${PRE}skills/$base"; do
+    # -e tests existence and sets a real exit status; never probe with a pipeline.
+    if git -C "$KIT" cat-file -e "$OLD:$cand" 2>/dev/null; then
+      want=$(git -C "$KIT" cat-file -p "$OLD:$cand" | sha256sum | cut -d' ' -f1)
+      break
+    fi
+  done
+  have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
+  if   [ -z "$want" ];        then echo "UNKNOWN   $base"
+  elif [ "$want" = "$have" ]; then echo "UNCHANGED $base"
+  else                             echo "DRIFTED   $base"
+  fi
+done
 ```
 
-If your files match a released version's contents, you are provably on that version and
-step 3 applies unchanged. If they match nothing, treat every file as `DRIFTED`.
+If every file matches a released version, you are provably on that version and step 3
+applies unchanged from there. If they match nothing, treat every file as `DRIFTED` and
+reconcile by hand — once. After this update you will have a version stamp and never need
+this section again.
 
 ## FAQ
 
