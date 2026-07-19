@@ -62,10 +62,15 @@ install failed.
   copy is the upstream's first ~120 lines with invocation syntax and one example
   adapted; the dropped tail documents companion Python scripts that were never
   installed.
-- `python-pro.md` — carries `author: https://github.com/Jeffallan`.
+- `python-pro.md` — carries `author: https://github.com/Jeffallan`. **Diverged
+  2026-07-19:** the "Reference Guide" table was removed — it pointed at five
+  `references/*.md` companion files that were never part of the kit, so every path
+  dangled after install.
 
-All identified upstreams are MIT — team and external distribution are both fine with
-these attributions kept intact.
+All identified upstreams are MIT — team and external distribution are fine with these
+attributions kept intact. The exception to note: `python-pro.md` has no identified
+upstream repository or license text, only its in-file author attribution — treat its
+redistribution status as unverified rather than settled.
 
 ## Recommended built-ins (nothing to install)
 

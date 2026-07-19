@@ -109,7 +109,9 @@ the whole crate if it's fast, otherwise rely on the gate.
 ## Coverage
 
 Keep the floor in CI, not in the local gate — local runs stay fast, CI stays
-authoritative.
+authoritative. Record the current figure in the gate section of `spec/SDLC.md`
+(`{{COVERAGE_FLOOR}}`, `TBD from first CI run` until one exists) so sessions know it
+without reading CI config.
 
 **Never compute the floor, and never carry one over from another project.** *A remembered
 constant is not a measurement.* An aspirational floor fails every build from day one and

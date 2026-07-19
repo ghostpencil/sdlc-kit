@@ -116,8 +116,9 @@ entries marked *[installable]* for every version being skipped. Then:
 
 ## Notes
 
-- Changelog entries marked *[adoption-only]* changed templates or reference docs read
-  only at `/sdlc-setup` time; they affect new adoptions, not this project. If one fixes
+- Changelog entries marked *[adoption-only]* changed templates or the non-installed
+  reference docs, read only at `/sdlc-setup` time; they affect new adoptions, not this
+  project (`reference/REVIEW_LENSES.md` is installed and its changes are *[installable]*). If one fixes
   something the project cares about, raise it with the owner as a manual follow-up —
   never apply it automatically.
 - Skipping several versions is fine: classify against the version the project is on,

@@ -7,7 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This repo contains **no application code** — it is a distributable kit of Claude Code
 prompt files (commands, skills, templates, reference docs) that describes and automates a
 software development lifecycle. There is nothing to build, lint, or test. The only
-verification available is reading for internal consistency (see *Invariants* below).
+verification available is reading for internal consistency: `/kit-check` runs that
+reading pass against the canonical ledger in `KIT_INVARIANTS.md` (see *Invariants*
+below for the working summary).
 
 The kit is **not applied to itself**: there is no `spec/`, no gate, no phase branches
 here. Work on this repo is ordinary editing plus careful cross-file consistency.
@@ -17,8 +19,8 @@ here. Work on this repo is ordinary editing plus careful cross-file consistency.
 The repo root is **not** the kit. `sdlc-kit/` is the shippable product — the only folder
 that is copied into an adopting project, and the unit that gets packaged as a release
 artifact. Everything at the root (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`,
-`IMPROVEMENT_PLAN.md`, `LICENSE`) is documentation *about* the kit and must never end up
-in an adopter's repo.
+`IMPROVEMENT_PLAN.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`) is
+documentation *about* the kit and must never end up in an adopter's repo.
 
 When adding a file, the question is always: does an adopting project need this at setup or
 slice time? Yes → `sdlc-kit/`. No → root.
@@ -32,7 +34,7 @@ way they read once the folder is sitting in a target project.
 sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
   templates/*.template.*                     CLAUDE.md, spec/*.md, .claude/settings.json
   commands/*.md                              .claude/commands/*.md
-  skills/*.md                                .claude/commands/*.md  (project-scoped)
+  skills/** (incl. tdd-references/)          .claude/commands/**   (project-scoped)
   reference/*.md                             (stays put — consulted by setup, not installed,
                                               EXCEPT REVIEW_LENSES.md → .claude/commands/)
 ```
@@ -58,8 +60,14 @@ files; keep it consistent if you touch install paths.
 
 ## Invariants to preserve when editing
 
+The canonical, full ledger is `KIT_INVARIANTS.md` at the root — 13 invariants, each with
+the real defect that motivated it — and `/kit-check` is the reading pass that verifies
+them. The six below are the working summary; on disagreement the ledger wins.
+
 1. **The placeholder contract.** Templates carry `{{PLACEHOLDER}}` markers; setup must
-   resolve every one, and its exit check is `grep -r '{{' CLAUDE.md spec/ .claude/`.
+   resolve every one, and its exit check is
+   `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` — scoped to the instantiated
+   files, because the installed `sdlc-setup.md` legitimately names placeholders.
    Adding a placeholder to a template without teaching `sdlc-setup.md` to ask for it
    breaks that check. Current set spans `templates/` and the hook recipe in
    `reference/GATE_RECIPES.md` (which documents the four `{{HOOK_*}}`/`{{SOURCE_GLOB}}`

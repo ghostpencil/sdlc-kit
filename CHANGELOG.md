@@ -5,9 +5,10 @@ This file is repo documentation and is not shipped inside `sdlc-kit/`; the bundl
 its version in `sdlc-kit/VERSION`.
 
 An entry marked **[installable]** changes a file an adopted project holds
-(`commands/**`, `skills/**`) and therefore matters at update time. Entries marked
-**[adoption-only]** change `templates/**` or `reference/**`, which are read at
-`/sdlc-setup` time and never re-applied to an already-adopted project.
+(`commands/**`, `skills/**`, `reference/REVIEW_LENSES.md`) and therefore matters at
+update time. Entries marked **[adoption-only]** change `templates/**` or the
+non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
+to an already-adopted project.
 
 ## Unreleased
 
@@ -121,6 +122,71 @@ fails the next tag push).
   count, `Any`-expression share) alongside the error count so a flat count with degrading
   reach becomes visible; designing that is deliberately deferred — it is placeholder- and
   setup-work sized like a batch of its own.
+- **Kit self-check** (root-only; nothing an adopter receives): `KIT_INVARIANTS.md`, the
+  canonical ledger of 13 invariants — each carrying the real shipped defect that
+  motivated it, as the check's negative case — and `/kit-check`
+  (root `.claude/commands/kit-check.md`), an agent reading pass over the ledger, not a
+  grep suite: the greppable checks (README tree, manifest currency, `{{` census, step
+  references) run as commands inside it, but the invariants that have actually shipped
+  defects (a false project fact in prose, a semantically-resolved placeholder, a pointer
+  that dangles only post-setup) are invisible to pattern matching — the literal
+  placeholder name-match was tried and produced 24 false positives out of 32. Both live
+  at the root because invariant 12 forbids kit-development-only files in the bundle —
+  the batch as first planned put them *in* the bundle, which would have installed a
+  kit-development command into every adopting project.
+
+### Fixed — by /kit-check's first real run
+
+The pass was run before shipping it and disagreed immediately: 15 findings, all fixed
+in this release. The ones with teeth:
+
+- **[installable]** `end-phase.md` asserted *"branch protection requires the CI check"*
+  — a repo-configuration fact that is false for any adopter without branch protection,
+  the same defect class as 0.2.0's baseline assertion (nothing in setup configures or
+  verifies branch protection). The command now states the rule without asserting the
+  enforcement; **[adoption-only]** `SDLC.template.md`'s CI section softened to match.
+- **This changelog's own marker definition classified all of `reference/**` as
+  adoption-only** — contradicting the install mapping (and its own entries):
+  `reference/REVIEW_LENSES.md` is installed and tracks upstream, so a future change to
+  it filed per the old definition would have been tagged *[adoption-only]* and never
+  routed to adopters by `/sdlc-update`, which reads these markers. Header fixed;
+  **[installable]** `sdlc-update.md`'s Notes no longer repeat the stale generalization.
+- The README's manual update procedure **had no verification step**: `/sdlc-update` §6
+  re-classifies against the target manifest to prove the classifier discriminates, and
+  the README — the stated path for pre-command adopters — went straight from copy to
+  re-stamp. Added, along with the command's replace-a-kept-`sdlc-kit/`-folder-wholesale
+  step, which the README also lacked (a stale kept folder sits beside a re-stamped
+  `spec/SDLC.md` claiming a version it does not hold). Both were disagreements between
+  the procedure's two statements — found by the invariant recorded when the second
+  statement was written.
+- **[installable]** `sdlc-setup.md` Existing mode installed the edit-time hook with no
+  proof it blocks — the deliberate-lint-error verification existed only in New mode,
+  and Existing mode is both the field-tested path and the riskier install (hook
+  *merging*). The proof is now required in both modes.
+- **[installable]** `skills/python-pro.md` carried a "Reference Guide" table pointing
+  at five `references/*.md` companion files that exist nowhere — not in the kit, not
+  installed — so a Python session was instructed to load five dangling paths. Table
+  removed; the divergence from upstream is recorded in `reference/SKILLS.md`, whose
+  provenance note (with `THIRD_PARTY_NOTICES.md`) now also states plainly that
+  `python-pro.md` has no identified upstream license, rather than implying blanket MIT.
+- **[installable]** `sdlc-setup.md`'s close-out exit check grepped all of `.claude/`,
+  which contains the installed copy of `sdlc-setup.md` itself — a file that
+  legitimately names placeholders — so the check false-positived on every adoption
+  (plan §8.11, left for this batch deliberately). Scoped to exactly the instantiated
+  files: `CLAUDE.md spec/ .claude/settings.json`.
+- **[adoption-only]** `SDLC.template.md` + **[installable]** `sdlc-setup.md` +
+  `reference/GATE_RECIPES.md`: the coverage floor now has a recorded home — a
+  `{{COVERAGE_FLOOR}}` line in the gate section (`TBD from first CI run` until one
+  exists), resolved by both setup modes, enforcement staying in CI. Previously the
+  "record TBD" instruction named no destination.
+- Smaller finds, same pass: the canonical template never stated two rules the installed
+  commands enforce (push at slice end; the conditional review lenses) — both added
+  **[adoption-only]**; `{{STOP_COMMAND}}` had no producing interview question (now
+  asked with the run command, both modes, **[installable]**); the formatter was asked
+  for and never routed anywhere (now in scaffold step 1); `plan-phase.md` read a
+  "product direction" section `PROJECT_INDEX.template.md` does not scaffold (pointer
+  trimmed, **[installable]**); the root file tree was missing `.gitattributes` and
+  `.gitignore` (invariant 5's first mechanical catch).
 
 ## 0.2.0 — 2026-07-19
 

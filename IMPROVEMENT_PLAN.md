@@ -73,8 +73,8 @@ B2  cheap general wins                 ← DONE (2026-07-19) — see §8
 B3  enforceable checks (the reframe)   ← DONE (2026-07-19) — see §8
 B4  reference/REVIEW_LENSES.md         ← DONE (2026-07-19) — see §8
 B5  remainder                          ← DONE (2026-07-19) — see §8
-B6  kit self-check invariants          ← NEXT
-     └─ cut v0.3.0 → migrate TFit again
+B6  kit self-check invariants          ← DONE (2026-07-19) — see §8
+     └─ cut v0.3.0 → migrate TFit again ← IN PROGRESS this session
 ```
 
 Two ordering constraints that matter:
@@ -748,3 +748,33 @@ must state any process rule a command enforces.
     Either the check is silently understood to cover instantiated files only, or it
     false-positives on every adoption — a live specimen of §7's "check that fires
     wrongly" class, left for B6 rather than patched in passing.
+
+**B6 (2026-07-19).**
+
+12. **Placement resolved as the hand-off recommended:** `KIT_INVARIANTS.md` at the
+    root beside `FIELD_REPORT.md`; `/kit-check` in the root `.claude/commands/`. Both
+    out of the bundle, off the manifest, off the update path. The ledger is canonical
+    over root CLAUDE.md's summary (stated in both), and every invariant carries its
+    motivating defect as the check's negative case — §7.2 baked into the format.
+13. **§8.11 settled by scoping, not by stripping:** the exit check is now
+    `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` — exactly the instantiated
+    files. Making the installed `sdlc-setup.md` `{{`-free was rejected: it must name
+    placeholders to teach their resolution. Ledger invariant 4 states the rule; the
+    `{{` census (only `sdlc-setup.md` may hit) is the greppable half.
+14. **The first /kit-check run disagreed immediately: 15 findings, all fixed.** Four
+    parallel reading-pass agents plus the mechanical checks. The instructive ones:
+    a fourth #1-class defect (`end-phase.md` asserted branch protection exists);
+    the CHANGELOG's own marker taxonomy contradicted the install mapping — a §8.6-class
+    defect in a file §8.6's sweep never covered, which would have routed future
+    `REVIEW_LENSES.md` changes away from adopters via `/sdlc-update`'s marker-driven
+    behavior; two real §8.8 disagreements (README lacked the verification re-run and
+    the replace-kept-kit-folder step) found by the invariant recorded when the
+    duplication was created; an invariant-13 violation inside setup itself (Existing
+    mode never proved the hook blocks); and `python-pro.md` shipping five dangling
+    reference paths since v0.1.0. Every finding class was predicted by a ledger entry —
+    none required a new invariant, which is weak evidence the ledger is complete and
+    strong evidence the reading-pass form works.
+15. Coverage floor gained a home (`{{COVERAGE_FLOOR}}` in the gate section) — closing
+    the loose end B1 left, where "record TBD" named no destination. Placeholder count
+    grows to 34; both setup modes already produced the value, so invariant 3's mapping
+    holds without new questions.

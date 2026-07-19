@@ -142,11 +142,15 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 └── LICENSE                          ← MIT (must travel with the bundle)
 
 .github/workflows/release.yml        ← packages the kit as a release asset on tag push
+.claude/commands/kit-check.md        ← /kit-check: kit self-check (development-only, never installed)
+.gitattributes                       ← pins LF — the manifest hashes depend on it
+.gitignore
 README.md                            ← you are here
 CLAUDE.md                            ← instructions for agents working ON the kit
 CHANGELOG.md                         ← kit version history
 FIELD_REPORT.md                      ← findings from the first external adoption
 IMPROVEMENT_PLAN.md                  ← what is being done about them
+KIT_INVARIANTS.md                    ← the invariant ledger /kit-check verifies
 LICENSE                              ← MIT
 ```
 
@@ -245,12 +249,20 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
      you to fix a command that disagrees with it, so drift is often deliberate.
    - `UNKNOWN` → not a kit file. Leave it alone.
 
+   If you kept a `sdlc-kit/` folder from adoption, replace it wholesale with the new
+   version's bundle — it is a verbatim copy of the kit and holds nothing of yours; left
+   stale, it sits beside a re-stamped `spec/SDLC.md` claiming a version it does not hold.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, or `.claude/settings.json`.
    They hold your recorded baseline and decisions; the kit cannot regenerate them.
 
-6. **Re-record the version** in `spec/SDLC.md` (*Kit version: X.Y.Z*, dated). From here
-   every later update is mechanical.
+6. **Verify, then re-record the version.** Re-run step 3 against the **new** version's
+   manifest: every file you copied must now classify `UNCHANGED`, and the only `DRIFTED`
+   entries are files you chose to keep. The two runs disagreeing about the copied files
+   is what proves the classifier discriminates — an all-clear it could not fail to
+   produce proves nothing. Then re-record the version in `spec/SDLC.md`
+   (*Kit version: X.Y.Z*, dated). From here every later update is mechanical.
 
 7. **Land it as a normal PR** (`chore/update-sdlc-kit-X.Y.Z`) — the same way the adoption
    landed. Read `CHANGELOG.md` for the versions you skipped; entries marked

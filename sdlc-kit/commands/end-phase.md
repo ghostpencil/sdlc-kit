@@ -88,7 +88,8 @@ git checkout <main> && git pull
 
 ## Notes
 
-- Never merge with a red gate or failing CI; branch protection requires the CI check.
+- Never merge with a red gate or failing CI — the rule holds whether or not branch
+  protection enforces it on this repo.
 - Deferred findings go to the PROJECT_INDEX backlog, not silently dropped — a big pile is
   grounds to propose a cleanup slice at the next phase-scope decision.
 - If the team's process routes merge approval through a human PR reviewer instead of the

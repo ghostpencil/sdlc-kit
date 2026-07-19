@@ -1,8 +1,10 @@
 # Third-Party Notices
 
-The files under `skills/` are vendored from (or derived from) the following
-MIT-licensed projects. Full provenance detail, including how each local copy was
-verified against its upstream, is in `reference/SKILLS.md`.
+The files under `skills/` are vendored from (or derived from) the following projects —
+all *identified* upstreams are MIT-licensed; `python-pro.md` has no identified upstream
+repo or license text, only its in-file author attribution. Full provenance detail,
+including how each local copy was verified against its upstream, is in
+`reference/SKILLS.md`.
 
 | File(s) in this repo | Upstream | Copyright |
 |---|---|---|

@@ -53,19 +53,21 @@ questionnaire.
 - **Round 3 — process fit:** does this process govern the whole repo, or a subset — and
   what is explicitly out of scope (default: the whole repo; mixed repos — app + docs,
   app + infra — name the boundary); how the owner will run the app for acceptance
-  review (the run command); CI provider (default GitHub Actions); any always-active
+  review (the run command — and how to stop it, if Ctrl+C or closing the window does
+  not suffice); CI provider (default GitHub Actions); any always-active
   rules for CLAUDE.md (portability, serialization, DI seams for external services);
   anything the owner already knows about Phase 1 (recorded for `/plan-phase`, not
   acted on now).
 
   **Do not ask for a coverage floor and do not propose a number.** No CI run exists yet,
-  so any figure would be invented. Record `coverage floor: TBD from first CI run` and
-  follow the procedure in `reference/GATE_RECIPES.md`.
+  so any figure would be invented. Resolve `{{COVERAGE_FLOOR}}` (gate section of
+  `spec/SDLC.md`) as `TBD from first CI run` and follow the procedure in
+  `reference/GATE_RECIPES.md`.
 
 Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
 1. `git init` (if needed) + language scaffolding: package manifest, `src`/package dir,
-   tests dir, tool configs (linter/typechecker/test runner), `.gitignore`.
+   tests dir, tool configs (linter/typechecker/test runner/formatter), `.gitignore`.
 2. **Establish the gate green on the walking skeleton:** one trivial module + one real
    test; run lint + typecheck + tests per `GATE_RECIPES.md`. Do not proceed red.
 3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md`,
@@ -129,11 +131,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    preserve-and-extend, shown as a diff before writing). Interview in rounds for what
    analysis could not determine: whether this process governs the whole repo or a
    subset, and what is explicitly out of scope (step 1's survey of what else the repo
-   holds seeds this question); acceptance-review surface and run command, in-flight
+   holds seeds this question); acceptance-review surface and run command (and stop
+   command, if Ctrl+C does not suffice), in-flight
    work (open branches/PRs to record in START HERE), known trouble spots for the
    backlog, always-active rules worth encoding. If CI already enforces a coverage floor,
-   record the existing number as-is; if it does not, record
-   `coverage floor: TBD from first CI run` and do not propose one.
+   resolve `{{COVERAGE_FLOOR}}` (gate section of `spec/SDLC.md`) with the existing
+   number as-is; if it does not, resolve it as `TBD from first CI run` and do not
+   propose one.
 3. **Generate** (same placeholder-resolution rules as New mode):
    - `CLAUDE.md` — merge, never replace; existing instructions win on conflict and
      conflicts are surfaced to the owner.
@@ -150,7 +154,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      known issues in the backlog.
    - Commands, the vendored TDD skill set, and `reference/REVIEW_LENSES.md` into
      `.claude/commands/` (same rules as New mode step 5); hook into
-     `.claude/settings.json` (merge with any existing hooks).
+     `.claude/settings.json` (merge with any existing hooks), verified the same way as
+     New mode step 6 — a deliberate lint error in a scratch source file must be
+     blocked. An unverified hook is enforcement that reads as complete.
 4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in
    `spec/SDLC.md` with what you measured — this is the placeholder step 3 could not fill,
    because the measurement did not exist yet. Leave it unresolved until now rather than
@@ -169,8 +175,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
 ### 3. Close-out (both modes)
 
-1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/` → must be empty. Re-run the
-   gate one final time (New mode: must be green).
+1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty.
+   The scope is exactly the files setup instantiates — a blanket `.claude/` grep would
+   trip on the installed copy of this command, which legitimately names placeholders.
+   Every other installed file is `{{`-free and stays that way. Re-run the gate one
+   final time (New mode: must be green).
 2. Ask the owner: commit the setup? If yes — New mode: initial commit; Existing mode:
    a `chore/adopt-sdlc` branch and a normal PR (the team should see this land like any
    change). Never commit without asking.

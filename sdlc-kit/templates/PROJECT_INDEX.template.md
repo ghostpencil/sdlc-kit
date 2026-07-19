@@ -55,4 +55,5 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 {{NOTES}}
 <!-- Durable, non-obvious facts a fresh session needs and cannot derive from code:
      data-compatibility rules, seeds/fixtures, decisions too small for a spec.
-     Environment facts go in Environment gotchas above. Keep each to 1–3 lines. -->
+     Environment facts go in Environment gotchas above. Keep each to 1–3 lines.
+     New Project mode starts this as "- (none)". -->

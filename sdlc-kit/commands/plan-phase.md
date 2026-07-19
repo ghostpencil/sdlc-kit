@@ -19,7 +19,7 @@ Optional argument to skip candidate selection: `/plan-phase 12` or
 
 ### 1. Orient
 
-Read `spec/PROJECT_INDEX.md` (Notes + deferred backlog + product direction). Then, only
+Read `spec/PROJECT_INDEX.md` (Notes + deferred backlog). Then, only
 as needed: any roadmap file, any design doc named for the candidate, and the project's
 scope/feature spec if one exists. Context-minimization rule applies.
 

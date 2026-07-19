@@ -76,8 +76,15 @@ check what the checker still reaches, not only what it reports.
 
 This is the single place the baseline is defined. Commands read it from here.
 
-The same checks run in CI ({{CI_DESCRIPTION}}). Branch protection on `{{MAIN_BRANCH}}`
-requires the CI check on PRs.
+The same checks run in CI ({{CI_DESCRIPTION}}). Merges to `{{MAIN_BRANCH}}` require the
+CI check green — via branch protection where it is configured, and as a process rule
+regardless.
+
+**Coverage floor:** {{COVERAGE_FLOOR}}
+<!-- "TBD from first CI run" until one exists. Set just below the first green CI run's
+     observed figure, using CI's exact invocation; it only ever raises. Lowering it to
+     pass a build defeats its only purpose — existing coverage debt is a backlog item,
+     not a merge blocker. -->
 
 If local and CI disagree about a measurement — a pass/fail, an error count, a coverage
 figure — CI is authoritative. And the disagreement is itself a finding: work out *why*
@@ -121,12 +128,13 @@ Run `/next-slice` in a **fresh session**:
 Run `/end-slice` when the slice's exit criteria are met:
 
 5. Run the gate.
-6. Slice code review (code-review skill on the diff). Apply CRITICAL/HIGH fixes now;
-   defer the rest to the PROJECT_INDEX backlog with a one-line rationale each. Re-run
-   the gate if anything changed.
+6. Slice code review (code-review skill on the diff; plus the matching lens from
+   `.claude/commands/REVIEW_LENSES.md` when the slice changed error propagation or swept
+   for a pattern). Apply CRITICAL/HIGH fixes now; defer the rest to the PROJECT_INDEX
+   backlog with a one-line rationale each. Re-run the gate if anything changed.
 7. Commit (heredoc for multi-line messages, via the Bash tool).
 8. Update `spec/PROJECT_INDEX.md` — slice marked done, deferred items appended — and
-   commit the docs change.
+   commit the docs change. Push the branch (no PR — that is phase end).
 9. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end
