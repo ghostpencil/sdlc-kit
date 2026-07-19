@@ -73,6 +73,12 @@ F3  slice-runner TRIAL on a real project                    ← not a kit change
      └─ if passed: encode in kit, cut v0.5.0
 ```
 
+**Amended 2026-07-19: `v0.4.0` was cut after F1, not after F2.** F1 is only half-built
+until it runs on a real adoption, and it cannot run on one until it is released and
+migrated — the acceptance criterion *is* the release. Both prior releases were cut for
+the same reason and both found defects in the migration itself. F2 therefore ships as
+`v0.5.0`, and F3 (if its trial passes) as `v0.6.0`.
+
 F1 first because it is standalone and improves the evidence supply for everything else.
 F2's two halves ship together because the model-tier work lands partly *in* the agent
 definitions F2 creates. F3 is gated: the trial happens in an adopting project's repo
@@ -123,6 +129,38 @@ check); CHANGELOG **[installable]**.
 genuine kit finding (TFit has known material: the checker-reach problem is live there).
 Negative case: run it on a freshly-adopted project with no history — it must say "not
 enough evidence yet" rather than hallucinate findings.
+
+**Status (2026-07-19): built in the kit repo; acceptance still open.** Eight files
+changed — `commands/sdlc-retro.md` (new), `commands/end-phase.md`,
+`commands/sdlc-setup.md`, `templates/CLAUDE.template.md`, `reference/SKILLS.md`,
+`MANIFEST.sha256`, root README/CLAUDE/CHANGELOG. Neither acceptance case can run in this
+repo: both need an adopting project.
+
+Three decisions taken during the build, recorded so they are not re-opened:
+
+1. **The retro is offered, not required.** `end-phase.md` step 7 offers it after the
+   phase closes; `SDLC.template.md` is deliberately untouched. The reasoning is a real
+   tension, not an oversight: every other kit command is reachable from the process
+   (`SDLC.md` names `/plan-phase`, which hands to `/next-slice`, which hands to
+   `/clear`), and a command with no caller runs only if the owner remembers it exists —
+   self-defeating for the one command whose purpose is fixing the evidence supply. But
+   wiring it into the canonical process would make it mandatory, and a required retro
+   after every phase is precisely the ceremony the retro's own *what would you delete?*
+   question exists to catch. An offer at the right moment resolves both. Note the
+   failure mode this guards against is **silent**: no error, no drift, no `/kit-check`
+   finding — just a shipped command that never runs.
+2. **The report format is inlined, not pointed at.** An early draft told the command to
+   follow `FIELD_REPORT.md`; that file lives in this repo and *not* in an adopted
+   project. Caught by invariant 5, which exists for exactly this.
+3. **Two pre-existing defects fell out of the batch's `/kit-check`,** both fixed here.
+   The root README's update section was missing the *new-files-in-the-target-install-set*
+   clause that `sdlc-update.md` step 5 already carried — the two statements of the
+   procedure disagreed, which the kit defines as a bug (invariant 8). It had verified
+   clean since it was written, because `sdlc-retro.md` is the first new installed file
+   to make it bite: a human following the README by hand would finish step 4 with no
+   instruction that would ever create the file, and step 6 verifies only files you
+   copied. Separately, `reference/SKILLS.md` listed five kit commands, having missed
+   `sdlc-update` at 0.3.0 (invariant 7).
 
 ---
 
@@ -233,6 +271,29 @@ gets stated in *both* files.
 | `opusplan` on `plan-phase.md` frontmatter | **Deferred**, not rejected — imposes High-tier cost on every adopter by default. Revisit with F1 evidence. |
 | `context: fork` for command isolation | **Unavailable** — skills-only (verified). Revisit only if the kit ever migrates commands to skill format, which is its own design question. |
 | Slice-runner straight into the kit | **Reshaped** into a gated trial (F3). Execution-model changes ship on evidence, not on design confidence. |
+
+---
+
+## 4a. The ripple lists in this plan are incomplete — verified, not suspected
+
+F1's §8.6 ripple list named five destinations and **missed three**: `end-phase.md` (the
+caller), `templates/CLAUDE.template.md` (the adopted project's own command list — a
+command installed and named nowhere the project reads is a command nobody runs), and
+`reference/SKILLS.md` (a derived statement of the install mapping). All three were found
+by `/kit-check`, none by the plan.
+
+That is a 5-of-8 hit rate on the *easy* batch — F1 adds a file under an existing prefix
+with an existing destination, the case the plan itself calls the mild one. **F2's list
+must therefore be treated as a starting point, not an inventory**, and its `agents/` →
+`.claude/agents/` mapping is the hard case: a new prefix *and* a new destination, where
+the analogous `REVIEW_LENSES.md` change falsified five derived statements at once.
+
+The generalizable rule, and the reason this section exists rather than a corrected list:
+**derive the ripple set mechanically, do not recall it.** Before the batch, grep for an
+existing member of the set being extended (`grep -rn sdlc-update` was what surfaced all
+three misses here) and treat every hit as a candidate. `reference/SKILLS.md` had already
+missed `sdlc-update` at 0.3.0 and gone unnoticed for a release — a hand-maintained list
+of derived statements is itself a derived statement, with the same drift problem.
 
 ---
 

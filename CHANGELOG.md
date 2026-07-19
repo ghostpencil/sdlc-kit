@@ -10,9 +10,52 @@ update time. Entries marked **[adoption-only]** change `templates/**` or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.4.0 — 2026-07-19
+
+The improvement loop gets its input side: `/sdlc-retro` turns a finished phase into
+evidence, so the next plan rests on what a run actually taught rather than on what
+someone remembered to write down. Cut ahead of the feature plan's schedule (which put
+0.4.0 after the agents batch) so the command can be exercised on a real adoption —
+the same reason the last two releases were cut, and the same reason they found defects.
+
+### Added
+- **[installable]** `commands/sdlc-retro.md` — `/sdlc-retro`, lessons-learned extraction
+  at a phase boundary. The improvement loop had a proven output side (field report →
+  plan → batches → release → migrate) and a manual input side: `FIELD_REPORT.md` was
+  written by hand, so the kit's evidence supply depended on someone volunteering a
+  retrospective. The command mines what the process already forces onto disk —
+  deferred-backlog provenance tags, the gate-baseline trajectory in `spec/SDLC.md`,
+  Phase History, `git log` friction signals — then interviews the owner and sorts every
+  lesson into exactly two piles: project facts into the project's own files, process
+  findings into `spec/SDLC_RETRO_<date>.md` in the shape of `FIELD_REPORT.md`. It never
+  submits anything; whether a finding reaches the kit is the owner's call. Refuses to
+  run on a project with too little history rather than manufacturing findings.
+- **[adoption-only]** `templates/CLAUDE.template.md` lists `/sdlc-retro` alongside the
+  four daily commands, so an adopting project learns the command exists. A command
+  installed and named nowhere the project reads is a command nobody runs.
+- **[installable]** `end-phase.md` step 7 offers `/sdlc-retro` after the phase closes.
+  Every other kit command is reachable from the process — `SDLC.md` names `/plan-phase`,
+  `/plan-phase` hands off to `/next-slice`, `/end-slice` to `/clear`. The retro had no
+  caller, which for *this* command is self-defeating: it exists because the evidence
+  supply depended on someone volunteering a retrospective. It is offered rather than
+  required, and stays out of `SDLC.template.md` deliberately — a mandatory retro after
+  every phase is the ceremony the retro's own "what would you delete?" question exists
+  to catch. The failure it prevents is silent: no error, no drift, no `/kit-check`
+  finding, just a command that ships in every bundle and never runs.
 
 ### Fixed
+- The root README's *Updating an adopted project* section was missing the
+  **new-files-in-the-target** clause that `sdlc-update.md` step 5 already had — so the
+  two statements of the procedure disagreed, which the kit defines as a bug. A human
+  following the README by hand would finish step 4 with no instruction that would ever
+  create a newly-installed file, and step 6's verification checks only files you copied,
+  so the omission verified clean. Found by `/kit-check` invariant 8 while adding
+  `sdlc-retro.md` — the first new installed file since the clause was written, and
+  exactly the case it exists for.
+- **[adoption-only]** `reference/SKILLS.md`'s kit-command row listed five commands,
+  omitting `sdlc-update` (shipped in 0.3.0) and `sdlc-retro`. It is a derived statement
+  of the install mapping, so it now names its source of truth instead of quietly drifting
+  from it a third time.
 - **[installable]** `sdlc-update.md` step 5 now says explicitly that files **new in the
   target version's install set** are copied in — classification never sees them (the
   project does not hold them yet), and the command's first real run (TFit,

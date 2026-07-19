@@ -28,6 +28,8 @@ in `spec/SDLC.md`. Session commands that drive it:
 - `/next-slice` — start a slice in a fresh session (orient, confirm scope, branch, TDD)
 - `/end-slice` — close a slice (gate, code review, commit, PROJECT_INDEX, then `/clear`)
 - `/end-phase` — close a phase (gate, owner acceptance review, PR, whole-arc review, merge)
+- `/sdlc-retro` — extract lessons from a finished phase (project facts to this project's
+  files; process findings to a report you decide whether to send upstream)
 
 A PostToolUse hook (`.claude/settings.json`) runs {{HOOK_TOOLS}} on every edited
 {{SOURCE_EXT}} file; its feedback is blocking — fix it before moving on.

@@ -25,7 +25,7 @@ install failed.
 | `tdd` (+ `tdd-references/`) | **kit-vendored** → project `.claude/commands/` | The red–green–refactor loop for every slice; the vertical-slicing mandate and mock policy it enforces. `/next-slice` invokes it after reading `spec/TESTING.md`. **Setup must install this and halt if the copy fails.** |
 | `code-review` | built-in | The per-slice diff review in `/end-slice`. |
 | `pr-review-toolkit` | official plugin | The whole-arc PR review in `/end-phase` (`pr-review-toolkit:review-pr` plus specialized reviewer agents). Once per machine: `/plugin install pr-review-toolkit@claude-plugins-official` |
-| kit commands | this kit | `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`, `end-phase` → copied into `<project>/.claude/commands/`; travel with the repo. |
+| kit commands | this kit | `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`, `end-phase`, `sdlc-retro`, `sdlc-update` → copied into `<project>/.claude/commands/`; travel with the repo. The install list in `commands/sdlc-setup.md` (New mode step 5) is the source of truth for this set. |
 
 ## Vendored in `sdlc-kit/skills/` — what gets installed when
 

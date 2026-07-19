@@ -43,8 +43,8 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
 `commands/sdlc-setup.md` is the entry point and the only file that reads the others. It
 runs in two modes — **New Project** (interview → scaffold → establish a green gate) and
 **Existing Project** (analyze → propose → confirm → generate, merging never overwriting) —
-and it instantiates every template, installs the four daily commands, `sdlc-update.md`,
-and the vendored TDD skill set, and writes the edit-time hook. `commands/sdlc-update.md`
+and it instantiates every template, installs the four daily commands, `sdlc-retro.md`,
+`sdlc-update.md`, and the vendored TDD skill set, and writes the edit-time hook. `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
 *Updating an adopted project* section state the same procedure and must agree.
 

@@ -85,6 +85,10 @@ git checkout <main> && git pull
 - Trim/align the phase spec if the review changed behavior described there.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Suggest any durable lessons worth saving to auto-memory.
+- Offer `/sdlc-retro` — it extracts lessons from the phase just closed, while the
+  evidence is fresh: project facts into PROJECT_INDEX, process findings into a report.
+  An offer, not a step; declining is the right answer whenever the phase has nothing to
+  teach, and the command itself refuses to run on too little evidence.
 
 ## Notes
 

@@ -89,7 +89,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 5. Install commands and skills into `.claude/commands/` (project-scoped, so the team
    inherits them via git):
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
-     `sdlc-update.md` (and this file);
+     `sdlc-retro.md`, `sdlc-update.md` (and this file);
    - the TDD skill set from `sdlc-kit/skills/`: `tdd.md` + `tdd-references/`
      (always), `tdd-guide.md` + `mutation-testing.md` (offer), `python-pro.md` +
      `hypothesis-tests.md` (Python projects only — offer). Preserve the

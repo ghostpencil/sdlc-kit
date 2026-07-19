@@ -120,6 +120,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── next-slice.md
 │   ├── end-slice.md
 │   ├── end-phase.md
+│   ├── sdlc-retro.md                ← lessons-learned extraction at a phase boundary
 │   └── sdlc-update.md               ← brings an adopted project to a newer kit release
 ├── skills/                          ← vendored skills → <project>/.claude/commands/
 │   ├── tdd.md                       ← THE TDD skill (not built into Claude Code)
@@ -249,6 +250,12 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
      by file. **Never auto-overwrite a drifted file** — `spec/SDLC.md` explicitly invites
      you to fix a command that disagrees with it, so drift is often deliberate.
    - `UNKNOWN` → not a kit file. Leave it alone.
+
+   Then copy in any files **new in the target version's install set**. Classification
+   never saw them — it enumerates what your project already holds, and your project does
+   not hold them yet — so they appear in no category above and are the one class of
+   update a purely classification-driven pass silently skips. Take the install set from
+   the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5).
 
    If you kept a `sdlc-kit/` folder from adoption, replace it wholesale with the new
    version's bundle — it is a verbatim copy of the kit and holds nothing of yours; left
