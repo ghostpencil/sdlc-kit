@@ -457,6 +457,42 @@ verifies:
 
 Then cut `v0.3.0` and run §4 again.
 
+**Hand-off notes for the executing session** *(recorded 2026-07-19, after B5)*:
+
+- **The batch as written contains its own invariant violation — resolve it first.**
+  It says "Add `reference/KIT_INVARIANTS.md`", but `reference/` ships inside
+  `sdlc-kit/` to every adopter, and kit invariant 6 (root CLAUDE.md) forbids anything
+  kit-development-only under `sdlc-kit/`. Kit contribution rules are exactly that.
+  Same question for `/kit-check` itself: it runs against this repo, not an adopted
+  project, so it belongs in the *root* `.claude/commands/`, not in `sdlc-kit/commands/`
+  (where setup would install it into adopters). Recommended: both at the root
+  (`KIT_INVARIANTS.md` beside `FIELD_REPORT.md`; the command in `.claude/commands/`),
+  which also keeps them out of the manifest and off the update path. Whatever the
+  choice, the README file tree must list both (invariant 5).
+- **The invariant ledger to encode is already collected; do not re-derive it.** From
+  §1: no project facts in command files (B1 left it homeless — this is its home).
+  From §8: every file-and-section pointer names a place that exists in what the kit
+  installs (§8.1); numbered step cross-references are as fragile as pointers (§8.5);
+  the kit-path → installed-path mapping is stated in ~six places and must be derived
+  from `sdlc-setup.md`'s install list, the rest verified against it (§8.6); the
+  command and README statements of the update procedure agree (§8.8). From §7: every
+  check the kit specifies states how it is proven to *fail*, and a checker is trusted
+  only once it has been made to disagree.
+- **§8.11 is a live specimen to settle, not just record:** the `{{` exit check
+  false-positives on the installed `sdlc-setup.md` (verified: it and the uninstalled
+  `GATE_RECIPES.md` are the only kit files carrying literal `{{`). Either scope the
+  check to instantiated files or make the installed command `{{`-free — decide, fix,
+  and make it a stated invariant either way.
+- `/kit-check` is an agent reading pass, not a grep suite (§7; B6.2's 24-false-positive
+  experiment). Checks 4 and 5 (README tree, manifest currency) are the greppable
+  minority — fine to specify as commands within the reading pass.
+- After B6: bump VERSION/CHANGELOG, regenerate the manifest (the release workflow
+  *verifies* it — a stale one fails the tag push, §8.2), tag `v0.3.0`, then run §4
+  again on TFit — this time by exercising `/sdlc-update` itself, its first real run.
+  TFit's stamp says `0.2.0`, so classification runs against the `v0.2.0` manifest.
+- When done: mark B6 in §2, append field notes to §8. This plan's backlog is then
+  empty — say so and stop.
+
 ---
 
 ## 4. Migrating the adopting project (TFit) — retroactive v0
