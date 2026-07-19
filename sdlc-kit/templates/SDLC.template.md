@@ -13,8 +13,9 @@ Commands state nothing project-specific; every project fact lives in this file. 
 here that a command would need to know — the gate commands, the gate baseline, the scope
 of this process — is recorded below and read from here.
 
-**Kit version:** {{KIT_VERSION}} (adopted {{ADOPTION_DATE}}). Update procedure: see the
-kit's home repository README.
+**Kit version:** {{KIT_VERSION}} (adopted {{ADOPTION_DATE}}). Update procedure:
+`/sdlc-update` (installed with the commands; the kit's home repository README states the
+same procedure).
 
 ---
 
@@ -66,6 +67,12 @@ counts for a project adopted mid-flight. Any *increase* is a regression and is f
 the slice that caused it, never accepted as a cost. The baseline only ever moves down, as
 the STABILIZATION backlog burns it toward zero; when it changes, it is re-recorded here in
 the same commit.
+
+A count can also hold still because the checker stopped looking: suppressions, skipped
+tests, and constructs that hide code from analysis (an unannotated decorator can type
+everything it wraps as `Any`) freeze the number while shrinking what it measures. A
+ceiling that stops measuring is worse than a high one — when the count will not move,
+check what the checker still reaches, not only what it reports.
 
 This is the single place the baseline is defined. Commands read it from here.
 

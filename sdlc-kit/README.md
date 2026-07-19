@@ -51,7 +51,9 @@ cd sdlc-kit && sha256sum -c MANIFEST.sha256      # shasum -a 256 -c on macOS
 
 ## Updating an already-adopted project
 
-See the *Updating an adopted project* section of the home repository's README. The short
-version: compare your installed `.claude/commands/*.md` against the `MANIFEST.sha256` of
-the version you are currently on (recorded in your `spec/SDLC.md`). Files that match are
-provably unmodified and safe to overwrite; files that differ are yours to reconcile.
+Run `/sdlc-update` in the adopted project (setup installs it alongside the daily
+commands), or see the *Updating an adopted project* section of the home repository's
+README — both state the same procedure. The short version: compare your installed
+`.claude/commands/*.md` against the `MANIFEST.sha256` of the version you are currently
+on (recorded in your `spec/SDLC.md`). Files that match are provably unmodified and safe
+to overwrite; files that differ are yours to reconcile.

@@ -61,6 +61,9 @@ Run `pr-review-toolkit:review-pr` on the PR. Apply fix batches, re-run the gate,
 and update the PR body with what changed. If the phase was large or high-risk, suggest
 `/code-review ultra <PR#>` to the owner as an optional deeper pass (owner-triggered, paid).
 
+This is not a repeat of the slice reviews: each of those saw one layer, so arc-level bugs
+live in the seams between slices and are invisible to every per-slice review by construction.
+
 Owner-facing design questions found by review HALT — they go to the owner, not into the
 fix batch.
 

@@ -72,8 +72,8 @@ B1  the two shipped defects            ← DONE (2026-07-19)
 B2  cheap general wins                 ← DONE (2026-07-19) — see §8
 B3  enforceable checks (the reframe)   ← DONE (2026-07-19) — see §8
 B4  reference/REVIEW_LENSES.md         ← DONE (2026-07-19) — see §8
-B5  remainder                          ← NEXT
-B6  kit self-check invariants
+B5  remainder                          ← DONE (2026-07-19) — see §8
+B6  kit self-check invariants          ← NEXT
      └─ cut v0.3.0 → migrate TFit again
 ```
 
@@ -684,3 +684,31 @@ must state any process rule a command enforces.
    landed beside the sections they qualify (*Skip discipline* next to the mock policy;
    error-assertion rules inside §Test Isolation), not in a grab-bag section, and carry
    no new placeholder. No release cut; entries are under Unreleased.
+
+**B5 (2026-07-19).**
+
+8. **`sdlc-update.md` was written; the update procedure now exists twice by design.**
+   All the hand-off must-haves are encoded (classify against the claimed version's
+   manifest; hash committed content; three prefixes + denominator check; DRIFTED is the
+   ONE owner halt, never auto-overwritten; nothing project-owned touched; re-stamp
+   last, so an aborted update never claims a version it does not hold). The command and
+   README §*Updating an adopted project* cross-point each other and define disagreement
+   as a kit bug; §8.8 is the B6 invariant that verifies they agree.
+   `SDLC.template.md`'s update pointer retargeted from the home-repo README to
+   `/sdlc-update` — the adopted project may hold neither this repo's README nor the kit
+   folder, but always holds the command.
+9. **#7 landed without renumbering.** Folded into Existing-mode steps 1/2 as the
+   hand-off directed; `step \d` grep clean afterward. Scoped to Existing mode as the
+   plan wrote it — not extended to New mode.
+10. Discrimination check: exactly 4 changed hashes (the 3 edited kit files plus the
+    bundle README, whose §Updating now names the command) and exactly 1 new entry
+    (25 total, matching `git ls-files` minus the manifest). Root CLAUDE.md's field-report
+    section was brought current — it still described #1 as a live defect and #14 as
+    open, both now false, and a fresh session reads that file first.
+11. **A pre-existing self-check defect spotted while keeping `sdlc-update.md` free of
+    `{{`:** setup's close-out exit check (`grep -r '{{' CLAUDE.md spec/ .claude/`)
+    trips on the installed `sdlc-setup.md` itself, which legitimately contains literal
+    placeholder names and is installed into `.claude/commands/` "(and this file)".
+    Either the check is silently understood to cover instantiated files only, or it
+    false-positives on every adoption — a live specimen of §7's "check that fires
+    wrongly" class, left for B6 rather than patched in passing.

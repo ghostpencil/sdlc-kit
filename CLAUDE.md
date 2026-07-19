@@ -40,8 +40,10 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
 `commands/sdlc-setup.md` is the entry point and the only file that reads the others. It
 runs in two modes — **New Project** (interview → scaffold → establish a green gate) and
 **Existing Project** (analyze → propose → confirm → generate, merging never overwriting) —
-and it instantiates every template, installs the four daily commands plus the vendored TDD
-skill set, and writes the edit-time hook.
+and it instantiates every template, installs the four daily commands, `sdlc-update.md`,
+and the vendored TDD skill set, and writes the edit-time hook. `commands/sdlc-update.md`
+brings an adopted project forward to a newer kit release; it and the root README's
+*Updating an adopted project* section state the same procedure and must agree.
 
 The process the kit installs is **phases → slices → TDD cycles**, gated by lint +
 typecheck + tests, with exactly five owner halt points. `templates/SDLC.template.md` is
@@ -82,16 +84,13 @@ files; keep it consistent if you touch install paths.
 
 `FIELD_REPORT.md` documents the first external adoption (a Python project, Existing
 Project mode) and lists 14 numbered gaps, each naming the file(s) that need to change,
-with a prioritized table at the end. Treat it as the issue tracker. Two items are
-load-bearing context for any edit:
-
-- **#1 is a confirmed live defect:** `commands/end-slice.md` §2 asserts "the typecheck
-  baseline is green" unconditionally, contradicting Existing Project mode's supported
-  red-baseline adoption. `SDLC.template.md` has the conditional comment; the commands do
-  not.
-- **#14:** there is no update path — an adopted project is pinned to the kit as of its
-  adoption day, so fixes here do not reach it. A `commands/sdlc-update.md` is the
-  recommended first change.
+with a prioritized table at the end. Treat it as the issue tracker — but check
+`IMPROVEMENT_PLAN.md` §2 for what is already done before acting on it. The two findings
+that were load-bearing context for any edit are both resolved: **#1** (a command
+asserting a project fact) was fixed in v0.2.0 and became the invariant that commands
+state no project facts; **#14** (no update path) is closed by `commands/sdlc-update.md`
+plus the root README's update procedure — the two state the same procedure and must
+agree.
 
 Its cross-cutting conclusion is worth applying to new work: the kit is strong at
 *specifying* process and weak at making it *self-checking*. Prefer changes that fail

@@ -86,8 +86,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    that reads as complete — the proof step is not optional.
 5. Install commands and skills into `.claude/commands/` (project-scoped, so the team
    inherits them via git):
-   - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`
-     (and this file);
+   - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
+     `sdlc-update.md` (and this file);
    - the TDD skill set from `sdlc-kit/skills/`: `tdd.md` + `tdd-references/`
      (always), `tdd-guide.md` + `mutation-testing.md` (offer), `python-pro.md` +
      `hypothesis-tests.md` (Python projects only — offer). Preserve the
@@ -114,11 +114,18 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    command; test layout and any existing mocking conventions; any existing
    test-isolation enforcement (network blockers, sanitized env vars) and the seams it
    misses; whether the repo holds more than the app (docs site, infra, data pipelines
-   — anything the process might not govern).
+   — anything the process might not govern); and whether any file named
+   `PROJECT_INDEX.md`, `INDEX.md`, or `STATUS.md` already exists anywhere in the tree —
+   the kit is about to make `spec/PROJECT_INDEX.md` the single source of truth, and a
+   same-named neighbor is how a session ends up reading the wrong file. Same class of
+   check as the leftover-`{{` exit grep.
 2. **Present findings + proposal — the feedback halt.** Show: detected stack, proposed
    gate commands (prefer what CI already runs), proposed hook, the test-isolation
    harness to author or extend (`spec/TESTING.md` §Test Isolation — what step 1 found,
-   what is missing), spec set to generate, and how existing docs will be treated (merge plan for an existing CLAUDE.md —
+   what is missing), any name collision step 1 found with `spec/PROJECT_INDEX.md`
+   (offer to rename the pre-existing file; if the owner keeps both names, record the
+   disambiguation in PROJECT_INDEX's Environment gotchas — the command decides nothing
+   here), spec set to generate, and how existing docs will be treated (merge plan for an existing CLAUDE.md —
    preserve-and-extend, shown as a diff before writing). Interview in rounds for what
    analysis could not determine: whether this process governs the whole repo or a
    subset, and what is explicitly out of scope (step 1's survey of what else the repo

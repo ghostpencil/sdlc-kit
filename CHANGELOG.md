@@ -90,6 +90,37 @@ fails the next tag push).
   for real in a non-Python stack (Node): the harness authored from the spec alone
   failed loudly on a deliberate `fetch` (naming the address) and a credential-path
   read, then ran 3/3 green with a shell-set token provably not reaching tests.
+- **[installable]** `commands/sdlc-update.md` — the update procedure as an installed
+  command, closing the field report's #14 outright. It classifies every installed file
+  against the manifest of the version the project is **on**, hashes committed content
+  (never the working tree), tries all three install prefixes with a denominator check,
+  halts exactly once (per-file owner decision on drifted files — never auto-overwritten),
+  touches nothing project-owned, and re-stamps `spec/SDLC.md` last so an aborted update
+  never claims a version it does not hold. The command and the root README's *Updating an
+  adopted project* section deliberately state the same procedure twice — they are
+  cross-pointed, a disagreement between them is defined as a kit bug, and keeping them in
+  agreement is a `/kit-check` invariant candidate. `SDLC.template.md`'s update pointer
+  now names `/sdlc-update` instead of the home-repo README, which an adopted project may
+  not hold.
+- **[installable]** `/sdlc-setup` Existing mode: the analysis step now globs for
+  pre-existing `PROJECT_INDEX.md` / `INDEX.md` / `STATUS.md` anywhere in the tree and
+  surfaces hits at the feedback halt with an offered rename of the pre-existing file —
+  the kit is about to make `spec/PROJECT_INDEX.md` the single source of truth, and a
+  same-named neighbor is how a session reads the wrong file. If the owner keeps both
+  names, the disambiguation is recorded in project-owned files (Environment gotchas), not
+  in command prose. Scoped to Existing mode, as planned; renaming the kit's own file
+  remains deferred until the update path has been exercised at scale.
+- **[installable]** `end-phase.md` §5: one sentence on why the whole-arc review exists —
+  slice reviews each see one layer, so arc-level bugs live in the seams between slices
+  and are invisible to every per-slice review by construction.
+- **[adoption-only]** `SDLC.template.md`, gate-baseline section: a count can also hold
+  still because the checker stopped looking — suppressions, skipped tests, and constructs
+  that hide code from analysis freeze the number while shrinking what it measures.
+  **Flagged unsolved:** this is a prose warning, which the field report's own thesis says
+  is the weak form of a fix. The real mechanism records *checker reach* (suppression
+  count, `Any`-expression share) alongside the error count so a flat count with degrading
+  reach becomes visible; designing that is deliberately deferred — it is placeholder- and
+  setup-work sized like a batch of its own.
 
 ## 0.2.0 — 2026-07-19
 

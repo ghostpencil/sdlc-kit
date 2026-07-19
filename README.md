@@ -119,7 +119,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── plan-phase.md
 │   ├── next-slice.md
 │   ├── end-slice.md
-│   └── end-phase.md
+│   ├── end-phase.md
+│   └── sdlc-update.md               ← brings an adopted project to a newer kit release
 ├── skills/                          ← vendored skills → <project>/.claude/commands/
 │   ├── tdd.md                       ← THE TDD skill (not built into Claude Code)
 │   ├── tdd-references/              ← tests.md + mocking.md (linked from tdd.md)
@@ -162,6 +163,12 @@ you before finishing (and greps for leftover `{{` as its own exit check).
 Adopting the kit copies files into your project. Later kit releases do not reach them on
 their own — this is the procedure that brings them forward without destroying what your
 project has recorded.
+
+Setup installs this procedure as a command: run **`/sdlc-update`** in the adopted
+project and it walks these same steps, halting once for drifted files. This section is
+the human-readable statement of the same procedure — the command and this section must
+agree, and a disagreement between them is a kit bug. Projects adopted before the command
+existed follow this section by hand once; the update itself installs the command.
 
 ### Who owns what
 
