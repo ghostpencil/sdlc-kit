@@ -313,6 +313,37 @@ context on slices that don't need it.
   on rejection" when the audit layer already mapped failures to `action="fail"` — it would
   have made one event produce two different histories).
 
+**Hand-off notes for the executing session** *(recorded 2026-07-19, after B2/B3)*:
+
+- **The batch as written contains a §8.1-class defect — resolve it first.**
+  `end-slice.md` is installed into `.claude/commands/`, but `reference/` is *not*
+  installed, and the kit folder is explicitly optional after setup (`sdlc-setup.md`
+  Notes). A conditional pointer from the installed `end-slice.md` §3 to
+  `reference/REVIEW_LENSES.md` therefore points at a file many adopting repos will not
+  have. Recommended resolution: follow the `tdd-references/` precedent — the file is
+  kit-owned but **installed** by `sdlc-setup.md` (New mode step 5, Existing mode
+  step 3), so the pointer targets a path that exists in every adopted project and the
+  file joins the manifest/update path. Whatever the choice, the §3 pointer and setup's
+  install list must name the same path — that agreement is the acceptance check.
+- **First batch since B0 to add a file.** Update the root README file tree
+  (invariant 5) and regenerate `MANIFEST.sha256` from index content with the §7.2
+  discrimination check — the entry count goes *up* this time, and the release workflow
+  fails on a stale or incomplete manifest (§8.2). If the file is installed per the
+  note above, `sdlc-setup.md`'s install list changes too.
+- The `end-slice.md` §3 pointer stays conditional and one line (§1 context budget) —
+  B4 exists to keep the lenses out of the per-slice read.
+- #11 lands in `TESTING.template.md`, which since B3 also carries §Test Isolation.
+  Place each lesson with the section it qualifies (skip discipline near the mock
+  policy; "returns empty on error is pinning a bug" near the isolation headline rule),
+  not in a new grab-bag section. No new placeholder — these are general rules, not
+  project facts.
+- Use §7.1's three cases as the denominator lens's worked examples (per §7's
+  consequences); the report's found-26-fixed-26 example is the weaker illustration.
+  Pair the lens with §7.2: a check is trustworthy only once it has been made to
+  disagree.
+- No release is cut at B4 (`v0.3.0` comes after B6); CHANGELOG entries go under
+  Unreleased. When done: mark B4 in §2, append field notes to §8.
+
 ---
 
 ### B5 — remainder
