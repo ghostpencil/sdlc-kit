@@ -70,8 +70,8 @@ B0  version identity + manifest        ← DONE — v0.2.0 tagged, released, ass
 B1  the two shipped defects            ← DONE (2026-07-19)
      └─ MIGRATE TFit to v0.2.0         ← DONE — committed on a branch, deliberately unpushed
 B2  cheap general wins                 ← DONE (2026-07-19) — see §8
-B3  enforceable checks (the reframe)   ← NEXT
-B4  reference/REVIEW_LENSES.md
+B3  enforceable checks (the reframe)   ← DONE (2026-07-19) — see §8
+B4  reference/REVIEW_LENSES.md         ← NEXT
 B5  remainder
 B6  kit self-check invariants
      └─ cut v0.3.0 → migrate TFit again
@@ -538,9 +538,9 @@ shares its blind spots.** Where a real artifact can be used instead of a fixture
 
 ---
 
-## 8. Field notes from executing B2
+## 8. Field notes from executing B2 and B3
 
-Three deviations from the batch as written, all recorded so B6 can use them:
+Deviations from the batches as written, all recorded so B6 can use them:
 
 1. **#9's pointer was wrong in this plan (and the report).** It says "add it to the gate
    section of `CLAUDE.md`" — but the instantiated CLAUDE.md has no gate section; the gate
@@ -564,3 +564,21 @@ Also: `end-slice.md` §5 gained provenance tags alongside the template (the two 
 the same convention; the command is the one read at slice close), and the #9 rule was
 mirrored into `SDLC.template.md`'s bookkeeping rules per invariant 2 — the canonical file
 must state any process rule a command enforces.
+
+**B3 (2026-07-19).**
+
+4. **The acceptance test was run for real, in Node.** From the spec prose alone
+   (`TESTING.template.md` §Test Isolation + the setup step), a harness was authored for
+   `node --test`: network blocked at `net.Socket.prototype.connect` + `fetch`,
+   credential env vars cleared and `GOOGLE_APPLICATION_CREDENTIALS` pointed at a
+   nonexistent path, home/APPDATA/XDG seams sandboxed. The proving run failed loudly on
+   both deliberate violations — naming `https://example.com/` and the credential path —
+   and went 3/3 green once they were removed, with a shell-set `FAKE_API_TOKEN`
+   provably absent inside tests. The kit contains no JavaScript. **Caveat (§7.3):** the
+   run was authored by the same agent that wrote the spec, so it shares the spec's
+   blind spots; the true acceptance remains the next real New-mode adoption.
+5. **Inserting a step renumbers everything after it.** Adding New-mode step 4 silently
+   stale-ified a cross-reference in Existing mode ("same rules as New mode step 4" —
+   now step 5), caught only by grepping for `step \d` after the edit. B6 invariant
+   candidate alongside §8.1's: **numbered cross-references between steps are as fragile
+   as file-and-section pointers, and kit-check should verify both.**

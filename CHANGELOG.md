@@ -54,6 +54,22 @@ fails the next tag push).
   the arc, not as process history); and backlog provenance tags
   (`"(slice review, <date>)"`) — the practice the field report's own retrospective
   called the most useful part of the run.
+- **[adoption-only]** `TESTING.template.md` §*Test Isolation — Enforced, Not Promised*:
+  the field report's near-miss (a suite calling the live Google Calendar API for three
+  slices, green the whole time) as a headline rule — *partial isolation is worse than
+  none, because it reads as complete* — plus three checks the kit specifies without
+  shipping code: outbound network blocked, credentials unreachable, every home/data-dir
+  seam isolated. A new `{{ISOLATION_HARNESS}}` placeholder records where the harness
+  lives and the proof that each check has been made to fail.
+- **[installable]** `/sdlc-setup` authors the isolation harness for the detected stack
+  (New mode step 4; Existing mode proposes it at the feedback halt) and **proves each
+  check by its negative case** — a deliberate violation must fail the suite loudly,
+  naming what was attempted, before the check is described as enforced. If the owner
+  defers it, the gap goes to the backlog and `{{ISOLATION_HARNESS}}` records what is
+  actually enforced today — never enforcement that does not exist. Acceptance was run
+  for real in a non-Python stack (Node): the harness authored from the spec alone
+  failed loudly on a deliberate `fetch` (naming the address) and a credential-path
+  read, then ran 3/3 green with a shell-set token provably not reaching tests.
 
 ## 0.2.0 — 2026-07-19
 

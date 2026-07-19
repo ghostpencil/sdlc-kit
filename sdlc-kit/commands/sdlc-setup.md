@@ -70,10 +70,21 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    test; run lint + typecheck + tests per `GATE_RECIPES.md`. Do not proceed red.
 3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md`,
    `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status: PRE-PHASE-1), `spec/TESTING.md`
-   (layer strategy + mandatory-mock table for THIS stack). `{{GATE_BASELINE}}` is
-   `green — 0 lint / 0 type / 0 test failures (established <date> on the walking
-   skeleton)`, which step 2 just proved. Never write a baseline you have not measured.
-4. Install commands and skills into `.claude/commands/` (project-scoped, so the team
+   (layer strategy + mandatory-mock table for THIS stack; leave
+   `{{ISOLATION_HARNESS}}` for step 4, which authors what it describes).
+   `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
+   <date> on the walking skeleton)`, which step 2 just proved. Never write a baseline
+   you have not measured.
+4. **Author and prove the test-isolation harness.** `spec/TESTING.md` §Test Isolation
+   specifies the checks; implement them for this stack in the test harness: outbound
+   network blocked, credential env vars cleared and credential paths pointed at
+   nonexistent files, every home/data-dir seam isolated. Then **prove each check by
+   its negative case**: add a deliberate violation (a real outbound call; a read of a
+   real credential path), confirm the suite fails loudly naming what was attempted,
+   remove the violation, confirm green. Resolve `{{ISOLATION_HARNESS}}` with where the
+   harness lives and each recorded proof. An unproven blocker is partial isolation
+   that reads as complete — the proof step is not optional.
+5. Install commands and skills into `.claude/commands/` (project-scoped, so the team
    inherits them via git):
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`
      (and this file);
@@ -84,10 +95,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - If a same-named skill already exists on this machine in `~/.claude/commands/`,
      note that the project copy and user copy will both be listed; recommend the
      owner keep the project copy authoritative (it is versioned with the repo).
-5. Install the edit-time hook: instantiate `settings.template.json` →
+6. Install the edit-time hook: instantiate `settings.template.json` →
    `.claude/settings.json` using the hook recipe for the language; verify by editing a
    scratch source file with a deliberate lint error and confirming the hook blocks.
-6. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
+7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
 
@@ -97,12 +108,14 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    languages + versions; build system; how tests are actually run (CI config is the
    best witness); lint/typecheck config present or absent; existing CLAUDE.md /
    README / docs / ADRs; branch + PR conventions from `git log`; app entry point / run
-   command; test layout and any existing mocking conventions; whether the repo holds
-   more than the app (docs site, infra, data pipelines — anything the process might
-   not govern).
+   command; test layout and any existing mocking conventions; any existing
+   test-isolation enforcement (network blockers, sanitized env vars) and the seams it
+   misses; whether the repo holds more than the app (docs site, infra, data pipelines
+   — anything the process might not govern).
 2. **Present findings + proposal — the feedback halt.** Show: detected stack, proposed
-   gate commands (prefer what CI already runs), proposed hook, spec set to generate,
-   and how existing docs will be treated (merge plan for an existing CLAUDE.md —
+   gate commands (prefer what CI already runs), proposed hook, the test-isolation
+   harness to author or extend (`spec/TESTING.md` §Test Isolation — what step 1 found,
+   what is missing), spec set to generate, and how existing docs will be treated (merge plan for an existing CLAUDE.md —
    preserve-and-extend, shown as a diff before writing). Interview in rounds for what
    analysis could not determine: whether this process governs the whole repo or a
    subset, and what is explicitly out of scope (step 1's survey of what else the repo
@@ -116,11 +129,17 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      conflicts are surfaced to the owner.
    - `spec/SDLC.md`, `spec/TESTING.md` — document the conventions the project
      *actually* follows today (test layout, real mock seams), not aspirations.
+   - The test-isolation harness (`spec/TESTING.md` §Test Isolation): author it — or
+     extend what step 1 found — and prove each check by its negative case (deliberate
+     violation → loud failure naming the attempt → remove → green). If the owner
+     defers it, record the gap as a backlog item and resolve `{{ISOLATION_HARNESS}}`
+     with what is actually enforced today — never describe enforcement that does not
+     exist.
    - `spec/PROJECT_INDEX.md` — seeded with reality: current status, a few Phase
      History rows from git history (pre-SDLC is fine), in-flight work in START HERE,
      known issues in the backlog.
    - Commands and the vendored TDD skill set into `.claude/commands/` (same rules as
-     New mode step 4); hook into `.claude/settings.json` (merge with any existing
+     New mode step 5); hook into `.claude/settings.json` (merge with any existing
      hooks).
 4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in
    `spec/SDLC.md` with what you measured — this is the placeholder step 3 could not fill,

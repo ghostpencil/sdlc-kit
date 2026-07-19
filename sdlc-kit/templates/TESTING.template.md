@@ -84,6 +84,35 @@ bugs live exactly where the mock is.
 
 ---
 
+## Test Isolation — Enforced, Not Promised
+
+**Partial isolation is worse than none, because it reads as complete.** A mock policy
+that lives only in prose will be violated, and the violation will not be visible: the
+suite stays green while tests quietly reach something real. Isolation is therefore
+enforced by a harness, and each check is trusted only because it has been made to fail.
+
+The checks (specified by the kit; implemented for this stack by `/sdlc-setup`):
+
+1. **Outbound network is blocked.** A test that opens a real connection fails loudly,
+   naming the address it tried to reach.
+2. **Credentials are unreachable.** Credential env vars are cleared and credential file
+   paths point at nonexistent locations — a test that slips past a mock seam must be
+   unable to authenticate as a side effect.
+3. **Every home/data-dir seam is isolated** — config dirs, caches, state files, not
+   just the obvious one. Enumerate the seams; sterilizing one env var and stopping is
+   exactly the partial isolation the headline rule warns about.
+
+### This project's harness
+
+{{ISOLATION_HARNESS}}
+<!-- Filled by /sdlc-setup: where the harness lives, what each check covers, and the
+     recorded proof — the deliberate violation that made each check fail loudly (date +
+     observed error). A check that has never been seen to fail is not yet a check;
+     re-prove after any harness edit. If a check is deferred, say so here and put it in
+     the backlog — never describe enforcement that does not exist. -->
+
+---
+
 ## Integration vs. Unit Boundary
 
 {{INTEGRATION_BOUNDARY}}
