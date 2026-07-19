@@ -19,8 +19,9 @@ here. Work on this repo is ordinary editing plus careful cross-file consistency.
 The repo root is **not** the kit. `sdlc-kit/` is the shippable product — the only folder
 that is copied into an adopting project, and the unit that gets packaged as a release
 artifact. Everything at the root (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`,
-`IMPROVEMENT_PLAN.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`) is
-documentation *about* the kit and must never end up in an adopter's repo.
+`IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root
+`.claude/commands/`) is documentation *about* the kit and must never end up in an
+adopter's repo.
 
 When adding a file, the question is always: does an adopting project need this at setup or
 slice time? Yes → `sdlc-kit/`. No → root.
