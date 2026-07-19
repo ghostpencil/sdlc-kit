@@ -10,7 +10,10 @@ update time. Entries marked **[adoption-only]** change `templates/**` or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.3.0 — 2026-07-19
+
+Everything the field report asked for that 0.2.0 did not ship — and the kit's own
+self-check, whose first run found 15 more defects, all fixed here.
 
 ### Fixed
 - The *Updating an adopted project* procedure hashed the **working tree**, which reports
