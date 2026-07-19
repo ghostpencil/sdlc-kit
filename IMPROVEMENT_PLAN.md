@@ -74,10 +74,14 @@ B3  enforceable checks (the reframe)   ← DONE (2026-07-19) — see §8
 B4  reference/REVIEW_LENSES.md         ← DONE (2026-07-19) — see §8
 B5  remainder                          ← DONE (2026-07-19) — see §8
 B6  kit self-check invariants          ← DONE (2026-07-19) — see §8
-     └─ cut v0.3.0 → migrate TFit again ← IN PROGRESS this session
+     └─ cut v0.3.0 → migrate TFit again ← DONE (2026-07-19) — released, migrated via
+                                          /sdlc-update's procedure; see §8.16-17
 ```
 
-Two ordering constraints that matter:
+**This plan's backlog is empty.** Every batch has landed, `v0.3.0` is released, and the
+adopting project is current. New work starts from a new field report, not from here.
+
+Two ordering constraints that mattered:
 
 1. **Tag `v0.1.0` before any batch lands.** The tag must point at the pre-improvement
    state or the retroactive migration in §4 loses its basis. This is step 1 of B0.
@@ -520,6 +524,9 @@ why that claim is safe rather than hopeful:
 > The contradiction that ran unnoticed for three slices is gone.
 >
 > The migration also falsified the procedure as first written — see §7.
+>
+> The `v0.3.0` repeat (2026-07-19, via `/sdlc-update`'s own procedure, its first real
+> run) is recorded in §8.16-17.
 
 **Procedure** — run in the adopting repo, after B1 ships and `v0.2.0` is tagged:
 
@@ -778,3 +785,26 @@ must state any process rule a command enforces.
     the loose end B1 left, where "record TBD" named no destination. Placeholder count
     grows to 34; both setup modes already produced the value, so invariant 3's mapping
     holds without new questions.
+
+**v0.3.0 release + TFit migration (2026-07-19).**
+
+16. **The release and the migration both went clean — and the migration was the
+    command's first real run.** Release workflow green (VERSION/tag match, manifest
+    verified, coverage check, three assets). TFit: all 12 installed files classified
+    `UNCHANGED` against the `v0.2.0` manifest (denominator 12/12); discrimination
+    proven *before* copying by classifying the same files against the `v0.3.0`
+    manifest, which flagged exactly the 5 files changed upstream and nothing else.
+    Two files newly installed (`sdlc-update.md`, `REVIEW_LENSES.md`); the kept
+    `sdlc-kit/` folder replaced wholesale, which also removed a stale v0.1.0-era
+    `FIELD_REPORT.md` that had traveled with the original clone. Post-copy verify:
+    14/14 `UNCHANGED`. Re-stamp last. Committed on `chore/update-sdlc-kit-0.3.0`,
+    **not pushed** — the owner lands it, same as the 0.2.0 migration.
+17. **Two findings from the run, one fixed, one confessed.** (a) `sdlc-update.md`
+    step 5 never said that files *new in the target's install set* are copied in —
+    classification cannot see them, since the project does not hold them; the first
+    real run had to infer it from the source list. One line added, under Unreleased.
+    (b) The verify step's denominator counter was first written with the count
+    incremented inside a pipeline subshell — it reported `0 rows` next to a correct
+    14-row classification. §7.1's trap class, recurring in verification code written
+    *while following a procedure that warns about exactly this*. Rerun properly;
+    the lesson stays here as another specimen for ledger invariant 13.

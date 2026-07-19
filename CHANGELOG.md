@@ -10,6 +10,15 @@ update time. Entries marked **[adoption-only]** change `templates/**` or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+### Fixed
+- **[installable]** `sdlc-update.md` step 5 now says explicitly that files **new in the
+  target version's install set** are copied in — classification never sees them (the
+  project does not hold them yet), and the command's first real run (TFit,
+  0.2.0 → 0.3.0, which introduced two new installed files) had to infer this from the
+  source list rather than being told.
+
 ## 0.3.0 — 2026-07-19
 
 Everything the field report asked for that 0.2.0 did not ship — and the kit's own

@@ -91,9 +91,10 @@ entries marked *[installable]* for every version being skipped. Then:
 ### 5. Apply
 
 - Copy the target version's files over the `UNCHANGED` set and whatever `DRIFTED` files
-  the owner released. Sources: `sdlc-kit/commands/`, `sdlc-kit/skills/`, and
-  `sdlc-kit/reference/REVIEW_LENSES.md` — all into `.claude/commands/`, preserving the
-  `tdd-references/` subfolder.
+  the owner released — plus any files **new in the target's install set**, which
+  classification never saw because the project does not hold them yet. Sources:
+  `sdlc-kit/commands/`, `sdlc-kit/skills/`, and `sdlc-kit/reference/REVIEW_LENSES.md` —
+  all into `.claude/commands/`, preserving the `tdd-references/` subfolder.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it wholesale with the
