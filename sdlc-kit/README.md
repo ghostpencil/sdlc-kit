@@ -32,13 +32,13 @@ MANIFEST.sha256          ← checksums of every file below (see "Verifying" and 
 commands/                ← installed into <project>/.claude/commands/
 skills/                  ← vendored TDD skill set → <project>/.claude/commands/
 templates/               ← instantiated into the project by /sdlc-setup
-reference/               ← consulted by /sdlc-setup; not installed
+reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
 LICENSE                  ← MIT
 THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (all MIT)
 ```
 
-`commands/` and `skills/` are **kit-owned**: they track upstream and an update may
-overwrite them when they are unmodified. Everything `/sdlc-setup` writes into your project
+`commands/`, `skills/`, and the installed `reference/REVIEW_LENSES.md` are **kit-owned**:
+they track upstream and an update may overwrite them when they are unmodified. Everything `/sdlc-setup` writes into your project
 (`CLAUDE.md`, `spec/*.md`, `.claude/settings.json`) is **project-owned** and is never
 overwritten by an update — it holds your recorded gate baseline, owner decisions, and
 gotchas.

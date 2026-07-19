@@ -28,7 +28,7 @@ across both commits — this is what makes the retroactive tag honest).
 | Path | Owner | Update behavior |
 |---|---|---|
 | `sdlc-kit/commands/`, `sdlc-kit/skills/` | kit | tracks upstream; overwrite when unmodified, owner decides when drifted |
-| `sdlc-kit/reference/` | kit | tracks upstream; not installed into projects, consulted at setup |
+| `sdlc-kit/reference/` | kit | tracks upstream; consulted at setup, not installed — **except `REVIEW_LENSES.md`**, installed into `.claude/commands/` since B4 |
 | `sdlc-kit/templates/` | kit | only matters at adoption; never re-applied to an adopted project |
 | instantiated `spec/*.md`, `CLAUDE.md`, `.claude/settings.json` | **project** | **never overwritten** — these hold recorded baselines, owner decisions, gotchas |
 
@@ -71,8 +71,8 @@ B1  the two shipped defects            ← DONE (2026-07-19)
      └─ MIGRATE TFit to v0.2.0         ← DONE — committed on a branch, deliberately unpushed
 B2  cheap general wins                 ← DONE (2026-07-19) — see §8
 B3  enforceable checks (the reframe)   ← DONE (2026-07-19) — see §8
-B4  reference/REVIEW_LENSES.md         ← NEXT
-B5  remainder
+B4  reference/REVIEW_LENSES.md         ← DONE (2026-07-19) — see §8
+B5  remainder                          ← NEXT
 B6  kit self-check invariants
      └─ cut v0.3.0 → migrate TFit again
 ```
@@ -613,3 +613,26 @@ must state any process rule a command enforces.
    now step 5), caught only by grepping for `step \d` after the edit. B6 invariant
    candidate alongside §8.1's: **numbered cross-references between steps are as fragile
    as file-and-section pointers, and kit-check should verify both.**
+
+**B4 (2026-07-19).**
+
+6. **The hand-off's §8.1-class defect was real, and wider than the pointer.** The
+   recommended resolution was taken: `reference/REVIEW_LENSES.md` is kit-owned but
+   installed to `.claude/commands/REVIEW_LENSES.md` (New mode step 5 bullet; Existing
+   mode step 3 names it too), so `end-slice.md` §3's conditional pointer targets a path
+   every adopted project has. But installing one reference file falsified **five other
+   statements** of the install mapping: both READMEs' "reference/ is not installed", the
+   root CLAUDE.md flow diagram, the ownership table's "(from `commands/`, `skills/`)" —
+   and, the one with teeth, **both update-classification scripts**, which tried only the
+   `commands/` and `skills/` prefixes and would have classified the installed file
+   `UNKNOWN` ("not from the kit — yours") on every future update, silently exempting it
+   from updates forever. All fixed; the scripts now try `reference/` as well. B6
+   invariant candidate: **the kit-path → installed-path mapping is stated in at least
+   six places; kit-check should derive it from `sdlc-setup.md`'s install list and verify
+   the others against it.**
+7. Manifest regenerated from index content with the §7.2 discrimination check: exactly
+   the 4 edited kit files changed hash, exactly 1 entry appeared (24 total, matching
+   `git ls-files` minus the manifest itself), the other 19 unchanged. #11's lessons
+   landed beside the sections they qualify (*Skip discipline* next to the mock policy;
+   error-assertion rules inside §Test Isolation), not in a grab-bag section, and carry
+   no new placeholder. No release cut; entries are under Unreleased.

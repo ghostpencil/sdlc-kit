@@ -61,6 +61,26 @@ fails the next tag push).
   shipping code: outbound network blocked, credentials unreachable, every home/data-dir
   seam isolated. A new `{{ISOLATION_HARNESS}}` placeholder records where the harness
   lives and the proof that each check has been made to fail.
+- **[installable]** `reference/REVIEW_LENSES.md` — deep-dive review lenses behind a
+  conditional pointer in `end-slice.md` §3, read only when the slice's diff matches a
+  trigger (error-propagation changes; pattern sweeps or trusted check-scripts), so
+  ordinary slices pay no context for them. The error-propagation lens: a new raise is
+  done when every caller has been re-read; the mirror question *what did I stop seeing?*;
+  a status code is a claim about fault. The verify-the-denominator lens takes its worked
+  examples from the 0.2.0 session's three confidently-wrong checks rather than the field
+  report's miscount — in each, the check returned a *plausible* answer, so nothing
+  prompted a second look — paired with the rule that a check is only trustworthy once it
+  has been made to disagree. Unlike the rest of `reference/`, this file is **installed**
+  (`→ .claude/commands/REVIEW_LENSES.md`, both setup modes) so the pointer resolves in
+  projects that removed the kit folder after setup; it is kit-owned, joins the
+  manifest/update path, and the README's classification scripts now try the `reference/`
+  prefix alongside `commands/` and `skills/`.
+- **[adoption-only]** `TESTING.template.md`: a *Skip discipline* subsection beside the
+  mock policy — a test must **fail**, not skip, when a tool it requires is absent; a
+  silently-skipped test is the same false green as one that reached the real service —
+  and *What a test may assert about errors* in §Test Isolation: asserting "returns empty
+  on error" is usually pinning a bug (assert that the error propagates instead), and a
+  new invariant is checked against what the system already does, not what sounds right.
 - **[installable]** `/sdlc-setup` authors the isolation harness for the detected stack
   (New mode step 4; Existing mode proposes it at the feedback halt) and **proves each
   check by its negative case** — a deliberate violation must fail the suite loudly,

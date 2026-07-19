@@ -33,7 +33,8 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
   templates/*.template.*                     CLAUDE.md, spec/*.md, .claude/settings.json
   commands/*.md                              .claude/commands/*.md
   skills/*.md                                .claude/commands/*.md  (project-scoped)
-  reference/*.md                             (stays put — consulted by setup, not installed)
+  reference/*.md                             (stays put — consulted by setup, not installed,
+                                              EXCEPT REVIEW_LENSES.md → .claude/commands/)
 ```
 
 `commands/sdlc-setup.md` is the entry point and the only file that reads the others. It

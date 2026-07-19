@@ -133,9 +133,10 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── PROJECT_INDEX.template.md    → spec/PROJECT_INDEX.md (source of truth)
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
 │   └── settings.template.json       → .claude/settings.json (edit-time gate hook)
-├── reference/                       ← consulted by /sdlc-setup; not installed
+├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language
-│   └── SKILLS.md                    ← required/recommended skills and how to install
+│   ├── SKILLS.md                    ← required/recommended skills and how to install
+│   └── REVIEW_LENSES.md             → <project>/.claude/commands/ (the one installed reference file)
 ├── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (all MIT)
 └── LICENSE                          ← MIT (must travel with the bundle)
 
@@ -168,13 +169,15 @@ The whole procedure rests on this split:
 
 | Path in your project | Owner | Update behavior |
 |---|---|---|
-| `.claude/commands/*.md` (from `commands/`, `skills/`) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
+| `.claude/commands/*.md` (from `commands/`, `skills/`, `reference/REVIEW_LENSES.md`) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | **project** | **Never overwritten.** These hold your gate baseline, owner decisions, backlog, and gotchas. |
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
-re-applied to an already-adopted project. A kit release that changes only those is an
-adoption-only change — it affects new adoptions, not yours. `CHANGELOG.md` marks each
-entry accordingly.
+re-applied to an already-adopted project — with one exception: `reference/REVIEW_LENSES.md`
+is installed into `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the
+kit folder is gone) and tracks upstream like the commands. A kit release that changes only
+the non-installed templates and reference docs is an adoption-only change — it affects new
+adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
 
 ### The procedure
 
@@ -205,8 +208,10 @@ entry accordingly.
 
    for f in $(git ls-files .claude/commands); do
      base=${f#.claude/commands/}
-     # commands/ and skills/ both install into .claude/commands/, so try both prefixes.
-     want=$(awk -v b="$base" '$2 == "commands/" b || $2 == "skills/" b {print $1}' "$MAN")
+     # commands/, skills/, and reference/REVIEW_LENSES.md all install into
+     # .claude/commands/, so try all three prefixes.
+     want=$(awk -v b="$base" \
+       '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN")
      have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
      if   [ -z "$want" ];        then echo "UNKNOWN   $base  (not from the kit — yours)"
      elif [ "$want" = "$have" ]; then echo "UNCHANGED $base  (safe to overwrite)"
@@ -262,7 +267,7 @@ PRE=""                             # use PRE=sdlc-kit/ for v0.2.0 and later
 for f in $(git ls-files .claude/commands); do
   base=${f#.claude/commands/}
   want=""
-  for cand in "${PRE}commands/$base" "${PRE}skills/$base"; do
+  for cand in "${PRE}commands/$base" "${PRE}skills/$base" "${PRE}reference/$base"; do
     # -e tests existence and sets a real exit status; never probe with a pipeline.
     if git -C "$KIT" cat-file -e "$OLD:$cand" 2>/dev/null; then
       want=$(git -C "$KIT" cat-file -p "$OLD:$cand" | sha256sum | cut -d' ' -f1)

@@ -82,6 +82,15 @@ application components means your test only verifies that one object calls a met
 a mock; it does not verify that the two real objects actually work together. Wiring
 bugs live exactly where the mock is.
 
+### Skip discipline
+
+A test must **fail**, not skip, when a tool or stand-in it requires is absent.
+Conditional skip is the default idiom in most frameworks, which makes it the easy wrong
+answer — a silently-skipped test is coverage that reads as present and is not, the same
+false green as a test that quietly reached the real service. A legitimate skip
+(platform-specific behavior on the other platform) is declared and visible in the run
+summary, never silent.
+
 ---
 
 ## Test Isolation — Enforced, Not Promised
@@ -101,6 +110,19 @@ The checks (specified by the kit; implemented for this stack by `/sdlc-setup`):
 3. **Every home/data-dir seam is isolated** — config dirs, caches, state files, not
    just the obvious one. Enumerate the seams; sterilizing one env var and stopping is
    exactly the partial isolation the headline rule warns about.
+
+### What a test may assert about errors
+
+- **A test asserting "returns empty on error" is usually pinning a bug, not a
+  behavior.** Prefer asserting that the error propagates. The rule's origin was a
+  production outage: a missing dependency swallowed by `except SomeError: return []` —
+  a mocked DB would have returned rows happily and kept the suite green through the
+  entire outage. The same goes for asserting on an error's message string when its
+  *type* and *propagation* are the behavior.
+- **Check a new invariant against what the system already does, not against what
+  sounds right.** A review-written test once asserted "no audit row on rejection" when
+  the audit layer already recorded rejections as `action="fail"` — the test would have
+  made one event produce two different histories.
 
 ### This project's harness
 

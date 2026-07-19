@@ -92,6 +92,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      (always), `tdd-guide.md` + `mutation-testing.md` (offer), `python-pro.md` +
      `hypothesis-tests.md` (Python projects only — offer). Preserve the
      `tdd-references/` subfolder; `tdd.md` links into it relatively.
+   - `reference/REVIEW_LENSES.md` → `.claude/commands/REVIEW_LENSES.md` (always) —
+     `end-slice.md` §3 points at that installed path, so skipping this breaks the
+     pointer. The rest of `reference/` stays uninstalled.
    - If a same-named skill already exists on this machine in `~/.claude/commands/`,
      note that the project copy and user copy will both be listed; recommend the
      owner keep the project copy authoritative (it is versioned with the repo).
@@ -138,9 +141,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - `spec/PROJECT_INDEX.md` — seeded with reality: current status, a few Phase
      History rows from git history (pre-SDLC is fine), in-flight work in START HERE,
      known issues in the backlog.
-   - Commands and the vendored TDD skill set into `.claude/commands/` (same rules as
-     New mode step 5); hook into `.claude/settings.json` (merge with any existing
-     hooks).
+   - Commands, the vendored TDD skill set, and `reference/REVIEW_LENSES.md` into
+     `.claude/commands/` (same rules as New mode step 5); hook into
+     `.claude/settings.json` (merge with any existing hooks).
 4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in
    `spec/SDLC.md` with what you measured — this is the placeholder step 3 could not fill,
    because the measurement did not exist yet. Leave it unresolved until now rather than

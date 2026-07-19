@@ -34,6 +34,10 @@ Run the code-review skill on the working diff (uncommitted changes, plus any com
 slice has already made on the branch — `git diff <main>...HEAD` if the slice spans
 commits).
 
+If the slice changed error propagation (raises, handlers, error status codes) or swept
+the codebase for a pattern, also apply the matching lens from
+`.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
+
 Triage findings:
 - **Fix now:** correctness bugs, silent failures, trust-boundary violations, anything
   CRITICAL/HIGH.
