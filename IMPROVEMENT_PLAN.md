@@ -374,6 +374,54 @@ context on slices that don't need it.
   defend against beyond a human choosing not to run `/end-phase` at all.
 - Optionally: `commands/sdlc-update.md`, now that §4 has exercised the manual procedure.
 
+**Hand-off notes for the executing session** *(recorded 2026-07-19, after B4)*:
+
+- **The batch's pointers were verified against the current files — no §8.1-class defect
+  this time.** `end-phase.md` §5 is the whole-arc review, and `SDLC.template.md` has a
+  `### Gate baseline` section (from B0). Both targets exist as named.
+- **#5 lands after §5's first paragraph, and needs no mirror.** The one-line mechanism
+  is rationale for an existing step, not a new process rule, so invariant 2 does not
+  require echoing it into `SDLC.template.md` (whose Phase-end step 4 already names the
+  review). One sentence; resist more.
+- **#10's warning goes directly after "The baseline only ever moves down…"** — that is
+  the sentence it qualifies: a count can also hold *still* because the checker stopped
+  looking. Two or three lines; the CHANGELOG (Unreleased) flags the mechanism as
+  unsolved. B3's check-plus-proof pattern is now established, so specifying
+  reach-recording is *possible* — recommend against doing it in B5: it adds placeholders
+  and setup work sized like a batch of its own. Leave the design where the batch leaves
+  it.
+- **#7 folds into existing Existing-mode steps — no new numbered step, no new halt.**
+  Glob during step 1 (analyze); surface hits as findings in step 2's feedback halt.
+  Inserting a step renumbers cross-references (§8.5); grep for `step \d` after any
+  `sdlc-setup.md` edit. "Offer a rename" means the *pre-existing* colliding file — the
+  kit-side rename is settled-deferred (§6/#7). If the owner keeps both names, the
+  disambiguation warnings are recorded in project-owned files (PROJECT_INDEX /
+  Environment gotchas), which is exactly what TFit did by hand; the command itself
+  states no project facts. The batch scopes this to Existing mode; a New-mode repo can
+  hold docs with colliding names, so extending the glob to both modes is defensible —
+  if extended, say so in the CHANGELOG rather than silently scoping past the plan.
+- **`sdlc-update.md`: recommend writing it — the "optionally" has been earned.** The
+  stated precondition (manual procedure run for real) is met and the rough edges are
+  catalogued: §7.1's two script traps, §7.2's discrimination requirement, §8.6's
+  `reference/` prefix. Encode the procedure in the command rather than pointing at the
+  root README — the adopted project may hold neither this repo's README nor the kit
+  folder. That creates a second statement of the procedure, which is §8.6's drift risk
+  by construction: cross-point the two and add the B6 invariant candidate that
+  kit-check verifies command and README agree. Must-haves, all already proven the hard
+  way: classify against the manifest of the version `spec/SDLC.md` claims (§1's
+  load-bearing rule); hash committed content, never the working tree; all three
+  prefixes (`commands/`, `skills/`, `reference/`); denominator check (rows reported =
+  files enumerated); never auto-overwrite `DRIFTED` — per-file owner decision is a
+  halt; touch nothing project-owned; re-stamp the version in `spec/SDLC.md` last.
+- **New-file ripple if `sdlc-update.md` is written (the §8.6 list):** root README file
+  tree; `sdlc-setup.md` New-mode step 5 install list (beside "(and this file)";
+  Existing mode inherits); manifest entry count goes up — regenerate from index
+  content with the §7.2 discrimination check. The classification scripts already try
+  the `commands/` prefix, so they need no change. The bundle README's tree is
+  directory-level — no change.
+- No release at B5 (`v0.3.0` comes after B6); CHANGELOG entries under Unreleased.
+  When done: mark B5 in §2, append field notes to §8.
+
 ---
 
 ### B6 — kit self-check *(my addition; not in the field report)*
