@@ -66,10 +66,10 @@ inlined. The kit's own Core Rule is *minimize context*; these fixes must not vio
 ## 2. Batch order and rationale
 
 ```
-B0  version identity + manifest        ← DONE (2026-07-19)
-B1  the two shipped defects            ← DONE (2026-07-19) → v0.2.0 ready to tag
-     └─ MIGRATE TFit to v0.2.0         ← prove the update path on a small, safe diff
-B2  cheap general wins
+B0  version identity + manifest        ← DONE — v0.2.0 tagged, released, assets verified
+B1  the two shipped defects            ← DONE (2026-07-19)
+     └─ MIGRATE TFit to v0.2.0         ← DONE — committed on a branch, deliberately unpushed
+B2  cheap general wins                 ← NEXT
 B3  enforceable checks (the reframe)
 B4  reference/REVIEW_LENSES.md
 B5  remainder
@@ -295,6 +295,11 @@ context on slices that don't need it.
   *when auditing a pattern, enumerate by symbol or structure and verify the denominator* —
   **drop the report's "use AST" framing**, which implies tooling the kit doesn't ship and
   can't assume.
+  **See §7** — this session reproduced the finding three times in its own verification
+  code, with better examples than the report's: in each case the check returned a
+  plausible answer instead of an error, which is why nothing prompted a second look. Pair
+  the lens with §7's rule that a check is only trustworthy once it has been made to
+  disagree.
 - **#11 — testing lessons → `TESTING.template.md`** (kit-owned), not the vendored file.
   (1) *A test asserting "returns empty on error" is usually pinning a bug, not a behavior* —
   prefer asserting the error propagates; a production outage on the reporting project was a
@@ -348,6 +353,10 @@ files disagreed, after three slices of nobody noticing. The kit greps for leftov
 setup time but has no equivalent consistency check over its own files. This is the report's
 own thesis applied one level up, and its absence is the report's biggest blind spot.
 
+**See §7 before designing this.** Three defects from the B0/B1 session are invisible to
+pattern matching, which is the strongest available argument that `/kit-check` must be an
+agent-run reading pass rather than a grep suite.
+
 Add `reference/KIT_INVARIANTS.md` and a `/kit-check` command (or a documented pass) that
 verifies:
 
@@ -383,6 +392,19 @@ why that claim is safe rather than hopeful:
 - `FIELD_REPORT.md` §14 records that all three installed command files were byte-identical
   to the kit's at the time of the report.
 - `MANIFEST.sha256` (B0) turns both of those from recollection into a check.
+
+> **Status: DONE, 2026-07-19.** Committed on `chore/update-sdlc-kit-0.2.0` in the TFit
+> repo, **not pushed and no PR opened** — the owner is landing it from that repo in a
+> separate session. Do not re-run this migration; verify its state first if unsure.
+>
+> Outcome: all 12 installed files were provably unmodified at `v0.1.0`, so all were safe
+> to overwrite; only 3 had changed upstream (`end-slice.md`, `end-phase.md`,
+> `sdlc-setup.md`). `spec/SDLC.md` gained the version stamp and nothing else — 8
+> insertions, 0 deletions. The scope note, the 171-error baseline, and the PROJECT_INDEX
+> collision warnings all survived, confirming the §1 ownership split holds in practice.
+> The contradiction that ran unnoticed for three slices is gone.
+>
+> The migration also falsified the procedure as first written — see §7.
 
 **Procedure** — run in the adopting repo, after B1 ships and `v0.2.0` is tagged:
 
@@ -455,3 +477,61 @@ first run, since it's the failure mode that would do real damage.
 | #10: prose warning is the fix | **Accepted as interim,** flagged as unsolved. Real fix records checker reach, not just error count. |
 | *(not in the report)* backlog provenance tags | **Promoted** into B2. Its own "what worked well" section calls this the most useful part of the run, and it never reached the priority table. |
 | *(not in the report)* kit self-check | **Added** as B6. Finding #1 shipped because nothing checks the kit against itself. |
+
+---
+
+## 7. Field notes from executing B0/B1 — n=2 evidence
+
+The report is n=1. Executing B0/B1 and migrating TFit produced a second run, and it
+independently reproduced two of the report's own findings **against the kit's own
+tooling**. That is worth more than the individual fixes, so it is recorded here rather
+than only in `CHANGELOG.md` — which a session working a single batch will not read.
+
+**1. Three checks written this session were confidently wrong, and none of them errored.**
+
+- The update procedure shipped in `README.md` hashed the *working tree*. The kit stores
+  LF; a Windows adopter without a `.gitattributes` has CRLF. It would have reported **all
+  12** of TFit's files as `DRIFTED` — a clean-looking result that is uniformly wrong.
+  Fixed to hash committed content (`git cat-file -p :path`).
+- The first classification script probed for a path with `git cat-file … | sha256sum`. A
+  pipeline reports the *last* command's status, so missing paths hashed empty input and
+  matched the wrong entry: 7 files reported as drifted against paths that do not exist.
+- The B6 placeholder check, implemented literally, produced 24 false positives (see B6.2).
+
+This is finding #12 (*verify the denominator*) recurring three times inside the work that
+was supposed to fix it, which is strong evidence it belongs in B4 — and evidence that the
+lens applies to **verification code**, not just to production audits. The common shape:
+each check returned a plausible answer, so nothing prompted a second look. **A check that
+cannot fail visibly is indistinguishable from one that passes.**
+
+**2. A checker must be shown to discriminate, not merely to pass.** After the migration,
+the classification script returned `UNCHANGED` for all 12 files — which is exactly what a
+*broken* script returns. It was only trustworthy once run against `v0.2.0` as well, where
+it correctly flagged the 3 changed files and only those. Generalize this: **prove a check
+by making it disagree.** This is the same insight as report #10 (*a ceiling that stops
+measuring is worse than a high one*) arriving from a different direction, and it should
+shape B5's #10 work and every acceptance test in B3 — B3's "make a deliberate outbound
+call and confirm the suite fails loudly" is already exactly this pattern; make it explicit
+that the negative case is what does the proving.
+
+**3. Synthetic verification passed where real verification failed.** The update procedure
+was tested against a *constructed* project and classified all three cases correctly. The
+same procedure, against a real adopted project, was wrong about every file. The synthetic
+fixture inherited the author's assumptions — LF files, because the kit's own repo is LF.
+Bearing on B3 and B6: **an acceptance test built by the same agent that wrote the check
+shares its blind spots.** Where a real artifact can be used instead of a fixture, use it.
+
+**Consequences for the remaining batches:**
+
+- **B4** — add the three cases above to `REVIEW_LENSES.md` as concrete instances of
+  "verify the denominator"; they are better than the report's example because the failure
+  is a plausible result rather than a miscount, and because two are *verification* code.
+- **B6** — `/kit-check` should be an agent-run reading pass, not a grep. Three of this
+  session's defects (placeholder semantics, a false project fact in prose, a procedure
+  that is wrong only on another platform) are invisible to pattern matching. Add a
+  self-check invariant: **every check the kit specifies must state how it is proven to
+  fail**, not only how it passes.
+- **General** — the plan's §5 warning was "prose bloat is the likeliest way these fixes
+  make the kit worse." A second failure mode is now evident: **checks that look like
+  enforcement but cannot fail.** That is the report's own thesis (partial isolation reads
+  as complete) applied to the kit's tooling.
