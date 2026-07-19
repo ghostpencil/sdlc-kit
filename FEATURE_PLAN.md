@@ -308,3 +308,60 @@ of derived statements is itself a derived statement, with the same drift problem
   CHANGELOG entry at all until it passes.
 - This file joins the root README file tree and root CLAUDE.md's root-docs enumeration
   (invariant 5 / invariant 9 in the ledger) in the same commit that adds it.
+
+---
+
+## 6. Hand-off — state as of 2026-07-19, end of the F1 session
+
+**F1 is built and released; its acceptance is running in the owner's hands, not on
+disk.** The owner is manually testing `/sdlc-retro` on TFit. Nothing in this plan should
+be actioned on F1 until that result comes back — the whole point of the batch is that
+the command's value is unproven until a real run either produces a genuine kit finding
+or does not.
+
+### What is on disk
+
+| Where | State | Pushed? |
+|---|---|---|
+| Kit `main` | `3adccb0` — F1 complete, `/kit-check` clean on all 13 invariants | **no** |
+| Kit tag `v0.4.0` | created, annotated; all three `release.yml` gates simulated green | **no** |
+| TFit `main` | `0ff6645` — the long-unmerged 0.3.0 branch, finally landed | yes |
+| TFit `chore/update-sdlc-kit-0.4.0` | `463f26a` — 0.4.0 installed, version re-stamped | **no** |
+
+Pushing the kit tag is what triggers `release.yml` to build the bundle asset. It was
+held deliberately, not forgotten: the owner had not authorized an outward push.
+
+### Resume here
+
+1. **Get the TFit test result first.** Everything below branches on it.
+   - *Produced a genuine kit finding* → F1's acceptance is met. The finding itself is
+     F1's first real output: triage it into this plan (or a field report) as evidence,
+     and note that the deferred `opusplan` decision in F2b was explicitly parked
+     awaiting exactly this kind of evidence.
+   - *Produced nothing, or nothing usable* → **that is a finding about F1**, per §5's
+     evidence discipline, and it is not a reason to weaken the command's refusal
+     behavior. Diagnose which half failed: the disk-mining sweeps (step 2) or the
+     interview (step 3). They fail differently and are fixed differently.
+   - *Refused to run* on a project with TFit's history would itself be a defect — the
+     evidence-sufficiency check in step 1 is calibrated for a fresh adoption, not a
+     project one phase in.
+2. **The negative case is still unrun.** `/sdlc-retro` on a freshly-adopted project with
+   no history must say "not enough evidence yet" rather than hallucinate findings. No
+   such project exists yet; a scratch adoption is the cheapest way to get one.
+3. **Then F2**, which ships as `v0.5.0` (see §2's amendment). Before starting it, read
+   §4a — F2's ripple list is the one with the new prefix *and* the new destination, and
+   §4a exists because F1's list, on the easy case, was 5-of-8.
+
+### Loose ends, none blocking
+
+- **TFit pins LF only for `.sh`/`Dockerfile`.** Its `.md` files sit CRLF in the working
+  tree, so installing the kit's LF files makes `git status` report ~24 modified files
+  when only 4 differ in committed content. Harmless — the classifier hashes committed
+  content, exactly as the update procedure insists — but alarming to read, and the next
+  update will do it again. `*.md text eol=lf` in TFit's `.gitattributes` fixes it. Left
+  alone because it is a project-owned file outside the update's remit; it is the owner's
+  call, and it is decent `/sdlc-retro` material in its own right.
+- `IMPROVEMENT_PLAN.md:77` records TFit as migrated to 0.3.0 as of 2026-07-19. True of
+  the work, false of `main` until this session: it sat on an unmerged, unpushed local
+  branch for the whole interval. Worth remembering that "migrated" in these plans has
+  meant "a branch exists" at least once.
