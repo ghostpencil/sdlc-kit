@@ -62,11 +62,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           v="${GITHUB_REF_NAME#v}"
+          # Heredoc, not an inline multi-line string. YAML strips this block's common
+          # indentation, so the runner sees EOF at column 0 and the heredoc terminates.
+          # An inline "--notes" string cannot work here: its continuation lines would
+          # have to sit at column 0 in the source, which ends the block scalar and makes
+          # the whole workflow file invalid.
+          cat > /tmp/notes.md <<EOF
+          See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md).
+
+          Extract \`sdlc-kit/\` into the root of your project, copy
+          \`sdlc-kit/commands/sdlc-setup.md\` into \`.claude/commands/\`, and run \`/sdlc-setup\`.
+
+          Verify the bundle with \`cd sdlc-kit && sha256sum -c MANIFEST.sha256\`.
+          EOF
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
-            --notes "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md).
-
-Extract \`sdlc-kit/\` into the root of your project, copy \`sdlc-kit/commands/sdlc-setup.md\` into \`.claude/commands/\`, and run \`/sdlc-setup\`.
-
-Verify the bundle with \`cd sdlc-kit && sha256sum -c MANIFEST.sha256\`." \
+            --notes-file /tmp/notes.md \
             "sdlc-kit-$v.tar.gz" "sdlc-kit-$v.zip" "sdlc-kit-$v.CHECKSUMS.txt"
