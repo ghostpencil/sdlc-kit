@@ -365,3 +365,28 @@ held deliberately, not forgotten: the owner had not authorized an outward push.
   the work, false of `main` until this session: it sat on an unmerged, unpushed local
   branch for the whole interval. Worth remembering that "migrated" in these plans has
   meant "a branch exists" at least once.
+
+### Result — 2026-07-20: acceptance met
+
+The TFit run came back, and it is the first branch of step 1 above, emphatically:
+**twelve findings and a 15-row priority table**, every finding naming the kit file(s) it
+implicates, with measured evidence. The anonymized report TFit prepared for submission is
+now placed at this repo's root as `FIELD_REPORT_2026-07-20.md` — that file is F1's
+acceptance evidence and the input to the next batch. Triage notes:
+
+- **The command also produced a finding about itself.** Finding 12: the retro's
+  orientation (steps 1–2) reads only the project's spec files, so friction recorded on
+  the *kit's* side — including the line-ending churn this hand-off's own loose end
+  called "decent `/sdlc-retro` material" — was invisible until the owner pointed at it.
+  §5's evidence discipline anticipated a null result being a finding about F1; a real
+  run with a measurable blind spot is the same lesson in a better form. (TFit has since
+  pinned `*.md text eol=lf` itself, so the loose end above is closed project-side.)
+- **The report's priority rows 1, 13, 2 target `/sdlc-update` and `/sdlc-setup`** — the
+  silent deletion of un-manifested files and the phantom-diff noise that hid it. That
+  defect class is live for every adopter on the update path, which argues for a
+  retro-fix batch *before* F2. Owner's call; the plan's "Then F2" predates this evidence.
+- **F2b's parked `opusplan` decision stays parked.** The retro carries no model-tier
+  evidence either way; nothing in it speaks to plan-time reasoning depth.
+- **Step 2 (the negative case) is still unrun** — unchanged by this result, and worth
+  doing before touching `sdlc-retro.md` for finding 12, so both known gaps land in one
+  edit.

@@ -19,9 +19,9 @@ here. Work on this repo is ordinary editing plus careful cross-file consistency.
 The repo root is **not** the kit. `sdlc-kit/` is the shippable product — the only folder
 that is copied into an adopting project, and the unit that gets packaged as a release
 artifact. Everything at the root (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`,
-`IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root
-`.claude/commands/`) is documentation *about* the kit and must never end up in an
-adopter's repo.
+`FIELD_REPORT_2026-07-20.md`, `IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`,
+`KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`) is documentation *about*
+the kit and must never end up in an adopter's repo.
 
 When adding a file, the question is always: does an adopting project need this at setup or
 slice time? Yes → `sdlc-kit/`. No → root.
@@ -105,6 +105,12 @@ Its cross-cutting conclusion is worth applying to new work: the kit is strong at
 *specifying* process and weak at making it *self-checking*. Prefer changes that fail
 loudly (scaffolded blockers, commands that read a recorded baseline) over changes that add
 more prose rules.
+
+`FIELD_REPORT_2026-07-20.md` is the second report from the same adoption — the first real
+run of `/sdlc-retro` (F1's acceptance evidence), with 12 findings and a 15-row priority
+table, none yet actioned. Its cross-cutting theme extends the first report's: checks whose
+*denominator* was assumed rather than enumerated — including inside the kit's own
+`/sdlc-update`. `FEATURE_PLAN.md` §6 records how it was triaged.
 
 ## Writing conventions for these files
 

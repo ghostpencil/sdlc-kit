@@ -150,6 +150,7 @@ README.md                            ← you are here
 CLAUDE.md                            ← instructions for agents working ON the kit
 CHANGELOG.md                         ← kit version history
 FIELD_REPORT.md                      ← findings from the first external adoption
+FIELD_REPORT_2026-07-20.md           ← findings from the second arc — /sdlc-retro's first real run
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
 FEATURE_PLAN.md                      ← post-field-report feature work (retro, agents, model tiers)
 KIT_INVARIANTS.md                    ← the invariant ledger /kit-check verifies
