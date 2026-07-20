@@ -475,11 +475,19 @@ six changed files, and the `*.md` eol pin produced zero phantom modifications.
 
 ### Resume here
 
-1. **The `/sdlc-retro` negative case is still the cheapest open item.** A fresh
-   adoption with no history must get "not enough evidence yet", not manufactured
-   findings. A scratch adoption is the way; nothing depends on it, but it is the one
-   half of F1 still unexercised, and it should be run before anyone trusts the
-   evidence-sufficiency check's calibration.
+1. ~~**The `/sdlc-retro` negative case is still the cheapest open item.**~~ **Done,
+   passed — 2026-07-20.** A scratch New Project adoption (`notegrep`, Python CLI,
+   kit v0.5.0 instantiated faithfully: templates filled, commands installed, one
+   scaffold commit, PRE-PHASE-1, empty backlog) was handed to a blind agent told only
+   "the owner invoked `/sdlc-retro`" — no hint of the expected answer. The agent ran
+   the step-1 sufficiency check before anything else, counted 0 phases / 0 slices /
+   0 backlog entries / 1 commit, reported "not enough evidence yet — stopping without
+   a report", named exactly what the command says to name (a merged phase, a populated
+   backlog with provenance tags, a baseline trajectory), pointed the owner at
+   `/plan-phase`, and wrote nothing — working tree verified clean after the run. It
+   did not interview its way around the missing evidence and did not manufacture
+   findings. Both halves of F1 are now exercised; the sufficiency check's calibration
+   is trusted.
 2. **Then F2** (read-only agents + model tiers), shipping as `v0.6.0` per §2's second
    amendment. Read §4a first — F2's ripple list has both a new prefix and a new
    destination, the class with the worst track record. The `opusplan` decision in F2b
