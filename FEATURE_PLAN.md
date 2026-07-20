@@ -567,13 +567,29 @@ check after — the §4a rule did its job.
   (TFit), same shape as F1's acceptance. Until then the delegation is
   design-verified, not field-verified.
 
-### Resume here
+### Resume here — owner-confirmed order, 2026-07-20 end of session
 
-1. **Migrate TFit to 0.6.0** (`/sdlc-update` — owner-halting, so run it with the
-   owner). Note for that run: `{{MODEL_POLICY}}` and the friction-log seed are
-   [adoption-only] — TFit's project-owned `spec/SDLC.md` and `PROJECT_INDEX.md` do
-   not receive them automatically; the changelog flags both as manual follow-ups,
-   and TFit already has its own friction log (the section the seed generalizes).
-2. **F2's open acceptance half** rides the next `/plan-phase` on TFit.
-3. **Then F3** (slice-runner TRIAL, §3) — on TFit or Dungeon Daddy, kit untouched
-   until the trial passes. Ships as `v0.7.0` only if it does.
+1. **Migrate TFit to 0.6.0.** Open Claude Code in the TFit repo (its location is in
+   this repo's session memory, not in any kit file) and run `/sdlc-update`, at an arc
+   boundary, never mid-arc. Owner-halting by design: classification plan shown, the
+   drifted-files decision is the owner's; `agents/sdlc-surveyor.md` arrives via the
+   new-in-install-set clause, not classification.
+2. **Apply the two [adoption-only] follow-ups to TFit by hand** — the update never
+   touches project-owned files, so neither arrives on its own:
+   - Add a *Model policy* section to TFit's `spec/SDLC.md`: confirm or adjust the
+     three-tier default (opus/planning, sonnet/code, haiku/collection); optionally pin
+     `"model"` in `.claude/settings.json`.
+   - The friction-log seed needs nothing — TFit already has the section the seed
+     generalizes; just confirm it survives as `/sdlc-retro`'s mining target.
+3. **Close F2's open acceptance half** on the next real `/plan-phase` run on TFit:
+   sweeps delegated to parallel read-only subagents, every question still owner-facing
+   in the main session. Record the result in this section when it happens.
+4. **TFit housekeeping, optional** (§8 standing context): delete TFit's project-side
+   copy of the field report — cleared for deletion by its own note, still undone.
+5. **Then F3** (slice-runner TRIAL, §3) — hand-authored as a project-local command on
+   TFit or Dungeon Daddy, ≥2 real slices, one exercising the blocked-on-design-question
+   round trip; the kit stays untouched unless all four pass criteria hold. Ships as
+   `v0.7.0` only if it does; a failure is recorded here and costs the kit nothing.
+
+Steps 1–4 need the owner in the loop (update halt, spec edits, acceptance are theirs
+by design); step 5's kit-side encoding is a normal session's work after the trial.
