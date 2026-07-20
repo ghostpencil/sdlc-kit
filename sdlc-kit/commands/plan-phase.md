@@ -15,6 +15,9 @@ spec — silence is never approval.
 Optional argument to skip candidate selection: `/plan-phase 12` or
 `/plan-phase user accounts`.
 
+This command is analysis-heavy; check the model policy recorded in `spec/SDLC.md`
+(`/model` to switch).
+
 ## Workflow
 
 ### 1. Orient
@@ -54,9 +57,15 @@ a full round surfaces nothing new. Cover, minimum:
 
 ### 4. Adversarial gap analysis — attack the requirements
 
-After the interview, actively try to break the requirements. Run every applicable
-sweep; each finding becomes either a new interview question (back to step 3) or a
-recorded decision:
+After the interview, actively try to break the requirements. The sweeps are this
+command's heaviest context load, and they are read-only — run each applicable sweep as
+its own **parallel read-only subagent** (give it the phase idea, the interview's
+answers, and the relevant spec pointers; it reads what it needs and returns findings).
+Sweep agents analyze, so they inherit the session model — do not run them on the
+mechanical `sdlc-surveyor` agent, which collects and never analyzes. The findings come
+back to **this** session: every one becomes either a new interview question (back to
+step 3) or a recorded decision, and every question goes to the owner from here — no
+subagent ever interacts with the owner.
 
 - **Walkthrough** — write a short end-to-end usage script exercising the feature.
   Every moment the script forces you to invent something unspecified is a gap.
@@ -77,8 +86,10 @@ recorded decision:
 - **Minimal-version attack** — what is the smallest version that still delivers the
   value? Anything above that line must be justified or moved to a later phase.
 
-Optionally spawn an Explore agent to verify feasibility claims against the codebase
-(does the seam we're assuming exist?) before locking decisions that depend on them.
+Optionally spawn the `sdlc-surveyor` agent (installed in `.claude/agents/`) to verify
+feasibility claims against the codebase (does the seam we're assuming exist?) before
+locking decisions that depend on them — locating a seam is collection, and the surveyor
+reports what it found without judging it.
 
 ### 5. Draft the spec
 

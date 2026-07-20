@@ -14,6 +14,7 @@ the project owns.**
 | Path in this project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from the kit's `commands/`, `skills/`, `reference/REVIEW_LENSES.md`) | kit | overwrite when provably unmodified; owner decides when drifted |
+| `.claude/agents/*.md` (from the kit's `agents/`) | kit | same rule — overwrite when provably unmodified; owner decides when drifted |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | project | never overwritten — they hold the gate baseline, owner decisions, backlog, gotchas |
 
 ## How to use
@@ -48,21 +49,30 @@ git -C /tmp/kit worktree add /tmp/kit-old vX.Y.Z                # the version yo
 
 ### 3. Classify every installed file
 
-Compare everything under `.claude/commands/` against the **old** version's manifest.
-Hash committed content (`git cat-file -p :path`), never the working tree — an unpinned
-checkout on Windows holds CRLF and would report every file as drifted, uniformly and
-plausibly wrong.
+Compare everything under `.claude/commands/` and `.claude/agents/` against the **old**
+version's manifest. Hash committed content (`git cat-file -p :path`), never the working
+tree — an unpinned checkout on Windows holds CRLF and would report every file as
+drifted, uniformly and plausibly wrong.
 
 ```bash
 cd <project root>
 MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
-for f in $(git ls-files .claude/commands); do
-  base=${f#.claude/commands/}
-  # commands/, skills/, and reference/REVIEW_LENSES.md all install into
-  # .claude/commands/, so try all three prefixes.
-  want=$(awk -v b="$base" \
-    '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN")
+for f in $(git ls-files .claude/commands .claude/agents); do
+  case "$f" in
+    .claude/commands/*)
+      base=${f#.claude/commands/}
+      # commands/, skills/, and reference/REVIEW_LENSES.md all install into
+      # .claude/commands/, so try all three prefixes.
+      want=$(awk -v b="$base" \
+        '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN") ;;
+    .claude/agents/*)
+      base=${f#.claude/agents/}
+      # agents/ installs into .claude/agents/ (mapping added in kit 0.6.0; an older
+      # manifest simply has no agents/ entries and these classify UNKNOWN — but see
+      # the denominator check, which still counts them).
+      want=$(awk -v b="$base" '$2 == "agents/" b {print $1}' "$MAN") ;;
+  esac
   have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
   if   [ -z "$want" ];        then echo "UNKNOWN   $base"
   elif [ "$want" = "$have" ]; then echo "UNCHANGED $base"
@@ -75,8 +85,8 @@ Two checks on the check — required, because both failure modes produce a plaus
 result rather than an error:
 
 - **Denominator.** The loop must print exactly as many lines as
-  `git ls-files .claude/commands | wc -l`. Fewer means the matching dropped files
-  (`tdd-references/` lives in a subdirectory and is the usual casualty).
+  `git ls-files .claude/commands .claude/agents | wc -l`. Fewer means the matching
+  dropped files (`tdd-references/` lives in a subdirectory and is the usual casualty).
 - **Never probe for a path with `git cat-file … | sha256sum`.** A pipeline reports the
   *last* command's status, so a missing path hashes empty input and silently matches
   the wrong thing. Look paths up in the manifest, as above.
@@ -107,7 +117,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   the owner released — plus any files **new in the target's install set**, which
   classification never saw because the project does not hold them yet. Sources:
   `sdlc-kit/commands/`, `sdlc-kit/skills/`, and `sdlc-kit/reference/REVIEW_LENSES.md` —
-  all into `.claude/commands/`, preserving the `tdd-references/` subfolder.
+  all into `.claude/commands/`, preserving the `tdd-references/` subfolder — and
+  `sdlc-kit/agents/` into `.claude/agents/` (new mapping in 0.6.0; a project updating
+  from an older version holds none of these yet, so they arrive via this new-files
+  clause, not via classification).
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target

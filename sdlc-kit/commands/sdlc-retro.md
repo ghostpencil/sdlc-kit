@@ -67,8 +67,11 @@ none of them writes anything.
   gate run (a red gate that got through), repeated gate runs on one slice, commits after
   a review that undo review changes, reverts, and slices whose commit span is much wider
   than their siblings'.
-- **Recorded-but-unactioned friction.** Sweep the project's notes — and the kit-side
-  docs, when step 1's co-development clause applies — for friction someone already wrote
+- **Recorded-but-unactioned friction.** Sweep the *Kit friction log* section of
+  `spec/PROJECT_INDEX.md` first (adoptions from kit 0.6.0 on seed it; treat its absence
+  as a small finding on an older adoption, since friction with no home goes unrecorded),
+  then the project's other notes — and the kit-side docs, when step 1's co-development
+  clause applies — for friction someone already wrote
   down and nobody acted on: a warning in a planning doc, a "worth fixing later" that
   never became a backlog entry, a gotcha noted mid-arc and left. Friction that was
   recorded and still not addressed is a stronger finding than friction merely felt — the

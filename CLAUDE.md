@@ -36,6 +36,7 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
   templates/*.template.*                     CLAUDE.md, spec/*.md, .claude/settings.json
   commands/*.md                              .claude/commands/*.md
   skills/** (incl. tdd-references/)          .claude/commands/**   (project-scoped)
+  agents/*.md                                .claude/agents/*.md   (project-scoped)
   reference/*.md                             (stays put — consulted by setup, not installed,
                                               EXCEPT REVIEW_LENSES.md → .claude/commands/)
 ```
@@ -44,7 +45,8 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
 runs in two modes — **New Project** (interview → scaffold → establish a green gate) and
 **Existing Project** (analyze → propose → confirm → generate, merging never overwriting) —
 and it instantiates every template, installs the four daily commands, `sdlc-retro.md`,
-`sdlc-update.md`, and the vendored TDD skill set, and writes the edit-time hook. `commands/sdlc-update.md`
+`sdlc-update.md`, the vendored TDD skill set, and the `agents/` definitions
+(→ `.claude/agents/`), and writes the edit-time hook. `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
 *Updating an adopted project* section state the same procedure and must agree.
 
@@ -57,7 +59,9 @@ load-bearing piece that lets a fresh session orient in seconds.
 
 Note that **skills install into `.claude/commands/`, not `.claude/skills/`** — that is
 deliberate (project-scoped, so they travel with a `git clone`) and is stated in several
-files; keep it consistent if you touch install paths.
+files; keep it consistent if you touch install paths. Agent definitions are the
+exception with their own destination: `agents/` → `.claude/agents/` (equally
+project-scoped; the harness reads agents only from there).
 
 ## Invariants to preserve when editing
 

@@ -126,9 +126,11 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── tdd.md                       ← THE TDD skill (not built into Claude Code)
 │   ├── tdd-references/              ← tests.md + mocking.md (linked from tdd.md)
 │   ├── tdd-guide.md                 ← optional: broader TDD guide for teams new to it
-│   ├── mutation-testing.md          ← optional: test-suite strength assessment
+│   ├── mutation-testing.md          ← always installed — /end-slice's mutation check invokes it
 │   ├── python-pro.md                ← Python projects only
 │   └── hypothesis-tests.md          ← Python projects only
+├── agents/                          ← installed into <project>/.claude/agents/
+│   └── sdlc-surveyor.md             ← read-only mechanical-collection agent (haiku)
 ├── templates/                       ← instantiated into the project by /sdlc-setup
 │   ├── SDLC.template.md             → spec/SDLC.md        (the canonical process)
 │   ├── CLAUDE.template.md           → CLAUDE.md           (agent instructions)
@@ -189,6 +191,7 @@ The whole procedure rests on this split:
 | Path in your project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from `commands/`, `skills/`, `reference/REVIEW_LENSES.md`) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
+| `.claude/agents/*.md` (from `agents/`) | **kit** | Same rule — overwritten when provably unmodified; you decide when drifted. |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | **project** | **Never overwritten.** These hold your gate baseline, owner decisions, backlog, and gotchas. |
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
@@ -225,12 +228,21 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    cd /path/to/your-project
    MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
-   for f in $(git ls-files .claude/commands); do
-     base=${f#.claude/commands/}
-     # commands/, skills/, and reference/REVIEW_LENSES.md all install into
-     # .claude/commands/, so try all three prefixes.
-     want=$(awk -v b="$base" \
-       '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN")
+   for f in $(git ls-files .claude/commands .claude/agents); do
+     case "$f" in
+       .claude/commands/*)
+         base=${f#.claude/commands/}
+         # commands/, skills/, and reference/REVIEW_LENSES.md all install into
+         # .claude/commands/, so try all three prefixes.
+         want=$(awk -v b="$base" \
+           '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN") ;;
+       .claude/agents/*)
+         base=${f#.claude/agents/}
+         # agents/ installs into .claude/agents/ (mapping added in kit 0.6.0; an older
+         # manifest has no agents/ entries, so these classify UNKNOWN — the denominator
+         # below still counts them).
+         want=$(awk -v b="$base" '$2 == "agents/" b {print $1}' "$MAN") ;;
+     esac
      have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
      if   [ -z "$want" ];        then echo "UNKNOWN   $base  (not from the kit — yours)"
      elif [ "$want" = "$have" ]; then echo "UNCHANGED $base  (safe to overwrite)"
@@ -247,8 +259,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
      empty input and silently "matches" the wrong entry. Look the path up in the manifest,
      as above, rather than probing for it.
    - **Check the denominator.** The loop should report exactly as many files as
-     `git ls-files .claude/commands | wc -l`. If it reports fewer, your prefix matching is
-     dropping files — `tdd-references/` lives in a subdirectory and is the usual casualty.
+     `git ls-files .claude/commands .claude/agents | wc -l`. If it reports fewer, your
+     prefix matching is dropping files — `tdd-references/` lives in a subdirectory and is
+     the usual casualty.
 
 4. **Act on the classification.**
    - `UNCHANGED` → provably untouched since adoption. Copy the new version over it.
@@ -261,7 +274,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    never saw them — it enumerates what your project already holds, and your project does
    not hold them yet — so they appear in no category above and are the one class of
    update a purely classification-driven pass silently skips. Take the install set from
-   the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5).
+   the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5). The agent
+   definitions (`agents/` → `.claude/agents/`, new in 0.6.0) arrive this way on any
+   project updating from an older version.
 
    If you kept a `sdlc-kit/` folder from adoption, replace it with the new version's
    bundle — but **list its actual contents against the old version's manifest first**,
@@ -281,6 +296,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, or `.claude/settings.json`.
    They hold your recorded baseline and decisions; the kit cannot regenerate them.
+   And claim only what was checked: "nothing project-owned touched" may be said once
+   the final diff has been read against the ownership table — not asserted from the
+   manifest, which structurally cannot see files it never listed. An unverified
+   reassurance is worse than silence, because it stops the reader looking.
 
 6. **Verify, then re-record the version.** Re-run step 3 against the **new** version's
    manifest: every file you copied must now classify `UNCHANGED`, and the only `DRIFTED`

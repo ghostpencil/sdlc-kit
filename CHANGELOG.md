@@ -5,10 +5,75 @@ This file is repo documentation and is not shipped inside `sdlc-kit/`; the bundl
 its version in `sdlc-kit/VERSION`.
 
 An entry marked **[installable]** changes a file an adopted project holds
-(`commands/**`, `skills/**`, `reference/REVIEW_LENSES.md`) and therefore matters at
-update time. Entries marked **[adoption-only]** change `templates/**` or the
+(`commands/**`, `skills/**`, `agents/**`, `reference/REVIEW_LENSES.md`) and therefore
+matters at update time. Entries marked **[adoption-only]** change `templates/**` or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
+
+## 0.6.0 — 2026-07-20
+
+The agents-and-model-tiers batch (`FEATURE_PLAN.md` F2), plus two residues from the
+0.5.0 migration. Two governing rules, both now stated in `SDLC.template.md`:
+parallelism is **read-only fan-out within a step only** (never implementation, never
+across slices), and every owner interaction stays in the main session — subagents
+cannot ask, so no halt point moves. The five-halt-point invariant stands.
+
+### Added
+- **[installable]** New install mapping — the first new destination since
+  `REVIEW_LENSES.md`: `agents/` → `.claude/agents/`, project-scoped agent definitions
+  inherited on clone like the commands. Initial set is one file, deliberately:
+  `sdlc-surveyor.md`, a read-only mechanical-collection agent (`tools: Read, Grep,
+  Glob`; `model: haiku` — kit-set, because collection gains nothing from a bigger
+  model). It collects and reports verbatim, with denominators; it never analyzes.
+  Both classification scripts (`sdlc-update.md` step 3 and the root README's update
+  section) now enumerate `.claude/agents/` with an `agents/` prefix match, and their
+  denominator checks count both destination directories. Updaters from ≤0.5.0 receive
+  the agent via the new-in-install-set clause, not classification.
+- **[installable]** `plan-phase.md` step 4: the seven adversarial sweeps run as
+  **parallel read-only subagents** — the command's heaviest context load, delegated;
+  findings return to the main session, where every question and decision stays with
+  the owner. Sweep agents analyze and therefore inherit the session model — the haiku
+  surveyor is explicitly excluded from this step. The feasibility check names
+  `sdlc-surveyor` (it locates seams; it does not judge them).
+- **[installable]** `sdlc-setup.md` gains the **model-policy poll** (both modes, the
+  process-fit round): a three-tier recommendation (High `opus` — planning, analysis,
+  adversarial review; Medium `sonnet` — code to an existing spec; Low `haiku` —
+  mechanical collection) confirmed or adjusted by the owner. Recorded in
+  project-owned homes only: the policy as `{{MODEL_POLICY}}` in `spec/SDLC.md`, the
+  optional pinned session default as `{{DEFAULT_MODEL}}` in `.claude/settings.json`
+  (`"model"` key; line deleted when the owner keeps the harness default). Aliases
+  only, never model IDs. Setup never writes a model into an installed command file —
+  the rejected shape of field-report #1. `opusplan` on `plan-phase.md` remains
+  deferred for lack of field evidence. `plan-phase.md` opens with a one-line pointer
+  to the recorded policy.
+- **[adoption-only]** `SDLC.template.md`: the read-only fan-out rule and the model
+  policy section (`{{MODEL_POLICY}}`); `settings.template.json`: the `"model"` line
+  (`{{DEFAULT_MODEL}}`). Placeholders #35 and #36, both resolved by the poll.
+- **[adoption-only]** `PROJECT_INDEX.template.md` seeds a **Kit friction log**
+  section — process friction (tooling noise, workarounds, silent moments) gets a
+  dated one-line home the moment it is felt. `/sdlc-retro`'s recorded-but-unactioned
+  sweep mines this section first **[that half installable]** and treats its absence
+  on an older adoption as a small finding. Residue of the 0.5.0 migration: TFit's
+  friction log had no kit-side counterpart for other adopters.
+- **[adoption-only]** Setup's `.gitattributes` guidance widens from `*.md text eol=lf`
+  to `* text=auto eol=lf` (New mode writes it; Existing mode offers it, with a scoped
+  fallback for owners wary of repo-wide policy). The `*.md`-only pin was measured to
+  miss four non-markdown bundle files (`LICENSE`, `MANIFEST.sha256`, `VERSION`,
+  `settings.template.json`) on the 0.5.0 TFit update — same phantom-modification
+  noise class, one size smaller. The repo-wide form is what this kit's own
+  `.gitattributes` uses.
+
+### Fixed
+- **[adoption-only]** `reference/SKILLS.md` onboarding checklist said "the five SDLC
+  commands"; the set has been seven since 0.4.0 (`sdlc-retro`, `sdlc-update`). Its
+  Required table gains the kit-agents row.
+- **[adoption-only]** Halt 3's template wording scoped design questions "mid-slice";
+  `end-phase.md` has always (correctly) halted on design questions found by the
+  whole-arc review too. The template now owns that scope — "mid-slice or by a
+  review" (this release's `/kit-check`, invariant 2).
+- Root README: the file tree still marked `mutation-testing.md` optional (always
+  installed since 0.5.0), and the update section lacked the command's "claim only
+  what was checked" rule — both brought back into agreement (invariants 7, 8).
 
 ## 0.5.0 — 2026-07-20
 

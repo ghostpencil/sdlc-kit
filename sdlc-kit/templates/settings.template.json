@@ -1,4 +1,5 @@
 {
+  "model": "{{DEFAULT_MODEL}}",
   "hooks": {
     "PostToolUse": [
       {

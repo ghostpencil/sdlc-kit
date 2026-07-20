@@ -22,8 +22,8 @@ Commands defer to `spec/SDLC.md`; anything project-variable lives in a template
 placeholder, never in command prose. Commands are kit-owned and identical across every
 adopting project, so any project fact they state is false somewhere.
 
-**Check:** reading pass over `commands/` (and `skills/`, though vendored files rarely
-offend). **Specimen:** `v0.1.0`'s `end-slice.md` asserted *"the typecheck baseline is
+**Check:** reading pass over `commands/` and `agents/` (and `skills/`, though vendored
+files rarely offend). **Specimen:** `v0.1.0`'s `end-slice.md` asserted *"the typecheck baseline is
 green"* — false at every slice close of every red-baseline adoption, shipped and
 unnoticed for three slices (field report #1).
 
@@ -58,7 +58,7 @@ files setup instantiates, no more. The installed `sdlc-setup.md` is the **only**
 installed file permitted to carry literal `{{` (it must name placeholders to teach their
 resolution); every other installed file stays `{{`-free.
 
-**Check:** `grep -rc '{{' sdlc-kit/commands sdlc-kit/skills
+**Check:** `grep -rc '{{' sdlc-kit/commands sdlc-kit/skills sdlc-kit/agents
 sdlc-kit/reference/REVIEW_LENSES.md` → hits in `sdlc-setup.md` only.
 **Specimen:** the check as first shipped grepped all of `.claude/`, which contains the
 installed `sdlc-setup.md` — a false positive on every single adoption (plan §8.11).
@@ -87,11 +87,14 @@ mode's "same rules as New mode step 4" — caught only by this grep (plan §8.5)
 ## 7. The install mapping has one source of truth
 
 The kit-path → installed-path mapping is **defined** by `sdlc-setup.md`'s install list
-(New mode step 5; Existing mode step 3 inherits it). Every other statement of the
+(New mode step 5; Existing mode step 3 inherits it). Since 0.6.0 the mapping has two
+destinations: `commands/`, `skills/`, and `reference/REVIEW_LENSES.md` →
+`.claude/commands/`; `agents/` → `.claude/agents/`. Every other statement of the
 mapping is derived and must be verified against it: the root README's ownership table
 and file tree, the bundle README, root `CLAUDE.md`'s flow diagram, `sdlc-update.md`'s
 ownership table, and — the ones with teeth — the prefix lists in **both**
-classification scripts (`sdlc-update.md` step 3 and the README's update section).
+classification scripts (`sdlc-update.md` step 3 and the README's update section),
+including their denominator checks, which must enumerate both destination directories.
 
 **Check:** reading pass; diff each derived statement against the install list.
 **Specimen:** installing `REVIEW_LENSES.md` (B4) falsified five derived statements at

@@ -40,6 +40,13 @@ review stays on the same branch. Splitting an arc across branches produces two P
 no single whole-arc review spanning both — and the whole-arc review is the stage that
 catches what slice reviews structurally cannot.
 
+**Parallelism is read-only fan-out only.** Slices are strictly sequential — their order
+is set at planning time and inter-slice dependencies are the norm. Subagents may run in
+parallel only for read-only work *within* a step (analysis sweeps, repo surveys, review
+lenses), made safe by tool restriction; never for implementation, never across slices.
+Findings return to the main session, and every owner interaction happens there —
+subagents cannot ask the owner anything, so no halt point ever moves into one.
+
 ## Owner halt points
 
 The process runs autonomously except at these five points. Everything else (gates, reviews,
@@ -51,7 +58,8 @@ fix application, bookkeeping, commits) proceeds without asking.
    when the slice is already recorded as OWNER-DECIDED with its scope spelled out;
    re-asking a decided question is ceremony, and the halt exists for the undecided case.
 3. **Design questions** — any spec conflict or owner-facing design decision surfaced
-   mid-slice halts with a question; it is never resolved silently.
+   during the work, mid-slice or by a review, halts with a question; it is never
+   resolved silently.
 4. **Acceptance review** — the owner personally exercises the phase's visible behavior at
    phase end ({{ACCEPTANCE_SURFACE}}). The agent does not perform this review on the
    owner's behalf.
@@ -104,6 +112,18 @@ away.
 A PostToolUse hook (`.claude/settings.json`) runs the lint/typecheck steps on every
 edited source file, so most gate failures surface at edit time rather than at slice end.
 
+## Model policy
+
+{{MODEL_POLICY}}
+<!-- Owner-confirmed at setup; adjust any time (re-record here when it changes). The
+     kit's recommended default is three tiers by task shape: High (`opus`) for
+     planning, analysis, and adversarial review; Medium (`sonnet`) for writing code to
+     an existing plan/spec; Low (`haiku`) for mechanical collection. Aliases only,
+     never model IDs — IDs go stale. The one kit-set model is `haiku` on the read-only
+     agents in .claude/agents/ (collection work gains nothing from a bigger model).
+     Switch any session with /model; the pinned session default, if one was chosen,
+     lives in .claude/settings.json ("model"). -->
+
 ## Phase start
 
 Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping, or when
@@ -113,8 +133,9 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
 2. Requirements interview in rounds (≤4 questions each) until a round surfaces nothing
    new, then an adversarial gap analysis (walkthrough, trust-boundary sweep, cross-system
    sweep, persistence/compatibility sweep, testability sweep, contradiction sweep,
-   minimal-version attack). Every gap becomes a question or a numbered decision — never
-   an assumption.
+   minimal-version attack — the sweeps may run as parallel read-only subagents per the
+   fan-out rule above, with findings returning to the main session). Every gap becomes
+   a question or a numbered decision — never an assumption.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
    numbered owner decisions, behaviors, non-goals, data/migration impact, user-visible
    surface + acceptance-review checklist, slices with exit criteria, risks.

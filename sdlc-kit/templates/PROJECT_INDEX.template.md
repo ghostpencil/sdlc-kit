@@ -44,6 +44,18 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      the project is visible, not because they followed this process ("pre-SDLC" is a
      fine PR value). New Project mode: leave empty. -->
 
+## Kit friction log
+
+<!-- Process friction, not code findings: a step that cost more than it returned, a
+     rule worked around, tooling noise (stderr warnings, phantom diffs), a moment the
+     process was silent. One line each, dated. This is /sdlc-retro's raw material —
+     its recorded-but-unactioned sweep mines this section first, because friction that
+     produces no backlog entry, no commit, and no gate movement is invisible to every
+     other sweep. When a retro absorbs an entry into a report, mark it absorbed rather
+     than deleting it. -->
+
+- (none yet)
+
 ## Environment gotchas
 
 <!-- Machine/OS/tooling facts that bite a fresh session or a new contributor: toolchain
