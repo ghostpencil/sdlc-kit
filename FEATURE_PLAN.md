@@ -400,6 +400,10 @@ acceptance evidence and the input to the next batch. Triage notes:
 
 ## 7. R1 — the retro-fix batch *(ships as `v0.5.0`; owner-decided 2026-07-20)*
 
+> **Status: DONE, 2026-07-20.** Built, `/kit-check` clean on all 13 invariants,
+> released as `v0.5.0` (tag pushed, `release.yml` green in 13s, assets published),
+> TFit migrated same day (PR #5, merged). See §8 for the session hand-off.
+
 Actions all 15 rows of `FIELD_REPORT_2026-07-20.md`'s priority table. The report holds
 the evidence and rationale per row; this section records only the edit map and the
 decisions the rows forced. Every row is prose-and-procedure work — no new files, no new
@@ -445,3 +449,56 @@ Destinations enumerated by grep before editing: `code-review` (4 files + SKILLS)
 (next-slice, end-slice notes, SDLC.template Shape), update procedure (sdlc-update +
 root README, ledger inv. 8). The root README file tree does not change — no files are
 added or renamed. `/kit-check` closes the batch.
+
+---
+
+## 8. Hand-off — state as of 2026-07-20, end of the R1 session
+
+Everything in this plan through R1 is **done, released, migrated, and pushed**. Unlike
+every prior hand-off, nothing is being deliberately held: both repos' `main` match
+their remotes, all four release tags are published with green `release.yml` runs and
+bundle assets, and the merged branches are pruned on both sides.
+
+### What is where
+
+| Where | State |
+|---|---|
+| Kit `main` = origin | `46e8ec6` — v0.5.0 release commit; working tree clean except this hand-off |
+| Kit releases | `v0.2.0`–`v0.5.0` published; `v0.5.0` latest, assets + checksums attached |
+| TFit `main` = origin | `917922f` — PR #5 merged (0.5.0 update + the spec merge), CI green |
+| TFit spec state | `spec/SDLC.md`/`spec/TESTING.md` merged with the 0.5.0 process changes, so the template/spec drift the update commit warned about is closed; friction log #1 and #3 marked absorbed, #2 partially |
+
+R1's acceptance evidence worth one sentence here: the update procedure's new rules ran
+for real on TFit the same day they shipped — enumeration found 26/26 manifested (clean,
+and *proven* clean rather than assumed), classification discriminated on exactly the
+six changed files, and the `*.md` eol pin produced zero phantom modifications.
+
+### Resume here
+
+1. **The `/sdlc-retro` negative case is still the cheapest open item.** A fresh
+   adoption with no history must get "not enough evidence yet", not manufactured
+   findings. A scratch adoption is the way; nothing depends on it, but it is the one
+   half of F1 still unexercised, and it should be run before anyone trusts the
+   evidence-sufficiency check's calibration.
+2. **Then F2** (read-only agents + model tiers), shipping as `v0.6.0` per §2's second
+   amendment. Read §4a first — F2's ripple list has both a new prefix and a new
+   destination, the class with the worst track record. The `opusplan` decision in F2b
+   remains parked: R1 produced no model-tier evidence either way.
+3. **Two small kit-side residues from the TFit migration**, either fold into F2's
+   batch or take as one-offs:
+   - The template seeds no *Kit friction log* section, so other adopters have nothing
+     for `sdlc-retro`'s new recorded-but-unactioned sweep to mine (TFit friction log
+     #2's unabsorbed half).
+   - Setup's new eol check covers `*.md` only; TFit's update still warned LF→CRLF on
+     four non-markdown bundle files (`LICENSE`, `MANIFEST.sha256`, `VERSION`,
+     `settings.template.json`). Harmless to the hashes, but the same noise class one
+     size smaller — a `* text=auto eol=lf`-shaped recommendation may be the real fix.
+
+### Standing context
+
+- `FIELD_REPORT_2026-07-20.md` at the root is the canonical submitted copy of the
+  retro; TFit's project-side kit-bound twin was cleared for deletion by its own note
+  once placement happened — deleting it is TFit-side housekeeping nobody has done.
+- The five-halt-point invariant survived R1 intact (halt 2 narrowed, not removed; the
+  end-phase backlog prompt is an offer). Guard it in F2 — agent fan-out is exactly the
+  kind of feature that breeds new halts.
