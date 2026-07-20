@@ -510,3 +510,70 @@ six changed files, and the `*.md` eol pin produced zero phantom modifications.
 - The five-halt-point invariant survived R1 intact (halt 2 narrowed, not removed; the
   end-phase backlog prompt is an offer). Guard it in F2 — agent fan-out is exactly the
   kind of feature that breeds new halts.
+
+---
+
+## 9. F2 — done, released as `v0.6.0` (2026-07-20)
+
+Both halves shipped together as planned, plus §8's two residues, folded in. What is on
+disk matches §3's design with one deliberate sharpening: the plan's single
+"surveyor/sweeper (`model: haiku`)" would have put *analysis* on the tier the table
+reserves for *collection*. Resolved without a second agent definition: the shipped
+`agents/sdlc-surveyor.md` is collection-only (`haiku`, `Read/Grep/Glob`, "collects,
+never analyzes"), and `plan-phase.md`'s seven sweeps run as parallel read-only
+subagents that **inherit the session model**, with the surveyor explicitly excluded
+from that step. The command's advisory line points at the recorded model policy.
+
+The poll lands in exactly the two project-owned homes §3 named — `{{MODEL_POLICY}}`
+(new *Model policy* section, `SDLC.template.md`) and `{{DEFAULT_MODEL}}`
+(`settings.template.json` `"model"` line, deleted on decline; key name verified
+against current docs, aliases confirmed valid, org-exclusion confirmed silent-fallback).
+`opusplan` stays parked — still no field evidence either way. Five halt points,
+unchanged: the poll is setup-interview material, and the template now states the
+fan-out rule (read-only, within a step, findings return, no owner interaction ever
+leaves the main session).
+
+### Ripple score (§4a discipline)
+
+Derived mechanically before editing (grep for `REVIEW_LENSES` and `.claude/commands`
+enumeration), not recalled. §3's list named ~10 destinations and all were real; the
+derivation surfaced **three it missed**: `KIT_INVARIANTS.md` (the inv-4 census scope
+and inv-1 reading-pass scope now include `agents/`), root `kit-check.md` (checks 1, 4,
+5, 7 — same scopes), and `reference/SKILLS.md` — **the same file F1's list missed**,
+now missed by a plan list twice; treat it as a standing member of every
+install-mapping ripple. Call it 10-of-13, found *before* editing rather than by the
+check after — the §4a rule did its job.
+
+### Verification and acceptance
+
+- `/kit-check` full pass, 13/13 after fixing the three findings it raised: halt 3's
+  template wording now owns the whole-arc-review case ("mid-slice or by a review");
+  root README's stale "optional" on `mutation-testing.md`; README gained the
+  command's "claim only what was checked" rule (inv 8's first real catch). Reading
+  passes ran as four parallel read-only subagents — the batch's own pattern, used to
+  verify the batch.
+- Manifest regenerated twice, discrimination proven both times (exactly the edited
+  files changed hash; 27 entries = `ls-files` − 1).
+- **Acceptance, setup half — met.** A scripted-owner scratch adoption (`loglens`,
+  New mode, Python) run by a subagent against the 0.6.0 bundle: poll recorded in both
+  homes (`"model": "sonnet"` in settings; owner-confirmed tier table in
+  `spec/SDLC.md` §Model policy), `sdlc-surveyor.md` installed with `model: haiku`
+  intact, `{{` exit grep clean, gate green, hook and isolation harness proven by
+  negative cases, `* text=auto eol=lf` written. Spot-checked independently after the
+  agent's report.
+- **Acceptance, plan-phase half — open.** "A plan-phase run on a real spec with
+  sweeps delegated and every owner interaction in the main session" needs a real
+  owner interview; it runs on the next real phase planned on an adopted project
+  (TFit), same shape as F1's acceptance. Until then the delegation is
+  design-verified, not field-verified.
+
+### Resume here
+
+1. **Migrate TFit to 0.6.0** (`/sdlc-update` — owner-halting, so run it with the
+   owner). Note for that run: `{{MODEL_POLICY}}` and the friction-log seed are
+   [adoption-only] — TFit's project-owned `spec/SDLC.md` and `PROJECT_INDEX.md` do
+   not receive them automatically; the changelog flags both as manual follow-ups,
+   and TFit already has its own friction log (the section the seed generalizes).
+2. **F2's open acceptance half** rides the next `/plan-phase` on TFit.
+3. **Then F3** (slice-runner TRIAL, §3) — on TFit or Dungeon Daddy, kit untouched
+   until the trial passes. Ships as `v0.7.0` only if it does.
