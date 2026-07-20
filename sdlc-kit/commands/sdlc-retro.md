@@ -27,6 +27,15 @@ Read `spec/PROJECT_INDEX.md` (Phase History, deferred backlog, Environment gotch
 Notes) and `spec/SDLC.md` (gate definition, recorded gate baseline, kit version). The
 window is the phase named in the argument, or the most recent Phase History row.
 
+**When the kit is co-developed alongside this project** — its home repository is on
+this machine, or the project's notes point at kit planning documents — read the kit's
+own planning and field-report docs for the window too. Half the friction record of a
+co-developed adoption lives on the kit's side, written by sessions that worked on the
+kit; a retro that reads only the project's spec files once missed a friction item the
+kit's plan had already recorded *and labeled as retro material*. For an ordinary
+adoption with no kit repo at hand, skip this — it is a co-development clause, not a
+new dependency.
+
 **Evidence sufficiency check — do this before anything else.** The command needs
 something to reason about. Count what the window actually contains: merged phases,
 completed slices, deferred-backlog entries, commits. If the project has been through
@@ -58,6 +67,15 @@ none of them writes anything.
   gate run (a red gate that got through), repeated gate runs on one slice, commits after
   a review that undo review changes, reverts, and slices whose commit span is much wider
   than their siblings'.
+- **Recorded-but-unactioned friction.** Sweep the project's notes — and the kit-side
+  docs, when step 1's co-development clause applies — for friction someone already wrote
+  down and nobody acted on: a warning in a planning doc, a "worth fixing later" that
+  never became a backlog entry, a gotcha noted mid-arc and left. Friction that was
+  recorded and still not addressed is a stronger finding than friction merely felt — the
+  process saw it and had no place to put it. This sweep exists because the sweeps above
+  are all blind to tooling noise (stderr warnings produce no backlog entry, no commit,
+  no gate movement) and the one record of such noise may sit in prose nothing else here
+  reads.
 
 Report what the sweeps found as a short evidence summary before interviewing. The owner
 is about to be asked to interpret it.

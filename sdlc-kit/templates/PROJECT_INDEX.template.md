@@ -25,8 +25,11 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 <!-- Review findings and small follow-ups deferred at /end-slice / /end-phase.
      One line each: what, where, why deferred — and where it came from, e.g.
      "(slice review, 2026-07-19)" or "(whole-arc review, PR #2)". Provenance is what
-     makes the pile triageable months later. This is a menu, not a mandate — a big
-     enough pile becomes a cleanup slice by owner decision at the next phase boundary. -->
+     makes the pile triageable months later. Each entry also marks its stated cause
+     "measured" (reproduced/observed) or "suspected" (inferred) — an entry is a
+     hypothesis with a timestamp, not a finding, and /next-slice re-derives the cause
+     before fixing. This is a menu, not a mandate — a big enough pile becomes a cleanup
+     slice by owner decision at the next phase boundary, where /end-phase presents it. -->
 
 - (empty)
 

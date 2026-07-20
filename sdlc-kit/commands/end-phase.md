@@ -79,6 +79,18 @@ git checkout <main> && git pull
 
 ### 7. Post-merge bookkeeping (on the main branch)
 
+- **Ask the deploy question:** does this phase need a deploy for its changes to reach
+  users, and has it happened? Merging is not shipping — a production fix sat unshipped
+  behind exactly this missing question once. The kit cannot know the project's deploy
+  procedure, but the question is mandatory: point at wherever the project recorded the
+  answer (`spec/SDLC.md` is the usual home; if nothing is recorded, that is a gap to
+  record now), and report deploy status in the close-out. Not a new halt — the owner
+  answers it inside the bookkeeping conversation.
+- **Surface the backlog:** report the open deferred-entry count with a severity
+  breakdown, flag the oldest untouched entries, and ask the owner once — convert (a
+  cleanup slice or the next phase's scope), defer knowingly, or drop. "A big enough
+  pile becomes a cleanup slice" defers indefinitely when nothing ever presents the
+  pile; this is the presentation point.
 - `spec/PROJECT_INDEX.md`: add the Phase History row, flip the Phase section to the next
   state (next phase or STABILIZATION), fold deferred review findings into the backlog,
   refresh START HERE.

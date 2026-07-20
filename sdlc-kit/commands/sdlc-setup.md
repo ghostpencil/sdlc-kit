@@ -25,12 +25,12 @@ existing file becomes a shown merge plan, not a silent clobber.
    stamping: record `{{KIT_VERSION}}` as `unknown (pre-0.2.0)` rather than guessing.
 2. **Verify skills** (see `reference/SKILLS.md`): the TDD skill is NOT built into
    Claude Code — it is vendored in `sdlc-kit/skills/` and installed in step 2a/2b
-   below; HALT if `sdlc-kit/skills/tdd.md` is missing. The built-in `code-review`
-   skill must appear in the available-skills listing — if missing, tell the owner to
-   update Claude Code; do not improvise a substitute. Check for the
+   below; HALT if `sdlc-kit/skills/tdd.md` is missing. Check for the
    `pr-review-toolkit` plugin; if absent, tell the owner to run
-   `/plugin install pr-review-toolkit@claude-plugins-official` (setup can continue —
-   it is needed by `/end-phase`, not today).
+   `/plugin install pr-review-toolkit@claude-plugins-official` (setup can continue,
+   but the plugin is needed by both `/end-slice` — its per-slice reviewer is the
+   `pr-review-toolkit:code-reviewer` agent — and `/end-phase`, so it must be installed
+   before the first slice closes, not just before the first phase does).
 3. `git status` / `git rev-parse`. Not a git repo → note that New mode will `git init`.
    Dirty working tree in an existing repo → ask the owner to commit/stash first.
 4. Detect the mode: no source files beyond scaffolding/docs → **New Project**;
@@ -54,7 +54,10 @@ questionnaire.
   what is explicitly out of scope (default: the whole repo; mixed repos — app + docs,
   app + infra — name the boundary); how the owner will run the app for acceptance
   review (the run command — and how to stop it, if Ctrl+C or closing the window does
-  not suffice); CI provider (default GitHub Actions); any always-active
+  not suffice); how a merged phase reaches users — the deploy procedure, or "none" for
+  a library/local tool (resolves `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end step,
+  which asks the deploy question at every phase close); CI provider (default GitHub
+  Actions); any always-active
   rules for CLAUDE.md (portability, serialization, DI seams for external services);
   anything the owner already knows about Phase 1 (recorded for `/plan-phase`, not
   acted on now).
@@ -67,7 +70,11 @@ questionnaire.
 Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
 1. `git init` (if needed) + language scaffolding: package manifest, `src`/package dir,
-   tests dir, tool configs (linter/typechecker/test runner/formatter), `.gitignore`.
+   tests dir, tool configs (linter/typechecker/test runner/formatter), `.gitignore`,
+   and a `.gitattributes` that pins `*.md text eol=lf` — the kit ships its markdown as
+   LF, and on a checkout that leaves `*.md` undefined (Windows, `core.autocrlf`) every
+   later kit update reports a page of phantom-modified files, which is the noise a real
+   deletion hides in.
 2. **Establish the gate green on the walking skeleton:** one trivial module + one real
    test; run lint + typecheck + tests per `GATE_RECIPES.md`. Do not proceed red.
 3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md`,
@@ -90,8 +97,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    inherits them via git):
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
      `sdlc-retro.md`, `sdlc-update.md` (and this file);
-   - the TDD skill set from `sdlc-kit/skills/`: `tdd.md` + `tdd-references/`
-     (always), `tdd-guide.md` + `mutation-testing.md` (offer), `python-pro.md` +
+   - the TDD skill set from `sdlc-kit/skills/`: `tdd.md` + `tdd-references/` +
+     `mutation-testing.md` (always — `/end-slice`'s mutation-check step invokes it, so
+     it is not optional), `tdd-guide.md` (offer), `python-pro.md` +
      `hypothesis-tests.md` (Python projects only — offer). Preserve the
      `tdd-references/` subfolder; `tdd.md` links into it relatively.
    - `reference/REVIEW_LENSES.md` → `.claude/commands/REVIEW_LENSES.md` (always) —
@@ -113,7 +121,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    languages + versions; build system; how tests are actually run (CI config is the
    best witness); lint/typecheck config present or absent; existing CLAUDE.md /
    README / docs / ADRs; branch + PR conventions from `git log`; app entry point / run
-   command; test layout and any existing mocking conventions; any existing
+   command; how the app is deployed, if it is (CD workflows, hosting config,
+   Dockerfiles); test layout and any existing mocking conventions; any existing
    test-isolation enforcement (network blockers, sanitized env vars) and the seams it
    misses; whether the repo holds more than the app (docs site, infra, data pipelines
    — anything the process might not govern); and whether any file named
@@ -122,7 +131,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    same-named neighbor is how a session ends up reading the wrong file. Same class of
    check as the leftover-`{{` exit grep.
 2. **Present findings + proposal — the feedback halt.** Show: detected stack, proposed
-   gate commands (prefer what CI already runs), proposed hook, the test-isolation
+   gate commands (prefer what CI already runs), proposed hook, whether `.gitattributes`
+   defines an `eol` for `*.md` — if not, offer to add `*.md text eol=lf`, one line that
+   permanently removes the phantom-modified noise every kit update otherwise produces
+   on an autocrlf checkout — the test-isolation
    harness to author or extend (`spec/TESTING.md` §Test Isolation — what step 1 found,
    what is missing), any name collision step 1 found with `spec/PROJECT_INDEX.md`
    (offer to rename the pre-existing file; if the owner keeps both names, record the
@@ -132,7 +144,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    analysis could not determine: whether this process governs the whole repo or a
    subset, and what is explicitly out of scope (step 1's survey of what else the repo
    holds seeds this question); acceptance-review surface and run command (and stop
-   command, if Ctrl+C does not suffice), in-flight
+   command, if Ctrl+C does not suffice); how a merged phase reaches users — the deploy
+   procedure, or "none" (resolves `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end
+   step; step 1's survey of CI/CD config seeds the proposed answer); in-flight
    work (open branches/PRs to record in START HERE), known trouble spots for the
    backlog, always-active rules worth encoding. If CI already enforces a coverage floor,
    resolve `{{COVERAGE_FLOOR}}` (gate section of `spec/SDLC.md`) with the existing
@@ -194,7 +208,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
 - The kit folder itself need not stay in the target repo once setup is done — the
   installed files are self-sufficient. Keeping it (or a pointer to its home repo) helps
-  future re-setup; owner's call, default keep.
+  future re-setup; owner's call, default keep. If it stays, tell the owner plainly:
+  **`sdlc-kit/` is kit-owned and volatile** — `/sdlc-update` replaces it wholesale, so
+  nothing project-authored may live there. Process notes, field reports, and anything
+  else the project writes belong at a project-owned path (`spec/` is the usual home); a
+  file parked in `sdlc-kit/` is one update away from silent deletion.
 - If the repo already has a partial SDLC install (some commands, older specs), treat it
   as Existing mode with the installed files as "existing docs": diff, merge, upgrade —
   never duplicate.

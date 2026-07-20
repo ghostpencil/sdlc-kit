@@ -79,6 +79,11 @@ migrated — the acceptance criterion *is* the release. Both prior releases were
 the same reason and both found defects in the migration itself. F2 therefore ships as
 `v0.5.0`, and F3 (if its trial passes) as `v0.6.0`.
 
+**Amended 2026-07-20: R1 (the retro-fix batch, §7) preempts F2.** The first retro's
+priority rows lead with `/sdlc-update` deleting un-manifested files — live for every
+adopter on the update path, which outranks new capability. R1 ships as `v0.5.0`; F2
+slides to `v0.6.0`, F3 to `v0.7.0`. Owner-decided 2026-07-20.
+
 F1 first because it is standalone and improves the evidence supply for everything else.
 F2's two halves ship together because the model-tier work lands partly *in* the agent
 definitions F2 creates. F3 is gated: the trial happens in an adopting project's repo
@@ -390,3 +395,53 @@ acceptance evidence and the input to the next batch. Triage notes:
 - **Step 2 (the negative case) is still unrun** — unchanged by this result, and worth
   doing before touching `sdlc-retro.md` for finding 12, so both known gaps land in one
   edit.
+
+---
+
+## 7. R1 — the retro-fix batch *(ships as `v0.5.0`; owner-decided 2026-07-20)*
+
+Actions all 15 rows of `FIELD_REPORT_2026-07-20.md`'s priority table. The report holds
+the evidence and rationale per row; this section records only the edit map and the
+decisions the rows forced. Every row is prose-and-procedure work — no new files, no new
+placeholders.
+
+### Edit map (row → file)
+
+| File | Rows | Edit |
+|---|---|---|
+| `commands/sdlc-update.md` | 1, 9, 13 | never delete un-manifested files (enumerate the real directory, halt on extras); update only at an arc boundary; report content-changed vs touched counts |
+| root `README.md` (update section) | 1, 9, 13 | same three, mirrored — the command and the section must agree (ledger inv. 8) |
+| `commands/sdlc-setup.md` | 2, 14 + ripples | `sdlc-kit/` is volatile, project notes go project-owned; offer `*.md text eol=lf` when `.gitattributes` leaves `*.md` undefined; step 1.2 skill check and step 5 install list follow the row-3/row-6 decisions |
+| `commands/end-slice.md` | 3, 4, 5, 6 | mutation-check step for new guards; deferred entries mark cause measured/suspected; consumer-of-changed-error-path lens; per-slice reviewer renamed + substitution rule |
+| `commands/next-slice.md` | 4, 7, 12 | re-derive a backlog entry's cause before fixing; check for any unmerged arc branch; skip halt 2 when the slice is recorded owner-decided |
+| `commands/end-phase.md` | 10, 11 | deploy question after merge; surface the backlog (convert / defer / drop) |
+| `commands/sdlc-retro.md` | 15 | orientation reads kit-side planning docs when the kit is co-developed; sweep for recorded-but-unactioned friction on both sides |
+| `templates/SDLC.template.md` | 3, 5, 6, 7, 10, 11, 12 | the canonical statement of every process change above (inv. 2: template wins, so it changes in the same batch as the commands) |
+| `templates/TESTING.template.md` | 8 | doubles must reproduce side effects and error surface, or the test drives the real thing |
+| `templates/PROJECT_INDEX.template.md` | 4 | backlog-entry format gains the measured/suspected cause marker |
+| `templates/CLAUDE.template.md` | 10 | one-line `/end-phase` summary gains the deploy check |
+| `reference/SKILLS.md` | 3, 6 | mutation-testing flips optional→required; per-slice review row names the real tool |
+
+### Decisions
+
+- **Row 3 makes `mutation-testing.md` a required install**, not an offer — a step the
+  slice loop mandates cannot depend on an install-time "maybe". `sdlc-setup.md` step 5
+  and `reference/SKILLS.md` change together.
+- **Row 6 resolution:** the per-slice reviewer is `pr-review-toolkit:code-reviewer`
+  (agent-runnable, plugin already required by `/end-phase`); the built-in `/code-review`
+  is the owner-typed escalation and is named as such. A substituted tool must be named
+  in the hand-back. Setup's step 1.2 check moves from the built-in skill to the plugin,
+  now needed at slice end as well as phase end.
+- **Row 11 is an offer, not a sixth halt.** The five-halt-point invariant stands;
+  surfacing the backlog at phase end joins the `/sdlc-retro` offer in post-merge
+  bookkeeping.
+- **Row 12 narrows halt 2 rather than removing it** — exactly as the report proposes
+  (the owner's own first instinct to delete it outright was revised in the retro).
+
+### Ripple check (§4a discipline — F1 scored 5-of-8 on the easy case)
+
+Destinations enumerated by grep before editing: `code-review` (4 files + SKILLS),
+`mutation` (setup + SKILLS), halt-2 phrasing (next-slice, SDLC.template), branch rules
+(next-slice, end-slice notes, SDLC.template Shape), update procedure (sdlc-update +
+root README, ledger inv. 8). The root README file tree does not change — no files are
+added or renamed. `/kit-check` closes the batch.

@@ -23,8 +23,7 @@ install failed.
 | Skill | Source | Role in the SDLC |
 |---|---|---|
 | `tdd` (+ `tdd-references/`) | **kit-vendored** → project `.claude/commands/` | The red–green–refactor loop for every slice; the vertical-slicing mandate and mock policy it enforces. `/next-slice` invokes it after reading `spec/TESTING.md`. **Setup must install this and halt if the copy fails.** |
-| `code-review` | built-in | The per-slice diff review in `/end-slice`. |
-| `pr-review-toolkit` | official plugin | The whole-arc PR review in `/end-phase` (`pr-review-toolkit:review-pr` plus specialized reviewer agents). Once per machine: `/plugin install pr-review-toolkit@claude-plugins-official` |
+| `pr-review-toolkit` | official plugin | The per-slice diff review in `/end-slice` (`pr-review-toolkit:code-reviewer`) and the whole-arc PR review in `/end-phase` (`pr-review-toolkit:review-pr` plus specialized reviewer agents). Once per machine: `/plugin install pr-review-toolkit@claude-plugins-official`. The built-in `/code-review` is the owner-typed, billed escalation — agents cannot launch it, and it is not what any command means by "review". |
 | kit commands | this kit | `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`, `end-phase`, `sdlc-retro`, `sdlc-update` → copied into `<project>/.claude/commands/`; travel with the repo. The install list in `commands/sdlc-setup.md` (New mode step 5) is the source of truth for this set. |
 
 ## Vendored in `sdlc-kit/skills/` — what gets installed when
@@ -33,7 +32,7 @@ install failed.
 |---|---|---|
 | `tdd.md` + `tdd-references/{tests,mocking}.md` | **always** | Core TDD skill: tracer-bullet vertical slicing, behavior-over-implementation testing, mock policy. |
 | `tdd-guide.md` | optional | Broader multi-framework TDD guide (test generation, coverage analysis) — useful for teams new to TDD. |
-| `mutation-testing.md` | optional | Test-suite strength assessment by injecting deliberate bugs. |
+| `mutation-testing.md` | **always** | Test-suite strength assessment by injecting deliberate bugs. Required since 0.5.0: `/end-slice`'s mutation-check step invokes it, so it installs with the core set. |
 | `python-pro.md` | Python projects only | Typed, strict-mypy Python idioms (attribution: github.com/Jeffallan). |
 | `hypothesis-tests.md` | Python projects only | Property-based test authoring with Hypothesis. |
 

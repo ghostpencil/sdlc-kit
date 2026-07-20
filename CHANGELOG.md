@@ -10,6 +10,96 @@ update time. Entries marked **[adoption-only]** change `templates/**` or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.5.0 — 2026-07-20
+
+The retro-fix batch: all 15 priority rows of `FIELD_REPORT_2026-07-20.md` — the first
+real run of `/sdlc-retro`, on the same adoption that produced the first field report.
+Cut ahead of the planned agents batch because the report's top rows are a live defect
+class in the update path itself. The report's cross-cutting theme — checks whose
+denominator was assumed rather than enumerated — is the thread through nearly every
+entry below.
+
+### Fixed
+- **[installable]** `sdlc-update.md` step 5 no longer replaces a kept `sdlc-kit/`
+  folder blind: it enumerates the folder's **actual contents** against the manifest
+  first, reports anything un-manifested, and HALTs — a project put that file there, and
+  one real update silently deleted a project's only local copy of two commits of
+  authored work while reporting "nothing project-owned touched". Step 6 now permits
+  that reassurance only when the final diff was actually read (report finding 1).
+- **[installable]** `sdlc-update.md` step 4 reports **content-changed counts separately
+  from touched counts**, so "5 changed, 19 touched" replaces the flat "24 modified"
+  whose known-meaningless noise is exactly where the deletion above went unread
+  (finding 12, the mechanism of finding 1).
+- The root README's update section mirrors both changes plus the arc-boundary rule —
+  the command and the section state the same procedure by definition.
+- **[installable]** `end-slice.md` §3 named a review tool that does not exist ("the
+  code-review skill"); a real run substituted silently and well, which is why nobody
+  looked. The per-slice reviewer is now `pr-review-toolkit:code-reviewer`, the built-in
+  `/code-review` is identified as the owner-typed escalation, and any substituted tool
+  must be named in the hand-back (finding 6; `reference/SKILLS.md` and setup's step 1.2
+  check follow).
+
+### Added
+- **[installable]** `end-slice.md` gains a **mutation-check step**: every new guard,
+  branch, or error path is deleted or inverted once and the suite watched to fail on
+  exactly the intended test. The kit shipped `mutation-testing.md` and no workflow step
+  ever invoked it; used by habit on a real project, it caught a test that could not
+  have failed and proved a production defect's root cause — the single
+  highest-yield check in the kit, previously reachable only by memory (finding 4).
+  `mutation-testing.md` accordingly flips from offered to always-installed
+  (`sdlc-setup.md` step 5, `reference/SKILLS.md`) — updaters who declined it at
+  adoption receive it as a new-in-install-set file.
+- **[installable]** `end-slice.md` §3 gains the two lenses slice review structurally
+  lacked, both paid for in production: name each **consumer** of a changed error/return
+  path and what it did with the old behavior (finding 2 — two arcs, two defects that
+  survived every slice review, one live in production); and ask whether any **test
+  double** omits a side effect or simplifies the error surface of what it replaces
+  (finding 5 — a recorder that dropped one flag assignment hid a live bug through four
+  reviews).
+- **[installable]** `next-slice.md` §2: **re-derive a backlog entry's stated cause
+  before writing any fix** — 3 of 3 entries checked on a real project stated a wrong
+  cause, and a fix aimed at a fictional trigger can be right anyway, pass every test,
+  and teach the next reader a false fact (finding 3). Deferred entries now mark their
+  cause **measured** or **suspected** at the writing end (`end-slice.md` §3,
+  `templates/PROJECT_INDEX.template.md`).
+- **[installable]** `next-slice.md` §3 states the branch rule mode-independently —
+  slices accumulate on one arc branch until `/end-phase`; only `/end-phase` opens a
+  PR — and checks for **any unmerged arc branch**, not just "am I on main".
+  STABILIZATION branches are named for the arc's theme, not their first slice
+  (finding 7; `end-slice.md` notes state the accumulation rule its PR prohibition
+  always assumed).
+- **[installable]** `end-phase.md` post-merge bookkeeping asks the **deploy question**
+  (merging is not shipping — a production fix once sat unshipped behind exactly this
+  missing step) and **surfaces the backlog** with severity counts for one owner
+  decision: convert, defer, or drop (findings 9, 10). Neither is a new halt; the
+  five-halt-point invariant stands.
+- **[installable]** `sdlc-update.md` states *when* to update: at a phase/arc boundary,
+  never with an arc in flight — three updates once landed in the three hours before an
+  arc's first slice, and which kit version governed which slice is now
+  unreconstructable (finding 8).
+- **[installable]** `sdlc-setup.md`: warns that a kept `sdlc-kit/` folder is kit-owned
+  and **volatile** (project notes go to a project-owned path); checks `.gitattributes`
+  defines an `eol` for `*.md` and offers `*.md text eol=lf` in both modes (findings 1,
+  12 — the one-line fix for the phantom-modified noise).
+- **[installable]** `sdlc-retro.md` step 1 gains the co-development clause — when the
+  kit's own repo is at hand, orientation reads the kit-side planning docs too — and
+  step 2 sweeps for **recorded-but-unactioned friction** on both sides. The first real
+  retro missed a friction item the kit's plan had already recorded and labeled as retro
+  material; the command could only mine what the project wrote down (finding 12's
+  method note).
+- **[adoption-only]** `templates/SDLC.template.md` carries the canonical statement of
+  every process change above: the one-arc-one-branch-one-PR rule in *Shape*, halt 2
+  narrowed to skip owner-decided slices (finding 11 — the owner's instinct was to
+  delete it; the retro narrowed it instead), the re-derive rule, the renamed reviewer
+  and its two lenses, the mutation-check step, and the deploy question + backlog
+  presentation at phase end. New placeholder `{{DEPLOY_NOTE}}`, resolved by a new
+  deploy-procedure question in both setup interviews — the placeholder contract holds.
+- **[adoption-only]** `templates/TESTING.template.md` mock policy: a double that stands
+  in for production code must reproduce its **side effects and error surface**, or the
+  test drives the real thing (finding 5).
+- **[adoption-only]** `templates/CLAUDE.template.md` command summaries follow
+  (mutation check; deploy question).
+
 ## 0.4.0 — 2026-07-19
 
 The improvement loop gets its input side: `/sdlc-retro` turns a finished phase into

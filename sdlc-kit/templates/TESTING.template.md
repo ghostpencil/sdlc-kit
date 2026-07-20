@@ -82,6 +82,20 @@ application components means your test only verifies that one object calls a met
 a mock; it does not verify that the two real objects actually work together. Wiring
 bugs live exactly where the mock is.
 
+### When a double stands in, it must be as complicated as the truth
+
+A double that replaces production code must reproduce its **side effects and its error
+surface**, or the test must drive the real thing. A double that skips a side effect
+(the flag production sets before raising; the state a write mutates) makes every
+behavior depending on that effect *simulated everywhere and produced nowhere* — the
+defect becomes structurally unreachable in tests while the suite stays green. The same
+for errors: a hand-built exception one field simpler than the real one (no filename on
+an `OSError`) tests a failure shape production never produces. Both halves of this rule
+were paid for in one arc: a recorder that dropped one flag assignment hid a live
+production bug through four reviews, and a bare `PermissionError` hid a path-disclosure
+leak. Review asks it directly: *does any double omit a side effect or simplify the
+error surface of what it replaces?*
+
 ### Skip discipline
 
 A test must **fail**, not skip, when a tool or stand-in it requires is absent.

@@ -29,11 +29,34 @@ sentence or two, and what it deliberately does NOT include. Offer the next-best 
 slice as a second option. Do not proceed until answered; do not ask anything else unless a
 genuine design question surfaces later.
 
+**Skip the question when the slice is already owner-decided.** If PROJECT_INDEX records
+this slice as OWNER-DECIDED with its scope and constraints spelled out, re-asking "is
+this the scope?" is ceremony — state in one line that you are proceeding on the recorded
+decision, and go. The halt exists for unscoped or ambiguous slices; keep it for those.
+
+**Re-derive the entry's stated cause before writing any fix.** A backlog entry is a
+hypothesis with a timestamp, not a finding — of the first three entries a real project
+checked at slice start, all three stated a wrong cause, and a fix aimed at a fictional
+trigger can be right anyway, pass every test, and silently teach the next reader a false
+fact. Check the marker (`measured` / `suspected`), reproduce or disprove the claimed
+cause — this is usually minutes — and when it does not hold, correct the entry in place
+and re-scope the slice against what is actually true.
+
 ### 3. Ensure the branch
 
-- If a phase/cleanup branch already exists for this work, check it out and `git pull`.
-- If on the main branch with no branch yet, create one: `feat/phase-NN-<slug>` (BUILD) or
-  `chore/cleanup-<slug>` (STABILIZATION), branched off the up-to-date main branch.
+The rule, mode-independent: **slices accumulate on one arc branch until `/end-phase`;
+only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
+
+- Check for **any unmerged arc branch** (`git branch --no-merged <main>`), not just
+  whether you are on the main branch. If one exists, this slice almost certainly
+  belongs on it — check it out and `git pull`. Starting a second branch mid-arc splits
+  the arc into two PRs and forfeits the single whole-arc review, which is the stage
+  with the best defect track record; do it only if the owner confirms this work is
+  genuinely a separate arc.
+- If there is no arc branch yet, create one off the up-to-date main branch:
+  `feat/phase-NN-<slug>` (BUILD) or `chore/cleanup-<arc-theme>` (STABILIZATION — name
+  it for the **arc's theme**, not for this first slice, because later slices accumulate
+  onto it and a branch named for its first slice misdescribes everything after).
 - Never implement a slice directly on the main branch.
 
 ### 4. Enter the TDD loop

@@ -31,7 +31,14 @@ Work is organized as **phases → slices → TDD cycles**.
 - A **TDD cycle** is one red–green–refactor step inside a slice.
 
 During **STABILIZATION** there are no feature phases; the same slice loop applies to
-bug-fix/cleanup slices on a cleanup branch (`chore/cleanup-<slug>`).
+bug-fix/cleanup slices on a cleanup branch named for the arc's theme
+(`chore/cleanup-<arc-theme>` — not for whichever slice happens first).
+
+**One arc, one branch, one PR — in both modes.** Slices accumulate on the arc branch
+until `/end-phase`; only `/end-phase` opens a PR. Work arising from a slice's own
+review stays on the same branch. Splitting an arc across branches produces two PRs and
+no single whole-arc review spanning both — and the whole-arc review is the stage that
+catches what slice reviews structurally cannot.
 
 ## Owner halt points
 
@@ -40,7 +47,9 @@ fix application, bookkeeping, commits) proceeds without asking.
 
 1. **Phase scope** — the owner decides what the next phase (or cleanup slice) covers.
    Recorded as OWNER-DECIDED in `spec/PROJECT_INDEX.md` START HERE.
-2. **Slice scope confirmation** — one question at the start of `/next-slice`.
+2. **Slice scope confirmation** — one question at the start of `/next-slice`. Skipped
+   when the slice is already recorded as OWNER-DECIDED with its scope spelled out;
+   re-asking a decided question is ceremony, and the halt exists for the undecided case.
 3. **Design questions** — any spec conflict or owner-facing design decision surfaced
    mid-slice halts with a question; it is never resolved silently.
 4. **Acceptance review** — the owner personally exercises the phase's visible behavior at
@@ -120,22 +129,34 @@ Run `/next-slice` in a **fresh session**:
 1. Read `CLAUDE.md` + `spec/PROJECT_INDEX.md`, then the phase spec. Load no other specs
    until needed (context-minimization rule).
 2. Identify the next unstarted slice and its exit criteria; confirm scope with the owner
-   in one question *(halt 2)*.
-3. Ensure the phase branch is checked out (create it if phase start was skipped).
+   in one question *(halt 2 — skipped when the slice is recorded OWNER-DECIDED with
+   scope)*. If the slice comes from the backlog, **re-derive the entry's stated cause
+   before writing any fix** — a backlog entry is a hypothesis with a timestamp, not a
+   finding; when the cause does not hold, correct the entry in place and re-scope.
+3. Ensure the arc branch is checked out (create it if phase start was skipped; check for
+   any unmerged arc branch before creating a new one — see *Shape*).
 4. Read `spec/TESTING.md`, invoke the TDD skill, implement the slice in small
    red–green–refactor steps. Design questions halt *(halt 3)*.
 
 Run `/end-slice` when the slice's exit criteria are met:
 
 5. Run the gate.
-6. Slice code review (code-review skill on the diff; plus the matching lens from
-   `.claude/commands/REVIEW_LENSES.md` when the slice changed error propagation or swept
-   for a pattern). Apply CRITICAL/HIGH fixes now; defer the rest to the PROJECT_INDEX
-   backlog with a one-line rationale each. Re-run the gate if anything changed.
-7. Commit (heredoc for multi-line messages, via the Bash tool).
-8. Update `spec/PROJECT_INDEX.md` — slice marked done, deferred items appended — and
+6. Slice code review (`pr-review-toolkit:code-reviewer` on the diff; plus the matching
+   lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
+   propagation or swept for a pattern). Two questions the diff alone cannot answer,
+   asked explicitly: who **consumes** each changed error/return path, and what did that
+   consumer do with the old behavior; and does any **test double** omit a side effect
+   or simplify the error surface of what it replaces. Apply CRITICAL/HIGH fixes now;
+   defer the rest to the PROJECT_INDEX backlog with a one-line rationale each, cause
+   marked measured or suspected. Re-run the gate if anything changed.
+7. Mutation check: every new guard, branch, or error path this slice added is deleted
+   or inverted once and the suite watched to fail on exactly the intended test
+   (mutation-testing skill for anything beyond a quick delete-and-run). A check is
+   trustworthy only once it has been made to disagree.
+8. Commit (heredoc for multi-line messages, via the Bash tool).
+9. Update `spec/PROJECT_INDEX.md` — slice marked done, deferred items appended — and
    commit the docs change. Push the branch (no PR — that is phase end).
-9. Owner clears context (`/clear`). Every slice starts from a fresh window.
+10. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end
 
@@ -151,8 +172,11 @@ Run `/end-phase` when the last slice is done:
    the gate, push. Deeper option when warranted: `/code-review ultra <PR#>`
    (owner-triggered).
 5. **Merge approval** *(halt 5)*, then merge.
-6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: PROJECT_INDEX Phase History row + status
-   flip, deferred-pile consolidation, spec cleanup, memory updates worth keeping.
+6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: the deploy question (does this phase
+   need a deploy to reach users, and has it happened — merging is not shipping;
+   {{DEPLOY_NOTE}}), the backlog surfaced with severity counts for an owner decision
+   (convert / defer / drop), PROJECT_INDEX Phase History row + status flip,
+   deferred-pile consolidation, spec cleanup, memory updates worth keeping.
 
 ## Bookkeeping rules
 

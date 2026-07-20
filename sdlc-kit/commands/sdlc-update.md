@@ -20,6 +20,12 @@ the project owns.**
 
 `/sdlc-update` — update to the latest release. `/sdlc-update v0.4.0` — a specific one.
 
+**When to run it: at a phase/arc boundary, never with an arc in flight.** An update
+mid-arc changes the rules governing slices already scoped, and which kit version
+governed which slice becomes unreconstructable afterward. If a mid-arc update is truly
+unavoidable, record the version change against the affected slices in
+`spec/PROJECT_INDEX.md` before continuing.
+
 ## Workflow
 
 ### 1. Establish both versions
@@ -78,7 +84,14 @@ result rather than an error:
 ### 4. Present the plan — the ONE owner halt
 
 Before writing anything, show the owner the full classification plus the changelog
-entries marked *[installable]* for every version being skipped. Then:
+entries marked *[installable]* for every version being skipped.
+
+Report **content-changed counts separately from touched counts**: how many files the
+update will rewrite with genuinely different committed content, versus how many it
+merely touches (line-ending or whitespace churn, byte-identical replacements). "5
+changed, 19 touched" keeps the reader looking at the 5; a flat "24 modified" is two
+dozen known-meaningless entries hiding the one that matters — which is exactly how a
+486-line deletion once went unread inside an update commit. Then:
 
 - `UNCHANGED` → provably untouched since adoption; will be overwritten with the target
   version. No per-file question.
@@ -97,9 +110,17 @@ entries marked *[installable]* for every version being skipped. Then:
   all into `.claude/commands/`, preserving the `tdd-references/` subfolder.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
-- If the project kept a `sdlc-kit/` folder from adoption, replace it wholesale with the
-  target version's bundle — it is a verbatim copy of the kit and holds nothing of the
-  project's.
+- If the project kept a `sdlc-kit/` folder from adoption, replace it with the target
+  version's bundle — but **enumerate the actual directory contents first** and compare
+  them against the old version's manifest. Anything present that the manifest does not
+  list is not the kit's to delete: a project put it there (the kit's own field-report
+  convention invites exactly that). Report the comparison **with its counts** — N files
+  on disk, M in the manifest — so a sweep that enumerated nothing is visibly wrong
+  rather than silently clean; then, for every un-manifested file, HALT — the owner
+  moves it to a project-owned path (`spec/` is the usual home) or explicitly
+  releases it. "It is a verbatim copy of the kit" is the *intended* state of that
+  folder, not a fact the procedure may assume; a wholesale replace that never looked
+  inside once destroyed a project's only local copy of two commits of authored work.
 
 ### 6. Verify, re-stamp, land
 
@@ -114,6 +135,10 @@ entries marked *[installable]* for every version being skipped. Then:
 - Land as a normal PR (`chore/update-sdlc-kit-X.Y.Z`), the same way the adoption landed.
   Report to the owner what changed *behaviorally* (from the changelog), not just which
   files moved.
+- Claim only what was checked. "Nothing project-owned touched" may be said when the
+  final diff was read against the ownership table — not asserted from the manifest,
+  which structurally cannot see files it never listed. An unverified reassurance is
+  worse than silence, because it stops the reader looking.
 
 ## Notes
 

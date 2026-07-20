@@ -177,6 +177,11 @@ the human-readable statement of the same procedure — the command and this sect
 agree, and a disagreement between them is a kit bug. Projects adopted before the command
 existed follow this section by hand once; the update itself installs the command.
 
+**Update at a phase/arc boundary, never with an arc in flight.** A mid-arc update
+changes the rules governing slices already scoped, and which kit version governed which
+slice becomes unreconstructable afterward. If one is truly unavoidable, record the
+version change against the affected slices in `spec/PROJECT_INDEX.md`.
+
 ### Who owns what
 
 The whole procedure rests on this split:
@@ -258,9 +263,20 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    update a purely classification-driven pass silently skips. Take the install set from
    the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5).
 
-   If you kept a `sdlc-kit/` folder from adoption, replace it wholesale with the new
-   version's bundle — it is a verbatim copy of the kit and holds nothing of yours; left
-   stale, it sits beside a re-stamped `spec/SDLC.md` claiming a version it does not hold.
+   If you kept a `sdlc-kit/` folder from adoption, replace it with the new version's
+   bundle — but **list its actual contents against the old version's manifest first**,
+   and note both counts (N files on disk, M in the manifest), so an empty listing reads
+   as the error it is rather than as a clean result.
+   Anything in that folder the manifest does not list was put there by your project, and
+   a wholesale replace deletes it silently — that is how one project lost its only local
+   copy of an authored field report. Move any such file to a project-owned path (`spec/`
+   is the usual home) before replacing. Left stale instead, the folder sits beside a
+   re-stamped `spec/SDLC.md` claiming a version it does not hold.
+
+   When you present (or read) the update's plan, count files whose *committed content*
+   actually changes separately from files merely touched — line-ending churn on an
+   unpinned checkout can make two dozen files report modified when four differ. The
+   short list is the one to read closely; the long one is the noise deletions hide in.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, or `.claude/settings.json`.
