@@ -669,6 +669,20 @@ Remaining from the resume list below: TFit's migration to 0.7.0 at its next arc 
 (which exercises Finding 3's fix on the platform that surfaced it), the TFit owner work
 carried from §9, the fan-out watch, then F3.
 
+**TFit follow-through (2026-07-22, later the same day):** both TFit steps ran and sit at
+halt 5 (owner merge). The 0.7.0 migration is **TFit PR #8** (gate green) — executed with
+the R2-fixed procedure on the Windows platform that surfaced finding 3: 16/16 installed
+files UNCHANGED against the 0.6.0 manifest, bundle replaced by copy-over-in-place (28 on
+disk vs 27 manifested, the extra being `MANIFEST.sha256` itself), 16/16 UNCHANGED on the
+0.7.0 re-classification, stamp re-written last. The §9 owner work is **TFit PR #9**:
+Model policy applied as the kit default (no `"model"` pin — the optional half left
+unexercised), both kit-bound twins deleted per their disposal notes, index reconciled.
+One flag raised in that PR for the owner: the 2026-07-19 copy was *not* a byte-twin — it
+carried the provenance header and the 14-finding absorption audit (vs. 0.4.0, three
+versions stale); preserved at `git show cce681c:spec/SDLC_FIELD_REPORT_2026-07-19.md`
+and summarized in this repo's `FIELD_REPORT_2026-07-20.md` companion note. After the
+merges, only the fan-out watch and F3 remain.
+
 ### Resume here — owner-confirmed order, 2026-07-22
 
 1. **Build R2** (the map above), `/kit-check` clean, release as `v0.7.0`, migrate TFit
