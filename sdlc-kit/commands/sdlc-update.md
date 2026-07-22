@@ -135,6 +135,23 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   folder, not a fact the procedure may assume; a wholesale replace that never looked
   inside once destroyed a project's only local copy of two commits of authored work.
 
+  Then replace **by copy-over-in-place — never by removing the directory**: delete only
+  the *files* the old version's manifest lists (provably the kit's), then copy the
+  target bundle over the directory.
+
+  ```bash
+  # $K = the target version's sdlc-kit/ folder (inside /tmp/kit)
+  cut -d' ' -f3- /tmp/kit-old/sdlc-kit/MANIFEST.sha256 |
+    while read -r f; do rm -f "sdlc-kit/$f"; done
+  cp -r "$K"/. sdlc-kit/
+  ```
+
+  `rm -rf sdlc-kit && cp …` is the wrong shape twice over: on Windows the directory
+  removal can fail `Device or resource busy` *after* unlinking every file — a real
+  update was left with an empty, still-git-tracked tree exactly this way — and on
+  every platform it opens a window in which the project holds no bundle at all if the
+  copy then fails. Copy-over-in-place has neither failure mode.
+
 ### 6. Verify, re-stamp, land
 
 - Re-run step 3 against the **target** version's manifest: every file just copied must

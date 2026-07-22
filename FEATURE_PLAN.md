@@ -662,6 +662,13 @@ of triage). `/kit-check` closes the batch as always.
 minor). §3's "F3 ships as `v0.7.0`" reads as "the minor current when the trial passes";
 the number was a placeholder, not a reservation.
 
+**Shipped:** R2 landed and released as `v0.7.0` on 2026-07-22, same day as triage. The
+distribution-readiness batch (stable release-asset names, issue templates, prerequisites,
+repo description — pre-public-launch work, owner-directed) rode in the same release.
+Remaining from the resume list below: TFit's migration to 0.7.0 at its next arc boundary
+(which exercises Finding 3's fix on the platform that surfaced it), the TFit owner work
+carried from §9, the fan-out watch, then F3.
+
 ### Resume here — owner-confirmed order, 2026-07-22
 
 1. **Build R2** (the map above), `/kit-check` clean, release as `v0.7.0`, migrate TFit

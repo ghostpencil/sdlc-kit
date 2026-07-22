@@ -103,6 +103,14 @@ regardless.
      pass a build defeats its only purpose — existing coverage debt is a backlog item,
      not a merge blocker. -->
 
+The floor raises by procedure, not by rule alone — at phase end, where coverage is
+known: if CI's printed coverage rose over the arc, post-merge bookkeeping sets the
+floor in the CI workflow file to just under CI's printed figure (in the same docs
+commit as the PROJECT_INDEX update), then asserts that the floor recorded here and in
+`spec/PROJECT_INDEX.md` is identical to the value in the workflow file. The recorded
+number is a claim; the workflow value is the enforcement — a mismatch means the ratchet
+is not ratcheting, which is the only regression the floor exists to prevent.
+
 If local and CI disagree about a measurement — a pass/fail, an error count, a coverage
 figure — CI is authoritative. And the disagreement is itself a finding: work out *why*
 before adjusting any threshold, because the gap is usually a symptom (a git-ignored
@@ -152,8 +160,12 @@ Run `/next-slice` in a **fresh session**:
 2. Identify the next unstarted slice and its exit criteria; confirm scope with the owner
    in one question *(halt 2 — skipped when the slice is recorded OWNER-DECIDED with
    scope)*. If the slice comes from the backlog, **re-derive the entry's stated cause
-   before writing any fix** — a backlog entry is a hypothesis with a timestamp, not a
-   finding; when the cause does not hold, correct the entry in place and re-scope.
+   before writing any fix, proportionally to its marker** — a `measured` cause gets a
+   spot-check that its cited anchors and behavior still hold; a `suspected` cause, or a
+   `measured` one whose anchors drifted or whose spot-check surprises, gets the full
+   reproduce-or-disprove (and is re-tagged). A backlog entry is a hypothesis with a
+   timestamp, not a finding; when the cause does not hold, correct the entry in place
+   and re-scope.
 3. Ensure the arc branch is checked out (create it if phase start was skipped; check for
    any unmerged arc branch before creating a new one — see *Shape*).
 4. Read `spec/TESTING.md`, invoke the TDD skill, implement the slice in small
@@ -195,9 +207,11 @@ Run `/end-phase` when the last slice is done:
 5. **Merge approval** *(halt 5)*, then merge.
 6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;
-   {{DEPLOY_NOTE}}), the backlog surfaced with severity counts for an owner decision
-   (convert / defer / drop), PROJECT_INDEX Phase History row + status flip,
-   deferred-pile consolidation, spec cleanup, memory updates worth keeping.
+   {{DEPLOY_NOTE}}), the coverage-floor ratchet (set the workflow value, then reconcile
+   it against the recorded floor — see *Coverage floor* above), the backlog surfaced
+   with severity counts for an owner decision (convert / defer / drop), PROJECT_INDEX
+   Phase History row + status flip, deferred-pile consolidation, spec cleanup, memory
+   updates worth keeping.
 
 ## Bookkeeping rules
 

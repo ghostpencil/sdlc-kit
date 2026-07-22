@@ -301,6 +301,12 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    is the usual home) before replacing. Left stale instead, the folder sits beside a
    re-stamped `spec/SDLC.md` claiming a version it does not hold.
 
+   Replace **by copy-over-in-place, never by removing the directory**: delete only the
+   files the old version's manifest lists, then `cp -r <new-kit>/. sdlc-kit/`. An
+   `rm -rf sdlc-kit` can fail half-done on Windows (`Device or resource busy` after
+   every file is already unlinked), and even where it works it opens a window in which
+   your project holds no bundle at all if the copy then fails.
+
    When you present (or read) the update's plan, count files whose *committed content*
    actually changes separately from files merely touched — line-ending churn on an
    unpinned checkout can make two dozen files report modified when four differ. The

@@ -91,6 +91,15 @@ git checkout <main> && git pull
   cleanup slice or the next phase's scope), defer knowingly, or drop. "A big enough
   pile becomes a cleanup slice" defers indefinitely when nothing ever presents the
   pile; this is the presentation point.
+- **Coverage floor — bump the enforcement, then reconcile:** if CI's printed coverage
+  for the merged branch rose this arc, set the floor in the CI workflow file (the
+  `--cov-fail-under` value or its equivalent) to just under CI's printed number, in the
+  same docs commit as the bookkeeping below. Then **assert the two homes agree**: the
+  floor recorded in `spec/PROJECT_INDEX.md` (and `spec/SDLC.md`) and the value in the
+  workflow file must be identical. The recorded number is a claim; the workflow value
+  is the enforcement — a mismatch means the ratchet is not actually ratcheting. Read
+  the floor off CI's printed figure, never compute it locally; a real arc recorded a
+  raise in the index twice while CI silently kept enforcing the old floor.
 - `spec/PROJECT_INDEX.md`: add the Phase History row, flip the Phase section to the next
   state (next phase or STABILIZATION), fold deferred review findings into the backlog,
   refresh START HERE.

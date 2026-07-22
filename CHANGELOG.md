@@ -10,10 +10,41 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.7.0 — 2026-07-22
 
-Distribution-readiness batch ahead of opening the repository to a general audience.
-Nothing installable changed; no adopted project is affected.
+The R2 batch: all three priority rows of `FIELD_REPORT_2026-07-22.md` (the third field
+report — the first full arc run on kit 0.6.0), plus the distribution-readiness work
+ahead of opening the repository to a general audience. The report's cross-cutting theme
+runs through every fix: a number recorded in prose is not the number the machine
+enforces — wherever a value lives in two places, bump both, then assert they agree.
+
+### Fixed
+- **[installable]** `end-phase.md` step 7 gains the coverage-floor bullet the ratchet
+  was missing: if CI's printed coverage rose this arc, set the floor in the CI workflow
+  file to just under CI's printed number in the same docs commit, then **assert** that
+  the floor recorded in the index and the value in the workflow file are identical —
+  the record is a claim, the workflow value is the enforcement. A real arc recorded
+  "28 → 32" in two prose homes while CI silently enforced 28 (finding 1).
+  **[adoption-only]** `SDLC.template.md` states the boundary procedure canonically
+  (*Coverage floor* section + *Phase end* step 6).
+- **[installable]** `next-slice.md` §2 re-derivation is now proportional to the
+  `measured`/`suspected` marker it previously read and then ignored: `measured` →
+  spot-check that the cited anchors and behavior still hold; `suspected`, or a
+  `measured` entry whose anchors drifted or whose spot-check surprises → full
+  reproduce-or-disprove, re-tagged with what it finds. Every wrong-cause catch on
+  record stays in the full-treatment class (finding 2). **[adoption-only]**
+  `SDLC.template.md` slice-loop step 2 mirrors the rule.
+- **[installable]** `sdlc-update.md` step 5 now prescribes the bundle-replacement
+  mechanism instead of leaving it to improvisation: copy-over-in-place — remove only
+  the files the old version's manifest lists, then `cp -r $K/. sdlc-kit/`, never
+  `rm -rf` the directory. The improvised `rm -rf` failed half-done on a real Windows
+  update (directory busy after every file was unlinked) and on any platform opens a
+  window with no bundle at all (finding 3). The root README's update section states
+  the same mechanism.
+- `reference/SKILLS.md` no longer claims `python-pro.md` carries "no license text" —
+  the file's frontmatter self-declares `license: MIT`; the record now says so while
+  keeping its redistribution status unverified (no locatable upstream). Found by this
+  release's `/kit-check` pass.
 
 ### Changed
 - Release assets now use stable, version-free names (`sdlc-kit.tar.gz`, `sdlc-kit.zip`,

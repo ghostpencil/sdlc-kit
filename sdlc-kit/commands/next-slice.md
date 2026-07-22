@@ -34,13 +34,23 @@ this slice as OWNER-DECIDED with its scope and constraints spelled out, re-askin
 this the scope?" is ceremony — state in one line that you are proceeding on the recorded
 decision, and go. The halt exists for unscoped or ambiguous slices; keep it for those.
 
-**Re-derive the entry's stated cause before writing any fix.** A backlog entry is a
-hypothesis with a timestamp, not a finding — of the first three entries a real project
-checked at slice start, all three stated a wrong cause, and a fix aimed at a fictional
-trigger can be right anyway, pass every test, and silently teach the next reader a false
-fact. Check the marker (`measured` / `suspected`), reproduce or disprove the claimed
-cause — this is usually minutes — and when it does not hold, correct the entry in place
-and re-scope the slice against what is actually true.
+**Re-derive the entry's stated cause before writing any fix — proportionally to its
+marker.** A backlog entry is a hypothesis with a timestamp, not a finding — of the first
+three entries a real project checked at slice start, all three stated a wrong cause, and
+a fix aimed at a fictional trigger can be right anyway, pass every test, and silently
+teach the next reader a false fact. The `measured` / `suspected` marker records how much
+evidence the entry already carries; read it and scale the work to it:
+
+- **`measured`** — spot-check that the cited evidence still holds: the `:NNNN` anchors
+  point where they did, the named behavior still reproduces the obvious way. Minutes,
+  not a re-investigation.
+- **`suspected`** — full re-derivation: reproduce or disprove the claimed cause before
+  any fix. (Every wrong-cause catch on record came from this class.)
+- A `measured` entry whose anchors have drifted, or whose spot-check surprises you in
+  any way, falls back to full re-derivation — and is re-tagged with what you find.
+
+Either way, when the cause does not hold, correct the entry in place and re-scope the
+slice against what is actually true.
 
 ### 3. Ensure the branch
 

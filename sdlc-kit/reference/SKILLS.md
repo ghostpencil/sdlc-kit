@@ -69,8 +69,9 @@ install failed.
 
 All identified upstreams are MIT — team and external distribution are fine with these
 attributions kept intact. The exception to note: `python-pro.md` has no identified
-upstream repository or license text, only its in-file author attribution — treat its
-redistribution status as unverified rather than settled.
+upstream repository; its frontmatter self-declares `license: MIT` with an author
+attribution, but a self-declaration with no locatable upstream cannot be checked
+against anything — treat its redistribution status as unverified rather than settled.
 
 ## Recommended built-ins (nothing to install)
 
