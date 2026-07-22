@@ -561,35 +561,117 @@ check after — the §4a rule did its job.
   intact, `{{` exit grep clean, gate green, hook and isolation harness proven by
   negative cases, `* text=auto eol=lf` written. Spot-checked independently after the
   agent's report.
-- **Acceptance, plan-phase half — open.** "A plan-phase run on a real spec with
-  sweeps delegated and every owner interaction in the main session" needs a real
-  owner interview; it runs on the next real phase planned on an adopted project
-  (TFit), same shape as F1's acceptance. Until then the delegation is
-  design-verified, not field-verified.
+- **Acceptance, plan-phase half — exercised 2026-07-22; delegation mechanics
+  unconfirmed.** TFit Arc 3 (PR #7) was planned under 0.6.0 (the update, `bc9db7e`,
+  opened the arc). The gap analysis demonstrably ran and earned its keep — it cut #39
+  by measuring its premise false (recorded as D6 in the phase plan) and surfaced the
+  D4 caller-controlled-path fact — and every recorded decision in the plan is
+  owner-attributed. What was *not* observed: whether the sweeps ran as parallel
+  read-only subagents. The owner didn't watch for the fan-out and no artifact records
+  the mechanics — correctly, since the design says findings return and nothing else
+  leaves a trace. Per inv 8 (claim only what was checked): the *behavior* is
+  field-verified, the *delegation* is still design-verified only. Residual: watch for
+  the fan-out on the next `/plan-phase`; one observation closes it.
 
 ### Resume here — owner-confirmed order, 2026-07-20 end of session
+### (statuses re-verified against both trees, 2026-07-22 — superseded by §10's list)
 
-1. **Migrate TFit to 0.6.0.** Open Claude Code in the TFit repo (its location is in
-   this repo's session memory, not in any kit file) and run `/sdlc-update`, at an arc
-   boundary, never mid-arc. Owner-halting by design: classification plan shown, the
-   drifted-files decision is the owner's; `agents/sdlc-surveyor.md` arrives via the
-   new-in-install-set clause, not classification.
-2. **Apply the two [adoption-only] follow-ups to TFit by hand** — the update never
-   touches project-owned files, so neither arrives on its own:
-   - Add a *Model policy* section to TFit's `spec/SDLC.md`: confirm or adjust the
-     three-tier default (opus/planning, sonnet/code, haiku/collection); optionally pin
-     `"model"` in `.claude/settings.json`.
-   - The friction-log seed needs nothing — TFit already has the section the seed
-     generalizes; just confirm it survives as `/sdlc-retro`'s mining target.
-3. **Close F2's open acceptance half** on the next real `/plan-phase` run on TFit:
-   sweeps delegated to parallel read-only subagents, every question still owner-facing
-   in the main session. Record the result in this section when it happens.
-4. **TFit housekeeping, optional** (§8 standing context): delete TFit's project-side
-   copy of the field report — cleared for deletion by its own note, still undone.
+1. ~~**Migrate TFit to 0.6.0.**~~ **Done, 2026-07-22** — `bc9db7e`, at the Arc 3
+   boundary, inside PR #7's window. (Step 5's replacement tripped on Windows —
+   Finding 3 of the third field report; benign, but now R2 work.)
+2. **Apply the two [adoption-only] follow-ups to TFit by hand** — **half done.**
+   - *Model policy* section: **NOT applied** — verified 2026-07-22 by grep: no such
+     section in TFit's `spec/SDLC.md`, no `"model"` key in `.claude/settings.json`.
+     Still owner work; carried into §10's list.
+   - Friction-log seed: **confirmed** — TFit's section survived and was mined by the
+     2026-07-22 retro (its Finding 3 came from friction log #4, exactly the
+     recorded-but-unactioned sweep working as designed).
+3. ~~**Close F2's open acceptance half**~~ **Recorded, 2026-07-22** — see the
+   acceptance bullet above: behavior field-verified on Arc 3's planning, delegation
+   mechanics unobserved; one watched fan-out on a future `/plan-phase` closes the
+   residual.
+4. **TFit housekeeping — still undone.** Both kit-bound field-report twins remain in
+   TFit's `spec/` (`SDLC_FIELD_REPORT_2026-07-19.md`, `SDLC_FIELD_REPORT_2026-07-20.md`),
+   verified 2026-07-22. TFit's `SDLC_RETRO_*.md` files are project records and stay.
 5. **Then F3** (slice-runner TRIAL, §3) — hand-authored as a project-local command on
    TFit or Dungeon Daddy, ≥2 real slices, one exercising the blocked-on-design-question
-   round trip; the kit stays untouched unless all four pass criteria hold. Ships as
-   `v0.7.0` only if it does; a failure is recorded here and costs the kit nothing.
+   round trip; the kit stays untouched unless all four pass criteria hold. A failure is
+   recorded here and costs the kit nothing. **Re-sequenced 2026-07-22:** the owner put
+   the R2 fix batch (§10) ahead of it.
 
 Steps 1–4 need the owner in the loop (update halt, spec edits, acceptance are theirs
 by design); step 5's kit-side encoding is a normal session's work after the trial.
+
+---
+
+## 10. Third field report and R2 — triaged 2026-07-22
+
+TFit's Arc 3 retro (`SDLC_RETRO_2026-07-22.md`, the second real `/sdlc-retro` run, first
+on kit 0.6.0) was submitted upstream as `FIELD_REPORT_2026-07-22.md` — copied verbatim,
+owner-decided the same day. Three findings, all effort-S, plus the strongest worked-well
+signal the kit has: **the whole-arc review is 3-for-3** across TFit's arcs at finding
+mutation-confirmed gaps that zero-finding slice reviews missed. Protect it from any
+future simplification pass.
+
+The report's cross-cutting theme sharpens the lineage (report 1: specify → self-check;
+report 2: enumerate the denominator): **a number recorded in prose is not the number the
+machine enforces, and the kit's bookkeeping updates prose without reconciling against
+the enforcing artifact.** The fix shape it implies — bump both homes, then assert they
+agree — is the R2 batch's through-line.
+
+### Claims verified against the kit tree before triage (not taken from the report)
+
+- **Finding 1 confirmed as stated:** `commands/end-phase.md` contains zero mentions of
+  coverage, floor, or `fail-under`; the template's ratchet is a rule with no boundary
+  procedure. The sharp edge: TFit's floor was read off CI *correctly* and then written
+  only to prose — CI enforced 28 while the index claimed 32 for two days.
+- **Finding 2 confirmed in substance:** `next-slice.md` §2 *names* the marker
+  ("Check the marker (`measured` / `suspected`)") but prescribes the same full
+  reproduce-or-disprove for both — the marker is read and then ignored, the report's
+  mirror case of Finding 1. The rule also lives at `SDLC.template.md:154` (inv 2:
+  both change together).
+- **Finding 3 confirmed in refined form:** step 5 of `sdlc-update.md` prescribes
+  *replacement* ("replace it with the target version's bundle") without prescribing
+  the mechanism; the `rm -rf` that failed on Windows was the agent's improvisation in
+  the vacuum. Fix is to prescribe copy-over-in-place.
+- **One report claim measured FALSE:** the worked-well section's "the kit ships
+  `mutation-testing.md` but no command invokes it." `end-slice.md` §4 has *mandated*
+  the mutation check and named the skill since R1 (v0.5.0) — and the retro's own S4
+  narrative describes that step running five times. The "standing open finding" it
+  cites is closed, not standing. No kit action; recorded here so the false claim
+  doesn't get re-triaged from the report later.
+
+### R2 — the fix batch *(owner-decided 2026-07-22: ships before F3)*
+
+| File | Finding | Edit |
+|---|---|---|
+| `commands/end-phase.md` step 7 | 1 | new bookkeeping bullet: if CI's printed coverage rose, set `--cov-fail-under` in the CI workflow to just under it, in the same docs commit; then **assert** the index's recorded floor and the workflow value are identical — the record is a claim, the workflow is the enforcement |
+| `templates/SDLC.template.md` (ratchet) | 1 | the canonical statement of the boundary procedure (inv 2: same batch as the command) |
+| `commands/next-slice.md` §2 | 2 | proportional re-derivation: `measured` → spot-check the cited anchors/behavior still hold; `suspected`, or a `measured` entry whose anchors drifted → full re-derivation; a surprising spot-check → fall back to full and re-tag |
+| `templates/SDLC.template.md` §slice-start | 2 | same rule, canonical home (`:154`) |
+| `commands/sdlc-update.md` step 5 | 3 | prescribe the mechanism: remove only the files the *old* manifest lists, then `cp -r $K/. sdlc-kit/` — never remove the directory; no window where the bundle is absent, and it sidesteps the Windows busy-directory failure |
+| root `README.md` (update section) | 3 | mirror if the section states the mechanism (inv 8: command and section must agree — verify at edit time) |
+
+Ripple discipline (§4a): the map above was derived by grep, not recalled. No
+install-set change, so `reference/SKILLS.md` — the twice-missed standing member — has
+no role this time; verified, not assumed. No files added or renamed by R2 itself, so
+the README tree is untouched by the batch (it already gained the report's line the day
+of triage). `/kit-check` closes the batch as always.
+
+**Version:** next minor at ship time — `v0.7.0` by R1's precedent (process changes are
+minor). §3's "F3 ships as `v0.7.0`" reads as "the minor current when the trial passes";
+the number was a placeholder, not a reservation.
+
+### Resume here — owner-confirmed order, 2026-07-22
+
+1. **Build R2** (the map above), `/kit-check` clean, release as `v0.7.0`, migrate TFit
+   at the next arc boundary — the migration itself exercises Finding 3's fix on the
+   platform that surfaced it.
+2. **TFit owner work, carried from §9:** apply the *Model policy* section to
+   `spec/SDLC.md` (confirm/adjust opus-planning / sonnet-code / haiku-collection;
+   optionally pin `"model"` in settings); delete the two field-report twins from
+   `spec/`.
+3. **Watch the fan-out** on the next real `/plan-phase` and record one line in §9's
+   acceptance bullet — closes F2's last residual.
+4. **Then F3** (slice-runner TRIAL, §3, unchanged in shape) — kit untouched unless all
+   four pass criteria hold; ships as the then-current next minor only if they do.

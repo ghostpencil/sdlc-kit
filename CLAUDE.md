@@ -19,7 +19,7 @@ here. Work on this repo is ordinary editing plus careful cross-file consistency.
 The repo root is **not** the kit. `sdlc-kit/` is the shippable product — the only folder
 that is copied into an adopting project, and the unit that gets packaged as a release
 artifact. Everything at the root (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`,
-`FIELD_REPORT_2026-07-20.md`, `IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`,
+`FIELD_REPORT_2026-07-20.md`, `FIELD_REPORT_2026-07-22.md`, `IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`,
 `KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`) is documentation *about*
 the kit and must never end up in an adopter's repo.
 
@@ -112,9 +112,15 @@ more prose rules.
 
 `FIELD_REPORT_2026-07-20.md` is the second report from the same adoption — the first real
 run of `/sdlc-retro` (F1's acceptance evidence), with 12 findings and a 15-row priority
-table, none yet actioned. Its cross-cutting theme extends the first report's: checks whose
-*denominator* was assumed rather than enumerated — including inside the kit's own
-`/sdlc-update`. `FEATURE_PLAN.md` §6 records how it was triaged.
+table, all 15 rows actioned by R1 (`FEATURE_PLAN.md` §7, shipped as v0.5.0). Its
+cross-cutting theme extends the first report's: checks whose *denominator* was assumed
+rather than enumerated — including inside the kit's own `/sdlc-update`.
+
+`FIELD_REPORT_2026-07-22.md` is the third — the first full arc run on kit 0.6.0, with 3
+findings and a 3-row priority table. Its theme sharpens the lineage again: a number
+recorded in prose is not the number the machine enforces, and the kit's bookkeeping
+updates the prose without reconciling against the enforcing artifact. `FEATURE_PLAN.md`
+§10 records how it was triaged.
 
 ## Writing conventions for these files
 
