@@ -675,3 +675,19 @@ the number was a placeholder, not a reservation.
    acceptance bullet — closes F2's last residual.
 4. **Then F3** (slice-runner TRIAL, §3, unchanged in shape) — kit untouched unless all
    four pass criteria hold; ships as the then-current next minor only if they do.
+
+### State as of 2026-07-22, end of session
+
+- Kit `main`: the triage commit is `6f4e9ed` (this hand-off follows it); working tree
+  otherwise clean. **Not yet pushed** — the only thing held. `v0.6.0` remains the
+  latest release; no tag work pending until R2 ships.
+- TFit `main` = origin at `cce681c` (Arc 3 retro committed), CI green, on kit 0.6.0
+  with the floor now reconciled at 32 (the retro's own fix); its `spec/` still holds
+  the two field-report twins and still lacks the Model policy section — both owner
+  work, resume steps 2 above.
+- Next session opens directly on **R2 step 1** — the batch is fully specified in the
+  map above and every claim behind it was pre-verified against the tree this session;
+  no analysis is pending, it is edit work. `/kit-check` closes it, then `v0.7.0`.
+- Nothing else is in flight: no scratch adoptions live, no subagent output awaited,
+  no undecided questions. The one deliberate residual (F2 delegation mechanics) waits
+  on a future `/plan-phase`, not on this repo.
