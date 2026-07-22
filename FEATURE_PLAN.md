@@ -720,11 +720,19 @@ merges, only the fan-out watch and F3 remain.
 
 ## 11. G1 — the gap-analysis batch *(triaged and built 2026-07-22; owner-decided: G1 before F3)*
 
-> **Status: BUILT, 2026-07-22.** All 14 edit-map rows applied, plus the release
+> **Status: SHIPPED, 2026-07-22.** All 14 edit-map rows applied, plus the release
 > bookkeeping (`VERSION` → 0.8.0, CHANGELOG entry, README tree line for the committed
 > source document). Owner decisions taken the same day: build G1, commit
-> `CRITICAL_GAPS_ANALYSIS.md`, and G1 precedes F3 in the §10 resume order. The tag
-> push (`v0.8.0`) is the owner's, per release procedure.
+> `CRITICAL_GAPS_ANALYSIS.md`, and G1 precedes F3 in the §10 resume order. Released
+> as `v0.8.0` (tag pushed, `release.yml` green in 9s, three assets published;
+> `checkout` bumped to v5 right after — its v4 deprecation warning was the run's one
+> annotation). **TFit migrated the same day** (PR #10, merged `e5b5b88`, owner
+> approval at halt 5): 16/16 UNCHANGED against the 0.7.0 manifest, copy-over-in-place,
+> 16/16 UNCHANGED + bundle 27/27 against the 0.8.0 manifest, stamp re-written last,
+> gate green. Carried in that PR as owner follow-up: TFit's instantiated `spec/SDLC.md`
+> predates the 0.8.0 templates — the hotfix exception, the deploy-outcome bookkeeping
+> (with a Render verification pointer for the deploy note), and the consequence sweep
+> are flagged for manual porting. Next: the fan-out watch, then F3.
 
 Source: `CRITICAL_GAPS_ANALYSIS.md` (root), an external review of the kit at 0.7.0
 naming five gaps. It was **challenged before acceptance**, per owner instruction, and
