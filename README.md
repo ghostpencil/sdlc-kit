@@ -43,6 +43,14 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
 
 ## Quick start
 
+### Prerequisites
+
+- **Claude Code** — CLI, desktop app, or IDE extension; the kit is prompt files for it.
+- **git** — the target project must be a git repository; the process commits per slice
+  and lands each phase as a PR.
+- A **POSIX shell with `sha256sum`** for the verify and update scripts — standard on
+  Linux, `shasum -a 256` on macOS, Git Bash on Windows (it ships with Git for Windows).
+
 ### Both modes
 
 1. Get the `sdlc-kit/` folder into the root of the target repository. It must keep that
@@ -52,11 +60,13 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
 
    ```bash
    cd /path/to/target-project
-   curl -sL https://github.com/ghostpencil/sdlc-kit/releases/latest/download/sdlc-kit-<version>.tar.gz | tar -xz
+   curl -sL https://github.com/ghostpencil/sdlc-kit/releases/latest/download/sdlc-kit.tar.gz | tar -xz
    cd sdlc-kit && sha256sum -c MANIFEST.sha256 && cd ..   # verify; shasum -a 256 -c on macOS
    ```
 
-   Releases: <https://github.com/ghostpencil/sdlc-kit/releases>
+   Releases: <https://github.com/ghostpencil/sdlc-kit/releases>. A specific version is
+   `releases/download/vX.Y.Z/sdlc-kit.tar.gz` (releases up to v0.6.0 embed the version
+   in the asset name instead: `sdlc-kit-<version>.tar.gz`).
 
    **Or clone this repo** and lift the kit folder out of it:
 
@@ -145,6 +155,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 └── LICENSE                          ← MIT (must travel with the bundle)
 
 .github/workflows/release.yml        ← packages the kit as a release asset on tag push
+.github/ISSUE_TEMPLATE/bug-report.md   ← issue template: one quick finding
+.github/ISSUE_TEMPLATE/field-report.md ← issue template: adoption findings, retro-shaped
 .claude/commands/kit-check.md        ← /kit-check: kit self-check (development-only, never installed)
 .gitattributes                       ← pins LF — the manifest hashes depend on it
 .gitignore
@@ -350,6 +362,21 @@ If every file matches a released version, you are provably on that version and s
 applies unchanged from there. If they match nothing, treat every file as `DRIFTED` and
 reconcile by hand — once. After this update you will have a version stamp and never need
 this section again.
+
+## Reporting problems and field reports
+
+GitHub issues are the channel; two templates are provided:
+
+- **Bug report** — one finding, quick to file: what happened, what you expected, and
+  the kit file implicated.
+- **Field report** — the gold-standard input: structured findings from a real adoption,
+  in the shape `/sdlc-retro` produces at a phase boundary. If you ran the retro, its
+  output already *is* the report — paste it in.
+
+Either way, a finding is most useful when it names the kit file(s) that would have to
+change and separates what was observed from what is suspected. That loop is how the kit
+improves: the three `FIELD_REPORT*.md` files at the repo root are real reports from the
+first adoption, and the fix batches in `CHANGELOG.md` were triaged directly out of them.
 
 ## FAQ
 

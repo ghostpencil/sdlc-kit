@@ -51,17 +51,19 @@ jobs:
           fi
 
       - name: Package
+        # Stable, version-free asset names: they make the README's
+        # releases/latest/download/… one-liner work verbatim on every release. The
+        # version still travels in the tag, the release title, and sdlc-kit/VERSION
+        # inside the archive. (Releases up to v0.6.0 used sdlc-kit-<version>.* names.)
         run: |
-          v="${GITHUB_REF_NAME#v}"
-          tar -czf "sdlc-kit-$v.tar.gz" sdlc-kit
-          zip -qr "sdlc-kit-$v.zip" sdlc-kit
-          sha256sum "sdlc-kit-$v.tar.gz" "sdlc-kit-$v.zip" > "sdlc-kit-$v.CHECKSUMS.txt"
+          tar -czf sdlc-kit.tar.gz sdlc-kit
+          zip -qr sdlc-kit.zip sdlc-kit
+          sha256sum sdlc-kit.tar.gz sdlc-kit.zip > sdlc-kit.CHECKSUMS.txt
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          v="${GITHUB_REF_NAME#v}"
           # Heredoc, not an inline multi-line string. YAML strips this block's common
           # indentation, so the runner sees EOF at column 0 and the heredoc terminates.
           # An inline "--notes" string cannot work here: its continuation lines would
@@ -78,4 +80,4 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
             --notes-file /tmp/notes.md \
-            "sdlc-kit-$v.tar.gz" "sdlc-kit-$v.zip" "sdlc-kit-$v.CHECKSUMS.txt"
+            sdlc-kit.tar.gz sdlc-kit.zip sdlc-kit.CHECKSUMS.txt

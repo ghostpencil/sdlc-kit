@@ -11,6 +11,10 @@ the kit's home repository: <https://github.com/ghostpencil/sdlc-kit>
 
 ## Install
 
+Prerequisites: Claude Code (CLI, desktop app, or IDE extension), `git`, and — for the
+verify and update scripts — a POSIX shell with `sha256sum` (standard on Linux,
+`shasum -a 256` on macOS, Git Bash on Windows).
+
 1. Make sure this folder sits at the root of your project and is named `sdlc-kit` —
    `/sdlc-setup` looks for it by name.
 2. Copy `commands/sdlc-setup.md` into your project's `.claude/commands/`.

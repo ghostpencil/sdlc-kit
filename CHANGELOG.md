@@ -10,6 +10,26 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+Distribution-readiness batch ahead of opening the repository to a general audience.
+Nothing installable changed; no adopted project is affected.
+
+### Changed
+- Release assets now use stable, version-free names (`sdlc-kit.tar.gz`, `sdlc-kit.zip`,
+  `sdlc-kit.CHECKSUMS.txt`) so the README's `releases/latest/download/…` one-liner
+  works verbatim. The version still travels in the tag, the release title, and
+  `sdlc-kit/VERSION` inside the archive. Applies from the next tag; releases up to
+  v0.6.0 keep their `sdlc-kit-<version>.*` names, and the README says so.
+- Root README: prerequisites stated (Claude Code, git, a POSIX shell with `sha256sum`),
+  the download one-liner fixed, and a new *Reporting problems and field reports*
+  section. The bundle README states the same prerequisites (manifest regenerated).
+
+### Added
+- `.github/ISSUE_TEMPLATE/` — a one-finding bug-report template and a field-report
+  template mirroring the shape `/sdlc-retro` emits, so submitted reports arrive in the
+  form the triage process already consumes.
+
 ## 0.6.0 — 2026-07-20
 
 The agents-and-model-tiers batch (`FEATURE_PLAN.md` F2), plus two residues from the
