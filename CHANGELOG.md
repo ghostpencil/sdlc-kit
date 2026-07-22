@@ -10,6 +10,46 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.8.0 — 2026-07-22
+
+The G1 batch: the five accepted kernels of `CRITICAL_GAPS_ANALYSIS.md`, an external
+review of the kit at 0.7.0 that was challenged before acceptance — the verdict, the
+owner answers that re-weighted it, and the rejected remainder (enforcement engine, risk
+profiles, full secure-development lifecycle, slice PRs, deployment lifecycle states)
+are recorded in `FEATURE_PLAN.md` §11. Every accepted change follows R2's shape: small,
+reconcile-shaped, markdown-only — no new files, no new placeholders, no tooling.
+
+### Added
+- **[installable]** `end-phase.md` step 7: the deploy question now ends in a
+  **verified, recorded outcome** — the deployed artifact is checked against the
+  platform's own record (the deploy run's SHA, the dashboard's deployed-commit field)
+  and the result lands in the Phase History row's Notes cell (`deployed+verified
+  <date>` / `deploy pending — <where tracked>` / `n/a — no deploy`), with a pending
+  deploy carried in START HERE until verified. **[installable]** `sdlc-setup.md`'s two
+  deploy questions also capture how a deploy is verified (same `{{DEPLOY_NOTE}}`
+  placeholder, richer resolution). **[adoption-only]** `SDLC.template.md` phase-end
+  step 6 states it canonically; `PROJECT_INDEX.template.md`'s Phase History comment
+  and `CLAUDE.template.md`'s `/end-phase` summary mention the outcome.
+- **[installable]** `next-slice.md` §3 + **[adoption-only]** `SDLC.template.md` Shape:
+  the **hotfix exception** — an urgent production fix while an arc is open branches
+  `fix/<slug>` off main with its own minimal PR and Phase History row, the only
+  sanctioned second unmerged branch; afterward the arc branch merges main and re-runs
+  the gate before its next slice, so the arc never drifts silently from production.
+- **[adoption-only]** `GATE_RECIPES.md`: security checks CI already runs (dependency
+  audit, secret scan, static analysis) are part of "the gate must match CI" — fast
+  ones join the local gate, slow or credentialed ones stay CI-only but are listed in
+  the gate section of `spec/SDLC.md`. **[installable]** `sdlc-setup.md`'s Existing-mode
+  survey collects them.
+- **[installable]** `plan-phase.md` step 4 + **[adoption-only]** `SDLC.template.md`
+  phase-start step 2: the **consequence sweep** — behaviors touching auth, money,
+  irreversible data operations, credentials, or regulated data must name their extra
+  verification in the spec and appear in Risks & Deferred; consequence and size are
+  different axes, and smallness is no exemption.
+- Kit-development (not shipped): **invariant 14** — a recorded value names its
+  enforcing artifact and the step that writes it reconciles the two — added to
+  `KIT_INVARIANTS.md` with its specimen (the third field report's floor drift) and to
+  `/kit-check`'s reading passes.
+
 ## 0.7.0 — 2026-07-22
 
 The R2 batch: all three priority rows of `FIELD_REPORT_2026-07-22.md` (the third field

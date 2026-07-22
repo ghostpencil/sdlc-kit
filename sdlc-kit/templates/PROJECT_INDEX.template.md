@@ -42,7 +42,9 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
        | — | **SDLC adopted** | pre-SDLC | <date> | via /sdlc-setup |
      — plus a few back-filled pre-SDLC rows from git history, recorded so the arc of
      the project is visible, not because they followed this process ("pre-SDLC" is a
-     fine PR value). New Project mode: leave empty. -->
+     fine PR value). New Project mode: leave empty. Deploying projects: /end-phase
+     bookkeeping records the deploy outcome in Notes (`deployed+verified <date>` /
+     `deploy pending — <where tracked>` / `n/a — no deploy`). -->
 
 ## Kit friction log
 

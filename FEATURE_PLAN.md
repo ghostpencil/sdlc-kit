@@ -697,6 +697,8 @@ merges, only the fan-out watch and F3 remain.
    acceptance bullet — closes F2's last residual.
 4. **Then F3** (slice-runner TRIAL, §3, unchanged in shape) — kit untouched unless all
    four pass criteria hold; ships as the then-current next minor only if they do.
+   *(Superseded ordering note, 2026-07-22: G1 — §11 — was owner-decided to precede F3
+   and is built; F3 remains next after it.)*
 
 ### State as of 2026-07-22, end of session
 
@@ -713,3 +715,127 @@ merges, only the fan-out watch and F3 remain.
 - Nothing else is in flight: no scratch adoptions live, no subagent output awaited,
   no undecided questions. The one deliberate residual (F2 delegation mechanics) waits
   on a future `/plan-phase`, not on this repo.
+
+---
+
+## 11. G1 — the gap-analysis batch *(triaged and built 2026-07-22; owner-decided: G1 before F3)*
+
+> **Status: BUILT, 2026-07-22.** All 14 edit-map rows applied, plus the release
+> bookkeeping (`VERSION` → 0.8.0, CHANGELOG entry, README tree line for the committed
+> source document). Owner decisions taken the same day: build G1, commit
+> `CRITICAL_GAPS_ANALYSIS.md`, and G1 precedes F3 in the §10 resume order. The tag
+> push (`v0.8.0`) is the owner's, per release procedure.
+
+Source: `CRITICAL_GAPS_ANALYSIS.md` (root), an external review of the kit at 0.7.0
+naming five gaps. It was **challenged before acceptance**, per owner instruction, and
+most of it did not survive the challenge. What follows records the verdict (so the
+document is never re-triaged from scratch), then the edit map for the five S-effort
+changes that did survive — each shaped like R2: small, reconcile-shaped, markdown-only.
+
+### The verdict — what was challenged, what stood
+
+The document is factually careful (no false claims about the kit's contents were found)
+but fails its own cross-cutting §5 standard: every gap argues from hypothetical failure
+modes, none from an observed defect. In the kit's own vocabulary, all five are
+`suspected`, not `measured`:
+
+- **Gap 1** (state machine interpreted, not enforced) recycles four real incidents as
+  evidence — all four already fixed (v0.2.0, R1, R2) and all four *caught by the retro
+  loop*, which cuts against the urgency claim. Its "interpreted vs. mechanical"
+  dichotomy is refuted by invariant 13's own specimen: three deterministic checks
+  returned confident wrong answers in one session. The operative axis is "has the check
+  demonstrated its negative case", not prose-vs-code. Its closure condition ("a
+  transition *cannot be represented* as complete unless…") quietly demands an
+  enforcement engine while claiming not to prescribe one. **Kernel accepted:** verify
+  transitions against artifacts the agent did not author — already the kit's direction
+  (R2's floor reconcile); becomes invariant 14 (G1.5).
+- **Gap 2** (delayed integration): zero occurrences in three arcs, and structurally
+  near-moot under current rules — one unmerged arc branch, strictly sequential slices,
+  solo owner: main cannot drift mid-arc except by a hotfix the rules don't yet define.
+  **Sliver accepted:** define the hotfix path (G1.2). The rest is a team-scale gap,
+  parked pending that expansion.
+- **Gap 3** (not risk-adaptive): the one *real* over-processing datum on record (FR2's
+  uniform re-derivation) was already fixed by R2's proportional rule — incremental risk
+  adaptation by field evidence, the kit's existing method. The document's own "Important
+  tension" section demolishes every profile-assignment scheme it gestures at.
+  **Hook accepted:** a consequence sweep in `/plan-phase` (G1.4), justified by the
+  owner's Daiwa (finance) target, where small high-consequence changes are real.
+- **Gap 4** (no full SDL): wrong product scale; a compliance encyclopedia invites
+  bypass, and scanners/identity models are project facts commands may not state.
+  **Sentence accepted:** security checks CI already runs are part of "the gate must
+  match CI" (G1.3). The rest waits for the first Daiwa adoption's field report.
+- **Gap 5** (lifecycle ends at merge): most upgraded by the owner's answers — TFit
+  deploys to Render, work usage will deploy via GitHub Actions. **Kernel accepted:**
+  the deploy question hardens into a recorded, reconciled outcome (G1.1). Canary,
+  incident lifecycle, and delivery metrics stay parked.
+
+Owner answers that re-weighted the triage (2026-07-22): target is a small enterprise
+team at Daiwa, devs mostly solo per service; TFit has a Render production deploy; no
+state divergence observed since R2; flexibility high, maintenance low — which rules out
+shipping executable enforcement tooling (the kit's one POSIX line already broke on
+Windows in the field; a lifecycle CLI multiplies that surface).
+
+### Edit map
+
+| # | File | Edit |
+|---|---|---|
+| G1.1 | `commands/end-phase.md` step 7 (deploy bullet) | when the project deploys ({{DEPLOY_NOTE}} ≠ none): after the deploy, **verify the deployed artifact is the merged commit against the platform's own record** (the Actions deploy run's SHA, Render's deployed-commit field — an artifact the agent did not author), and record the outcome in the Phase History row's Notes cell: `deployed+verified <date>` / `deploy pending — <where tracked>` / `n/a — no deploy`. A merged-but-undeployed phase must not read as complete in START HERE |
+| G1.1 | `templates/SDLC.template.md` phase-end step 6 | canonical statement of the same (inv 2: same batch as the command) |
+| G1.1 | `templates/PROJECT_INDEX.template.md` (Phase History comment) | note that deploying projects carry the deploy outcome in the Notes cell |
+| G1.1 | `templates/CLAUDE.template.md` (~line 32) | "(merge, deploy question)" → deploy question *and recorded outcome* |
+| G1.1 | `commands/sdlc-setup.md` (New Round 3 + Existing step 2 — both deploy questions) | the {{DEPLOY_NOTE}} answer now also captures **how a deploy is verified**: where the platform exposes the deployed commit, and the URL/command for a post-deploy smoke check. Same placeholder, richer resolution — no inv-3 impact |
+| G1.2 | `templates/SDLC.template.md` (Shape, after the one-arc paragraph) | the hotfix exception: an urgent production fix while an arc is open branches `fix/<slug>` off main, gets its own minimal PR (gate green against the baseline; review scaled to the diff; merge approval is halt 5 as ever), and its own Phase History row — it is not a slice of the arc. Afterward the arc branch merges main and re-runs the gate before its next slice. This is the **only** sanctioned second unmerged branch |
+| G1.2 | `commands/next-slice.md` §3 | the unmerged-arc-branch check gains: if main has moved since the arc branched (a hotfix landed), merge main into the arc branch and re-run the gate before starting the slice; the "second branch" warning cross-references the hotfix exception |
+| G1.3 | `reference/GATE_RECIPES.md` (intro, after "the gate must match CI, or the gate lies") | security checks CI already runs (dependency audit, secret scan, SAST) are part of "what CI runs": fast ones join the local gate; slow or credentialed ones stay CI-only but are listed in the gate section of `spec/SDLC.md` so merge readiness includes them knowingly — the same placement logic as the coverage floor (enforced in CI, recorded locally) |
+| G1.3 | `commands/sdlc-setup.md` (Existing step 1 survey) | collect any security scanning CI runs, alongside the existing CI/CD survey items; step 2's proposed gate folds them in per the GATE_RECIPES rule |
+| G1.4 | `commands/plan-phase.md` step 4 | new **consequence sweep** (between trust-boundary and cross-system): scan behaviors for authentication/authorization changes, money or financial calculation, destructive or irreversible data operations (migration, deletion, retention), credential handling, regulated data. Each hit must name its extra verification in the spec (slice exit criteria or the acceptance checklist) and appear in Risks & Deferred; a hit absorbed silently is the finding |
+| G1.4 | `templates/SDLC.template.md` phase-start step 2 (sweep enumeration, ~:142) | add "consequence sweep" to the list (inv 2) |
+| G1.5 | `KIT_INVARIANTS.md` | new **invariant 14 — a recorded value names its enforcing artifact**: any value or state the process records in prose must name the artifact that enforces it, and the step that writes it must reconcile the two (or state explicitly that it is claim-only). **Specimen, already on record:** TFit's coverage floor — recorded 28 → 32 in two prose homes while `gate.yml` enforced 28 for two days (FIELD_REPORT_2026-07-22 finding 1) |
+| G1.5 | `.claude/commands/kit-check.md` §3 | the invariant-14 reading pass: enumerate record-a-value steps in commands/templates; each names its enforcing artifact and reconcile step, or is explicitly claim-only |
+| G1.5 | root `CLAUDE.md` (~:68) | "13 invariants" → "14 invariants" |
+
+### Decisions
+
+- **Deploy outcome lives in the existing Notes cell**, not a new Phase History column —
+  project-owned files are never migrated by `/sdlc-update`, so a schema change would
+  fork every existing adopter's table.
+- **The hotfix branch is the only sanctioned second unmerged branch**; `next-slice`'s
+  unmerged-branch check remains the guard, now with a defined answer instead of a
+  vacuum.
+- **G1.3 adds no mandatory tooling.** The rule only folds in what CI already runs;
+  scanners are project facts and stay out of command prose (inv 1 holds).
+- **The consequence sweep adds no owner halt.** Hits route through the existing
+  question/decision mechanism; the five-halt-point invariant stands.
+- **Invariant 14 ships now, not later** — its specimen requirement is already satisfied
+  by FR3 finding 1; waiting would add nothing. It is kit-development-side only (nothing
+  installed changes for G1.5), and the batch is its own first test: G1.1's deploy
+  outcome must name its enforcing artifact (the platform's deploy record) to pass the
+  check it helps create.
+- **Rejected or parked — do not re-litigate without field evidence:** the lifecycle
+  enforcement engine / state schema (gap 1 as scoped), risk profiles (gap 3 as scoped),
+  the full secure-development lifecycle (gap 4 as scoped), slice PRs or any change to
+  the arc/PR unit (gap 2 as scoped), and deployment lifecycle states beyond the
+  outcome record (gap 5 as scoped). Grounds are recorded in the verdict above.
+- **The source document is committed at the root** (kit-development artifact, same
+  class as the field reports) — owner-confirmed 2026-07-22; the README file tree
+  gained its line (inv 9).
+
+### Ripple check (§4a discipline — derived by grep this session, not recalled)
+
+`deploy` → `end-phase.md`, `SDLC.template.md`, `CLAUDE.template.md:32`,
+`PROJECT_INDEX.template.md` (comment), `sdlc-setup.md` ×2 (both modes' questions) — all
+in the map. Sweep enumeration → `SDLC.template.md:142–144` + `plan-phase.md` step 4 —
+both in the map. Branch rules → `next-slice.md` §3 + `SDLC.template.md` Shape;
+`end-slice.md` has no branch-rule text (verified by grep, no match). Invariant count →
+root `CLAUDE.md:68` only; the README states no count (grep: no match). Security → no
+existing mentions to reconcile. Install set unchanged → `reference/SKILLS.md` has no
+role (verified, not assumed). No kit files added or renamed → README tree untouched by
+the batch itself; only the source document's own line if the owner commits it.
+`MANIFEST.sha256` regenerates at release (inv 10), `VERSION` → next minor at ship time
+(process changes are minor, R1 precedent), `CHANGELOG.md` gains the entry. `/kit-check`
+closes the batch — including the first run of the invariant-14 pass over the batch's
+own edits.
+
+**Ordering:** R2's precedent routed fix batches ahead of F3, and G1 touches files F3's
+trial would exercise — recommendation is G1 before F3, but the resume-list order in §10
+was owner-confirmed, so re-ordering it is the owner's call, not the batch's.

@@ -79,12 +79,19 @@ git checkout <main> && git pull
 
 ### 7. Post-merge bookkeeping (on the main branch)
 
-- **Ask the deploy question:** does this phase need a deploy for its changes to reach
-  users, and has it happened? Merging is not shipping — a production fix sat unshipped
-  behind exactly this missing question once. The kit cannot know the project's deploy
-  procedure, but the question is mandatory: point at wherever the project recorded the
-  answer (`spec/SDLC.md` is the usual home; if nothing is recorded, that is a gap to
-  record now), and report deploy status in the close-out. Not a new halt — the owner
+- **Ask the deploy question, then record the verified outcome:** does this phase need
+  a deploy for its changes to reach users, and has it happened? Merging is not
+  shipping — a production fix sat unshipped behind exactly this missing question once.
+  The kit cannot know the project's deploy procedure, but the question is mandatory:
+  point at wherever the project recorded the answer (`spec/SDLC.md` is the usual home;
+  if nothing is recorded, that is a gap to record now). When the project deploys, do
+  not stop at "yes": **verify the deployed artifact is the merged commit against the
+  platform's own record** — the deploy run's SHA, the hosting dashboard's
+  deployed-commit field, wherever the deploy note in `spec/SDLC.md` says it is exposed
+  — an artifact this session did not author. Record the outcome in the Phase History
+  row's Notes cell: `deployed+verified <date>`, `deploy pending — <where tracked>`, or
+  `n/a — no deploy`; a pending deploy also stays in START HERE until verified, so a
+  merged-but-unshipped phase can never read as complete. Not a new halt — the owner
   answers it inside the bookkeeping conversation.
 - **Surface the backlog:** report the open deferred-entry count with a severity
   breakdown, flag the oldest untouched entries, and ask the owner once — convert (a

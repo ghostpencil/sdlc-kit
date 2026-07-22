@@ -65,7 +65,7 @@ project-scoped; the harness reads agents only from there).
 
 ## Invariants to preserve when editing
 
-The canonical, full ledger is `KIT_INVARIANTS.md` at the root — 13 invariants, each with
+The canonical, full ledger is `KIT_INVARIANTS.md` at the root — 14 invariants, each with
 the real defect that motivated it — and `/kit-check` is the reading pass that verifies
 them. The six below are the working summary; on disagreement the ledger wins.
 

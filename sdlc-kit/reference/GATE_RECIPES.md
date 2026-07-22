@@ -10,7 +10,11 @@ Per-language commands for the two places tooling is configured during `/sdlc-set
 
 These are starting points. Always prefer the commands the project **already uses**
 (check CI workflows, `Makefile`, `package.json` scripts) over these defaults — the gate
-must match CI, or the gate lies.
+must match CI, or the gate lies. That includes security checks CI already runs
+(dependency audit, secret scan, static analysis): fast ones join the local gate; slow
+or credentialed ones stay CI-only but are listed in the gate section of `spec/SDLC.md`
+so merge readiness includes them knowingly — the same placement logic as the coverage
+floor below, enforced in CI and recorded locally.
 
 ## Hook template placeholders
 

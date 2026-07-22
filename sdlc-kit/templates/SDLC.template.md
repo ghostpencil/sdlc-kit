@@ -40,6 +40,14 @@ review stays on the same branch. Splitting an arc across branches produces two P
 no single whole-arc review spanning both — and the whole-arc review is the stage that
 catches what slice reviews structurally cannot.
 
+**The hotfix exception — the only sanctioned second unmerged branch.** An urgent
+production fix that cannot wait for the open arc branches `fix/<slug>` off
+`{{MAIN_BRANCH}}`, gets its own minimal PR (gate green against the recorded baseline,
+review scaled to the diff, merge approval as ever), and its own Phase History row — it
+is not a slice of the arc. After it merges, the arc branch merges `{{MAIN_BRANCH}}`
+and re-runs the gate before its next slice, so the arc never drifts silently from what
+production runs.
+
 **Parallelism is read-only fan-out only.** Slices are strictly sequential — their order
 is set at planning time and inter-slice dependencies are the norm. Subagents may run in
 parallel only for read-only work *within* a step (analysis sweeps, repo surveys, review
@@ -139,9 +147,9 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
 
 1. Candidate phases presented with a recommendation; owner picks the scope *(halt 1)*.
 2. Requirements interview in rounds (≤4 questions each) until a round surfaces nothing
-   new, then an adversarial gap analysis (walkthrough, trust-boundary sweep, cross-system
-   sweep, persistence/compatibility sweep, testability sweep, contradiction sweep,
-   minimal-version attack — the sweeps may run as parallel read-only subagents per the
+   new, then an adversarial gap analysis (walkthrough, trust-boundary sweep,
+   consequence sweep, cross-system sweep, persistence/compatibility sweep, testability
+   sweep, contradiction sweep, minimal-version attack — the sweeps may run as parallel read-only subagents per the
    fan-out rule above, with findings returning to the main session). Every gap becomes
    a question or a numbered decision — never an assumption.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
@@ -207,7 +215,12 @@ Run `/end-phase` when the last slice is done:
 5. **Merge approval** *(halt 5)*, then merge.
 6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;
-   {{DEPLOY_NOTE}}), the coverage-floor ratchet (set the workflow value, then reconcile
+   {{DEPLOY_NOTE}}) closed with a **verified outcome** — when the project deploys, the
+   deployed artifact is checked against the platform's own record (the deploy run's
+   SHA or deployed-commit field, per the deploy note) and the result recorded in the
+   Phase History row's Notes cell (`deployed+verified <date>` / `deploy pending —
+   <where tracked>` / `n/a — no deploy`), with a pending deploy carried in START HERE
+   until verified; the coverage-floor ratchet (set the workflow value, then reconcile
    it against the recorded floor — see *Coverage floor* above), the backlog surfaced
    with severity counts for an owner decision (convert / defer / drop), PROJECT_INDEX
    Phase History row + status flip, deferred-pile consolidation, spec cleanup, memory

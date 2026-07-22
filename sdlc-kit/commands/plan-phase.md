@@ -72,6 +72,13 @@ subagent ever interacts with the owner.
 - **Trust-boundary sweep** — scan for any behavior where an external system, model, or
   untrusted input mutates authoritative state. The application disposes; violations get
   redesigned as proposal + validator or an application-owned rule.
+- **Consequence sweep** — scan the behaviors for changes to authentication or
+  authorization, money or financial calculation, destructive or irreversible data
+  operations (migration, deletion, retention), credential handling, or regulated data.
+  Each hit names its extra verification in the spec — in the slice's exit criteria or
+  the acceptance-review checklist — and appears in Risks & Deferred. A hit absorbed
+  silently is the finding; consequence and size are different axes, and smallness is
+  no exemption.
 - **Cross-system sweep** — list every existing subsystem the feature reads or writes.
   Each touched system needs a stated interaction rule (or an explicit "unaffected").
 - **Persistence & compatibility sweep** — new/changed models → migration plan, seed/

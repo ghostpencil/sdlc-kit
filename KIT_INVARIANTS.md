@@ -170,3 +170,18 @@ in one session returned confident, plausible, wrong answers without erroring —
 hashing (CRLF made all 12 files "drift"), a pipeline probe (missing paths hashed empty
 input and "matched"), and the name-match placeholder check (24 false positives). None
 prompted a second look, because each produced a plausible result (plan §7.1).
+
+## 14. A recorded value names its enforcing artifact
+
+Any value or state the process records in prose — a floor, a baseline, a status, a
+deploy outcome — must name the artifact that enforces or evidences it, and the step
+that writes the record must reconcile the two in the same pass (or the record must
+state explicitly that it is claim-only). A number in prose is not the number the
+machine enforces; writing one without the other is how the two drift.
+
+**Check:** reading pass over `commands/` and `templates/` for every step that records
+a value or state; each names its enforcing artifact and its reconcile step, or is
+marked claim-only. **Specimen:** TFit's coverage floor — `/end-phase` bookkeeping
+recorded 28 → 32 in two prose homes while `gate.yml` silently kept enforcing 28 for
+two days (`FIELD_REPORT_2026-07-22.md` finding 1); R2 added that one reconcile, and
+this invariant generalizes it (plan §11, G1.5).

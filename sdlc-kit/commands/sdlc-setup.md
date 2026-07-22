@@ -55,8 +55,11 @@ questionnaire.
   app + infra — name the boundary); how the owner will run the app for acceptance
   review (the run command — and how to stop it, if Ctrl+C or closing the window does
   not suffice); how a merged phase reaches users — the deploy procedure, or "none" for
-  a library/local tool (resolves `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end step,
-  which asks the deploy question at every phase close); CI provider (default GitHub
+  a library/local tool, and for a deploying project also how a deploy is **verified**:
+  where the platform exposes the deployed commit (the deploy run's SHA, a dashboard
+  field) and the URL or command for a post-deploy smoke check (all of it resolves
+  `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end step, which asks the deploy question
+  and records its verified outcome at every phase close); CI provider (default GitHub
   Actions); any always-active
   rules for CLAUDE.md (portability, serialization, DI seams for external services);
   the **model policy** (see below); anything the owner already knows about Phase 1
@@ -150,7 +153,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    best witness); lint/typecheck config present or absent; existing CLAUDE.md /
    README / docs / ADRs; branch + PR conventions from `git log`; app entry point / run
    command; how the app is deployed, if it is (CD workflows, hosting config,
-   Dockerfiles); test layout and any existing mocking conventions; any existing
+   Dockerfiles); any security scanning CI already runs (dependency audit, secret
+   scanning, static analysis — the proposed gate folds these in per
+   `reference/GATE_RECIPES.md`); test layout and any existing mocking conventions; any existing
    test-isolation enforcement (network blockers, sanitized env vars) and the seams it
    misses; whether the repo holds more than the app (docs site, infra, data pipelines
    — anything the process might not govern); and whether any file named
@@ -176,7 +181,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    subset, and what is explicitly out of scope (step 1's survey of what else the repo
    holds seeds this question); acceptance-review surface and run command (and stop
    command, if Ctrl+C does not suffice); how a merged phase reaches users — the deploy
-   procedure, or "none" (resolves `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end
+   procedure, or "none", and for a deploying project also how a deploy is **verified**:
+   where the platform exposes the deployed commit and the URL or command for a
+   post-deploy smoke check (resolves `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end
    step; step 1's survey of CI/CD config seeds the proposed answer); in-flight
    work (open branches/PRs to record in START HERE), known trouble spots for the
    backlog, always-active rules worth encoding, and the **model policy** — same poll,

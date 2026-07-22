@@ -75,6 +75,10 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies (isolation harness spec, hook
   verification, exit checks, update classifier, release workflow, this command) states
   how it is proven to fail.
+- **14 — recorded values name their enforcement:** enumerate every step in `commands/`
+  and `templates/` that records a value or state (floors, baselines, statuses, deploy
+  outcomes); each names the artifact that enforces or evidences it and the step that
+  reconciles the two, or is explicitly claim-only.
 
 ### 4. Report
 

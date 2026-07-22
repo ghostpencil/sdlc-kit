@@ -62,7 +62,11 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
   belongs on it — check it out and `git pull`. Starting a second branch mid-arc splits
   the arc into two PRs and forfeits the single whole-arc review, which is the stage
   with the best defect track record; do it only if the owner confirms this work is
-  genuinely a separate arc.
+  genuinely a separate arc or an urgent hotfix (the one sanctioned second branch —
+  `spec/SDLC.md` *Shape* defines its path).
+- If the main branch has moved since the arc branched (a hotfix landed), merge it into
+  the arc branch and re-run the gate before starting the slice — drift is cheapest to
+  absorb here, one slice at a time, not at phase end.
 - If there is no arc branch yet, create one off the up-to-date main branch:
   `feat/phase-NN-<slug>` (BUILD) or `chore/cleanup-<arc-theme>` (STABILIZATION — name
   it for the **arc's theme**, not for this first slice, because later slices accumulate
