@@ -669,8 +669,9 @@ Remaining from the resume list below: TFit's migration to 0.7.0 at its next arc 
 (which exercises Finding 3's fix on the platform that surfaced it), the TFit owner work
 carried from §9, the fan-out watch, then F3.
 
-**TFit follow-through (2026-07-22, later the same day):** both TFit steps ran and sit at
-halt 5 (owner merge). The 0.7.0 migration is **TFit PR #8** (gate green) — executed with
+**TFit follow-through (2026-07-22, later the same day):** both TFit steps ran and are
+**merged** (owner approved at halt 5; merge commits `98f3be1` and `12d69df`, branches
+deleted — TFit is on kit 0.7.0). The 0.7.0 migration is **TFit PR #8** — executed with
 the R2-fixed procedure on the Windows platform that surfaced finding 3: 16/16 installed
 files UNCHANGED against the 0.6.0 manifest, bundle replaced by copy-over-in-place (28 on
 disk vs 27 manifested, the extra being `MANIFEST.sha256` itself), 16/16 UNCHANGED on the
