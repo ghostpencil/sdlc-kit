@@ -572,6 +572,34 @@ check after — the §4a rule did its job.
   leaves a trace. Per inv 8 (claim only what was checked): the *behavior* is
   field-verified, the *delegation* is still design-verified only. Residual: watch for
   the fan-out on the next `/plan-phase`; one observation closes it.
+- **The fan-out watch — worked 2026-08-01 (§12 step 5). Verdict: independence is now
+  field-evidenced; delegation remains unobserved, and no artifact can ever observe it.**
+  Denominator: `grep -rn -i "subagent|surveyor|fan-out|parallel|sweep"` over all of
+  TFit's `spec/` (10 files), plus the two `/plan-phase` runs that post-date F2 —
+  Phase 04 (2026-07-24) and Phase 05 (2026-07-25), **both planned on kit 0.8.0**, with
+  the parallel-subagent instruction verified present in the installed file at that time
+  (`git show 5fbb3ff:.claude/commands/plan-phase.md:62`). Two findings:
+  - **Positive evidence of independence, from Phase 05.** `PHASE_05:531` records that
+    *"the sweep produced **two mutually contradictory analyses** of what the browser
+    sends"* — and carries **both** forward, as an acceptance instruction to measure the
+    real `Origin` header rather than assume it. A single in-context sequential pass has
+    the earlier sweep's conclusion in view when the later one runs; two live, unreconciled
+    answers to one factual question is the signature of workers that could not see each
+    other. `PHASE_05:60–61` is the same shape read the other way — *"Three sweeps
+    converged on this **independently**"* is only worth recording if convergence was not
+    guaranteed by shared context. Phase 04's coupling sweep shows sweeps reading code
+    mechanically (`D8`: sanitizer references *zero* server globals; `D9`: 16 of 19
+    card-timing members pure) but says nothing about how they were run.
+  - **The residual cannot close by the means it was queued to close by.** No artifact
+    names an agent, a model, or a spawn — by design (findings return, nothing else leaves
+    a trace), so *more* `/plan-phase` runs cannot raise this above inference. Waiting for
+    another one was the wrong instruction. Per inv 8 the claim is downgraded, not
+    completed: **sweep independence is field-evidenced by its consequences; the spawn
+    mechanics are design-verified only.** One live observation still closes it, and TFit's
+    Phase 06 planning (#64) is the free opportunity — the owner watches once, or the claim
+    stays where it now is permanently. **The `sdlc-surveyor` spawn at `plan-phase.md:112`
+    has zero field evidence of any kind** — its only occurrence anywhere in TFit is the
+    process description at `spec/SDLC.md:300`. It has never been observed to run.
 
 ### Resume here — owner-confirmed order, 2026-07-20 end of session
 ### (statuses re-verified against both trees, 2026-07-22 — superseded by §10's list)
@@ -999,9 +1027,16 @@ has no role. `MANIFEST.sha256` regenerates at release (inv 10); `VERSION` → 0.
    while being submitted upstream as finding 8, when `/sdlc-update`'s `rm -rf` had been
    fixed in **0.7.0** five days earlier (backlog #84 closed), and `PROJECT_INDEX.md`
    (2,529 lines) is now marked bounded/growing.
-5. **The fan-out watch** (§10 step 3, F2's last residual) — TFit has run several
-   `/plan-phase` passes since it was queued; close it from that evidence rather than
-   waiting for another.
+5. ~~**The fan-out watch**~~ (§10 step 3, F2's last residual) — worked 2026-08-01,
+   **closed as far as artifacts can close it**; the finding is recorded in full in §9's
+   acceptance bullet. Short version: Phase 05's *"two mutually contradictory analyses"*
+   (`PHASE_05:531`) is positive evidence that the sweeps ran independently, since a
+   sequential in-context pass would have reconciled them; but no artifact records a spawn
+   and none ever will, so **waiting for another `/plan-phase` was the wrong instruction**
+   and the claim is downgraded rather than completed (inv 8). One live observation during
+   Phase 06 planning closes it for free; otherwise it stands as-is permanently.
+   **Carried:** the `sdlc-surveyor` spawn has *no* field evidence at all — if Phase 06's
+   feasibility checks do not use it, that is a signal about the optional step, not noise.
 6. **Then F3** (slice-runner TRIAL, §3, unchanged in shape). Phase 06 (#64, retrieval
    redesign) is the natural arc to trial it on — and it is the first close that must
    answer for TFit's 171, unchanged for four arcs, under R3.3's new rule.
