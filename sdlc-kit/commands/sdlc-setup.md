@@ -54,7 +54,8 @@ questionnaire.
   what is explicitly out of scope (default: the whole repo; mixed repos — app + docs,
   app + infra — name the boundary); how the owner will run the app for acceptance
   review (the run command — and how to stop it, if Ctrl+C or closing the window does
-  not suffice); how a merged phase reaches users — the deploy procedure, or "none" for
+  not suffice — **verified in the owner's own shell**, see below); how a merged phase
+  reaches users — the deploy procedure, or "none" for
   a library/local tool, and for a deploying project also how a deploy is **verified**:
   where the platform exposes the deployed commit (the deploy run's SHA, a dashboard
   field) and the URL or command for a post-deploy smoke check (all of it resolves
@@ -80,6 +81,21 @@ questionnaire.
   alias; if the owner keeps the harness default, **delete that line** from the
   instantiated settings rather than inventing a value. Never write a model into any
   installed command file — the poll lands in project-owned files only.
+
+  **The owner's shell — verify the run command there, not here.** Anything the *owner*
+  will execute has to work in the owner's terminal, which is not the shell this session
+  runs commands in: different `PATH`, a shell profile no agent tool-shell loads, and
+  often a different interpreter of the same name. Ask the owner to run the acceptance
+  command themselves now and paste what happened, plus the resolver for the toolchain
+  it uses (`which <tool>` / `(Get-Command <tool>).Source`, or the language's
+  equivalent). If it fails, fix the command against **their** result — never against a
+  run of your own — before it becomes `{{RUN_COMMAND}}`. Record the resolved path in
+  PROJECT_INDEX's Environment gotchas when it differs from the bare name, because the
+  next session will otherwise verify it in the wrong environment too. A command an
+  agent verifies and an owner executes has two environments, and only the owner's is
+  authoritative: one adoption shipped a documented run command that died at import for
+  the owner and passed cleanly for every agent, and four phases of green gates said
+  nothing.
 
   **Do not ask for a coverage floor and do not propose a number.** No CI run exists yet,
   so any figure would be invented. Resolve `{{COVERAGE_FLOOR}}` (gate section of
@@ -180,7 +196,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    analysis could not determine: whether this process governs the whole repo or a
    subset, and what is explicitly out of scope (step 1's survey of what else the repo
    holds seeds this question); acceptance-review surface and run command (and stop
-   command, if Ctrl+C does not suffice); how a merged phase reaches users — the deploy
+   command, if Ctrl+C does not suffice) — **verified in the owner's own shell, by the
+   owner, per New mode Round 3's *The owner's shell*: they run it now and paste the
+   result, and the resolved interpreter path goes in Environment gotchas.** An existing
+   project makes this more likely to bite, not less: the run command already exists, so
+   nothing prompts anyone to test it, and it has usually only ever been run by the owner
+   or only ever by tooling — never both; how a merged phase reaches users — the deploy
    procedure, or "none", and for a deploying project also how a deploy is **verified**:
    where the platform exposes the deployed commit and the URL or command for a
    post-deploy smoke check (resolves `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end

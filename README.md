@@ -166,6 +166,7 @@ CHANGELOG.md                         ← kit version history
 FIELD_REPORT.md                      ← findings from the first external adoption
 FIELD_REPORT_2026-07-20.md           ← findings from the second arc — /sdlc-retro's first real run
 FIELD_REPORT_2026-07-22.md           ← findings from the third arc — first full arc on kit 0.6.0
+FIELD_REPORT_2026-08-01.md           ← findings from a 5th phase (sdlc-kit#1) — triaged in FEATURE_PLAN.md §12
 CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN.md §11
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
 FEATURE_PLAN.md                      ← post-field-report feature work (retro, agents, model tiers)
@@ -382,8 +383,9 @@ GitHub issues are the channel; two templates are provided:
 
 Either way, a finding is most useful when it names the kit file(s) that would have to
 change and separates what was observed from what is suspected. That loop is how the kit
-improves: the three `FIELD_REPORT*.md` files at the repo root are real reports from the
-first adoption, and the fix batches in `CHANGELOG.md` were triaged directly out of them.
+improves: the four `FIELD_REPORT*.md` files at the repo root are real reports from
+adopting projects, and the fix batches in `CHANGELOG.md` were triaged directly out of
+them.
 
 ## FAQ
 

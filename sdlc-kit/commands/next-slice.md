@@ -52,6 +52,18 @@ evidence the entry already carries; read it and scale the work to it:
 Either way, when the cause does not hold, correct the entry in place and re-scope the
 slice against what is actually true.
 
+**The same rule covers an `estimated` number this slice implements.** If the slice
+builds to a decision in the phase spec whose number is tagged **estimated**, derive it
+before starting: run the count, the query, or the measurement the plan could not take
+yet. Cheap now, and the plan was ratified against reasoning rather than a figure — on a
+real project seven of forty-four decisions changed on contact with code, one of them a
+cap whose approved value implied roughly two orders of magnitude more spend than
+intended. A derived number that differs from the ratified one goes back to the owner
+**inside this halt** — it is a scope question, not a new halt, and it un-skips the
+recorded-OWNER-DECIDED shortcut above, because what was decided is no longer what is
+true. Never absorb the difference quietly. When the derivation confirms the number,
+re-tag the decision **measured** in the spec with what you ran.
+
 ### 3. Ensure the branch
 
 The rule, mode-independent: **slices accumulate on one arc branch until `/end-phase`;

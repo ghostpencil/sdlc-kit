@@ -65,6 +65,9 @@ fix application, bookkeeping, commits) proceeds without asking.
 2. **Slice scope confirmation** — one question at the start of `/next-slice`. Skipped
    when the slice is already recorded as OWNER-DECIDED with its scope spelled out;
    re-asking a decided question is ceremony, and the halt exists for the undecided case.
+   The skip lapses when the slice's re-derivation contradicts what was decided — a
+   backlog cause that does not hold, or an **estimated** number that derives differently
+   — because what was decided is no longer what is true.
 3. **Design questions** — any spec conflict or owner-facing design decision surfaced
    during the work, mid-slice or by a review, halts with a question; it is never
    resolved silently.
@@ -98,6 +101,18 @@ tests, and constructs that hide code from analysis (an unannotated decorator can
 everything it wraps as `Any`) freeze the number while shrinking what it measures. A
 ceiling that stops measuring is worse than a high one — when the count will not move,
 check what the checker still reaches, not only what it reports.
+
+**The baseline moves by procedure, not by ambition.** At every phase close, post-merge
+bookkeeping reports the current count beside the recorded one and does one of three
+things: lowers the baseline here in the same docs commit, records an owner decision to
+lower it via a stabilization slice in the next phase, or records that the owner
+**ratified holding it** — with how many arcs it has been unchanged. A ceiling nobody is
+ever asked about is not a ratchet, and *"drive it down through the backlog"* is a wish
+until a step serves it.
+
+**Rendering:** an unchanged red baseline is reported as `N (unchanged for K arcs)`,
+never as `N (ceiling held)` or any other phrasing where a stall reads as an
+achievement. The same number twelve times is the finding, and it has to look like one.
 
 This is the single place the baseline is defined. Commands read it from here.
 
@@ -151,10 +166,19 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    consequence sweep, cross-system sweep, persistence/compatibility sweep, testability
    sweep, contradiction sweep, minimal-version attack — the sweeps may run as parallel read-only subagents per the
    fan-out rule above, with findings returning to the main session). Every gap becomes
-   a question or a numbered decision — never an assumption.
+   a question or a numbered decision — never an assumption. Two rules bind the
+   consequence sweep's hits: a claim that a consequence **ships inert** (flag, env var,
+   "off in prod", "merging changes nothing") names the variable and quotes its value
+   from the artifact that configures **production** — never from the test environment,
+   which is usually configured to make the claim true — and each hit names the lever
+   that disables it **alone**, since a control sharing its only off switch with an
+   unrelated system has no rollback.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
    numbered owner decisions, behaviors, non-goals, data/migration impact, user-visible
-   surface + acceptance-review checklist, slices with exit criteria, risks.
+   surface + acceptance-review checklist, slices with exit criteria, risks. Any decision
+   carrying a number is tagged **measured** (naming the run, count, or query behind it)
+   or **estimated** — the same distinction the deferred backlog draws about causes,
+   applied where a number is first ratified.
 4. Owner approves the decisions + slice breakdown *(same halt, second checkpoint)*.
 5. Branch `feat/phase-NN-<slug>` created off `{{MAIN_BRANCH}}`; `spec/PROJECT_INDEX.md`
    flipped to BUILD with the spec pointer; docs committed. Then `/clear` and `/next-slice`.
@@ -173,7 +197,9 @@ Run `/next-slice` in a **fresh session**:
    `measured` one whose anchors drifted or whose spot-check surprises, gets the full
    reproduce-or-disprove (and is re-tagged). A backlog entry is a hypothesis with a
    timestamp, not a finding; when the cause does not hold, correct the entry in place
-   and re-scope.
+   and re-scope. The same rule covers an **estimated** number the slice implements:
+   derive it before starting, take a differing result back to the owner as a question,
+   and re-tag the decision measured with what you ran.
 3. Ensure the arc branch is checked out (create it if phase start was skipped; check for
    any unmerged arc branch before creating a new one — see *Shape*).
 4. Read `spec/TESTING.md`, invoke the TDD skill, implement the slice in small
@@ -187,9 +213,12 @@ Run `/end-slice` when the slice's exit criteria are met:
    propagation or swept for a pattern). Two questions the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that
    consumer do with the old behavior; and does any **test double** omit a side effect
-   or simplify the error surface of what it replaces. Apply CRITICAL/HIGH fixes now;
-   defer the rest to the PROJECT_INDEX backlog with a one-line rationale each, cause
-   marked measured or suspected. Re-run the gate if anything changed.
+   or simplify the error surface of what it replaces. **Every finding is verified
+   against the source before it is fixed or deferred**, and the ones that do not survive
+   verification are reported, not dropped — a finding is a claim about the code, and
+   severity is asserted rather than measured. Apply CRITICAL/HIGH fixes now; defer the
+   rest to the PROJECT_INDEX backlog with a one-line rationale each, cause marked
+   measured or suspected. Re-run the gate if anything changed.
 7. Mutation check: every new guard, branch, or error path this slice added is deleted
    or inverted once and the suite watched to fail on exactly the intended test
    (mutation-testing skill for anything beyond a quick delete-and-run). A check is
@@ -207,11 +236,17 @@ Run `/end-phase` when the last slice is done:
    (smoke test, end-to-end run, manual script).
 2. **Owner acceptance review** *(halt 4)* — owner runs `{{RUN_COMMAND}}` and verifies the
    phase's visible behavior against the spec's checklist. Findings become fix commits
-   (back to the slice loop if large).
+   (back to the slice loop if large). This is the one step in the whole process that
+   runs in the **owner's** shell rather than an agent's, and the two are different
+   environments — different `PATH`, an unloaded profile, sometimes a different
+   interpreter of the same name. A command that fails here is a defect in the
+   instructions: fix `{{RUN_COMMAND}}` against the owner's result and record the
+   resolved toolchain path in Environment gotchas.
 3. Push and open the PR (`gh`), body summarizing the phase against its exit criteria.
-4. Whole-arc review: `pr-review-toolkit:review-pr` on the PR. Apply fix batches, re-run
-   the gate, push. Deeper option when warranted: `/code-review ultra <PR#>`
-   (owner-triggered).
+4. Whole-arc review: `pr-review-toolkit:review-pr` on the PR. Verify each finding against
+   the source before it enters a fix batch, and report the ones that did not survive
+   alongside the ones that did; then apply, re-run the gate, push. Deeper option when
+   warranted: `/code-review ultra <PR#>` (owner-triggered).
 5. **Merge approval** *(halt 5)*, then merge.
 6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;
@@ -220,11 +255,20 @@ Run `/end-phase` when the last slice is done:
    SHA or deployed-commit field, per the deploy note) and the result recorded in the
    Phase History row's Notes cell (`deployed+verified <date>` / `deploy pending —
    <where tracked>` / `n/a — no deploy`), with a pending deploy carried in START HERE
-   until verified; the coverage-floor ratchet (set the workflow value, then reconcile
-   it against the recorded floor — see *Coverage floor* above), the backlog surfaced
+   until verified, and followed by the question the deploy outcome does not answer —
+   **what did this deploy turn on**, and what disables each newly-live control by
+   itself; the coverage-floor ratchet (set the workflow value, then reconcile
+   it against the recorded floor — see *Coverage floor* above); the red-baseline
+   decision (lower it here, schedule it, or ratify holding it with the arc count — see
+   *Gate baseline* above); the backlog surfaced
    with severity counts for an owner decision (convert / defer / drop), PROJECT_INDEX
-   Phase History row + status flip, deferred-pile consolidation, spec cleanup, memory
+   Phase History row + status flip, deferred-pile consolidation, **closed-phase detail
+   archived out of PROJECT_INDEX into the phase spec**, spec cleanup, memory
    updates worth keeping.
+7. `/sdlc-retro` is **offered**, not required — it extracts the phase's lessons while
+   the evidence is fresh, sorting each into a project lesson (into PROJECT_INDEX) or a
+   kit lesson (into a report). Declining is the right answer when the phase has nothing
+   to teach, and the command refuses to run on too little evidence.
 
 ## Bookkeeping rules
 
@@ -239,3 +283,13 @@ Run `/end-phase` when the last slice is done:
   gate section above; Environment gotchas in PROJECT_INDEX) and adds it to CI in the
   same commit. A gate dependency discovered by a contributor's red run is a
   documentation bug.
+- **A gotcha recorded in three consecutive slices becomes a check, or is ratified
+  unpreventable.** The third recurrence of the same environmental hazard buys a gate
+  step, a hook, or a test — not a fourth, better-worded note. If nothing can prevent
+  it, the entry says so explicitly and carries its recurrence count. Prose in a status
+  document is not a control; describing a hazard more sharply each time is what a
+  process does instead of stopping it.
+- `spec/PROJECT_INDEX.md` has **bounded** sections and **growing** ones (marked in the
+  file). The bounded ones are what a fresh session reads first and are kept short;
+  per-slice detail is archived into the phase spec at phase close rather than
+  accumulating above them.

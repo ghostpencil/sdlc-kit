@@ -34,6 +34,15 @@ look at: the phase's user-visible behaviors from the spec's acceptance checklist
 any live-data notes from PROJECT_INDEX. The owner exercises the product themselves (run
 command in CLAUDE.md) — do not perform this review on the owner's behalf.
 
+If that command fails in the owner's shell, treat it as a defect in the instructions,
+not as the owner's problem: the shell an agent runs commands in and the shell the owner
+types into are different environments (different `PATH`, different interpreter, a
+profile the agent never loads), and only the owner's is authoritative for anything the
+owner executes. Fix the command in `CLAUDE.md` and record the resolved interpreter or
+toolchain path in PROJECT_INDEX's Environment gotchas — this step is the only one in the
+whole process that exercises that environment, so what it finds has been wrong since
+setup.
+
 If the checklist includes failure paths, prefer breaking the connection over corrupting
 the data: stopping the server (or the backing service) leaves the product up while its
 writes go nowhere — the failure paths exercised are identical, and authoritative data is
@@ -57,8 +66,15 @@ EOF
 
 ### 5. Whole-arc review
 
-Run `pr-review-toolkit:review-pr` on the PR. Apply fix batches, re-run the gate, push,
-and update the PR body with what changed. If the phase was large or high-risk, suggest
+Run `pr-review-toolkit:review-pr` on the PR. **Verify each finding against the source
+before it enters a fix batch, and report the findings that did not survive verification
+alongside those that did** — a review finding is a claim about the code, and a claim
+with a false premise can be CRITICAL-severity and still wrong. On a real arc, two of
+five reviewers produced CRITICALs whose stated trigger was factually false; followed
+literally, this step would have taken both fixes into a live authorization path. The
+reporting half is not optional: a discarded finding is evidence about the reviewer, and
+dropping it silently teaches nobody anything. Then apply the surviving batches, re-run
+the gate, push, and update the PR body with what changed. If the phase was large or high-risk, suggest
 `/code-review ultra <PR#>` to the owner as an optional deeper pass (owner-triggered, paid).
 
 This is not a repeat of the slice reviews: each of those saw one layer, so arc-level bugs
@@ -93,6 +109,16 @@ git checkout <main> && git pull
   `n/a — no deploy`; a pending deploy also stays in START HERE until verified, so a
   merged-but-unshipped phase can never read as complete. Not a new halt — the owner
   answers it inside the bookkeeping conversation.
+- **Then ask what the deploy turns ON:** which controls, limits, or behaviors become
+  live that were not live before, and the lever that disables each one *by itself*.
+  "Has it deployed" and "what did deploying activate" are different questions, and only
+  the second one catches a control the arc believed was dormant — the spec, the PR body,
+  and the index all called one dormant on a real arc while the deployment manifest
+  committed the variable that made it enforce from the first request. Answer it from the
+  production configuration (the same artifact `/plan-phase`'s consequence sweep quotes),
+  not from the test environment or the code. Anything newly live goes in the Notes cell
+  beside the deploy outcome; anything without an independent off switch goes to the
+  backlog as a risk, now that it is real rather than planned.
 - **Surface the backlog:** report the open deferred-entry count with a severity
   breakdown, flag the oldest untouched entries, and ask the owner once — convert (a
   cleanup slice or the next phase's scope), defer knowingly, or drop. "A big enough
@@ -107,9 +133,28 @@ git checkout <main> && git pull
   is the enforcement — a mismatch means the ratchet is not actually ratcheting. Read
   the floor off CI's printed figure, never compute it locally; a real arc recorded a
   raise in the index twice while CI silently kept enforcing the old floor.
+- **Red baseline — lower it or ratify holding it:** for a project adopted with a red
+  gate baseline (`spec/SDLC.md`), report this arc's count beside the recorded one. If it
+  fell, lower the baseline in `spec/SDLC.md` in this same docs commit — that record *is*
+  the enforcement, since the gate compares against it. If it did not fall, ask the owner
+  once: lower it anyway (a stabilization slice in the next phase), or ratify holding it
+  — and record which, with **how many arcs the number has now been unchanged**. The
+  coverage floor ratchets by procedure; without this bullet the baseline ratchets by
+  hope, and a real adoption held one typecheck count across four arcs and twelve
+  recorded gate runs before anyone noticed the leg was inert. Never let an unchanged
+  count be reported as "held" — see the rendering rule in `spec/SDLC.md`.
 - `spec/PROJECT_INDEX.md`: add the Phase History row, flip the Phase section to the next
   state (next phase or STABILIZATION), fold deferred review findings into the backlog,
   refresh START HERE.
+- **Archive the closed phase's detail.** If the project accumulated per-slice write-ups
+  in PROJECT_INDEX during the arc, move them into that phase's own spec file — which
+  already exists and is already the historical home — leaving the Phase History row and
+  a short paragraph behind. The index's bounded sections (Phase, START HERE, the gate
+  baseline) are what a fresh session reads first; they stop working as an answer to
+  "what do I do next" once closed history sits above them, and one real adoption reached
+  2,400 lines with the answer buried under five phases of merged detail. Nothing is
+  deleted — the detail is genuinely valuable evidence, it is simply not this file's job
+  past the phase close.
 - Trim/align the phase spec if the review changed behavior described there.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Suggest any durable lessons worth saving to auto-memory.

@@ -852,9 +852,19 @@ was owner-confirmed, so re-ordering it is the owner's call, not the batch's.
 
 ## 12. Fourth field report and R3 — triaged 2026-08-01
 
-> **Status: TRIAGED, not built.** Every claim below was verified against the kit tree at
-> **0.8.0** this session (the report is written against **0.6.0**, and R2/G1 have since
-> touched five of the eight implicated files). Nothing in the kit has been edited yet.
+> **Status: BUILT, 2026-08-01 — `v0.9.0` pending release.** Every claim below was
+> verified against the kit tree at **0.8.0** before triage (the report is written
+> against **0.6.0**, and R2/G1 had since touched five of the eight implicated files).
+> All 18 edit-map rows applied plus two added during the build (recorded in *Built as*
+> below), the report committed at the root, invariant 15 shipped, and the release
+> bookkeeping done (`VERSION` → 0.9.0, CHANGELOG entry, `MANIFEST.sha256` regenerated —
+> nine bundle files changed, `sha256sum -c` clean, README tree line added).
+>
+> **Built as — deltas from the map:** (a) `end-phase.md` §3 gained the owner's-shell
+> clause (R3.5's third home — the report implicated it, the map did not list it; it is
+> where the failure actually surfaces); (b) `end-slice.md` §7 hand-back now reports
+> discarded findings, which R3.4's rule in §3 references and would otherwise dangle
+> (inv 6). Both are one-clause additions in files the batch already opened.
 
 Source: **[sdlc-kit#1](https://github.com/ghostpencil/sdlc-kit/issues/1)**, filed
 2026-08-01 — a `/sdlc-retro` report from the same adoption as the three prior reports,

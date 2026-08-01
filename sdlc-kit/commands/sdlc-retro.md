@@ -75,7 +75,14 @@ none of them writes anything.
   down and nobody acted on: a warning in a planning doc, a "worth fixing later" that
   never became a backlog entry, a gotcha noted mid-arc and left. Friction that was
   recorded and still not addressed is a stronger finding than friction merely felt — the
-  process saw it and had no place to put it. This sweep exists because the sweeps above
+  process saw it and had no place to put it. **Read the log for status and age, not only
+  for content:** entries a previous retro absorbed carry a marker, so report the ones
+  that do not — each with its date and how many phases it has now survived — and carry
+  any entry older than one phase into this report automatically, whether or not the
+  interview raises it. An entry with no status line is the default state, not a
+  conclusion; one adoption's oldest live entry sat unabsorbed across two releases while
+  three younger ones beside it were marked absorbed, and nothing in the sweep read the
+  difference. This sweep exists because the sweeps above
   are all blind to tooling noise (stderr warnings produce no backlog entry, no commit,
   no gate movement) and the one record of such noise may sit in prose nothing else here
   reads.

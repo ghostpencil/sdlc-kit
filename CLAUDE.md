@@ -65,7 +65,7 @@ project-scoped; the harness reads agents only from there).
 
 ## Invariants to preserve when editing
 
-The canonical, full ledger is `KIT_INVARIANTS.md` at the root — 14 invariants, each with
+The canonical, full ledger is `KIT_INVARIANTS.md` at the root — 15 invariants, each with
 the real defect that motivated it — and `/kit-check` is the reading pass that verifies
 them. The six below are the working summary; on disagreement the ledger wins.
 
@@ -121,6 +121,15 @@ findings and a 3-row priority table. Its theme sharpens the lineage again: a num
 recorded in prose is not the number the machine enforces, and the kit's bookkeeping
 updates the prose without reconciling against the enforcing artifact. `FEATURE_PLAN.md`
 §10 records how it was triaged.
+
+`FIELD_REPORT_2026-08-01.md` is the fourth — a different adopter's fifth phase, filed as
+`sdlc-kit#1`, with 8 findings and a priority table. Its theme is the widest yet and now
+carries an invariant of its own (15): **the process verifies the artifact and is silent
+about the environment it will run in** — a gate green in the test environment said
+nothing about a control that was live in production, and four of its eight findings are
+instances of that one gap. `FEATURE_PLAN.md` §12 records the triage, including the three
+claims that did not survive verification against the tree and the one already fixed in
+0.7.0.
 
 ## Writing conventions for these files
 

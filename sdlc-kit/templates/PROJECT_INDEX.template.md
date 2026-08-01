@@ -3,7 +3,16 @@
 Single source of truth for phase/slice status, the deferred backlog, and what to do
 next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 
-## Phase
+<!-- Sections below are marked **bounded** or **growing**. Bounded sections answer "what
+     do I do next" and are what a fresh session reads first: they stay short, and stale
+     content leaves them rather than accumulating. Growing sections are records and may
+     get long — they live below the bounded ones for that reason. If a phase's per-slice
+     detail collects here during an arc, /end-phase archives it into that phase's own
+     spec file at the close; nothing is deleted, but this file is a dashboard first and
+     an archive never. A single source of truth nobody can find the answer in has
+     stopped being one. -->
+
+## Phase — *bounded*
 
 **{{INITIAL_PHASE_STATUS}}**
 <!-- New Project mode:  "PRE-PHASE-1. Project scaffolded <date> via /sdlc-setup.
@@ -13,14 +22,14 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
       Gate baseline: <green | N lint / N type / N test failures — see backlog>."
      or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature. -->
 
-## START HERE — Next work
+## START HERE — Next work — *bounded*
 
 {{START_HERE}}
 <!-- One short block a fresh session can act on: what is in flight (branch names,
      uncommitted state), what the next slice is, and what decision (if any) is the
      owner's. Anything OWNER-DECIDED is recorded here with the date. -->
 
-## Deferred backlog
+## Deferred backlog — *growing*
 
 <!-- Review findings and small follow-ups deferred at /end-slice / /end-phase.
      One line each: what, where, why deferred — and where it came from, e.g.
@@ -33,7 +42,7 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 
 - (empty)
 
-## Phase History
+## Phase History — *growing*
 
 | Phase | Title | PR | Merged | Notes |
 |---|---|---|---|---|
@@ -46,7 +55,7 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      bookkeeping records the deploy outcome in Notes (`deployed+verified <date>` /
      `deploy pending — <where tracked>` / `n/a — no deploy`). -->
 
-## Kit friction log
+## Kit friction log — *growing*
 
 <!-- Process friction, not code findings: a step that cost more than it returned, a
      rule worked around, tooling noise (stderr warnings, phantom diffs), a moment the
@@ -54,20 +63,24 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      its recorded-but-unactioned sweep mines this section first, because friction that
      produces no backlog entry, no commit, and no gate movement is invisible to every
      other sweep. When a retro absorbs an entry into a report, mark it absorbed rather
-     than deleting it. -->
+     than deleting it — /sdlc-retro reads that marker, reports the entries without one
+     with their age, and carries anything older than one phase into the next report. -->
 
 - (none yet)
 
-## Environment gotchas
+## Environment gotchas — *bounded*
 
 <!-- Machine/OS/tooling facts that bite a fresh session or a new contributor: toolchain
      or venv paths, OS-specific behavior, services that must be running for the gate,
      where credentials live, "CI is authoritative because local runtime differs" and
-     why. One line each; delete when fixed. -->
+     why, and the toolchain paths the OWNER's shell resolves (which can differ from an
+     agent's). One line each; delete when fixed. An entry recorded in three consecutive
+     slices is escalated at /end-slice — it becomes a gate step, a hook, or a test, or
+     is ratified unpreventable and says so with its recurrence count. -->
 
 - (none)
 
-## Notes & gotchas
+## Notes & gotchas — *bounded*
 
 {{NOTES}}
 <!-- Durable, non-obvious facts a fresh session needs and cannot derive from code:

@@ -52,7 +52,12 @@ Two lenses the diff-shaped review structurally lacks — apply them explicitly:
 If the slice changed error propagation or swept the codebase for a pattern, also apply
 the matching lens from `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
 
-Triage findings:
+Triage findings — **verify each one against the source before it enters any pile.** A
+finding is a claim about the code; severity is asserted by the reviewer, not measured,
+and a false premise survives review at CRITICAL just as easily as at LOW. Findings that
+did not survive verification are reported in the hand-back (step 7) alongside the ones
+that did, never dropped silently.
+
 - **Fix now:** correctness bugs, silent failures, trust-boundary violations, anything
   CRITICAL/HIGH.
 - **Defer:** style/structure improvements, latent issues with no current trigger. Each
@@ -100,6 +105,15 @@ Update `spec/PROJECT_INDEX.md`:
   section of `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and add it to CI in
   the same commit — a gate dependency discovered by a contributor's red run is a
   documentation bug.
+- **Escalate a recurring gotcha instead of re-describing it.** Before appending to
+  Environment gotchas, read what is already there: if this slice is the **third
+  consecutive** one to record the same hazard, it stops being a note and becomes a
+  check — a gate step, a hook, or a test — or the owner ratifies it as unpreventable and
+  the entry says so, with the recurrence count. Prose in a status document is not a
+  control: a real adoption recorded an editor silently rewriting line endings four
+  times, each note sharper than the last, each one followed, and the hazard recurred
+  every time. Sharpening the wording is what the process does instead of preventing the
+  thing.
 - Note the next slice up, so `/next-slice` in a fresh session can orient without help.
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).
@@ -107,7 +121,7 @@ Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next u
 ### 7. Hand back
 
 Report in one short block: gate results (test count), review outcome (N fixed / N
-deferred), mutation-check outcome (N guards checked, each seen to fail), any tool
+deferred / N discarded as unverified, naming those), mutation-check outcome (N guards checked, each seen to fail), any tool
 substituted for one this file names, commit hashes, and the next slice. End with:
 **safe to `/clear`**.
 

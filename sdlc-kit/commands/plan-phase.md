@@ -53,7 +53,11 @@ a full round surfaces nothing new. Cover, minimum:
 - **Failure & emptiness** — what happens when the dependency call fails, the list is
   empty, the target is missing, the action repeats, existing data predates the feature?
 - **Tuning** — which numbers are adjustable parameters (name where they live) vs
-  structural rules?
+  structural rules? For every number that ends up in a decision, ask where it came
+  from: a run, a count, or a query (**measured** — record which) or a guess, an
+  analogy, or a round figure that felt right (**estimated**). Ask for the measurement
+  when it is cheap to take now; a cap, a limit, a batch size, or a budget approved
+  without one is approved against nothing.
 
 ### 4. Adversarial gap analysis — attack the requirements
 
@@ -78,7 +82,19 @@ subagent ever interacts with the owner.
   Each hit names its extra verification in the spec — in the slice's exit criteria or
   the acceptance-review checklist — and appears in Risks & Deferred. A hit absorbed
   silently is the finding; consequence and size are different axes, and smallness is
-  no exemption.
+  no exemption. Two questions every hit must answer:
+  - **Is it actually inert?** Any claim that a consequence is neutralized by
+    configuration — a flag, an environment variable, "ships dormant", "off in prod",
+    "merging changes nothing" — must name the variable **and quote its value from the
+    artifact that configures production**: the deployment manifest, the platform's
+    environment settings, the compose or workflow file. Never from the test
+    environment, which is usually configured to make exactly this claim true, and
+    never from the code that reads the variable. A dormancy claim that cannot be
+    quoted from a production artifact is an open question, not a decision.
+  - **What is the independent off switch?** Each hit names the lever that disables it
+    alone. A control whose only lever also disables something unrelated — the identity
+    layer, the whole feature set, the service — has no rollback, and that is a finding
+    now rather than during the incident it causes.
 - **Cross-system sweep** — list every existing subsystem the feature reads or writes.
   Each touched system needs a stated interaction rule (or an explicit "unaffected").
 - **Persistence & compatibility sweep** — new/changed models → migration plan, seed/
@@ -106,7 +122,9 @@ step-6 approval), write `spec/PHASE_NN_<SLUG>.md`:
 ```
 # Phase NN — Title
 ## Goal                 (user-visible value, 2–3 sentences)
-## Owner Decisions      (D1… numbered, dated; (proposed) items flagged)
+## Owner Decisions      (D1… numbered, dated; (proposed) items flagged; any decision
+                         carrying a number tagged measured — with the run, count, or
+                         query behind it — or estimated)
 ## Behaviors            (B1… — trigger, rule, output, what the user sees)
 ## Non-Goals            (everything cut, by name)
 ## Trust Boundaries     (what external systems may propose/read; what only the app does
@@ -123,8 +141,10 @@ checklist) can verify. Behaviors map onto slices — no behavior left unassigned
 
 ### 6. Approval — owner halt
 
-Present the spec: decision list (flagging *(proposed)* ones), slice breakdown, and the
-top 3 risks. On approval: create `feat/phase-NN-<slug>` off the up-to-date main branch,
+Present the spec: decision list (flagging *(proposed)* ones, and naming which numbers
+are **estimated** — the owner is ratifying those against no measurement, and
+`/next-slice` re-derives each one before the slice that implements it), slice
+breakdown, and the top 3 risks. On approval: create `feat/phase-NN-<slug>` off the up-to-date main branch,
 flip `spec/PROJECT_INDEX.md` to BUILD with the spec pointer and OWNER-DECIDED note,
 commit the spec + index (docs commit), and hand off: **`/clear`, then `/next-slice`.**
 

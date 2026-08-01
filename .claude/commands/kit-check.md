@@ -79,6 +79,12 @@ For each, read the named files in full — do not sample — and cite evidence p
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that
   reconciles the two, or is explicitly claim-only.
+- **15 — verification names its environment:** enumerate every verification verb in
+  `commands/` and `templates/` (verify, confirm, check, prove, accept, ratify, and
+  "green"); each names where the check runs and whether that place is what the claim is
+  about — production configuration for a claim about production, the owner's shell for
+  a command the owner types, the run that produced a number. An unqualified "verified"
+  over a claim whose truth is environment-dependent is the finding.
 
 ### 4. Report
 

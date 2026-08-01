@@ -10,6 +10,84 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.9.0 — 2026-08-01
+
+The R3 batch: the eight findings of `FIELD_REPORT_2026-08-01.md` (the fourth field
+report — a different adopter's fifth phase, a three-slice security arc, filed as
+`sdlc-kit#1`). Every claim was verified against the tree at 0.8.0 before triage rather
+than accepted: seven stood, one was already fixed in 0.7.0, and three had their scope
+or attribution corrected — recorded in `FEATURE_PLAN.md` §12. The report's theme is the
+kit's widest yet and now carries invariant 15: **the process verifies the artifact and
+is silent about the environment it will run in.** Four of the eight findings are
+instances of that one gap. Same shape as R2 and G1 — markdown-only, no new placeholders,
+no tooling, no new halt point.
+
+### Added
+- **[installable]** `plan-phase.md` step 4: the consequence sweep's hits must now answer
+  two questions. **Is it actually inert?** — a claim that a consequence is neutralized
+  by configuration ("ships dormant", "off in prod", "merging changes nothing") names
+  the variable and **quotes its value from the artifact that configures production**,
+  never from the test environment, which is usually configured to make the claim true.
+  **What is the independent off switch?** — a control whose only lever also disables an
+  unrelated system has no rollback. A real arc called a spend cap dormant in its spec,
+  its PR body, and its index while the deployment manifest committed the variable that
+  made it enforce from the first request; the test conftest neutralized that same
+  variable suite-wide, so every in-repo signal agreed with the wrong conclusion.
+  **[installable]** `end-phase.md` step 7 asks the question the deploy outcome does not
+  — *what did this deploy turn on*, and what disables each newly-live control by itself.
+- **[installable]** `plan-phase.md` steps 3/5/6 + `next-slice.md` §2: a decision
+  carrying a number is tagged **`measured`** (naming the run, count, or query behind it)
+  or **`estimated`**, and the slice that implements an `estimated` one derives it
+  *before* starting — a differing result goes back to the owner as a question and the
+  decision is re-tagged. Extends the `measured`/`suspected` vocabulary the backlog
+  already uses to where numbers are first ratified. Seven of forty-four decisions on one
+  arc were corrected on contact with code, one of them a cap whose approved value
+  implied roughly two orders of magnitude more spend than intended.
+- **[installable]** `end-phase.md` step 7: the red gate baseline gets the mechanism the
+  coverage floor already had — report the count beside the recorded one, then lower it,
+  schedule lowering it, or have the owner **ratify holding it** with the number of arcs
+  it has been unchanged. One adoption held a typecheck count across four arcs and twelve
+  recorded gate runs while its `SDLC.md` called it a ceiling to drive down.
+  **[adoption-only]** `SDLC.template.md` states the procedure and the rendering rule: an
+  unchanged baseline reads `N (unchanged for K arcs)`, never `held` — a stall must not
+  look like an achievement.
+- **[installable]** `end-slice.md` §6: a gotcha recorded in **three consecutive slices**
+  becomes a gate step, a hook, or a test — or is ratified unpreventable and says so with
+  its recurrence count. One adoption recorded the same line-ending hazard four times,
+  each note sharper than the last, each one followed, and it recurred every time.
+  **[adoption-only]** `SDLC.template.md` bookkeeping rules state it canonically;
+  `PROJECT_INDEX.template.md`'s Environment gotchas comment points at it.
+- Kit-development (not shipped): **invariant 15** — every verification step names the
+  environment it verifies against — added to `KIT_INVARIANTS.md` with its specimen and
+  to `/kit-check`'s reading passes.
+
+### Fixed
+- **[installable]** `end-phase.md` §5 and `end-slice.md` §3: **verify each review
+  finding against the source before it enters a fix batch, and report the findings that
+  did not survive alongside those that did.** Nothing previously sat between "run the
+  review" and "apply fix batches". Two of five reviewers on one arc produced CRITICALs
+  whose stated trigger was factually false; followed literally, the step would have
+  taken both fixes into a live authorization path. The reporting half is not optional —
+  a discarded finding is evidence about the reviewer.
+- **[installable]** `sdlc-setup.md` (both modes) and `end-phase.md` §3: a command the
+  **owner** will execute is verified in the **owner's shell**, not an agent's — the
+  owner runs the acceptance command during setup and pastes the result, and the resolved
+  interpreter path is recorded in Environment gotchas. A documented run command was
+  broken for one owner (a conda `base` interpreter their profile put on `PATH`) and
+  verified working by agents, whose tool-shells never load that profile, for four
+  phases of green gates. **[adoption-only]** `SDLC.template.md` states it at the
+  acceptance-review step.
+- **[installable]** `sdlc-retro.md` §2: the friction-log sweep now reads the log for
+  **status and age**, not only content — unabsorbed entries are reported with how many
+  phases they have survived, and anything older than one phase is carried into the new
+  report automatically. The absorbed-marker convention existed; nothing read it.
+- **[installable]** `end-phase.md` step 7 + **[adoption-only]**
+  `PROJECT_INDEX.template.md`: index sections are marked **bounded** or **growing**, and
+  closed-phase per-slice detail is archived into that phase's own spec file at the phase
+  close. One adoption's single source of truth reached 2,400 lines with the answer to
+  "what do I do next" buried above five phases of merged history. Nothing is deleted —
+  the file is a dashboard first and an archive never.
+
 ## 0.8.0 — 2026-07-22
 
 The G1 batch: the five accepted kernels of `CRITICAL_GAPS_ANALYSIS.md`, an external

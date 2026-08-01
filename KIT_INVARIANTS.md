@@ -185,3 +185,23 @@ marked claim-only. **Specimen:** TFit's coverage floor — `/end-phase` bookkeep
 recorded 28 → 32 in two prose homes while `gate.yml` silently kept enforcing 28 for
 two days (`FIELD_REPORT_2026-07-22.md` finding 1); R2 added that one reconcile, and
 this invariant generalizes it (plan §11, G1.5).
+
+## 15. Every verification step names the environment it verifies against
+
+Any step in a shipped command or template that checks, proves, confirms, or accepts
+something must name **where** the check runs and whether that place is the one the
+claim is about. A claim about production is checked against production configuration;
+a command the owner will type is checked in the owner's shell; a number is checked
+against the run that produced it. "Verified" without a named environment is a claim
+about the checker, not about the thing.
+
+**Check:** reading pass over `commands/` and `templates/` for verbs of verification
+(verify, confirm, check, prove, green, accept, ratify). Each occurrence names its
+environment, or is one the environment cannot vary for. **Specimen:** an arc that
+described a spend cap as dormant in three documents and shipped it enforcing — the
+gate was green, and green meant *green in the test environment*, whose conftest
+neutralized the very variable the dormancy claim rested on while the deployment
+manifest committed it (`FIELD_REPORT_2026-08-01.md` finding 1). Every in-repo signal
+agreed with the wrong conclusion because every one of them was measured somewhere
+other than production. Four of that report's eight findings are instances of this one
+invariant (plan §12, R3.9).
