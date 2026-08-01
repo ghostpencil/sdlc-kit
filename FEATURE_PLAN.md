@@ -981,18 +981,34 @@ has no role. `MANIFEST.sha256` regenerates at release (inv 10); `VERSION` → 0.
 
 ### Resume here
 
-1. **Build R3** — the map above is complete and pre-verified; it is edit work, no
-   analysis pending. Owner calls needed on two things only: **R3.9** (invariant 15,
-   recommended yes) and committing the report at the root (recommended yes, G1
-   precedent).
-2. `/kit-check`, then release `v0.9.0`.
-3. **Migrate TFit** at its next arc boundary — it is on 0.8.0 and currently between
-   phases (Phase 05 closed and deployed+verified; #64 promoted to Phase 06), which is
-   the cheapest window. Carried from PR #10 and still open: TFit's instantiated
-   `spec/SDLC.md` predates the 0.8.0 templates — the hotfix exception, the
-   deploy-outcome bookkeeping, and the consequence sweep still need manual porting,
-   and R3 adds four more template-side rules to that same port.
-4. **The fan-out watch** (§10 step 3, F2's last residual) — TFit has run several
+1. ~~**Build R3**~~ — done. Both owner calls went the recommended way: invariant 15
+   shipped, and the report is committed at the root.
+2. ~~`/kit-check`, then release `v0.9.0`~~ — done. Clean pass (two findings fixed in
+   the session, plus one pre-existing gap closed: `SDLC.template.md` had never
+   mentioned `/sdlc-retro`). Tag pushed, `release.yml` green in 11s, three assets.
+   `sdlc-kit#1` closed with a finding-by-finding mapping comment.
+3. ~~**Migrate TFit**~~ — done the same day, PR #13 (merged `40c08bd`): 16/16
+   UNCHANGED against the 0.8.0 manifest, 6 content-changed of 16, bundle 28 on disk =
+   27 + manifest with nothing un-manifested, copy-over-in-place, 16/16 + 27/27 against
+   0.9.0, and the negative case demonstrated (the same 6 read DRIFTED against the old
+   manifest afterward). Gate 0 lint / 171 type / 338 passed.
+4. ~~**The template-side port**~~ — done, PR #14 (merged `0a2a6f3`). **Twelve rules,
+   not the nine estimated** — the estimate omitted the review-verification rule and the
+   deploy-activation question, and folded archival with the bounded/growing marks.
+   Two TFit records corrected in passing: friction #4 claimed "still open in the kit"
+   while being submitted upstream as finding 8, when `/sdlc-update`'s `rm -rf` had been
+   fixed in **0.7.0** five days earlier (backlog #84 closed), and `PROJECT_INDEX.md`
+   (2,529 lines) is now marked bounded/growing.
+5. **The fan-out watch** (§10 step 3, F2's last residual) — TFit has run several
    `/plan-phase` passes since it was queued; close it from that evidence rather than
    waiting for another.
-5. **Then F3** (slice-runner TRIAL, §3, unchanged in shape).
+6. **Then F3** (slice-runner TRIAL, §3, unchanged in shape). Phase 06 (#64, retrieval
+   redesign) is the natural arc to trial it on — and it is the first close that must
+   answer for TFit's 171, unchanged for four arcs, under R3.3's new rule.
+
+**Standing note for the next retro** (raised 2026-08-01, not yet field-tested): R3 is
+the fourth batch of process rules added on field evidence with no simplification pass
+between them. The next `/sdlc-retro` is the place to ask which earned their keep —
+finding 6's escalation threshold and finding 2's re-derivation are the two most likely
+to read as ceremony if they never catch anything. A rule that costs and returns nothing
+is a finding too.
