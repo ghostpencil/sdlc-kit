@@ -847,3 +847,142 @@ own edits.
 **Ordering:** R2's precedent routed fix batches ahead of F3, and G1 touches files F3's
 trial would exercise — recommendation is G1 before F3, but the resume-list order in §10
 was owner-confirmed, so re-ordering it is the owner's call, not the batch's.
+
+---
+
+## 12. Fourth field report and R3 — triaged 2026-08-01
+
+> **Status: TRIAGED, not built.** Every claim below was verified against the kit tree at
+> **0.8.0** this session (the report is written against **0.6.0**, and R2/G1 have since
+> touched five of the eight implicated files). Nothing in the kit has been edited yet.
+
+Source: **[sdlc-kit#1](https://github.com/ghostpencil/sdlc-kit/issues/1)**, filed
+2026-08-01 — a `/sdlc-retro` report from the same adoption as the three prior reports,
+covering its **fifth** phase (a three-slice security arc touching the live authorization
+path and LLM spend): 15 commits, 3 slices, 1 PR, 44 numbered owner decisions, 8 findings
+with a priority table. Gate movement over the adoption: tests 7 → 338, CI floor 12 → 42,
+lint held at 0, **typecheck 175 → 171** — the last of those is finding 3.
+
+**This report is a different class from `CRITICAL_GAPS_ANALYSIS.md`.** G1's source argued
+from hypothetical failure modes and mostly did not survive challenge; every finding here
+cites an observed defect with evidence, and seven of eight survived verification intact.
+The challenge pass changed *scope* and *attribution* on three of them, and found one
+already fixed — it did not refute any.
+
+### Verified against the tree at 0.8.0 — what stood, what changed
+
+| # | Claim | Verdict at 0.8.0 |
+|---|---|---|
+| 1 | Nothing asks whether a control is actually live in production | **Stands, and the void is total.** `grep -rn -i "flag-gated\|feature flag\|dormant\|inert\|rollback\|environment variable\|deployment manifest" commands templates reference` → **zero matches**. G1's consequence sweep (`plan-phase.md:75–81`) would have *flagged* this arc (auth + money) but only demands the extra verification be named — never that a neutralized-by-configuration claim be checked against production configuration. `end-phase.md:82–95` asks whether the deploy happened and verifies *which commit* shipped (G1.1); it never asks what the deploy turns **on** |
+| 2 | Decisions ratified before anything is measured | **Stands.** `plan-phase.md:55–56` (*Tuning*) asks which numbers are adjustable, never how they were arrived at; the spec skeleton's `## Owner Decisions` (:109) carries no provenance. **Reshaped:** the kit already owns the vocabulary — `measured`/`suspected` on backlog entries (`next-slice.md:41–50`, R2) — so this extends an existing mechanism rather than adding one |
+| 3 | The type leg has a stated ratchet and no mechanism | **Stands; one quotation is not verbatim.** The report quotes *"a ceiling to drive down… never a budget to spend"*; 0.8.0's template says *"The baseline only ever moves down, as the STABILIZATION backlog burns it toward zero"* (`SDLC.template.md:92–94`) — same ambition, older seeding. The mechanism gap is exact: `end-phase.md:101–109` carries the coverage-floor bump-and-reconcile bullet and there is **no type-leg counterpart anywhere** (verified by grep). The `(ceiling held)` rendering is the project's own — the kit specifies no gate-reporting format, so the fix *seeds* a convention rather than changing one. **This is a second specimen of invariant 14:** one leg reconciles against its enforcing artifact, the other records into a vacuum |
+| 4 | `/end-phase` applies review fix batches without verifying findings | **Stands verbatim.** `end-phase.md:60` — *"Run `pr-review-toolkit:review-pr`… Apply fix batches"*, nothing between. **Ripple the report missed:** `end-slice.md:55–63` has the identical shape — triage straight to *Fix now* with no verification step. Same one-sentence fix, both files |
+| 5 | Agent-verified vs owner-executed commands are not distinguished | **Stands.** `sdlc-setup.md:182` collects the run command from the owner's *answer*; nothing has the owner run it. `CLAUDE.template.md:107` (`{{RUN_COMMAND}}`) is where the unverified value lands, and `end-phase.md:30–35` is the one step that exercises it. The nearest existing rule (`sdlc-setup.md:228–230`) covers local-vs-CI, a different axis |
+| 6 | A repeated environmental hazard has no path from recorded to enforced | **Stands.** No recurrence threshold anywhere. **But the escalation shape already exists** at `end-slice.md:99–102` (a new gate dependency is recorded *and* added to CI in the same commit) — so this generalizes a rule the kit already ships, which drops it from the report's M to an S |
+| 7 | Slice write-ups accumulate with no archival discipline | **Stands, but the attribution is wrong.** `PROJECT_INDEX.template.md` seeds no per-slice section at all, and `end-slice.md:94–103` says only *"mark the slice done"* — the 2,400 lines are the project's elaboration, not a kit-prescribed append. The kernel survives on its own terms: **no section is marked bounded and no step ever removes anything**, so any project that elaborates gets this outcome |
+| 8 | Friction entries have no closure path | **Half already fixed.** `sdlc-update.md:146–149` has copied-in-place since **0.7.0** — the `rm -rf` the report cites is a 0.6.0 artifact, and its own footnote (*"on Windows the directory…"*) is this same adopter's incident. The aging half stands: `sdlc-retro.md:70–81` sweeps the friction log and reads it for *content*, never for **status or age** |
+
+### R3 — the fix batch *(recommended: ships as `v0.9.0`, before F3)*
+
+Same shape as R2 and G1: small, reconcile-shaped, markdown-only. No new files (except
+the report itself), no new placeholders, no tooling — the maintenance-low constraint
+from G1's owner answers still holds.
+
+| # | File | Edit |
+|---|---|---|
+| R3.1 | `commands/plan-phase.md` step 4 (consequence sweep, ~:75) | two additions to the existing sweep, not a new sweep: (a) a claim that a consequence is **neutralized by configuration** (flag, env var, "ships inert", "dormant", "changes nothing in prod") must name the variable and **quote its value from the artifact that configures production** — the deployment manifest, not the test environment, which is configured to be false; a claim that cannot be quoted from a production artifact is an open question, not a decision. (b) each hit names its **independent off switch** — a control whose only lever also disables an unrelated system has no rollback, and that is a finding before the slice, not after |
+| R3.1 | `commands/end-phase.md` step 7 (deploy bullet, ~:82) | the deploy question extends from *did it happen* to **what does this deploy turn on** — which controls become live that were not, and the lever for each; recorded with the deploy outcome already in the Notes cell |
+| R3.1 | `templates/SDLC.template.md` phase-start step 2 + phase-end step 6 | canonical statement of both (inv 2 — same batch as the commands) |
+| R3.2 | `commands/plan-phase.md` step 3 (*Tuning*, :55) + step 5 skeleton (`## Owner Decisions`, :109) | a decision carrying a number is tagged **`measured`** (with the run, count, or query it came from) or **`estimated`** — the same distinction the backlog already draws, applied where the number is first ratified |
+| R3.2 | `commands/next-slice.md` §2 | the slice that implements an `estimated` decision re-derives it **before** scope confirmation, and a changed number goes back to the owner as a question — reusing R2's proportional re-derivation rule verbatim rather than adding a step |
+| R3.2 | `templates/SDLC.template.md` phase-start step 2 + slice-loop step 2 | mirror both (inv 2) |
+| R3.3 | `commands/end-phase.md` step 7 | the type leg's counterpart to the coverage bullet: record the current typecheck count against the baseline in `spec/SDLC.md`; if it fell, lower the baseline in the same docs commit; if it did not, the owner **ratifies holding it** and the record says how many arcs it has been unchanged. A ceiling nobody is asked about is not a ratchet |
+| R3.3 | `templates/SDLC.template.md` gate-baseline section (~:92) | the boundary procedure canonically, plus the reporting convention: an unchanged red baseline renders as **`N (unchanged for K arcs)`**, never `held` — a stall must not read as an achievement |
+| R3.4 | `commands/end-phase.md` §5 (:60) | *"Verify each finding against the source before it enters a fix batch; report findings that did not survive verification alongside those that did."* The reporting half is not optional — a discarded finding is evidence about the reviewer |
+| R3.4 | `commands/end-slice.md` §3 triage (~:55) | the same sentence at slice-review triage (ripple, not in the report) |
+| R3.5 | `commands/sdlc-setup.md` (New Round 3 + Existing step 2, both run-command questions) | the owner **runs the acceptance command in their own shell during setup** and pastes the result; the resolved interpreter/toolchain path is recorded in PROJECT_INDEX's Environment gotchas. The rule is generic; the path is a project fact and lands in a project-owned file (inv 1 holds) |
+| R3.5 | `templates/SDLC.template.md` (acceptance-review step) | any command the **owner** executes is verified in the owner's shell — an agent's shell is a different environment and only the owner's is authoritative for acceptance instructions |
+| R3.6 | `commands/end-slice.md` §6 (~:99, beside the gate-dependency rule) | recurrence threshold: an Environment gotcha recorded for a **third consecutive slice** becomes a gate step or a hook, or is explicitly ratified unpreventable and marked as such. Prose in a status document is not a control |
+| R3.6 | `templates/SDLC.template.md` gate section | the escalation rule canonically (inv 2) |
+| R3.7 | `templates/PROJECT_INDEX.template.md` | mark each section **bounded** (Phase, START HERE, gate baseline — a fresh session reads these first and they must stay short) or **growing** (backlog, Phase History, friction log), and state that per-slice detail, if a project keeps it, is not this file's job past the phase close |
+| R3.7 | `commands/end-phase.md` step 7 bookkeeping | at phase close, move the closed phase's per-slice detail into that phase's spec file — which already exists and is already the historical home — leaving the Phase History row and a paragraph |
+| R3.8 | `commands/sdlc-retro.md` §2 (friction sweep, ~:70) | the sweep reports **unabsorbed entries with their age**, and any entry older than one phase is carried into the new report automatically. The log already distinguishes absorbed from live; nothing reads that distinction |
+| R3.9 | `KIT_INVARIANTS.md` + `.claude/commands/kit-check.md` + root `CLAUDE.md` (~:68) | **owner's call:** new **invariant 15 — every verification step names the environment it verifies against**, with the report's cross-cutting theme as its specimen. See *Decisions* |
+| — | root: `FIELD_REPORT_2026-08-01.md`, `README.md` tree (inv 9), root `CLAUDE.md` field-report paragraph | commit the report as a root file, same class as the three prior ones (G1 precedent for committing its source document) — **owner confirmation, as G1's was** |
+
+### Decisions
+
+- **Findings 1 and 2 are the batch.** They are the only two that nearly shipped real
+  harm (a spend cap enforcing while three documents called it dormant; caps implying
+  ~$10,200/month), and both are S-effort. If the batch has to shrink, it shrinks from
+  the bottom.
+- **Nothing here adds a halt point.** R3.1's rollback lever and R3.2's re-derivation
+  route through the existing question/decision mechanism; R3.3's ratification happens
+  inside the bookkeeping conversation, like G1.1's deploy outcome. The five-halt-point
+  invariant stands.
+- **R3.2 reuses `measured`, and adds `estimated` rather than reusing `suspected`.**
+  `suspected` is about a *cause*; a number's antonym is how it was obtained. Two words
+  in one vocabulary is the cost; inventing a second vocabulary is worse.
+- **R3.5 keeps the value out of command prose.** The rule ("verify in the owner's
+  shell") is generic and installable; the interpreter path is a project fact and lives
+  in Environment gotchas — invariant 1, and the same split G1.3 used for scanners.
+- **R3.7 ships reduced.** The template gains bounded/growing marks and `/end-phase`
+  gains the archival move; the kit does **not** start prescribing per-slice write-up
+  blocks it never prescribed in the first place.
+- **Invariant 15 is genuinely optional (R3.9).** For: the specimen requirement is met
+  (finding 1 — the gate proved the code correct in the test environment while the
+  control was live in production), it is readable as a pass over `commands/` and
+  `templates/`, and it is the report's cross-cutting theme in one line. Against: the
+  ledger grew to 14 nine days ago, and R3.1/R3.3/R3.5 each fix one instance — the
+  invariant may be earning its place or may be generalizing three fixes that have not
+  yet been in the field. **Recommendation: ship it**, on the same grounds G1 shipped
+  inv 14 — the batch is its own first test, and R3.1's dormancy check must name the
+  production artifact to pass it.
+- **Do not re-litigate:** finding 8's `sdlc-update` half (fixed in 0.7.0 — do not
+  "fix" it again), and the report's `(ceiling held)` rendering as a *change* (the kit
+  never specified a format; R3.3 seeds one).
+- **What worked well is load-bearing and stays protected:** mutation-testing every new
+  guard (`end-slice.md` §4), the whole-arc review (`end-phase.md` §5), recording
+  corrections in place, and owner acceptance review before the PR (`end-phase.md` §3) —
+  the owner named all four independently, and finding 5 exists *because* the fourth one
+  is in the process. Any future simplification pass must clear these explicitly.
+
+### Ripple check (§4a discipline — derived by grep this session, not recalled)
+
+Dormancy/rollback vocabulary → **zero existing occurrences** across `commands`,
+`templates`, `reference` (grep above), so R3.1 adds vocabulary rather than reconciling
+it. Consequence sweep → `plan-phase.md:75–81` + `SDLC.template.md:150–153` (both in the
+map). Deploy question → `end-phase.md:82–95` + `SDLC.template.md` phase-end step 6 +
+`sdlc-setup.md` ×2 — R3.1 touches the first two; setup's deploy questions need no change
+(they already capture *how* a deploy is verified, G1.1). Gate baseline → `SDLC.template.md:86–102`,
+`end-phase.md:23–25`, `end-slice.md:26–29` — R3.3 touches the template and `end-phase`
+step 7 only; the two "green means green" paragraphs are unaffected (they define the
+comparison, not the ratchet). Review-then-apply → `end-phase.md:60` **and**
+`end-slice.md:55–63`; `REVIEW_LENSES.md` has a *verify the denominator* lens (:34) but
+nothing about a finding's premise — no reconcile needed there. `{{RUN_COMMAND}}` →
+`CLAUDE.template.md:107` only (grep). Friction log → `PROJECT_INDEX.template.md:49–59` +
+`sdlc-retro.md:70–81`; the "mark absorbed" convention already exists, R3.8 reads it.
+No new placeholders (R3.5 records into an existing project-owned section, not a
+template slot) → invariant 3 unaffected. Install set unchanged → `reference/SKILLS.md`
+has no role. `MANIFEST.sha256` regenerates at release (inv 10); `VERSION` → 0.9.0
+(process changes are minor, R1 precedent); `CHANGELOG.md` gains the entry with
+**[installable]** marks on five commands and **[adoption-only]** on the templates.
+`/kit-check` closes the batch.
+
+### Resume here
+
+1. **Build R3** — the map above is complete and pre-verified; it is edit work, no
+   analysis pending. Owner calls needed on two things only: **R3.9** (invariant 15,
+   recommended yes) and committing the report at the root (recommended yes, G1
+   precedent).
+2. `/kit-check`, then release `v0.9.0`.
+3. **Migrate TFit** at its next arc boundary — it is on 0.8.0 and currently between
+   phases (Phase 05 closed and deployed+verified; #64 promoted to Phase 06), which is
+   the cheapest window. Carried from PR #10 and still open: TFit's instantiated
+   `spec/SDLC.md` predates the 0.8.0 templates — the hotfix exception, the
+   deploy-outcome bookkeeping, and the consequence sweep still need manual porting,
+   and R3 adds four more template-side rules to that same port.
+4. **The fan-out watch** (§10 step 3, F2's last residual) — TFit has run several
+   `/plan-phase` passes since it was queued; close it from that evidence rather than
+   waiting for another.
+5. **Then F3** (slice-runner TRIAL, §3, unchanged in shape).
