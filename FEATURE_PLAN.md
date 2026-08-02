@@ -226,6 +226,10 @@ the poll in both project-owned homes and leaves zero `{{` in instantiated files;
 
 ### F3 — slice-runner: TRIAL first, kit change only if it passes
 
+> **CLOSED 2026-08-02 — the trial ran and the runner does not ship. See §14 for the
+> disposition and the evidence.** Everything below is the design as written before the
+> trial, kept for provenance; where it and §14 differ, §14 is the outcome.
+
 **The pattern.** `/next-slice` keeps halt 2 (scope confirmation) in the main session,
 then spawns **one** implementation agent for **the one confirmed slice** — never more
 (§1: slices are strictly sequential; the next slice is not spawned until this one's
@@ -275,7 +279,7 @@ gets stated in *both* files.
 | Hard-code model IDs anywhere | **Rejected.** Aliases only; IDs are a staleness trap ("a remembered constant is not a measurement"). |
 | `opusplan` on `plan-phase.md` frontmatter | **Deferred**, not rejected — imposes High-tier cost on every adopter by default. Revisit with F1 evidence. |
 | `context: fork` for command isolation | **Unavailable** — skills-only (verified). Revisit only if the kit ever migrates commands to skill format, which is its own design question. |
-| Slice-runner straight into the kit | **Reshaped** into a gated trial (F3). Execution-model changes ship on evidence, not on design confidence. |
+| Slice-runner straight into the kit | **Reshaped** into a gated trial (F3), then **declined on the trial's evidence, 2026-08-02** (§14). Three slices on a real arc: two criteria never fired, one degraded across slices, the owner's verdict mixed. Execution-model changes ship on evidence, not on design confidence — and this is what that rule looks like when the evidence says no. |
 
 ---
 
@@ -1037,13 +1041,10 @@ has no role. `MANIFEST.sha256` regenerates at release (inv 10); `VERSION` → 0.
    Phase 06 planning closes it for free; otherwise it stands as-is permanently.
    **Carried:** the `sdlc-surveyor` spawn has *no* field evidence at all — if Phase 06's
    feasibility checks do not use it, that is a signal about the optional step, not noise.
-6. **F3 is running** (slice-runner TRIAL, §3, unchanged in shape) on Phase 06 (#64,
-   retrieval redesign) — which is also the first close that must answer for TFit's 171,
-   unchanged for four arcs, under R3.3's new rule. **S1 done** (2026-08-01): criterion 3
-   passes on independent verification, criteria 1 and 2 untested, and it returned a
-   contract finding — a third real state, *done except for work that can only happen
-   outside the agent boundary*. **S2 is pre-registered in §13** and targets criteria 1
-   and 2 with a planted ambiguity timed to fire while paid work is in flight.
+6. ~~**Then F3**~~ — **done, and declined.** The trial ran three slices on TFit Phase 06
+   and closed 2026-08-02: the slice-runner does not enter the kit and `/next-slice`
+   stands. §14 carries the disposition, the five findings, and the two candidate kit
+   changes that are being held for the next `/sdlc-retro` rather than written now.
 
 **Standing note for the next retro** (raised 2026-08-01, not yet field-tested): R3 is
 the fourth batch of process rules added on field evidence with no simplification pass
@@ -1163,3 +1164,131 @@ finding, since the runner forbids exactly that.
    cache only if the TTL expired, and redoes no labelling. **Expected shape of a fail:**
    labels held in agent context only, and the respawn re-spends some fraction of $7.60.
    Either outcome closes criterion 1; only the second stops the trial.
+
+**Seal opened 2026-08-02, after S2 closed**, and copied unedited into TFit's
+`spec/SLICE_RUNNER_TRIAL.md` as promised. Scored: **predictions 1–3 were never reached**
+(no halt, no respawn), the plant fired through the escalation gate rather than labelling
+and arrived after the paid work was done, and the money premise was wrong — $3.99 spent
+against the ~$10.50 modelled. The design error is the transferable one: the
+pre-registration assumed a binary (block, or resolve silently) when a **third option
+existed and the agent took it** — measure both readings and refer the choice to the slice
+that must own it. **No plant can force criterion 2 while the question stays deferrable.**
+One cost of sealing is on the record too: S2's calling session, blinded to the instrument,
+deliberated a decision already made and logged *"no ambiguity was planted"* — true from its
+knowledge, false in fact. Blinding the observer protects the measurement and corrupts the
+log; §14's disposition inherits that as an open design question, not a solved one.
+
+---
+
+## 14. F3 — trial CLOSED, the runner does not ship *(2026-08-02)*
+
+**Disposition: `/next-slice` stands.** Three slices on TFit's Phase 06 arc — S1 chunk+FTS
+index, S2 golden set, S3 tiered retrieval — closed at S3's close-out under the rule
+recorded *before* S3 ran. **No CHANGELOG entry**, per §5: F3's trial produces none until it
+passes, and it did not. The full record is TFit's `spec/SLICE_RUNNER_TRIAL.md`, now closed
+and marked a record rather than a live instrument.
+
+### The four criteria, as they actually landed
+
+| # | Criterion | Result |
+|---|---|---|
+| 1 | No state loss across a respawn | **NEVER TESTED** — no respawn in three slices |
+| 2 | Halt 3 verbatim to the owner, answer back to the agent | **NEVER TESTED** — no `blocked` return in three slices |
+| 3 | Gate results survive the boundary un-summarized | **Conditional pass, degrading** — verbatim at S1, mypy's body elided to `...` at S2, unestablishable at S3 |
+| 4 | Owner would choose the runner again | **MIXED** — and its cost half never got a number |
+
+### Criteria 1 and 2 did not fail — they never fired, and that is the finding
+
+Not flakiness. Two agents met the *same* genuine spec conflict — D8/B3's "fewer than
+`MIN_HITS` **chunks**" against the 59 of 118 units that have no chunk at all — and neither
+reached for `blocked`, because both times a better move existed. S2 measured both readings
+and deferred the choice to the slice that owns it; S3 decided it, pinned it by test, and
+reported it in the commit message. **For a slice with a spec this detailed, `blocked` is
+rare by design — the halts get spent at scope confirmation, before the spawn.**
+
+Consequence for anyone who revisits this: `blocked` and respawn-recovery would have shipped
+**unexercised**. The owner ruled out manufacturing an event, correctly — the only ambiguity
+that can force a halt is one making the slice uncompletable either way, which is spec
+corruption in an artifact four downstream slices depend on. A trial that needs the event
+needs many more slices, not a cleverer plant.
+
+### What the trial did establish — and it is not what it set out to test
+
+**The value attaches to the re-derivation before the spawn, not to the spawn.** Same
+conclusion in all three slices, from `/next-slice` step 2 — the part the runner never
+moved:
+
+- **S1 and S2 both carried an unsatisfiable exit criterion** ("raised from CI's printed
+  number" / "a floor enforced in `gate.yml`"). CI has neither archive nor index, and
+  `gate.yml` never runs on an arc branch at all. The same defect twice, caught at scope
+  confirmation both times and missed by the planning sweep both times.
+- **S2's approved budget did not cover S2.** The ~$10.50 itemised the offline harness and
+  omitted the 3–5 live spot-checks named in the same sentence (~$3.03). Raised in the halt,
+  re-approved at ~$13.50.
+- **D27 is the strongest single result of the trial.** Re-deriving the evidence for
+  `SCORE_FLOOR = 3.0` *disproved* the claim it existed to make reproducible: the 3.292
+  off-corpus figure does not reproduce, an in-corpus generic probe scores **5.651** and is
+  not escalated, so the separation margin is negative. A re-derivation that retracts a
+  ratified number is the rule paying for itself outright.
+
+### The argument against the runner, stated as the log states it
+
+Three slices, three reviews, one shape: **the agent nets the mechanism it set out to net,
+and what escapes is everything composed with the diff.** Rigor was never the problem — 28
+mutations inside S3's slice, 8 more on the review fixes, each killed on exactly its own
+test. What got through: **S1**, three docstrings asserting properties their tests did not
+exercise; **S2**, a fixture net holed precisely where the headline number is most sensitive
+(dropping one `::`-split left 16/16 tests green while moving the real-corpus figure 40/40 →
+39/40); **S3**, a **CRITICAL** — one DuckDB connection shared across threads under
+`ThreadingHTTPServer`, **410 of 600 concurrent selects returning the wrong question's
+passages**, and 26 raising `ValueError` past a narrow `except duckdb.Error`, leaving
+`do_POST` with no response written. Two browser tabs is enough.
+
+⚠️ **An argument, not a measurement.** No slice was run both ways, so whether an unspawned
+`/next-slice` session would have caught any of it is untested. The trial log says so itself
+and this section does not upgrade it.
+
+### The new finding — and the trial committed it against itself
+
+**A number that lives only in a transcript is not a number.** The owner decision recorded
+before S3 named exactly two measurements, at exactly S3's close-out, for exactly the reason
+that criterion 4's cost half was "in theory." **Neither exists.** S3's session skipped the
+trial log — the trial's own instrument — and everything transcript-only died with the
+session.
+
+Fourth appearance of one failure in a fresh costume, and the sharpest, because this time
+the instrument ate itself. It is a sibling of the third field report's theme (*a number
+recorded in prose is not the number the machine enforces*) by a different mechanism: **a
+step whose output nothing downstream blocks on is a step that gets skipped.** The gate
+blocks on lint, types and tests. Nothing blocks on "was the observation written down."
+
+### Candidate kit changes — identified, and deliberately NOT taken
+
+1. **The review step needs nothing.** `commands/end-slice.md` step 3 already runs the
+   reviewer without asking, already refuses to mark a slice done with unfixed CRITICALs,
+   and already carries the *consumers of changed behavior* lens whose stated rationale is
+   that "the defects that survive clean slice reviews live one layer away." Three slices
+   produced three confirmations. **This is a rule that earned its keep** — which is exactly
+   what R3's standing note asks about the last four batches, now with an answer for one of
+   them.
+2. **One real gap, one candidate lens.** S3's CRITICAL is not reachable by either inline
+   lens or either lens in `reference/REVIEW_LENSES.md` (error propagation; verify the
+   denominator). A per-request object holding a single connection under a threading server
+   is neither a changed consumer nor a simplified double — it is **shared mutable state
+   under the runtime's concurrency model**, with a measured consequence (410/600) rather
+   than an asserted severity.
+
+**Why the lens is not being written now.** R3's standing note (§12) records that R3 was the
+fourth consecutive batch of process rules added on field evidence with **no simplification
+pass between them**. Writing a fifth batch's worth the moment that note was made is
+precisely what it warns against. The concurrency lens goes to the next `/sdlc-retro` as a
+candidate, alongside finding 6's escalation threshold and finding 2's re-derivation — and
+it arrives there with one thing the others lack: the re-derivation rule **demonstrably**
+earned its keep three times in three slices, D27 included.
+
+### State of the plan after F3
+
+Every batch in this file is now closed — F1, R1, F2, R2, G1, R3 shipped; F3 tried and
+declined. **The backlog is empty.** The next input is field evidence: TFit's Phase 06 close
+(`/end-phase`, and the first close that must answer for the 171 type-error ceiling under
+R3.3 — now four arcs unchanged), and the `/sdlc-retro` that follows it.
