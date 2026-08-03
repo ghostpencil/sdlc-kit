@@ -10,6 +10,57 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.10.0 — 2026-08-03
+
+The SIMP batch: the simplification pass the fifth field report ranked first (finding 7,
+`sdlc-kit#2`) and the kit's own §12 standing note had already called for — run as its
+own batch, **before** the R4 fix batch, by owner decision. The audit behind it is
+`FEATURE_PLAN.md` §16: 38 adopter-facing rules enumerated from the 0.5.0–0.9.0
+releases, each asked *what did you catch, in which adopter, when* — 24 carry confirmed
+post-ship catches, and the verdict is the report's own prediction: a pruning, not a
+retreat. **This batch adds no new process rules.**
+
+### Removed
+- **[installable]** The `sdlc-surveyor` agent and with it the entire `agents/` →
+  `.claude/agents/` install mapping (the surveyor was its only occupant since 0.6.0).
+  Four releases, zero observed uses across four real arcs — the analysis sweeps absorb
+  the fact-fetching it was designed for, and §12 had already recorded that continued
+  non-use would be a signal about the step, not noise. Owner-decided 2026-08-03.
+  Ripples: `plan-phase.md`'s feasibility check keeps the practice (verify seams by
+  quoting the codebase) without the agent; `sdlc-setup.md` no longer installs agents;
+  the model-policy Low tier loses its "kit-set" instance; `reference/SKILLS.md` loses
+  the kit-agents row; both READMEs and the flow diagram lose the mapping.
+- **[installable]** `sdlc-update.md` step 5 gains the mapping's retirement mechanism —
+  the first **removed-from-install-set** clause, symmetric to the new-files clause: a
+  file in the old manifest's install mapping but absent from the target's is deleted
+  when it classified `UNCHANGED`, and goes to the owner when `DRIFTED`. The
+  classification script still enumerates `.claude/agents/` so projects on 0.6.0–0.9.0
+  can transition. The root README's update section states the same clause (inv 8).
+  Machinery the deletion needs to reach adopters — not a new process rule.
+
+### Changed
+- **[installable]** Six "do this" rules converted toward "this is done when" — the
+  fifth report's cross-cutting theme (the gate, the only step with a completion
+  condition, was the only step that never failed) applied to the survivors that admit
+  one in a single clause: slice-review triage (`end-slice.md` §3 — done when every
+  finding is dispatched and the hand-back names the discards), the mutation check
+  (`end-slice.md` §4 — done when every new guard has been seen to fail on exactly its
+  own test), re-derivation (`next-slice.md` §2 — done when every marker had its
+  proportional check and every `estimated` number carries a derivation), the
+  coverage-floor reconcile (`end-phase.md` step 7 — not done until the homes are
+  identical), gotcha escalation (`end-slice.md` §6 — exactly two closed states; a
+  sharper note is neither), and the friction sweep (`sdlc-retro.md` §2 — done when no
+  unabsorbed entry is left unreported). **[adoption-only]** `SDLC.template.md` mirrors
+  the first five canonically (inv 2). The whole-arc review and the acceptance pass are
+  deliberately untouched — their completion conditions are R4 additions, not
+  conversions.
+
+### Audited, kept, on the record (§16)
+- The doubles lens (five releases, no attributed catch, failure class demonstrably
+  alive) — owner-decided keep. R3.7's archival bullet — kept as the safety net behind
+  R4's coming prevention. R3.8's aging rule — kept contingent on R4 giving the friction
+  log a writer. Kit-development invariants (14, 15) out of audit scope.
+
 ## 0.9.0 — 2026-08-01
 
 The R3 batch: the eight findings of `FIELD_REPORT_2026-08-01.md` (the fourth field

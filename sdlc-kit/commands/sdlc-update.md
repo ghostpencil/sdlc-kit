@@ -14,7 +14,7 @@ the project owns.**
 | Path in this project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from the kit's `commands/`, `skills/`, `reference/REVIEW_LENSES.md`) | kit | overwrite when provably unmodified; owner decides when drifted |
-| `.claude/agents/*.md` (from the kit's `agents/`) | kit | same rule — overwrite when provably unmodified; owner decides when drifted |
+| `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | project | never overwritten — they hold the gate baseline, owner decisions, backlog, gotchas |
 
 ## How to use
@@ -68,9 +68,10 @@ for f in $(git ls-files .claude/commands .claude/agents); do
         '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN") ;;
     .claude/agents/*)
       base=${f#.claude/agents/}
-      # agents/ installs into .claude/agents/ (mapping added in kit 0.6.0; an older
-      # manifest simply has no agents/ entries and these classify UNKNOWN — but see
-      # the denominator check, which still counts them).
+      # agents/ installed into .claude/agents/ on kits 0.6.0–0.9.0; the mapping was
+      # retired in 0.10.0, so these classify here for the removal clause in step 5.
+      # (Against a pre-0.6.0 manifest they classify UNKNOWN — the denominator check
+      # still counts them.)
       want=$(awk -v b="$base" '$2 == "agents/" b {print $1}' "$MAN") ;;
   esac
   have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
@@ -117,10 +118,16 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   the owner released — plus any files **new in the target's install set**, which
   classification never saw because the project does not hold them yet. Sources:
   `sdlc-kit/commands/`, `sdlc-kit/skills/`, and `sdlc-kit/reference/REVIEW_LENSES.md` —
-  all into `.claude/commands/`, preserving the `tdd-references/` subfolder — and
-  `sdlc-kit/agents/` into `.claude/agents/` (new mapping in 0.6.0; a project updating
-  from an older version holds none of these yet, so they arrive via this new-files
-  clause, not via classification).
+  all into `.claude/commands/`, preserving the `tdd-references/` subfolder.
+- The symmetric case: files **removed from the target's install set** — listed in the
+  old version's manifest under an install mapping but absent from the target's. An
+  `UNCHANGED` one is provably the kit's and is deleted; a `DRIFTED` one goes to the
+  owner (keep it by moving it to a project-owned path outside the kit-managed
+  directories, or delete it) — the owner may have invested in the drift. Step 6's
+  re-classification confirms the removal: the file is gone, or it is an owner-kept
+  copy living outside `.claude/commands/` and `.claude/agents/`. First instance:
+  `agents/sdlc-surveyor.md` and its whole `agents/` → `.claude/agents/` mapping,
+  retired in 0.10.0.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target

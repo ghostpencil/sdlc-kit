@@ -69,6 +69,11 @@ that did, never dropped silently.
 
 If fixes were applied, re-run the gate.
 
+The review step is done when every finding is dispatched — fixed, deferred with its
+marker, discarded with its reason, or raised to the owner — and the hand-back names
+the discards. A finding still sitting in none of those states is the step not finished,
+however far the conversation has moved on.
+
 ### 4. Mutation check — a new guard must be seen to fail
 
 For every **new guard, branch, or error path** this slice added (review fixes
@@ -78,7 +83,8 @@ skill (`.claude/commands/mutation-testing.md`) for anything beyond a quick
 delete-and-run. A check is only trustworthy once it has been made to disagree; a guard
 whose deletion leaves the suite green is untested code wearing a test's name, and this
 practice caught exactly that on a real project — twice — in guards whose tests could
-not have failed.
+not have failed. The step is done when every new guard has been seen to fail on
+exactly its own test; a guard not yet seen to fail is not yet closed.
 
 ### 5. Commit the slice
 
@@ -109,7 +115,8 @@ Update `spec/PROJECT_INDEX.md`:
   Environment gotchas, read what is already there: if this slice is the **third
   consecutive** one to record the same hazard, it stops being a note and becomes a
   check — a gate step, a hook, or a test — or the owner ratifies it as unpreventable and
-  the entry says so, with the recurrence count. Prose in a status document is not a
+  the entry says so, with the recurrence count. Those are the hazard's only two closed
+  states; a sharper note is neither. Prose in a status document is not a
   control: a real adoption recorded an editor silently rewriting line endings four
   times, each note sharper than the last, each one followed, and the hazard recurred
   every time. Sharpening the wording is what the process does instead of preventing the

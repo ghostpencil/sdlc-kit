@@ -82,7 +82,8 @@ none of them writes anything.
   interview raises it. An entry with no status line is the default state, not a
   conclusion; one adoption's oldest live entry sat unabsorbed across two releases while
   three younger ones beside it were marked absorbed, and nothing in the sweep read the
-  difference. This sweep exists because the sweeps above
+  difference. The sweep is done when no unabsorbed entry is left unreported — each
+  named with its age. This sweep exists because the sweeps above
   are all blind to tooling noise (stderr warnings produce no backlog entry, no commit,
   no gate movement) and the one record of such noise may sit in prose nothing else here
   reads.

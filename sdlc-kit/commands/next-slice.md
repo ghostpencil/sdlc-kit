@@ -64,6 +64,10 @@ recorded-OWNER-DECIDED shortcut above, because what was decided is no longer wha
 true. Never absorb the difference quietly. When the derivation confirms the number,
 re-tag the decision **measured** in the spec with what you ran.
 
+The re-derivation is done when every marker has had its proportional check and every
+`estimated` number the slice implements carries a recorded derivation — any changed
+cause corrected in place, any changed number back to the owner.
+
 ### 3. Ensure the branch
 
 The rule, mode-independent: **slices accumulate on one arc branch until `/end-phase`;

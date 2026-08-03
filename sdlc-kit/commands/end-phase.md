@@ -129,7 +129,8 @@ git checkout <main> && git pull
   `--cov-fail-under` value or its equivalent) to just under CI's printed number, in the
   same docs commit as the bookkeeping below. Then **assert the two homes agree**: the
   floor recorded in `spec/PROJECT_INDEX.md` (and `spec/SDLC.md`) and the value in the
-  workflow file must be identical. The recorded number is a claim; the workflow value
+  workflow file must be identical — the bullet is not done until they are. The
+  recorded number is a claim; the workflow value
   is the enforcement — a mismatch means the ratchet is not actually ratcheting. Read
   the floor off CI's printed figure, never compute it locally; a real arc recorded a
   raise in the index twice while CI silently kept enforcing the old floor.

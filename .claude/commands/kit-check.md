@@ -38,7 +38,7 @@ Run these as commands; each states its negative case in the ledger.
   `MANIFEST.sha256`. Entry count must equal `git ls-files sdlc-kit | wc -l` minus one
   (the manifest itself). Report the denominator, not just "matches".
 - **4 — `{{` census:** `grep -rc '{{' sdlc-kit/commands sdlc-kit/skills
-  sdlc-kit/agents sdlc-kit/reference/REVIEW_LENSES.md` → hits in `sdlc-setup.md` only,
+  sdlc-kit/reference/REVIEW_LENSES.md` → hits in `sdlc-setup.md` only,
   and setup's close-out check names exactly `CLAUDE.md spec/ .claude/settings.json`.
 - **6 — step references:** `grep -nE 'step [0-9]' sdlc-kit/commands/*.md`, then read
   each referenced step and confirm it is the one the sentence means.
@@ -47,8 +47,8 @@ Run these as commands; each states its negative case in the ledger.
 
 For each, read the named files in full — do not sample — and cite evidence per verdict.
 
-- **1 — no project facts:** every declarative sentence in `commands/*.md` and
-  `agents/*.md` that could be false for *some* adopting project (a baseline state, a
+- **1 — no project facts:** every declarative sentence in `commands/*.md`
+  that could be false for *some* adopting project (a baseline state, a
   stack, a number, a tool) is a finding. Commands may only point at where the project
   records the fact.
 - **2 — no contradiction with `SDLC.template.md`:** compare each command's process
@@ -59,13 +59,13 @@ For each, read the named files in full — do not sample — and cite evidence p
   round that resolves it, matching **semantically**. Unresolvable → finding; a setup
   question with no placeholder to fill is worth a note.
 - **5 — pointers resolve post-setup:** enumerate file-and-section pointers in installed
-  files (`commands/`, `skills/`, `agents/`, `reference/REVIEW_LENSES.md`); verify each
+  files (`commands/`, `skills/`, `reference/REVIEW_LENSES.md`); verify each
   target exists in what setup installs or instantiates, not merely in this repo.
 - **7 — install mapping:** take `sdlc-setup.md`'s install list (New mode step 5) as the
   definition; verify every derived statement against it — both READMEs, root
   `CLAUDE.md`'s flow diagram, `sdlc-update.md`'s table, and the prefix lists in **both**
-  classification scripts, including their denominator checks (both destination
-  directories, `.claude/commands/` and `.claude/agents/`, must be enumerated).
+  classification scripts, including their denominator checks (`.claude/agents/` stays
+  enumerated there for the 0.6.0–0.9.0 transition, though the mapping is retired).
 - **8 — update procedure agrees:** `sdlc-update.md` beside the root README's *Updating
   an adopted project*: same classification rules, same ownership table, same traps.
 - **11 — vendored provenance:** each `skills/` file matches `reference/SKILLS.md`'s

@@ -19,7 +19,7 @@ existing file becomes a shown merge plan, not a silent clobber.
 
 ### 1. Preflight (both modes)
 
-1. Locate the kit folder; halt if its `templates/`, `skills/`, `agents/`, and
+1. Locate the kit folder; halt if its `templates/`, `skills/`, and
    `reference/` are missing. Read `sdlc-kit/VERSION` — this resolves `{{KIT_VERSION}}`, and today's date
    resolves `{{ADOPTION_DATE}}`. If `VERSION` is absent the kit predates version
    stamping: record `{{KIT_VERSION}}` as `unknown (pre-0.2.0)` rather than guessing.
@@ -73,7 +73,7 @@ questionnaire.
   |---|---|---|
   | High | `opus` | planning, analysis, adversarial review |
   | Medium | `sonnet` | writing code to an existing plan/spec |
-  | Low | `haiku` | mechanical collection — hard-coded on the kit's read-only agents |
+  | Low | `haiku` | mechanical collection — file search, enumeration, verbatim gathering |
 
   Record the confirmed policy as `{{MODEL_POLICY}}` (*Model policy* section of
   `spec/SDLC.md`). Then ask whether to pin a session default: if yes, resolve
@@ -146,11 +146,6 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - If a same-named skill already exists on this machine in `~/.claude/commands/`,
      note that the project copy and user copy will both be listed; recommend the
      owner keep the project copy authoritative (it is versioned with the repo).
-   Then install the kit's agent definitions from `sdlc-kit/agents/` into
-   `.claude/agents/` (project-scoped, inherited on clone the same way): currently
-   `sdlc-surveyor.md`, the read-only mechanical-collection agent `/plan-phase` names.
-   Its `model: haiku` is kit-set and stays — no project has a reason to burn a bigger
-   model on file search; everything else about models is the owner's poll above.
 6. Install the edit-time hook: instantiate `settings.template.json` →
    `.claude/settings.json` using the hook recipe for the language; verify by editing a
    scratch source file with a deliberate lint error and confirming the hook blocks.
@@ -163,8 +158,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 1. **Analyze before asking.** Survey the repo — for large ones, fan the survey out to
    parallel read-only subagents (the same pattern `/plan-phase` uses for its sweeps:
    read-only by tool restriction, findings return here, every owner question stays in
-   this session; the built-in Explore type serves, since the kit's own surveyor agent
-   is not installed yet at this point). Collect:
+   this session; the built-in Explore type serves). Collect:
    languages + versions; build system; how tests are actually run (CI config is the
    best witness); lint/typecheck config present or absent; existing CLAUDE.md /
    README / docs / ADRs; branch + PR conventions from `git log`; app entry point / run
@@ -229,8 +223,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      History rows from git history (pre-SDLC is fine), in-flight work in START HERE,
      known issues in the backlog.
    - Commands, the vendored TDD skill set, and `reference/REVIEW_LENSES.md` into
-     `.claude/commands/`, plus the agent definitions from `sdlc-kit/agents/` into
-     `.claude/agents/` (same rules as New mode step 5); hook into
+     `.claude/commands/`; hook into
      `.claude/settings.json` (merge with any existing hooks), verified the same way as
      New mode step 6 — a deliberate lint error in a scratch source file must be
      blocked. An unverified hook is enforcement that reads as complete.

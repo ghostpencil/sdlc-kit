@@ -35,14 +35,13 @@ VERSION                  ← the kit version this bundle is
 MANIFEST.sha256          ← checksums of every file below (see "Verifying" and "Updating")
 commands/                ← installed into <project>/.claude/commands/
 skills/                  ← vendored TDD skill set → <project>/.claude/commands/
-agents/                  ← read-only agent definitions → <project>/.claude/agents/
 templates/               ← instantiated into the project by /sdlc-setup
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
 LICENSE                  ← MIT
 THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (all MIT)
 ```
 
-`commands/`, `skills/`, `agents/`, and the installed `reference/REVIEW_LENSES.md` are
+`commands/`, `skills/`, and the installed `reference/REVIEW_LENSES.md` are
 **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything `/sdlc-setup` writes into your project
 (`CLAUDE.md`, `spec/*.md`, `.claude/settings.json`) is **project-owned** and is never
@@ -60,7 +59,7 @@ cd sdlc-kit && sha256sum -c MANIFEST.sha256      # shasum -a 256 -c on macOS
 Run `/sdlc-update` in the adopted project (setup installs it alongside the daily
 commands), or see the *Updating an adopted project* section of the home repository's
 README — both state the same procedure. The short version: compare your installed
-`.claude/commands/*.md` and `.claude/agents/*.md` against the `MANIFEST.sha256` of the
-version you are currently
+`.claude/commands/*.md` (and, on kits 0.6.0–0.9.0, `.claude/agents/*.md`) against the
+`MANIFEST.sha256` of the version you are currently
 on (recorded in your `spec/SDLC.md`). Files that match are provably unmodified and safe
 to overwrite; files that differ are yours to reconcile.

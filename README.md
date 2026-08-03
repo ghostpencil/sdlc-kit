@@ -139,8 +139,6 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── mutation-testing.md          ← always installed — /end-slice's mutation check invokes it
 │   ├── python-pro.md                ← Python projects only
 │   └── hypothesis-tests.md          ← Python projects only
-├── agents/                          ← installed into <project>/.claude/agents/
-│   └── sdlc-surveyor.md             ← read-only mechanical-collection agent (haiku)
 ├── templates/                       ← instantiated into the project by /sdlc-setup
 │   ├── SDLC.template.md             → spec/SDLC.md        (the canonical process)
 │   ├── CLAUDE.template.md           → CLAUDE.md           (agent instructions)
@@ -207,7 +205,7 @@ The whole procedure rests on this split:
 | Path in your project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from `commands/`, `skills/`, `reference/REVIEW_LENSES.md`) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
-| `.claude/agents/*.md` (from `agents/`) | **kit** | Same rule — overwritten when provably unmodified; you decide when drifted. |
+| `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | **project** | **Never overwritten.** These hold your gate baseline, owner decisions, backlog, and gotchas. |
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
@@ -254,8 +252,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
            '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN") ;;
        .claude/agents/*)
          base=${f#.claude/agents/}
-         # agents/ installs into .claude/agents/ (mapping added in kit 0.6.0; an older
-         # manifest has no agents/ entries, so these classify UNKNOWN — the denominator
+         # agents/ installed into .claude/agents/ on kits 0.6.0–0.9.0; the mapping was
+         # retired in 0.10.0, so these classify here for the removed-files step below.
+         # (Against a pre-0.6.0 manifest they classify UNKNOWN — the denominator
          # below still counts them).
          want=$(awk -v b="$base" '$2 == "agents/" b {print $1}' "$MAN") ;;
      esac
@@ -290,9 +289,14 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    never saw them — it enumerates what your project already holds, and your project does
    not hold them yet — so they appear in no category above and are the one class of
    update a purely classification-driven pass silently skips. Take the install set from
-   the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5). The agent
-   definitions (`agents/` → `.claude/agents/`, new in 0.6.0) arrive this way on any
-   project updating from an older version.
+   the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5).
+
+   The symmetric case: files **removed from the target's install set** — listed in your
+   old version's manifest under an install mapping but absent from the target's. An
+   `UNCHANGED` one is provably the kit's and is deleted; a `DRIFTED` one is yours to
+   keep (move it to a project-owned path outside `.claude/commands/` and
+   `.claude/agents/`) or delete. First instance: `agents/sdlc-surveyor.md` and the
+   whole `agents/` → `.claude/agents/` mapping (0.6.0–0.9.0), retired in 0.10.0.
 
    If you kept a `sdlc-kit/` folder from adoption, replace it with the new version's
    bundle — but **list its actual contents against the old version's manifest first**,

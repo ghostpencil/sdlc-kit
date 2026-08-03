@@ -1401,7 +1401,18 @@ to this plan.
 
 ## 16. SIMP — the simplification pass *(audit done 2026-08-03; owner decisions pending)*
 
-> **Status: AUDIT COMPLETE, decisions pending at the halt.** The §15 scope executed:
+> **Status: DECIDED 2026-08-03 — building.** Owner decisions at the halt, all four
+> dated 2026-08-03, do not re-litigate: **(1) the surveyor is DELETED now** — agent
+> file, spawn sentence, install mapping, the lot ("it will never get called from what
+> I have seen and we haven't seen much benefit from spawning our own agents in this
+> kit") — the recommended final-warning marker was declined for the stronger form;
+> **(2) the doubles lens stays**; **(3) R3.7's archival bullet stays as the safety
+> net** behind R4.7's prevention; **(4) all six conversions approved.** The deletion
+> retires the `agents/` → `.claude/agents/` install mapping (the surveyor was its
+> only occupant) and requires the update path's first **removed-from-install-set**
+> clause — machinery the deletion needs to reach adopters, not a new process rule.
+>
+> The §15 scope executed:
 > denominator enumerated from the CHANGELOG (0.5.0–0.9.0) cross-checked against the
 > edit maps (§7, §9, §10, §11, §12), every rule audited against the catch record in
 > the five field reports, the trial record (§13–§14), and the TFit migration notes
@@ -1503,3 +1514,23 @@ rules mostly earned their keep** — 24 of 38 with post-ship catches on record, 
 as FR5 predicted ("a pruning, not a retreat") — and the pruning is one availability
 with zero uses, one relocation bullet under owner judgment, two contingent keeps, and
 six completion-condition rewordings.
+
+### Built as — 2026-08-03
+
+The surveyor deletion ran wider than the file, because the file was the mapping's only
+occupant: `agents/sdlc-surveyor.md` removed; `plan-phase.md` keeps the feasibility
+practice agent-free (verify seams by quoting the codebase) and drops the
+surveyor-exclusion sentence from the sweep paragraph; `sdlc-setup.md` loses the
+preflight `agents/` check, the install block (both modes), the Explore-type aside, and
+the Low tier's "kit-set" instance; `reference/SKILLS.md` loses its row;
+`SDLC.template.md` loses the kit-set-model sentence; both READMEs and root
+`CLAUDE.md`'s flow diagram lose the mapping; `KIT_INVARIANTS.md` inv 1/4/7 and
+`/kit-check` scopes updated ("since 0.10.0 the mapping has one destination").
+`sdlc-update.md` gained the **removed-from-install-set clause** (step 5, symmetric to
+new-files; mirrored in the root README per inv 8) and keeps `.claude/agents/`
+classification for the 0.6.0–0.9.0 transition — an updating project's surveyor copy is
+deleted when `UNCHANGED`, owner's call when `DRIFTED`. Six conversions applied as
+listed, five mirrored in `SDLC.template.md` (the friction sweep lives retro-side
+only). Bookkeeping: `VERSION` → 0.10.0, CHANGELOG entry (with a **Removed** section,
+the kit's first), manifest regenerated at 26 entries (27 − surveyor, `sha256sum -c`
+clean), README trees updated. `/kit-check` closes the batch.

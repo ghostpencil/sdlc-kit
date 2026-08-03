@@ -130,7 +130,8 @@ The floor raises by procedure, not by rule alone — at phase end, where coverag
 known: if CI's printed coverage rose over the arc, post-merge bookkeeping sets the
 floor in the CI workflow file to just under CI's printed figure (in the same docs
 commit as the PROJECT_INDEX update), then asserts that the floor recorded here and in
-`spec/PROJECT_INDEX.md` is identical to the value in the workflow file. The recorded
+`spec/PROJECT_INDEX.md` is identical to the value in the workflow file — the
+bookkeeping is not done until they are. The recorded
 number is a claim; the workflow value is the enforcement — a mismatch means the ratchet
 is not ratcheting, which is the only regression the floor exists to prevent.
 
@@ -150,8 +151,7 @@ edited source file, so most gate failures surface at edit time rather than at sl
      kit's recommended default is three tiers by task shape: High (`opus`) for
      planning, analysis, and adversarial review; Medium (`sonnet`) for writing code to
      an existing plan/spec; Low (`haiku`) for mechanical collection. Aliases only,
-     never model IDs — IDs go stale. The one kit-set model is `haiku` on the read-only
-     agents in .claude/agents/ (collection work gains nothing from a bigger model).
+     never model IDs — IDs go stale.
      Switch any session with /model; the pinned session default, if one was chosen,
      lives in .claude/settings.json ("model"). -->
 
@@ -199,7 +199,9 @@ Run `/next-slice` in a **fresh session**:
    timestamp, not a finding; when the cause does not hold, correct the entry in place
    and re-scope. The same rule covers an **estimated** number the slice implements:
    derive it before starting, take a differing result back to the owner as a question,
-   and re-tag the decision measured with what you ran.
+   and re-tag the decision measured with what you ran. The re-derivation is done when
+   every marker has had its proportional check and every estimated number carries a
+   recorded derivation.
 3. Ensure the arc branch is checked out (create it if phase start was skipped; check for
    any unmerged arc branch before creating a new one — see *Shape*).
 4. Read `spec/TESTING.md`, invoke the TDD skill, implement the slice in small
@@ -218,11 +220,14 @@ Run `/end-slice` when the slice's exit criteria are met:
    verification are reported, not dropped — a finding is a claim about the code, and
    severity is asserted rather than measured. Apply CRITICAL/HIGH fixes now; defer the
    rest to the PROJECT_INDEX backlog with a one-line rationale each, cause marked
-   measured or suspected. Re-run the gate if anything changed.
+   measured or suspected. Re-run the gate if anything changed. The review is done when
+   every finding is dispatched — fixed, deferred with its marker, discarded with its
+   reason, or raised to the owner — and the hand-back names the discards.
 7. Mutation check: every new guard, branch, or error path this slice added is deleted
    or inverted once and the suite watched to fail on exactly the intended test
    (mutation-testing skill for anything beyond a quick delete-and-run). A check is
-   trustworthy only once it has been made to disagree.
+   trustworthy only once it has been made to disagree; the step is done when every new
+   guard has been seen to fail on exactly its own test.
 8. Commit (heredoc for multi-line messages, via the Bash tool).
 9. Update `spec/PROJECT_INDEX.md` — slice marked done, deferred items appended — and
    commit the docs change. Push the branch (no PR — that is phase end).
@@ -286,7 +291,8 @@ Run `/end-phase` when the last slice is done:
 - **A gotcha recorded in three consecutive slices becomes a check, or is ratified
   unpreventable.** The third recurrence of the same environmental hazard buys a gate
   step, a hook, or a test — not a fourth, better-worded note. If nothing can prevent
-  it, the entry says so explicitly and carries its recurrence count. Prose in a status
+  it, the entry says so explicitly and carries its recurrence count. Those are the
+  hazard's only two closed states; a sharper note is neither. Prose in a status
   document is not a control; describing a hazard more sharply each time is what a
   process does instead of stopping it.
 - `spec/PROJECT_INDEX.md` has **bounded** sections and **growing** ones (marked in the
