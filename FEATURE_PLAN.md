@@ -1630,3 +1630,98 @@ hash; text-mode hashes, no `*` prefixes — §16's in-pass finding did not recur
   (TFit Phase 07 would produce it). R3.8's aging rule is on a clock — if the friction
   log is still empty at the retro after next despite R4.6's writer, it goes (§16
   contingent keep).
+
+---
+
+## 18. Brainstorm triage — 2026-08-03; three batches queued (LEG → COP → STD)
+
+The owner-led brainstorm the §17 hand-off called for. Six owner ideas, clustered into
+three themes against the tree at 0.11.0 and the record (five reports' themes, §16's
+audit, §4's rejected list). **Owner decisions, all dated 2026-08-03 — do not
+re-litigate:** (1) batch order is **LEG, then COP, then STD**; (2) secure coding
+ships as review lenses, not a new command; (3) logging and error handling ship as
+setup interview + project-owned conventions + fail-loud lenses + gate rules where
+mechanical — not prose standards.
+
+The clustering, with the original idea numbers: LEG = ideas 5+6 (token cost of the
+prompts; owner-facing verbosity), COP = idea 4 (Copilot CLI), STD = ideas 1+2+3
+(logging, error handling, secure coding).
+
+### LEG — the legibility batch *(next to build; ships as `v0.12.0`)*
+
+Input-side and output-side legibility, in that internal order — **LEG.1 first**, so
+LEG.2's baseline measures the tree that includes it (LEG.1 adds words, LEG.2 removes
+them; one batch keeps the tension honest).
+
+- **LEG.1 — owner hand-back standard.** Every owner-facing moment (the five halt
+  points and each command's hand-back) gets a required format: a dirt-simple
+  executive summary in plain English, bullet form, with every owner decision
+  **numbered and explicitly marked**. Canonical statement lands in
+  `templates/SDLC.template.md` (inv 2 — the template wins); the four daily commands
+  plus `sdlc-retro.md` and `sdlc-update.md` enforce it at their halt/hand-back
+  steps. Motivation: the owner finds phase/slice output so detailed it is hard to
+  follow — the record's sixth theme, before a report files it: five generations of
+  rigor fixes, none of them for owner legibility.
+- **LEG.2 — measured token pass.** Per-file token baseline over `sdlc-kit/` first
+  (the denominator, enumerated not assumed), then trim wording for economy without
+  losing meaning — **wording, not rules**: §16 just established the rules earn their
+  keep, and no rule, halt, or completion condition is in scope. `/kit-check` on all
+  15 invariants closes the pass; the before/after counts are recorded here so the
+  reduction is a measurement, not an assertion.
+
+### COP — Copilot CLI research spike *(read-only; no build decision)*
+
+Idea 4 reshaped into a bounded investigation, because it touches the kit's deepest
+couplings (the `.claude/commands/` install path, the settings.json hook, built-in
+skill references, subagent/model-tier language). Deliverables:
+
+1. The enumerated denominator of Claude-Code-specific couplings in the kit — every
+   file, every mechanism, found by sweep rather than recall (§4a applies).
+2. Copilot CLI's actual current capabilities, verified against its documentation at
+   spike time, not remembered — which of those couplings it can express, which it
+   cannot.
+3. A verdict with evidence: portable-with-translation-layer, fork-required, or
+   decline. **Nothing is built until the owner reads that report** — execution-model
+   changes ship on evidence (§4, the slice-runner precedent).
+
+Sequencing note: COP runs before STD because its findings may reshape STD's lens
+work (portable lenses vs. Claude-only built-ins — the `/security-review` built-in
+the kit currently recommends does not exist on Copilot CLI).
+
+### STD — the standards batch *(logging, error handling, secure coding)*
+
+The kit's first product-quality standards — opinions about what the built software
+does at runtime, where today the kit's only runtime opinions are tests, coverage,
+and types. A real scope extension, done in the shape FR1 taught (checks that fail
+loudly, not prose rules):
+
+- **Setup interview**: `sdlc-setup.md` asks for the project's logging and
+  error-handling conventions; Existing Project mode *discovers* them from the code
+  first and proposes, per the gate-recipes principle (match reality, not defaults).
+  Answers land in a project-owned conventions file.
+- **Fail-loud lenses** in `reference/REVIEW_LENSES.md`: a logging/swallowed-error
+  lens (trigger: the slice added a catch/except or a new failure path — is it
+  logged at the right level, or swallowed?) sited next to the existing error
+  propagation lens; a small set of secure-coding lenses (owner decision 2:
+  lenses, not a command — a command would duplicate the recommended
+  `/security-review` built-in; revisit only if COP's verdict changes the picture).
+- **Gate-side rules where mechanical**: where the language permits, lint rules
+  (no-bare-except, no-console-log and kin) go into the gate via the existing
+  GATE_RECIPES.md machinery — mechanical enforcement beats a paragraph.
+
+Open at build time (not decided now): whether the conventions file is a new
+template or a section of an existing one; the exact lens set; which gate rules per
+ecosystem. Every addition enters the §16 audit regime — no post-ship catch after
+two releases makes it a deletion candidate, so prefer few and fail-loud.
+
+### Hand-off — state as of 2026-08-03, end of the brainstorm session
+
+- **Nothing built this session; the queue is set.** Three batches triaged above,
+  owner-ordered LEG → COP → STD. Kit `main` at v0.11.0, working tree clean apart
+  from this plan update.
+- **Next session opens on LEG** — LEG.1 (hand-back standard) then LEG.2 (measured
+  token pass), one batch, shipping as `v0.12.0`. LEG.1's edit map should be derived
+  mechanically at build time (§4a): sweep for every owner-facing hand-back and halt
+  across the six installed commands, don't recall the list.
+- **Standing kit inputs unchanged from §17:** any sixth field report (TFit Phase
+  07); R3.8's aging rule still on its clock (§16 contingent keep).
