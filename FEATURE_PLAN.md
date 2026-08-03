@@ -1773,3 +1773,123 @@ again, caught by inv 9's reading pass).
   STD's lens work).
 - **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
   R3.8's aging rule still on its clock (§16 contingent keep).
+
+## 20. COP shipped — 2026-08-03; verdict: portable-with-translation-layer
+
+§18's read-only Copilot CLI research spike, run to its definition: couplings
+enumerated by sweep (§4a), capabilities verified against GitHub's documentation on
+2026-08-03, verdict delivered below. **Nothing was built; nothing is built until the
+owner reads this and says so.**
+
+### 20.1 The denominator — Claude-Code couplings in the shipped tree, by sweep
+
+27 shipped files (`git ls-files sdlc-kit/`). Ten coupling mechanisms, found by
+grepping the tree for platform markers (`.claude/`, hook vocabulary, model names,
+built-in and plugin names, subagent language), not by recalling them:
+
+| # | Mechanism | Where (files) |
+|---|---|---|
+| C1 | `.claude/commands/` install path for commands and skills | 9 files, 46 mentions — heaviest: `sdlc-update.md` (15), `sdlc-setup.md` (10) |
+| C2 | `CLAUDE.md` as the auto-loaded instructions file | `CLAUDE.template.md` (is one), `sdlc-setup.md`, `sdlc-update.md`, `README.md` |
+| C3 | Edit-time gate hook: Claude Code `PostToolUse` schema — `Edit\|Write` matcher, `tool_input.file_path` on stdin, `$CLAUDE_PROJECT_DIR`, exit-2-is-blocking, `statusMessage` | `settings.template.json` (the whole file), `GATE_RECIPES.md` (recipe + 4 `{{HOOK_*}}` placeholders), `CLAUDE.template.md`, `SDLC.template.md`, `sdlc-setup.md` |
+| C4 | Slash-command invocation — the seven kit commands are Claude Code custom commands; `$ARGUMENTS` in `skills/hypothesis-tests.md`; YAML frontmatter on the five vendored skills | all of `commands/`, `skills/` |
+| C5 | Model tiers by alias (`opus`/`sonnet`/`haiku`), `{{DEFAULT_MODEL}}` in settings, `/model` switching | `SDLC.template.md`, `sdlc-setup.md` (tier table), `plan-phase.md`, `settings.template.json` |
+| C6 | Subagents: parallel read-only sweeps, the built-in Explore type, "subagents cannot ask the owner anything" | `SDLC.template.md`, `plan-phase.md`, `sdlc-setup.md` |
+| C7 | `pr-review-toolkit@claude-plugins-official` plugin — per-slice and whole-arc review | `end-slice.md`, `end-phase.md`, `sdlc-setup.md`, `SKILLS.md`, `SDLC.template.md` |
+| C8 | Recommended built-ins: `/code-review`, `verify`, `simplify`, `security-review`, `update-config`; `claude update` | `SKILLS.md` (the table), `end-slice.md` |
+| C9 | `/clear`-per-slice session model | `README.md`, `CLAUDE.template.md`, `SDLC.template.md`, `end-slice.md`, `next-slice.md`, `plan-phase.md`, `sdlc-setup.md` |
+| C10 | `.claude/agents/` classification (0.6.0–0.9.0 transition support) | `sdlc-update.md` |
+
+Process-pure (zero hits): `sdlc-retro.md`, `PROJECT_INDEX.template.md` (1 incidental
+hook mention), `TESTING.template.md`, `tdd-references/*`, `LICENSE`,
+`MANIFEST.sha256`, `VERSION`. The process core — phases/slices/TDD, halt points, the
+gate-matches-CI principle, the lenses — is platform-neutral prose.
+
+### 20.2 What Copilot CLI can express — verified against docs.github.com, 2026-08-03
+
+Per coupling, from the CLI command reference, hooks reference, custom-agents,
+skills, plugins, and custom-instructions pages (Copilot CLI GA'd 2026-02; docs note
+it "ships updates constantly" — this table is dated evidence, not a durable fact):
+
+- **C2 instructions — yes, directly.** Reads `AGENTS.md`,
+  `.github/copilot-instructions.md`, and `.github/instructions/**/*.instructions.md`.
+  `CLAUDE.template.md` content ports as an `AGENTS.md` unchanged.
+- **C4 commands — yes, as agent skills, not slash commands.** User-defined slash
+  commands from prompt files do not exist (the command reference lists built-ins
+  only; `github/copilot-cli#618` asked for `.github/prompts/` support). But **agent
+  skills** (`SKILL.md` + name/description frontmatter) are explicitly invocable as
+  `/skill-name` in a prompt, and the documented project-level skill locations
+  include **`.claude/skills/`** alongside `.github/skills/`. The seven commands
+  would each become a skill directory — a packaging change; the prompt bodies port.
+  Note the near-miss: the kit installs to `.claude/commands/`, which Copilot does
+  *not* read.
+- **C3 hook — yes, different dialect, same reach.** Hooks live in
+  `.github/hooks/*.json` (`"version": 1`, `bash`/`powershell` command keys,
+  `timeoutSec`). `postToolUse` receives `toolName`/`toolArgs`/`toolResult` on stdin
+  and can return `additionalContext` that reaches the model (capped 10 KB) —
+  functionally what the kit's exit-2 stderr feedback does (Claude Code's "blocking"
+  is also advice-to-the-model, not a rollback). Regex matcher on `toolName` replaces
+  `Edit|Write`. The recipe in `GATE_RECIPES.md` rewrites; the semantics survive.
+  Bonus not available on Claude Code: `agentStop` can force another turn — a
+  possible "gate not green → keep going" enforcement point.
+- **C5 models — yes, different names.** `/model`, `--model`, `COPILOT_MODEL`,
+  persisted model in `~/.copilot/settings.json`, per-agent model pinning. The
+  `opus`/`sonnet`/`haiku` alias table does not port; tier names would be
+  re-interviewed at setup (the gate-recipes principle: ask, don't assume).
+- **C6 subagents — yes.** Custom agents (`.github/agents/*.agent.md`,
+  name/description/tools frontmatter) run as subagents with their own context
+  window; a read-only "explore" profile is definable via `tools` restriction.
+  Parallel fan-out is not documented — the sweeps in `plan-phase`/`sdlc-setup` may
+  serialize. Flagged, not disqualifying.
+- **C9 sessions — yes.** `/clear`, `/new`, `/reset` exist verbatim.
+- **C7 review plugin — NO.** Copilot has its own plugin system
+  (`plugin.json`: agents/skills/hooks/MCP components, marketplaces) but
+  `pr-review-toolkit@claude-plugins-official` and its reviewer agents do not exist
+  there. The review steps in `end-slice`/`end-phase` would need a replacement — a
+  custom review agent shipped by the kit, or the review lenses run inline.
+- **C8 built-ins — NO.** `/code-review`, `verify`, `simplify`, `security-review`,
+  `update-config` have no Copilot counterparts; `claude update` is `npm`-style CLI
+  update. `SKILLS.md`'s built-ins table and the owner-typed escalation path are
+  Claude-only. (§18's sequencing hunch confirmed: the `/security-review` built-in
+  the kit recommends does not exist on Copilot CLI.)
+- **C1/C10 paths — translation table.** `.claude/commands/` → skill dirs;
+  `.claude/settings.json` → `.github/hooks/*.json` + `.github/copilot/settings.json`;
+  `.claude/agents/` → `.github/agents/`. `sdlc-setup`/`sdlc-update` would carry the
+  mapping.
+
+### 20.3 Verdict: portable-with-translation-layer
+
+Eight of ten couplings have documented Copilot equivalents; the translation is real
+(different paths, hook dialect, skills-not-commands packaging) but mechanical, and
+it concentrates in six files: `sdlc-setup.md`, `sdlc-update.md`,
+`settings.template.json`, `GATE_RECIPES.md`'s hook recipe, `SKILLS.md`, and the
+review steps of `end-slice.md`/`end-phase.md`. The two genuine losses are C7 and C8
+— the entire third-party review apparatus and every recommended built-in — which is
+not an install-path problem but a *content* rewrite: a Copilot edition ships its own
+review machinery or runs lenses inline. Everything else the kit is — the process,
+the halt points, the gate, the specs, the TDD skills, the lenses — is prose Copilot
+reads as well as Claude does.
+
+Not fork-required: no coupling is inexpressible. Not decline: the losses are two
+bounded subsystems, not the architecture. **Recommendation if built:** a translation
+layer in `sdlc-setup` (target-CLI question at setup; path/hook/skill mapping table),
+not a maintained second kit — a fork doubles every future batch's edit surface.
+Cost honestly stated: the C7/C8 replacement is new content with no upstream, it
+enters the §16 audit regime, and Copilot CLI's documented churn ("ships updates
+constantly") makes any mapping table a drift liability the kit's own field reports
+warn about. Whether that cost buys an audience is an owner question, not an
+evidence question. **Owner decision required: build the translation layer, park
+this report as reference, or decline the direction** — STD does not depend on the
+answer.
+
+### Hand-off — state as of 2026-08-03, end of the COP session
+
+- Read-only spike; kit tree untouched at v0.12.0. This section is the deliverable.
+- **One owner decision open (above): what, if anything, to do with the verdict.**
+- **Next session opens on STD** (§18) unless the owner redirects: setup interview
+  for logging/error-handling conventions, fail-loud lenses in `REVIEW_LENSES.md`,
+  mechanical gate rules via `GATE_RECIPES.md`. COP's input to STD, now confirmed:
+  keep the secure-coding work in *lenses* (portable prose) — the built-in it would
+  otherwise lean on is Claude-only (C8).
+- **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
+  R3.8's aging rule still on its clock (§16 contingent keep).
