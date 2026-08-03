@@ -1893,3 +1893,90 @@ answer.
   otherwise lean on is Claude-only (C8).
 - **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
   R3.8's aging rule still on its clock (§16 contingent keep).
+
+## 21. PORT queued — 2026-08-03; owner resolved §20's open decision: build it
+
+**Owner decision, dated 2026-08-03 — do not re-litigate:** build the translation
+layer, and solve both genuine losses (C7, C8) rather than shipping a degraded
+Copilot edition. Recorded the same day §20 posed the question. Ordering: the owner
+asked to pick this up after COP, so **PORT runs next and STD moves behind it**
+(queue is now PORT → STD). No dependency breaks: STD's lens work is
+`REVIEW_LENSES.md` content, independent of PORT's plumbing — though note the
+interplay in PORT.2 below, which makes the lenses more load-bearing.
+
+### PORT — the Copilot CLI translation layer *(next to build; ships as `v0.13.0`)*
+
+Shape per §20.3's recommendation: a seam in `sdlc-setup`, not a maintained second
+kit. All §20.2 capability claims must be **re-verified against the docs at build
+time** before code is written against them — Copilot CLI's documented churn is the
+standing risk, and §20.2 is dated evidence, not a durable fact.
+
+- **PORT.1 — target-CLI seam.** `sdlc-setup.md` asks at interview start: Claude
+  Code or Copilot CLI. One mapping table, stated once in a new
+  `reference/COPILOT.md` (dated, provenance-style like `SKILLS.md`) and consumed by
+  setup:
+  - Commands/skills: `.claude/commands/*.md` → per-command skill directories
+    (`SKILL.md` + name/description frontmatter), invoked as `/skill-name`.
+  - `CLAUDE.template.md` → `AGENTS.md`.
+  - Gate hook: new Copilot-dialect hook template (`.github/hooks/` JSON,
+    `postToolUse`, regex `toolName` matcher, lint/typecheck output returned as
+    `additionalContext`); the recipe added to `GATE_RECIPES.md` beside the
+    existing one, same `{{HOOK_*}}` placeholder set (inv 1 applies).
+  - Model tiers: keep High/Medium/Low as the kit's vocabulary; map to concrete
+    models per CLI at interview (`/model` listing on Copilot), recorded in the
+    project's `SDLC.md` — ask, don't assume (gate-recipes principle).
+  - Subagent sweeps: ship a tools-restricted read-only `explore.agent.md` profile
+    for `plan-phase`/`sdlc-setup` sweeps; if parallel fan-out is still
+    undocumented at build time, the sweeps run serially on Copilot — noted in the
+    generated `SDLC.md`, not silently.
+- **PORT.2 — C7 solution (review apparatus).** Candidate, to be confirmed at
+  build: a **kit-owned reviewer** — a review agent/skill that reads
+  `REVIEW_LENSES.md` and the diff, shipped by the kit itself, no third-party
+  dependency. Evaluate before committing to it: (a) whether it also *replaces*
+  `pr-review-toolkit` on the Claude side — one review path on both CLIs would
+  cancel the dual-maintenance cost §20.3 warned about, but swaps a proven plugin
+  for new unproven content (owner call at build time, presented with evidence);
+  (b) whether a Copilot marketplace equivalent of pr-review-toolkit exists by
+  then (verify, don't assume absence from a 2026-08-03 search).
+- **PORT.3 — C8 solutions (built-ins), one per built-in, no hand-waving:**
+  - `/code-review` (owner-typed escalation) → candidate: GitHub's Copilot code
+    review requested on the phase PR at `end-phase` — same owner-typed, billed,
+    out-of-band shape. Verify capability at build time.
+  - `verify` / `simplify` → small kit-shipped skills stating the pass each
+    performs (the built-ins are prompts; the kit can carry portable equivalents).
+    Each enters the §16 audit regime individually — no confirmed catch after two
+    releases, deletion candidate.
+  - `security-review` → covered by STD's secure-coding lenses (the PORT.2
+    reviewer runs them). This is the C8 item STD was already solving; PORT does
+    not duplicate it, it waits for STD.
+  - `update-config` → no equivalent needed: Copilot config is plain JSON files;
+    a paragraph in `reference/COPILOT.md` suffices.
+  - `SKILLS.md` gains a per-CLI availability column rather than a second edition.
+- **PORT.4 — `sdlc-update` awareness.** The update command classifies the
+  Copilot-side artifacts (`.github/skills/`, `.github/hooks/`, `.github/agents/`,
+  `AGENTS.md`) exactly as it does the `.claude/` set today; MANIFEST covers any
+  new templates. `sdlc-setup` records the chosen target CLI in `PROJECT_INDEX.md`
+  so `/sdlc-update` knows which mapping to walk.
+
+Invariant surface, flagged now: inv 1 (new templates' placeholders must be taught
+to setup), inv 2 (the CLI seam is process-neutral — `SDLC.template.md` should need
+only the model-tier and review wording checked), inv 5 (README tree grows), inv 6
+(`reference/COPILOT.md` ships to adopters — it is setup-time material, so it
+belongs under `sdlc-kit/`), inv 15 (setup verifies the *installed* Copilot version
+against the mapping's verified-on date and says so — fail loudly, per FR1).
+
+Open at build time (not decided now): Copilot-side skills directory
+(`.github/skills/` vs `.claude/skills/`, both documented as read); whether
+`AGENTS.md` is emitted on both CLIs or Copilot-only; PORT.2(a), the
+single-review-path question — an explicit owner halt in the build session.
+
+### Hand-off — state as of 2026-08-03, end of the COP session (amended)
+
+- **Next session opens on PORT** — PORT.1 first (the seam and mapping table),
+  then PORT.4, then PORT.2/PORT.3 which carry their own build-time verifications
+  and one owner halt (PORT.2a). Re-verify §20.2 against the docs before building.
+- **STD queued behind PORT**; its lens work is unchanged and PORT.2's reviewer
+  will consume it. PORT.3's `security-review` replacement *waits for STD* — it
+  ships with STD's lenses, not before them.
+- **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
+  R3.8's aging rule still on its clock (§16 contingent keep).
