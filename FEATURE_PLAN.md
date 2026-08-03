@@ -2632,3 +2632,111 @@ PORT.0 (§23, the re-verification), PORT.1 items 1–5 (§24), PORT.4 (§25).
 **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's aging
 rule (§16 contingent keep); STD's four audit clocks (§22), whose deadline is 0.15.0 —
 one release later than the one now being assembled.
+
+## 27. PORT.2 step 1 — the C7 experiment, run 2026-08-03; C7 is NOT a loss
+
+§23.3 told PORT.2 to run this before any design work and to treat C7 as a loss until it
+did: "attempt the install and invoke one reviewer." Run. **Both halves succeeded**, so
+the C7-is-a-loss default is retired — but the win is narrower and more dated than a bare
+"it works" implies, and the four caveats below are the substance of the finding.
+
+**Bench:** Copilot CLI **1.0.77**, installed via winget (not npm — the binary is
+`%LOCALAPPDATA%\Microsoft\WinGet\Packages\GitHub.Copilot_*\copilot.exe`), authenticated,
+against a throwaway git repo at `D:\AICourse\copilot-ci-test` with a two-defect JS
+fixture. All runs non-interactive (`-p … -s --no-ask-user`) under a read-only tool grant.
+
+### 27.1 The install: the working path is the deprecated one
+
+- **Marketplace registration fails.** `copilot plugin marketplace add
+  anthropics/claude-plugins-official` errors out. Copilot *did* fetch
+  `.claude-plugin/marketplace.json` — confirming 23.3's claim that the Claude layout is
+  one of the two locations it reads — but its schema for `plugins[].source` is stricter:
+  it accepts the plain relative-path string and rejects the `{source: "git-subdir", url,
+  path, ref, sha}` object form. 79 of 276 entries use the object form, validation is
+  all-or-nothing, and the whole marketplace is refused.
+- **`pr-review-toolkit` is not one of the rejected entries.** It sits at index 191 with
+  `"source": "./plugins/pr-review-toolkit"`. Its exclusion is collateral damage from
+  third-party entries, which matters: the incompatibility is not with Anthropic's plugin
+  but with other publishers' use of a form Copilot has not implemented.
+- **The subdirectory install works:** `copilot plugin install
+  anthropics/claude-plugins-official:plugins/pr-review-toolkit` → "installed
+  successfully."
+- **…and is announced as deprecated in the same breath.** Verbatim: "Direct plugin
+  installs (repos, URLs, local paths) are deprecated. Only plugin@marketplace installs
+  will be supported in a future release." **So the only path that works today is the one
+  being removed, and the path about to be mandatory is the one the schema mismatch
+  blocks.** Any kit instruction that depends on this is a dated dependency, and
+  `COPILOT.md` must date it rather than state it as a capability.
+
+### 27.2 Five of six agents loaded; the sixth was dropped silently
+
+`--agent` reports: `code-reviewer`, `code-simplifier`, `comment-analyzer`,
+`pr-test-analyzer`, `type-design-analyzer`. **`silent-failure-hunter` is absent.**
+
+Cause established, and the correlation is 1:1 across the six files: it is the only agent
+whose unquoted YAML plain-scalar `description` contains a `: ` — from the embedded
+example line `Daisy: "I've added error handling to the API client."`. Copilot's
+frontmatter parser rejects the document; Claude Code's tolerates it and loads the agent
+fine.
+
+**The failure mode is worse than the failure.** There is no warning at install, and
+`copilot plugin list` reports the plugin as healthy. The drop is visible only by passing
+a bogus `--agent` name and reading the "available:" list in the error. This is invariant
+15's shape exactly — the artifact verified clean, the environment it runs in silently
+carrying less — and it is a *kit* hazard, not just a plugin one: any kit-authored agent
+or skill whose frontmatter description contains a colon-space will vanish on Copilot
+without saying so.
+
+### 27.3 `model:` pinning is silently downgraded
+
+`code-reviewer.md` declares `model: opus`. Copilot warns — "specifies model 'opus' which
+is not available; using 'auto' instead" — and proceeds. Kit-authored agents must not pin
+a Claude model name if they are meant to run on both CLIs.
+
+### 27.4 The agents genuinely execute, and the fan-out exists
+
+- **Execution, not just parsing.** `comment-analyzer` returned its report in that agent
+  file's exact section structure (*Critical Issues / Improvement Opportunities /
+  Recommended Removals / Positive Findings*). The Claude-authored prompt is running.
+- **`task` is a builtin.** Copilot's tool set includes `task`, `list_agents`,
+  `read_agent`, `write_agent`. Delegation to a plugin agent via `task` succeeded.
+  **23.6's friction (b) is therefore half-solved:** fan-out works, but `general-purpose`
+  is *not* among the available agent names, so any skill naming that subagent type
+  literally — `mattpocock/skills`' `code-review` does — still needs translation.
+- **A commands→skills mapping fact for `COPILOT.md`:** the plugin's `commands/review-pr.md`
+  registers on Copilot as a **Plugin skill** (`copilot skill list` → "review-pr"), not as
+  a command. Copilot has no separate user-command kind here.
+
+### 27.5 A false negative that did NOT survive checking
+
+First run, `code-reviewer` against the fixture reported "No high-confidence correctness
+or error-handling issues found" — on a function that swallows every exception and
+returns `null`. Tempting as evidence that Claude agents degrade on Copilot. **It is not,
+and the check is recorded because the claim would have been wrong:** the fixture was
+fully committed, so `git diff` was empty, and `code-reviewer` is diff-scoped. Re-run
+against a real uncommitted diff, it flagged the swallow as its one high-confidence issue
+at confidence 92 with a correct fix suggestion, and noted the absence of a `CLAUDE.md` to
+review against. Review quality on Copilot is *not* a demonstrated problem.
+
+### 27.6 Incidental findings PORT.3 needs
+
+- **`copilot skill list` reports exactly one builtin skill:** `customize-cloud-agent`.
+  Copilot's builtin surface is far smaller than Claude Code's, so PORT.3's per-built-in
+  list is mostly a list of things the kit must supply, not map.
+- **Copilot's builtin tools**, verbatim: `powershell`, `read_powershell`,
+  `stop_powershell`, `list_powershell`, `view`, `create`, `edit`, `web_fetch`,
+  `fetch_copilot_cli_documentation`, `skill`, `sql`, `session_store_sql`, `read_agent`,
+  `list_agents`, `write_agent`, `grep`, `glob`, `task`, plus a `github-mcp-server-*`
+  subset. Note `view`/`create`/`edit` where Claude Code has `Read`/`Write`/`Edit`, and
+  `powershell` where it has `Bash` — `COPILOT.md`'s tool-name table should be checked
+  against this list, which is a live 1.0.77 reading rather than a docs reading.
+- **Skill discovery paths**, verbatim from `copilot skill --help`: project
+  `.github/skills/`, `.agents/skills/`, `.claude/skills/`; personal `~/.copilot/skills/`
+  or `~/.agents/skills/`; plugin; custom. This confirms §24.6's skills-move rationale
+  first-hand.
+
+### 27.7 State of the bench
+
+The plugin is **still installed** on the owner's Copilot CLI and the test repo still
+exists, both deliberately, in case PORT.2a wants more probing. Neither is a kit artifact
+and neither is tracked here. Reversal is `copilot plugin uninstall pr-review-toolkit`.
