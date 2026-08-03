@@ -10,6 +10,78 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.11.0 — 2026-08-03
+
+The R4 batch: the fix batch of the fifth field report (`FIELD_REPORT_2026-08-02.md`,
+filed as `sdlc-kit#2`), triaged in `FEATURE_PLAN.md` §15 — ten rules in the report's
+damage order, run after SIMP by owner decision. The report's theme shapes the heaviest
+rows: **the kit specified what each step must produce and almost never what makes it
+done** — R4 gives the phase-boundary steps the completion conditions SIMP deliberately
+left to it. No new files, no new placeholders, no halt-point changes.
+
+### Added
+- **[installable]** `end-phase.md` §5 (R4.1, R4.3): spawning the review fan-out
+  re-asserts the §1 clean-tree precondition where it is load-bearing — the reviewers
+  share the session's tree, and a real arc lost two uncommitted fixes to a reviewer's
+  `git checkout` while the fix-batch commit claimed both. The corollary travels with
+  it: a commit message may not claim a fix that has no test pinning it. And the
+  review's completion condition: done only when **every** reviewer has returned — the
+  fix batch is assembled after the last return, goes through the gate as one unit, and
+  a later-arriving finding re-opens the review rather than starting a second batch.
+- **[installable]** `end-slice.md` §3 (R4.1): the slice reviewer reviews the
+  uncommitted working diff by design, so the discipline binds to the agent — the
+  review is **read-only in the shared tree**: no `git checkout/restore/stash`; fixes
+  come back as findings, never as edits.
+- **[installable]** `end-phase.md` §3 (R4.2): when no slice's exit criteria required
+  running the application — an arc behavior-neutral by construction — the composed
+  system runs **locally against real data before the PR opens**. The acceptance halt
+  passes vacuously on exactly those arcs; the arc that bought this rule found its
+  worst defect in that pass, three commits before the PR, with 474 hermetic tests
+  green throughout. `plan-phase.md` step 4 flags the all-slices-behavior-neutral
+  condition at planning time.
+- **[installable]** `plan-phase.md` steps 4–5 (R4.5): each slice's exit criteria name
+  **what observes them and when** — a local command, the gate, CI on the main branch,
+  or the owner; a criterion naming an observer that does not run at that point is a
+  planning defect, not a slice problem. The kit's own ratchet phrasing is the standing
+  exposure for every adopter whose CI runs only on the main branch — a real arc wrote
+  the unsatisfiable criterion twice in one planning session.
+- **[installable]** `reference/REVIEW_LENSES.md` (R4.4): third lens — **shared state
+  under concurrency**: for every object that outlives a request or is reachable from
+  more than one, name the runtime's concurrency model and state what serializes
+  access. Specimen measured rather than asserted: 410 of 600 concurrent selects
+  returned the wrong question's passages under the stdlib threading server — two
+  browser tabs is enough. `end-slice.md` §3's trigger enumeration gains the matching
+  third trigger.
+- **[installable]** `end-slice.md` step 6 (R4.6): the friction log gets its writer —
+  friction with the *process* is written to the Kit friction log at slice close, or
+  never (one adoption's retros produced 23 findings across three arcs while the log
+  gained zero entries). This is the writer R3.8's contingent keep waits on (§16).
+- **[installable]** `end-slice.md` step 6 (R4.7): slice close-outs record **status
+  only — one line**; detail lives in the phase spec and the commit message (already
+  the better record). A real adoption wrote 83–163 lines per slice into its index
+  five times and corrected it once per arc. R3.7's phase-close archival bullet stays
+  as the safety net by owner decision (§16). **[adoption-only]**
+  `PROJECT_INDEX.template.md`'s section comments state the write rule and name the
+  friction log's writer.
+- **[installable]** `end-slice.md` §6 (R4.8): a control that hands the operator a
+  remediation command must scope that command to the population the control actually
+  flags — an unscoped fix-everything one-liner corrupted two PNGs whose magic bytes
+  legitimately contain CR LF. The *verify the denominator* lens applies to the
+  control's own output.
+- **[installable]** `sdlc-retro.md` step 5 (R4.10): the citation gate — a finding
+  quotes the implicated text at a section number **read off the file at writing
+  time** (or, for a silence finding, locates the silence between two named steps that
+  do exist), and names **every home** of the quoted wording. Two consecutive reports
+  shipped citations written from memory of the process — step numbers for steps that
+  do not exist — every one caught only maintainer-side.
+- **[adoption-only]** `SDLC.template.md` mirrors every command-side rule above
+  canonically (inv 2): halt 4, phase-start item 3, slice-loop items 6 and 9,
+  phase-end item 4, and the bookkeeping gotcha rule.
+- Root-side, no marker: `FEATURE_PLAN.md` §5 gains the trial-protocol rule (R4.9) — a
+  trial pre-registers **what the change is supposed to buy and how that is measured**,
+  alongside its safety criteria. F3's four criteria all measured safety, and a trial
+  that cannot fail on value cannot justify shipping.
+
 ## 0.10.0 — 2026-08-03
 
 The SIMP batch: the simplification pass the fifth field report ranked first (finding 7,

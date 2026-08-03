@@ -6,11 +6,12 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 <!-- Sections below are marked **bounded** or **growing**. Bounded sections answer "what
      do I do next" and are what a fresh session reads first: they stay short, and stale
      content leaves them rather than accumulating. Growing sections are records and may
-     get long — they live below the bounded ones for that reason. If a phase's per-slice
-     detail collects here during an arc, /end-phase archives it into that phase's own
-     spec file at the close; nothing is deleted, but this file is a dashboard first and
-     an archive never. A single source of truth nobody can find the answer in has
-     stopped being one. -->
+     get long — they live below the bounded ones for that reason. Per-slice close-outs
+     record status only — one line; detail belongs in the phase spec and the commit
+     message, not here. If detail collects here anyway, /end-phase archives it into
+     that phase's own spec file at the close — a safety net, not the plan; nothing is
+     deleted, but this file is a dashboard first and an archive never. A single source
+     of truth nobody can find the answer in has stopped being one. -->
 
 ## Phase — *bounded*
 
@@ -59,7 +60,8 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 
 <!-- Process friction, not code findings: a step that cost more than it returned, a
      rule worked around, tooling noise (stderr warnings, phantom diffs), a moment the
-     process was silent. One line each, dated. This is /sdlc-retro's raw material —
+     process was silent. One line each, dated. /end-slice's close-out writes here, at
+     the moment the friction is still accurate. This is /sdlc-retro's raw material —
      its recorded-but-unactioned sweep mines this section first, because friction that
      produces no backlog entry, no commit, and no gate movement is invisible to every
      other sweep. When a retro absorbs an entry into a report, mark it absorbed rather

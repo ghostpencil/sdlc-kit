@@ -101,7 +101,17 @@ subagent ever interacts with the owner.
   configs created before this feature? Preserve-and-extend; never break existing data.
 - **Testability sweep** — every behavior must be pinnable by a deterministic test, or
   explicitly assigned to the acceptance-review checklist. "Feels right" is not an exit
-  criterion.
+  criterion. Each slice's exit criteria name **what observes them and when** — a local
+  command, the gate, CI on the main branch, or the owner. A criterion naming an
+  observer that does not run at that point is a planning defect, not a slice problem;
+  the kit's own ratchet phrasing is the standing exposure — "raise the coverage floor
+  from CI's printed number" is unsatisfiable on an arc branch whenever CI runs only on
+  the main branch, and a real arc wrote that criterion twice in one planning session
+  against a convention its own previous arc had recorded. Separately: if **every**
+  slice comes out behavior-neutral by construction (nothing runs until an activation
+  moment), flag it in the spec now — `/end-phase` will owe a local real-data pass of
+  the composed system before the PR, and an acceptance checklist written entirely for
+  the activation moment is the tell.
 - **Contradiction sweep** — check the answers against each other, against product
   direction, and against locked decisions in prior specs. Surface conflicts; never
   quietly pick a side.
@@ -134,8 +144,10 @@ step-6 approval), write `spec/PHASE_NN_<SLUG>.md`:
 ## Risks & Deferred     (known risks, explicitly deferred items)
 ```
 
-Slices must each be one-session-sized with exit criteria a test (or the acceptance
-checklist) can verify. Behaviors map onto slices — no behavior left unassigned.
+Slices must each be one-session-sized, with exit criteria a named observer can verify
+at the point they are claimed — a test, the gate, CI on the main branch, or the
+acceptance checklist (step 4's testability sweep is the check). Behaviors map onto
+slices — no behavior left unassigned.
 
 ### 6. Approval — owner halt
 

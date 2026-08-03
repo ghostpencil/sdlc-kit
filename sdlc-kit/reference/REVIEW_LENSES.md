@@ -68,3 +68,29 @@ Two rules fall out:
 
 Both apply to verification code with extra force: a wrong audit script does not error —
 it succeeds at the wrong task.
+
+## Lens: shared state under concurrency
+
+**Trigger:** the slice added or changed an object that outlives a request or is
+reachable from more than one — a held connection, a cached client, a module-level
+singleton, anything a handler keeps across calls.
+
+**For every such object, name the runtime's concurrency model and state what
+serializes access.** Not "is it thread-safe" — name the model (threading server, async
+event loop, worker pool, single process) and the mechanism (a lock, a per-request
+copy, a queue, the loop itself). "Nothing serializes access" is a legitimate answer
+and it is the finding.
+
+The specimen: a per-request retrieval object held **one** database connection and ran
+four queries on it with no lock, under the stdlib threading HTTP server. Measured
+against the real index: **410 of 600 concurrent selects returned the wrong question's
+passages**, and 26 raised an error from column values crossing between queries — not
+the database's own error type, so it escaped the narrow `except` and left the handler
+with no response written at all. Two browser tabs is enough. Neither inline lens nor
+either lens above can see this shape: it is not a changed consumer and not a
+simplified double.
+
+The measurement is half the lens. 410/600 is a measured consequence, where reviewers
+have twice asserted CRITICAL on premises that turned out false — so a hit through this
+lens is exercised concurrently (or otherwise reproduced) before it drives a fix,
+severity read off the result rather than asserted.

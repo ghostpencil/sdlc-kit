@@ -73,7 +73,11 @@ fix application, bookkeeping, commits) proceeds without asking.
    resolved silently.
 4. **Acceptance review** — the owner personally exercises the phase's visible behavior at
    phase end ({{ACCEPTANCE_SURFACE}}). The agent does not perform this review on the
-   owner's behalf.
+   owner's behalf. When no slice's exit criteria required running the application — an
+   arc behavior-neutral by construction — `/end-phase` first runs the composed system
+   locally against real data before the PR: the halt otherwise passes vacuously on a
+   phase with no visible behavior yet, which is exactly when nothing has ever run
+   outside the test suite.
 5. **Merge approval** — the owner approves the PR merge.
 
 ## The Gate
@@ -175,7 +179,9 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    unrelated system has no rollback.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
    numbered owner decisions, behaviors, non-goals, data/migration impact, user-visible
-   surface + acceptance-review checklist, slices with exit criteria, risks. Any decision
+   surface + acceptance-review checklist, slices with exit criteria that name **what
+   observes them and when** (a criterion naming an observer that does not run at that
+   point — CI on an arc branch, typically — is a planning defect), risks. Any decision
    carrying a number is tagged **measured** (naming the run, count, or query behind it)
    or **estimated** — the same distinction the deferred backlog draws about causes,
    applied where a number is first ratified.
@@ -212,7 +218,10 @@ Run `/end-slice` when the slice's exit criteria are met:
 5. Run the gate.
 6. Slice code review (`pr-review-toolkit:code-reviewer` on the diff; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
-   propagation or swept for a pattern). Two questions the diff alone cannot answer,
+   propagation, swept for a pattern, or touched an object that outlives a request or
+   is reachable from more than one). The review is **read-only in the shared tree** —
+   the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
+   fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that
    consumer do with the old behavior; and does any **test double** omit a side effect
    or simplify the error surface of what it replaces. **Every finding is verified
@@ -229,8 +238,11 @@ Run `/end-slice` when the slice's exit criteria are met:
    trustworthy only once it has been made to disagree; the step is done when every new
    guard has been seen to fail on exactly its own test.
 8. Commit (heredoc for multi-line messages, via the Bash tool).
-9. Update `spec/PROJECT_INDEX.md` — slice marked done, deferred items appended — and
-   commit the docs change. Push the branch (no PR — that is phase end).
+9. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
+   detail lives in the phase spec and the commit message), deferred items appended,
+   and any friction with the process itself written to the Kit friction log now,
+   while the evidence is still accurate — then commit the docs change. Push the
+   branch (no PR — that is phase end).
 10. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end
@@ -248,10 +260,16 @@ Run `/end-phase` when the last slice is done:
    instructions: fix `{{RUN_COMMAND}}` against the owner's result and record the
    resolved toolchain path in Environment gotchas.
 3. Push and open the PR (`gh`), body summarizing the phase against its exit criteria.
-4. Whole-arc review: `pr-review-toolkit:review-pr` on the PR. Verify each finding against
-   the source before it enters a fix batch, and report the ones that did not survive
-   alongside the ones that did; then apply, re-run the gate, push. Deeper option when
-   warranted: `/code-review ultra <PR#>` (owner-triggered).
+4. Whole-arc review: `pr-review-toolkit:review-pr` on the PR — spawned only from a
+   clean tree with every fix committed, since the fan-out shares the tree with the
+   session; and a commit message may not claim a fix that has no test pinning it,
+   because an untested fix can silently leave. Verify each finding against the source
+   before it enters a fix batch, and report the ones that did not survive alongside
+   the ones that did. The review is done only when **every** reviewer has returned:
+   the fix batch is assembled after the last return and goes through the gate as one
+   unit — a later-arriving finding re-opens the review rather than starting a second
+   batch. Then apply, re-run the gate, push. Deeper option when warranted:
+   `/code-review ultra <PR#>` (owner-triggered).
 5. **Merge approval** *(halt 5)*, then merge.
 6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;
@@ -294,7 +312,9 @@ Run `/end-phase` when the last slice is done:
   it, the entry says so explicitly and carries its recurrence count. Those are the
   hazard's only two closed states; a sharper note is neither. Prose in a status
   document is not a control; describing a hazard more sharply each time is what a
-  process does instead of stopping it.
+  process does instead of stopping it. A control that hands the operator a remediation
+  command scopes that command to the population the control actually flags — the
+  failure message is the part acted on under time pressure.
 - `spec/PROJECT_INDEX.md` has **bounded** sections and **growing** ones (marked in the
   file). The bounded ones are what a fresh session reads first and are kept short;
   per-slice detail is archived into the phase spec at phase close rather than

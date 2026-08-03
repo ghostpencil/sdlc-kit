@@ -29,6 +29,17 @@ end-to-end run, manual script). Fix and re-run until green.
 
 ### 3. Owner acceptance review — HALT
 
+**First, check what this arc has actually run.** If no slice's exit criteria required
+running the application — every slice behavior-neutral by construction, e.g. new code
+behind a default-off flag — then the composed system has never run outside the test
+suite, and this halt would pass vacuously: a flag-gated arc has no visible behavior by
+design, so the process is at its most confident exactly where it has observed least.
+In that case, **run the composed system locally against real data before the PR
+opens**, and put what it shows in front of the owner with the acceptance pass. On the
+arc that bought this rule, the local pass found the arc's worst defect three commits
+before the PR — 474 hermetic tests green throughout, the defect in the composition,
+invisible to every unit.
+
 Tell the owner the phase is gate-green and ready for their acceptance pass. List what to
 look at: the phase's user-visible behaviors from the spec's acceptance checklist, plus
 any live-data notes from PROJECT_INDEX. The owner exercises the product themselves (run
@@ -66,6 +77,14 @@ EOF
 
 ### 5. Whole-arc review
 
+Spawning the fan-out has a precondition, re-asserted from §1 because this is where it
+is load-bearing: **the working tree is clean and every fix so far is committed.** The
+reviewers run concurrently with this session in the same tree, and an uncommitted fix
+is a fix a reviewer's `git checkout` can silently revert — a real arc lost two that
+way, and the fix-batch commit's message claimed both. The corollary generalizes past
+the fan-out: **a fix with no test pinning it can silently leave, so a commit message
+may not claim one.**
+
 Run `pr-review-toolkit:review-pr` on the PR. **Verify each finding against the source
 before it enters a fix batch, and report the findings that did not survive verification
 alongside those that did** — a review finding is a claim about the code, and a claim
@@ -73,9 +92,18 @@ with a false premise can be CRITICAL-severity and still wrong. On a real arc, tw
 five reviewers produced CRITICALs whose stated trigger was factually false; followed
 literally, this step would have taken both fixes into a live authorization path. The
 reporting half is not optional: a discarded finding is evidence about the reviewer, and
-dropping it silently teaches nobody anything. Then apply the surviving batches, re-run
-the gate, push, and update the PR body with what changed. If the phase was large or high-risk, suggest
-`/code-review ultra <PR#>` to the owner as an optional deeper pass (owner-triggered, paid).
+dropping it silently teaches nobody anything.
+
+**The review is done only when every reviewer has returned.** With a fan-out, "done" is
+whenever the last reviewer comes back, and nothing else holds the batch: assemble the
+fix batch only after the last return, and take it through the gate as one unit. A
+finding that arrives after the batch is committed re-opens the review rather than
+starting a second batch — on a real arc the batch closed while the slowest reviewer was
+still out; that reviewer returned with the arc's worst gap (nine surviving mutations at
+100% line coverage), and the interim batch had shipped its own regression. Then apply
+the surviving batch, re-run the gate, push, and update the PR body with what changed.
+If the phase was large or high-risk, suggest `/code-review ultra <PR#>` to the owner as
+an optional deeper pass (owner-triggered, paid).
 
 This is not a repeat of the slice reviews: each of those saw one layer, so arc-level bugs
 live in the seams between slices and are invisible to every per-slice review by construction.

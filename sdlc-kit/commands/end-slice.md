@@ -38,6 +38,13 @@ launch it. If the named agent is unavailable and something else must stand in, t
 substitution is **named in the hand-back** (step 7) — a good substitute review is
 exactly the kind nobody thinks to question.
 
+The reviewer reviews the **uncommitted working diff by design**, so a clean-tree rule
+cannot protect it; the discipline binds to the agent instead: **the review is read-only
+in the shared tree.** No `git checkout`, `git restore`, or `git stash`; fixes come back
+as findings, never as edits. A reviewer that "helpfully" reverts or rewrites a file is
+destroying the very diff it was asked to review — a real arc lost two uncommitted fixes
+to exactly that.
+
 Two lenses the diff-shaped review structurally lacks — apply them explicitly:
 
 - **Consumers of changed behavior.** For every error/return path this slice changed
@@ -49,8 +56,9 @@ Two lenses the diff-shaped review structurally lacks — apply them explicitly:
   error surface of what it replaces? A double one field simpler than reality makes the
   defect it hides structurally unreachable in tests (`spec/TESTING.md`, mock policy).
 
-If the slice changed error propagation or swept the codebase for a pattern, also apply
-the matching lens from `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
+If the slice changed error propagation, swept the codebase for a pattern, or touched
+an object that outlives a request or is reachable from more than one, also apply the
+matching lens from `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
 
 Triage findings — **verify each one against the source before it enters any pile.** A
 finding is a claim about the code; severity is asserted by the reviewer, not measured,
@@ -103,7 +111,12 @@ EOF
 ### 6. Record in PROJECT_INDEX
 
 Update `spec/PROJECT_INDEX.md`:
-- Mark the slice done in the current phase's status/START HERE section.
+- Mark the slice done in the current phase's status/START HERE section. **Status only —
+  one line.** The close-out records that the slice is done and what is next; the detail
+  goes where it will live anyway — the phase spec — and the commit message is already
+  the better record. A real adoption wrote 83–163 lines of per-slice detail into the
+  index five times and paid an archiving step once per arc to move it back out; the
+  phase-close archival bullet stays as the safety net, not the plan.
 - Append deferred review findings to the backlog with rationale, provenance
   (e.g. "(slice review, <date>)"), and the cause marker from step 3's triage
   (**measured** / **suspected**).
@@ -120,7 +133,19 @@ Update `spec/PROJECT_INDEX.md`:
   control: a real adoption recorded an editor silently rewriting line endings four
   times, each note sharper than the last, each one followed, and the hazard recurred
   every time. Sharpening the wording is what the process does instead of preventing the
-  thing.
+  thing. And when the check becomes a control: **a control that hands the operator a
+  remediation command must scope that command to the population the control actually
+  flags.** An operator acts on the failure message under time pressure — an unscoped
+  fix-everything one-liner from a line-endings check, applied over the whole tracked
+  tree, corrupted two PNGs whose magic bytes legitimately contain CR LF. The *verify
+  the denominator* lens applies to the control's own output.
+- **Kit friction gets written now or never.** Was anything in this slice friction with
+  the *process* rather than with the code — a rule fought, worked around, or silent
+  where a decision was needed? If so, one line to the Kit friction log in
+  PROJECT_INDEX, dated, now. Slice close is the last moment the evidence is still
+  accurate; the retro reads this log and cannot reconstruct what was never recorded —
+  one adoption's retros produced 23 findings across three arcs while the log gained
+  zero entries, because no step ever prompted the writing.
 - Note the next slice up, so `/next-slice` in a fresh session can orient without help.
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).

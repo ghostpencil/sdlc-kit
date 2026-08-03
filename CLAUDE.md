@@ -138,8 +138,9 @@ confirmed catch, runs **as its own batch before any R4 fix batch**. Its theme co
 the lineage: **the kit specifies what each step must produce and almost never what makes
 it done** — the gate is the only step with a completion condition and the only step that
 never failed. `FEATURE_PLAN.md` §15 records the triage: nine of ten findings stood
-(three with step-number or scope corrections), and the work is queued as two batches —
-SIMP, the simplification pass, then R4.
+(three with step-number or scope corrections), and the work shipped as two batches —
+SIMP, the simplification pass (v0.10.0), then R4, the ten-rule fix batch (v0.11.0,
+§17).
 
 ## Writing conventions for these files
 

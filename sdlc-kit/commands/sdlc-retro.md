@@ -140,8 +140,8 @@ is the authoritative statement of the format):
   (tests, gate baseline movement, PRs merged) — measured, not remembered.
 
 ## N. <finding title>                 (numbered, ordered by damage caused)
-  Severity. What happened, with the evidence quoted. Which kit file it implicates,
-  by path. What the fix would be.
+  Severity. What happened, with the evidence quoted. Which kit text it implicates,
+  by path and quoted section. What the fix would be.
 
 ## What worked well
   Practices that earned their place.
@@ -155,6 +155,17 @@ Each finding must name the kit file it implicates (`commands/end-slice.md`,
 `templates/SDLC.template.md`, …) and quote the evidence it rests on. A finding that
 cannot name a file is not yet a finding — it is a feeling, and it goes back to step 3 as
 a question.
+
+The citation is **read off the file at writing time, never from memory of the
+process**: quote the implicated text with a section or step number taken from the file
+as it is now — or, for a finding about silence, locate the silence between two named
+steps that do exist. Then name **every home** of the quoted wording: a rule usually
+lives in a command *and* in `spec/SDLC.md`'s canonical statement, and a fix that
+misses a home leaves the two disagreeing. A finding whose citation was not read off
+the file is not yet verified — two consecutive real reports shipped step numbers for
+steps that do not exist and quotes reworded from memory, and every one was caught only
+on the maintainer's side. The review verifies its findings against the source; the
+retro, which produces findings about kit files, holds itself to the same rule.
 
 If the sweeps and interview produced **no** kit findings, say exactly that and write the
 report anyway with its *What worked well* section filled in. Zero findings is a

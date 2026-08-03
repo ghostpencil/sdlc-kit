@@ -317,6 +317,17 @@ of derived statements is itself a derived statement, with the same drift problem
   CHANGELOG entry at all until it passes.
 - This file joins the root README file tree and root CLAUDE.md's root-docs enumeration
   (invariant 5 / invariant 9 in the ledger) in the same commit that adds it.
+- **Trial protocol (R4.9, from the fifth report's finding 8):** a trial pre-registers
+  **what the change is supposed to buy and how that is measured**, alongside its
+  safety criteria, before it runs. F3's four pass criteria all measured safety; "saved
+  no time" was observed and never in dispute, and a trial that cannot fail on value
+  cannot justify shipping. Recorded here for any future F3-shaped work, from the
+  trial's own results: `blocked` is rare **by design** — for a slice with a detailed
+  spec the halts get spent at scope confirmation, before any spawn, so `blocked` and
+  respawn-recovery are labeled *unexercised*, not validated — and the two-state return
+  contract needs at least two more states: *done except for work that can only happen
+  outside the agent boundary*, and *done, with a real design question deferred to a
+  later slice*.
 
 ---
 
@@ -1307,7 +1318,8 @@ R3.3 — now four arcs unchanged), and the `/sdlc-retro` that follows it.
 
 ## 15. Fifth field report — triaged 2026-08-03; SIMP queued before R4
 
-> **Status: TRIAGED, not built.** Every claim below was verified against the kit tree at
+> **Status: BUILT — both batches shipped 2026-08-03.** SIMP shipped as `v0.10.0`
+> (§16); R4 built as `v0.11.0` (§17). Every claim below was verified against the kit tree at
 > **0.9.0** before triage — and for the first time verification was pure claim-checking:
 > the report is written against the *current* release, so nothing can have been fixed
 > since it was filed. Nine of ten findings stand as filed (three with step-number or
@@ -1556,3 +1568,46 @@ clean), README trees updated. `/kit-check` closes the batch.
   first real exercise: `.claude/agents/sdlc-surveyor.md` should classify UNCHANGED and
   be deleted. **Phase 07 must not open before that migration** — the arc-boundary
   window is open now, and `/plan-phase` would close it until Phase 07's end.
+
+---
+
+## 17. R4 — the fix batch, built 2026-08-03 *(ships as `v0.11.0`)*
+
+All ten rules of §15's edit map landed as specified, anchor lines re-read against the
+tree at 0.10.0 per §4a before editing (SIMP's conversions had moved lines in three
+target files; no row was invalidated, and every anchor was found where the re-read put
+it). R4.1's read-only-reviewer wording was written fresh rather than copied — the
+surveyor specimen the report quoted was deleted in SIMP.
+
+**Ripples the map did not carry, found by the §4a walk and the `/kit-check` inv-2
+pass, not recalled:**
+
+- `SDLC.template.md` phase-start item 3 — R4.5's observer rule is a process rule, so
+  inv 2's mirror obligation applies even though the map named only `plan-phase.md`;
+  exit criteria in the canonical spec skeleton now name what observes them.
+- `templates/PROJECT_INDEX.template.md`, two section comments — the bounded-sections
+  comment now states R4.7's write rule (status only; archival is the safety net, not
+  the plan), and the friction-log charter names R4.6's writer (`/end-slice`'s
+  close-out) instead of describing recording-at-the-moment as aspiration. Both were
+  homes of the changed wording in exactly the sense R4.10 now requires findings to
+  enumerate.
+
+`/kit-check` ran clean on all 15 invariants — no in-pass findings this time.
+Bookkeeping: `VERSION` → 0.11.0, CHANGELOG entry (nine [installable] bullets, one
+[adoption-only] mirror bullet, R4.9 noted as root-side), manifest regenerated at 26
+entries with discrimination proven (exactly the eight edited bundle files changed
+hash; text-mode hashes, no `*` prefixes — §16's in-pass finding did not recur).
+
+### Hand-off — state as of 2026-08-03, end of the R4 session
+
+- **R4 is committed; the fifth report is fully actioned** — all ten §15 rows plus
+  SIMP's four owner decisions are on disk. Nothing from `sdlc-kit#2` remains queued.
+- **Release status:** [filled in at close — tag `v0.11.0` push and `release.yml`
+  verification, per the owner's call at the end of the R4 session.]
+- **TFit migrates 0.9.0 → 0.11.0 directly, once, now** — the §16 hand-off's
+  owner-decided migration is unblocked. The removal clause fires on the hop (surveyor
+  classifies UNCHANGED → deleted). **Phase 07 must not open before the migration.**
+- **Next kit input:** the TFit migration's result (first real exercise of the
+  removed-from-install-set clause) and any sixth field report. R3.8's aging rule is
+  on a clock — if the friction log is still empty at the retro after next despite
+  R4.6's writer, it goes (§16 contingent keep).
