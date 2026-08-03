@@ -138,7 +138,9 @@ finding 7, a simplification pass auditing every rule added since 0.5.0 against a
 confirmed catch, runs **as its own batch before any R4 fix batch**. Its theme completes
 the lineage: **the kit specifies what each step must produce and almost never what makes
 it done** — the gate is the only step with a completion condition and the only step that
-never failed. Triage will live in `FEATURE_PLAN.md` §15.
+never failed. `FEATURE_PLAN.md` §15 records the triage: nine of ten findings stood
+(three with step-number or scope corrections), and the work is queued as two batches —
+SIMP, the simplification pass, then R4.
 
 ## Writing conventions for these files
 

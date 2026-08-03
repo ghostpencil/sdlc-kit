@@ -3,7 +3,7 @@
 **Source:** [sdlc-kit#2](https://github.com/ghostpencil/sdlc-kit/issues/2), filed
 2026-08-02 — the fifth field report, the second submitted through the issue templates
 R2 added, and the first written against the current kit release (0.9.0, so no findings
-can have been fixed since). Reproduced verbatim; the triage will live in
+can have been fixed since). Reproduced verbatim; the triage lives in
 `FEATURE_PLAN.md` §15. The owner has already ruled on batch order: the
 simplification pass the report ranks first (finding 7) runs as its **own batch**,
 before any R4 fix batch — per the report's own argument and R3's standing note.

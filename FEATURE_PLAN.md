@@ -1302,3 +1302,96 @@ R3.3 — now four arcs unchanged), and the `/sdlc-retro` that follows it.
 > 0.5.0 against a confirmed catch, convert survivors from "do this" toward "this is done
 > when") runs **as its own batch, before R4**. Otherwise the fifth batch of added steps
 > would arrive inside the pass meant to prune the previous four. Triage: §15.
+
+---
+
+## 15. Fifth field report — triaged 2026-08-03; SIMP queued before R4
+
+> **Status: TRIAGED, not built.** Every claim below was verified against the kit tree at
+> **0.9.0** before triage — and for the first time verification was pure claim-checking:
+> the report is written against the *current* release, so nothing can have been fixed
+> since it was filed. Nine of ten findings stand as filed (three with step-number or
+> scope corrections); finding 9 repeats a misattribution §12 already caught once, and
+> its fix is actionable anyway. **Owner decisions (2026-08-03, do not re-litigate):**
+> the simplification pass (finding 7) runs **as its own batch — SIMP, proposed
+> `v0.10.0` — before the fix batch R4 (proposed `v0.11.0`)**.
+
+Source: **[sdlc-kit#2](https://github.com/ghostpencil/sdlc-kit/issues/2)**, filed
+2026-08-02, ingested verbatim as `FIELD_REPORT_2026-08-02.md` — the same adoption's
+sixth phase, its first BUILD arc: 33 commits, 5 slices, 1 PR, 31 numbered owner
+decisions, 10 findings. Theme: **the kit specifies what each step must produce and
+almost never what makes it done** — the gate is the only step with a completion
+condition and the only step that never failed. Three of the ten findings sit at the
+phase boundary, where the previous three retros found little; the process's weight has
+moved to where its checks are thinnest.
+
+### Verification against the tree at 0.9.0
+
+| # | Finding | Verdict |
+|---|---|---|
+| 1 | Review fan-out mutated the shared tree; commit claimed the lost fixes | **Stands.** All three read-only quotes verbatim (`agents/sdlc-surveyor.md:12`, `plan-phase.md:66`, `sdlc-retro.md` §2). Clean tree checked at `end-phase.md` §1:17, never re-asserted at §5. **Scope correction:** the clean-tree precondition cannot apply verbatim to `end-slice.md` §3 — the slice review reviews the *uncommitted working diff by design* (:33–35); there the fix is read-only discipline on the reviewer, not a clean tree |
+| 2 | Acceptance halt vacuous on flag-gated arcs; nothing requires a real run | **Stands.** "the phase's visible behavior" verbatim at `SDLC.template.md:74`. **Attribution correction:** the testability sweep is `plan-phase.md` **step 4**, not step 2 (step 2 is candidate selection) |
+| 3 | Whole-arc review has no completion condition | **Stands.** "Then apply the surviving batches, re-run the gate, push" at `end-phase.md` §5:76. **Ripple the report missed:** `SDLC.template.md` phase-end item 4 carries the same wording — inv 2 says both change together |
+| 4 | No lens reaches shared mutable state under the concurrency model | **Stands — pre-agreed.** `REVIEW_LENSES.md` has exactly the two lenses named. This is §14's own candidate arriving at the retro as promised. **Ripple the report missed:** `end-slice.md` §3:52 enumerates the lens triggers inline ("changed error propagation or swept the codebase"), so a third lens updates that sentence too |
+| 5 | Planning wrote an unsatisfiable exit criterion twice | **Stands.** Contradiction sweep checks decisions against decisions; testability sweep checks behaviors; nothing checks exit criteria against what observes them. **Attribution correction:** step 4, not step 2 — and step 5's closing line ("exit criteria a test (or the acceptance checklist) can verify") is the natural home for the fix |
+| 6 | Friction log has a reader, an aging rule, no writer | **Stands.** `grep -ri friction` over the bundle: `sdlc-retro.md` and `PROJECT_INDEX.template.md` only. R3.8 confirmed in the 0.9.0 CHANGELOG. No command writes to the log |
+| 7 | Five rule batches, no simplification pass | **Stands by construction** — it quotes the kit's own §12 standing note back at it. Owner-ranked first; becomes SIMP. Root-only: the one finding an adopter cannot act on |
+| 8 | The F3 trial had four safety criteria and no value criterion | **Stands.** §3's trial protocol verified: four pass criteria, all safety. Fix lands at the root (this file, §5), not in the bundle |
+| 9 | Per-slice detail written into the wrong file; R3.7 relocates, doesn't prevent | **Misattributed, fix actionable.** "`end-slice.md` step 9" does not exist — the file has seven steps; the close-out record is step 6, and it prescribes *no* per-slice detail blocks (mark done, backlog entries, gotchas, next slice). Same catch §12 made on the fourth report's finding 7. But the adopter wrote 83–163 lines five times against the kit's silence, so silence is not prevention: an explicit status-only clause is cheap. R3.7's own fate (keep as safety net vs delete per the report) is **SIMP's call**, made with the audit in hand |
+| 10 | R3.6's control handed out an unscoped remediation command | **Stands.** `end-slice.md` §6:108–116 verified — "a gate step, a hook, or a test", nothing about the control's output. One-clause fix, and the report correctly notes the *verify the denominator* lens is exactly what the message failed |
+
+**The "worked well" list is triage input, not decoration.** Four practices carry
+confirmed catches from this arc alone — mutation testing (9 survivors at 100% line
+coverage, all killed), re-derivation before the slice (R2/R3.2 — retracted a ratified
+number, caught both bad exit criteria and a short budget), the whole-arc review (fifth
+arc running it caught what slice reviews missed), and R3.4's verify-before-apply (3 of
+31 findings re-graded or discarded). Plus R3.1 paying twice in one session (deploy
+verified inert *and* a prior arc's liveness claim disproved from the same log), and
+R3.3 producing its first mandatory answer (the ceiling was not ratified). These seed
+SIMP's protected list.
+
+### SIMP — the simplification pass *(own batch, first; proposed `v0.10.0`)*
+
+Scope, per the owner's ruling and the report's suggested fix:
+
+1. **Enumerate the denominator first** (second report's lesson, applied to the pass
+   itself): every rule added in R1 (0.5.0), F2 (0.6.0), R2 (0.7.0), G1 (0.8.0), R3
+   (0.9.0) — from the CHANGELOG entries and the edit maps in §7, §9, §10, §11, §12.
+   The audit shows the count it examined equals the count that exists.
+2. **Ask of each rule:** what did it catch, in which adopter, when? Sources: five field
+   reports, the trial log's record in §13–§14, TFit's retro evidence quoted in the
+   report. A rule with no confirmed catch after two releases is a deletion candidate —
+   presented to the owner as a list, not deleted silently.
+3. **Convert survivors from "do this" toward "this is done when"** where the rule
+   admits a completion condition — the report's cross-cutting theme, and the form the
+   gate (the only never-skipped step) already takes.
+4. **Known candidates going in:** R3.7's relocation step (finding 9 — fired once,
+   moved 1,571 lines, file still 1,716 lines after); R3.8's aging rule (nothing to age
+   — verdict contingent on R4 shipping finding 6's writer); any rule whose only
+   evidence is the defect that motivated it.
+5. **SIMP adds no new rules.** Everything additive — the lens included — waits for R4.
+   Deletions and rewordings of installable files make it a real release: version bump,
+   CHANGELOG, manifest, `/kit-check`.
+
+### R4 — the fix batch *(after SIMP; proposed `v0.11.0`)*
+
+Edit map, in the report's damage order, ripples added from verification:
+
+| Rule | File(s) | Change |
+|---|---|---|
+| R4.1 | `end-phase.md` §5 + `SDLC.template.md` phase-end 4 (inv 2) | clean tree with every fix committed is a stated **precondition of spawning the review fan-out**, re-asserted at §5 where it is load-bearing; a commit message may not claim a fix that has no test pinning it |
+| R4.1 | `end-slice.md` §3 | the reviewer reviews the working diff by design, so the discipline binds to the **agent**: the review is read-only in the shared tree — no `git checkout/restore/stash`, fixes come back as findings, never as edits |
+| R4.2 | `end-phase.md` §3 + `SDLC.template.md` halt 4 + `plan-phase.md` step 4 (testability sweep) | when no slice's exit criteria required running the application, `/end-phase` adds a local real-data pass of the composed system before the PR; the testability sweep flags the all-slices-behavior-neutral condition at planning time |
+| R4.3 | `end-phase.md` §5 + `SDLC.template.md` phase-end 4 (inv 2) | the fix batch is assembled only after **every** reviewer has returned, and goes through the gate as one unit; a later-arriving finding re-opens the review rather than starting a second batch |
+| R4.4 | `reference/REVIEW_LENSES.md` + `end-slice.md` §3:52 (trigger pointer) | the §14 lens, with 410/600 as its specimen: for every object that outlives a request or is reachable from more than one, name the runtime's concurrency model and state what serializes access |
+| R4.5 | `plan-phase.md` steps 4–5 | each slice exit criterion names **what observes it and when** (a local command, the gate, CI on the main branch, the owner); an observer that does not run at that point is a planning defect. The kit's own ratchet phrasing is the exposure — every adopter whose CI runs only on main inherits it |
+| R4.6 | `end-slice.md` step 6 | one bullet beside the gotcha/gate-dependency bullets: was anything in this slice friction with the *process*, and if so write it to the Kit friction log now — giving R3.8's aging rule a writer |
+| R4.7 | `end-slice.md` step 6 | slice close-out records **status only** — one line; detail lives in the phase spec and the commit message. Whether R3.7's archiving bullet stays as a safety net is decided in SIMP |
+| R4.8 | `end-slice.md` §6 | one clause: a control that hands the operator a remediation command must scope that command to the population the control actually flags |
+| R4.9 | this file, §5 | trial protocol rule: a trial pre-registers **what the change is supposed to buy and how that is measured**, alongside its safety criteria — F3's four measured only safety, and a trial that cannot fail on value cannot justify shipping. Also recorded for any future F3-shaped work: `blocked` is rare by design (halts get spent at scope confirmation), and the two-state return contract needs *done-except-outside-boundary* and *done-with-deferred-design-question* |
+
+Cross-cutting, both batches: every batch ends with `/kit-check` (§5); README file-tree
+and root-CLAUDE.md roster already updated at ingestion. The report's own numbering is
+trusted nowhere the tree disagreed — the three step-number corrections above are why
+§4a's rule (ripple lists are incomplete until walked) now applies to reports as well as
+to this plan.
