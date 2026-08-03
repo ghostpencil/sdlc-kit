@@ -1609,10 +1609,16 @@ hash; text-mode hashes, no `*` prefixes — §16's in-pass finding did not recur
   reads 0.11.0, and the shipped `MANIFEST.sha256` verifies clean against the extracted
   contents. Kit `main` = origin at the R4 commit; working tree clean; nothing in
   flight.
-- **TFit migrates 0.9.0 → 0.11.0 directly, once, now** — the §16 hand-off's
-  owner-decided migration is unblocked. The removal clause fires on the hop (surveyor
-  classifies UNCHANGED → deleted). **Phase 07 must not open before the migration.**
-- **Next kit input:** the TFit migration's result (first real exercise of the
-  removed-from-install-set clause) and any sixth field report. R3.8's aging rule is
-  on a clock — if the friction log is still empty at the retro after next despite
-  R4.6's writer, it goes (§16 contingent keep).
+- **TFit migration DONE — 2026-08-03, PR #16 merged.** 0.9.0 → 0.11.0 in one hop,
+  exactly per the several-versions case: 16 UNCHANGED / 1 UNKNOWN (the trial's
+  project-local runner, untouched) / 0 DRIFTED, denominator 17/17. The
+  removed-from-install-set clause passed its first real exercise: the surveyor
+  classified UNCHANGED and was deleted from both `.claude/agents/` (directory now
+  gone) and the kept bundle, which was enumerated first (28 = 28, zero un-manifested)
+  and replaced by copy-over-in-place. Re-classification against the 0.11.0 manifest:
+  all copied files UNCHANGED — the two runs disagreeing about the copied files is the
+  discrimination proof. Gate CI green on the PR; only project-owned line touched was
+  the `spec/SDLC.md` stamp. **Phase 07 is now free to open** on kit 0.11.0.
+- **Next kit input:** any sixth field report (TFit Phase 07 would produce it). R3.8's
+  aging rule is on a clock — if the friction log is still empty at the retro after
+  next despite R4.6's writer, it goes (§16 contingent keep).
