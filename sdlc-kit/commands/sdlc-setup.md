@@ -45,18 +45,17 @@ existing file becomes a shown merge plan, not a silent clobber.
    (`Claude Code` / `Copilot CLI` / `both`) — `/sdlc-update` reads it to know which
    directories are kit-owned in this project, so an unrecorded answer is one a later
    update has to guess at.
-3. **Verify skills** (see `reference/SKILLS.md`): the TDD skill is NOT built into either
-   CLI — it is vendored in `sdlc-kit/skills/` and installed in step 2a/2b
-   below; HALT if `sdlc-kit/skills/tdd/SKILL.md` is missing. On Claude Code, check for the
-   `pr-review-toolkit` plugin; if absent, tell the owner to run
-   `/plugin install pr-review-toolkit@claude-plugins-official` (setup can continue,
-   but the plugin is needed by both `/end-slice` — its per-slice reviewer is the
-   `pr-review-toolkit:code-reviewer` agent — and `/end-phase`, so it must be installed
-   before the first slice closes, not just before the first phase does). On Copilot,
-   that plugin and the built-ins the kit leans on are absent, each with its own
-   consequence: show the owner *What the kit loses on Copilot today* from
-   `reference/COPILOT.md` — that table is the answer, not a count repeated here — and
-   let them decide knowing it. Do not describe a substitute the kit does not install.
+3. **Verify skills** (see `reference/SKILLS.md`): neither the TDD skill nor the
+   reviewer is built into either CLI — both are in `sdlc-kit/skills/` and installed in
+   step 2a/2b below. HALT if `sdlc-kit/skills/tdd/SKILL.md` or
+   `sdlc-kit/skills/diff-review/SKILL.md` is missing; `/end-slice` and `/end-phase`
+   both name `diff-review`, so a missing copy is a process that cannot close a slice.
+   On Copilot the built-ins the kit leans on are absent, each with its own consequence:
+   show the owner *What the kit loses on Copilot today* from `reference/COPILOT.md` —
+   that table is the answer, not a count repeated here — and let them decide knowing
+   it. Do not describe a substitute the kit does not install. `pr-review-toolkit` is
+   **optional** and Claude Code only; mention it as an available deepening at phase end
+   if the owner is on that CLI, and do not make setup contingent on it.
 4. `git status` / `git rev-parse`. Not a git repo → note that New mode will `git init`.
    Dirty working tree in an existing repo → ask the owner to commit/stash first.
 5. Detect the mode: no source files beyond scaffolding/docs → **New Project**;
@@ -195,7 +194,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    | | Claude Code | Copilot CLI |
    |---|---|---|
    | the 7 commands | `.claude/commands/<name>.md` | `.github/skills/<name>/SKILL.md` |
-   | the 5 vendored skills | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
+   | the 6 skill directories | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
    | `REVIEW_LENSES.md` | `.claude/commands/REVIEW_LENSES.md` | the same path — it is a document, not an executable |
 
    Packaging a command as a Copilot skill is mechanical, and the shape is **exact**: a
@@ -210,12 +209,14 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    list:
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
      `sdlc-retro.md`, `sdlc-update.md` (and this file);
-   - the TDD skill set from `sdlc-kit/skills/`, each already a skill directory that is
-     copied whole: `tdd/` (with its `tdd-references/` subfolder, which `SKILL.md` links
-     into relatively) and `mutation-testing/` (always — `/end-slice`'s mutation-check
-     step invokes it, so it is not optional), `tdd-guide/` (offer), `python-pro/` +
+   - the skill directories from `sdlc-kit/skills/`, each already a skill directory that
+     is copied whole: `tdd/` (with its `tdd-references/` subfolder, which `SKILL.md`
+     links into relatively), `mutation-testing/` (always — `/end-slice`'s mutation-check
+     step invokes it, so it is not optional), and `diff-review/` (always — `/end-slice`
+     step 3 and `/end-phase` step 5 both name it, and it is the only reviewer that
+     exists on both CLIs); then `tdd-guide/` (offer), `python-pro/` +
      `hypothesis-tests/` (Python projects only — offer). Copy directories, not files:
-     the five `SKILL.md` files share a basename and only their parent directory tells
+     the six `SKILL.md` files share a basename and only their parent directory tells
      them apart.
    - `reference/REVIEW_LENSES.md` → `.claude/commands/REVIEW_LENSES.md` (always) —
      `end-slice.md` §3 points at that installed path, so skipping this breaks the

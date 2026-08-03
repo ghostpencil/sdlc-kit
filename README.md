@@ -94,13 +94,13 @@ Setup auto-detects the mode and confirms it with you:
   files are merged, never overwritten. It then baselines the gate honestly — a red gate
   becomes your initial STABILIZATION backlog, not a blocker.
 
-Either way, setup **installs the required skills**. The TDD skill is *not* built into
-either CLI — the kit vendors it in `skills/` and setup copies it into the target
-project's `.claude/skills/`, so the whole team inherits it via `git clone`. Built-in
-skills (code-review, verify, …) are verified, and the one plugin (`pr-review-toolkit`)
-gets a one-line install instruction if absent — both are Claude Code only; on Copilot
-CLI setup shows you what is missing instead. See `reference/SKILLS.md` and
-`reference/COPILOT.md`.
+Either way, setup **installs the required skills**. Neither the TDD skill nor the
+reviewer is built into either CLI — the kit ships both in `skills/` and setup copies
+them into the target project's `.claude/skills/`, so the whole team inherits them via
+`git clone` with no per-machine step. Claude Code built-ins (`verify`, `simplify`, …)
+are verified where they exist; on Copilot CLI setup shows you what is missing instead.
+`pr-review-toolkit` is optional as of 0.14.0 — a deeper Claude-Code-only pass at phase
+end, required by nothing. See `reference/SKILLS.md` and `reference/COPILOT.md`.
 
 ### After setup, the daily loop
 
@@ -134,12 +134,14 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── end-phase.md
 │   ├── sdlc-retro.md                ← lessons-learned extraction at a phase boundary
 │   └── sdlc-update.md               ← brings an adopted project to a newer kit release
-├── skills/                          ← vendored skills → <project>/.claude/skills/ (both CLIs read it)
+├── skills/                          ← skills → <project>/.claude/skills/ (both CLIs read it)
 │   ├── tdd/                         ← THE TDD skill (not built into either CLI)
 │   │   ├── SKILL.md
 │   │   └── tdd-references/          ← tests.md + mocking.md (linked from SKILL.md)
 │   ├── tdd-guide/                   ← optional: broader TDD guide for teams new to it
 │   ├── mutation-testing/            ← always installed — /end-slice's mutation check invokes it
+│   ├── diff-review/                 ← always installed — kit-written; the reviewer /end-slice
+│   │                                   and /end-phase name (Spec + Standards axes, both CLIs)
 │   ├── python-pro/                  ← Python projects only
 │   └── hypothesis-tests/            ← Python projects only
 ├── templates/                       ← instantiated into the project by /sdlc-setup

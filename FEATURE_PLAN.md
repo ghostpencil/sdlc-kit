@@ -2740,3 +2740,112 @@ review against. Review quality on Copilot is *not* a demonstrated problem.
 The plugin is **still installed** on the owner's Copilot CLI and the test repo still
 exists, both deliberately, in case PORT.2a wants more probing. Neither is a kit artifact
 and neither is tracked here. Reversal is `copilot plugin uninstall pr-review-toolkit`.
+
+## 28. PORT.2 built — 2026-08-03; the kit owns its reviewer
+
+**Owner decision at the PORT.2a halt, dated 2026-08-03 — do not re-litigate:** the kit
+writes its own two-axis reviewer. Neither `pr-review-toolkit` (which §27 proved works
+but on a deprecated install path) nor `mattpocock/skills`' `code-review` (which fits the
+axes but not the plumbing) is adopted.
+
+Unreleased: the tree is 0.13.0 plus §24, §25 and this. `MANIFEST.sha256` is **stale by
+exactly one file** — 29 entries against 30 bundle files, `diff-review/SKILL.md` absent —
+which is correct per §26's checklist, where regeneration follows the version bump
+because `VERSION` is itself a bundle file. Do not regenerate it early and then bump.
+
+### 28.1 The foundation question that changed the decision
+
+The owner asked the right question before choosing: *do I have the foundation for the
+mattpocock reviewer, or am I adding a skill with little support?* Answering it against
+the real files rather than §23.6's docs-level read moved two things.
+
+**One claim did not survive.** §23.6 told the halt that the skill's smell baseline
+"overlaps `REVIEW_LENSES.md`, and two review checklists in one kit is the duplication
+invariant 2 exists to prevent." Read side by side, that does not hold. The upstream
+baseline is twelve **structural** smells (Mysterious Name, Duplicated Code, Feature
+Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent
+Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest);
+`REVIEW_LENSES.md`'s six lenses are entirely **runtime failure modes** (error
+propagation, swallowed errors, denominators, shared state, untrusted input, secrets).
+Subject-matter overlap is essentially nil — they are complementary. The strongest
+argument against adoption was the one that evaporated on reading, and §23.6 should be
+read with that correction attached.
+
+**The real blocker was the plumbing, not the checklist.** The upstream reaches its Spec
+axis through `docs/agents/issue-tracker.md` and issue references in commit messages. The
+kit has no issue tracker and should not gain one: its unit of work is the **slice**, and
+`spec/` plus `PROJECT_INDEX.md` supply intent directly and more reliably than the
+upstream's hunt through `docs/`, `specs/`, `.scratch/` by branch-name match. Adoption
+meant four permanent divergences on day one — spec source, standards address, subagent
+type, issue-tracker excision — against a file carrying no `license:` frontmatter to
+vendor from. A vendor diverged in four places is a fork with extra bookkeeping.
+
+**What the kit genuinely lacked** was the Spec axis itself: `REVIEW_LENSES.md` asks
+whether code is sound, `/end-slice`'s gate asks whether it is green, and **nothing asked
+whether the slice implemented what it said it would.** That hole is what PORT.2 fills.
+
+### 28.2 What shipped
+
+**`skills/diff-review/SKILL.md`** (new, kit-written) — two axes that fail independently
+and are reported side by side, never merged:
+
+- **Spec** — does the change implement the slice's (or, at phase end, the phase's) exit
+  criteria, and only those? Intent is located in a fixed order, and **"no spec located"
+  is a legitimate axis result**: the prime directive is *never invent the spec*, because
+  an inferred spec reviews the diff against itself and always passes. It also asks the
+  two questions a criteria list cannot ask itself — **scope creep** (work no criterion
+  requested) and **silent narrowing** (a criterion met in a weaker form, which is the
+  failure a green gate cannot catch).
+- **Standards** — `CLAUDE.md` *Runtime Conventions* first, other convention files next,
+  a structural-smell baseline only if neither exists. **A documented project standard
+  always wins over the baseline**, stated explicitly so the reviewer does not file a
+  finding it already knows is wrong.
+
+It names **no CLI-specific agent, tool, or model** by design, carries no `model:` pin
+(§27.3), and defers runtime failure modes to `REVIEW_LENSES.md` rather than restating
+them — keeping the three-way division clean and invariant 2 satisfied.
+
+**The wiring**, in the order authority flows: `SDLC.template.md` steps 6 and phase-4
+(the file that wins), then `end-slice.md` §3 and `end-phase.md` §5, then
+`sdlc-setup.md`'s preflight and install list, `sdlc-update.md`'s 0.14.0 transition,
+`SKILLS.md`, `COPILOT.md`, and both READMEs.
+
+**One build decision, stated rather than taken silently:** `pr-review-toolkit` demotes
+from **Required** to an optional Claude-Code-only deepening at phase end. It follows
+necessarily — a kit that ships its own reviewer cannot keep a third-party one
+load-bearing — and it is what removes the per-machine install from team onboarding
+entirely. A Copilot project **gains** a per-slice review it never had; a Claude Code
+project **loses nothing**, since the plugin stays installed and stays usable.
+
+### 28.3 Acceptance evidence — run on Copilot, not asserted
+
+The skill was exercised on the §27 bench before the wiring was written, which is the
+point: the reviewer the commands name had to be shown to exist on the CLI that lacked
+one.
+
+1. **It loads.** `copilot skill list` reports it under *Project skills* from
+   `.claude/skills/diff-review/` — confirming §24.6's skills-move rationale first-hand
+   rather than from the docs.
+2. **Its frontmatter clears §27.2's own hazard.** Checked for colon-space in unquoted
+   values before shipping — the finding applied to the file the finding produced.
+3. **Both axes work.** Against a fixture whose uncommitted diff removed a `TypeError`
+   guard and added an exception swallow, with a three-criterion slice spec and a
+   one-rule *Runtime Conventions*: Spec returned two criteria unmet and one met, with
+   correct line citations, plus **silent narrowing** identified by name; Standards cited
+   `CLAUDE.md` by line. Axes reported separately. Verdicts correct.
+4. **A harness error, recorded because it looked like a skill defect.** An earlier run
+   reported that it could not pin the scope. The cause was mine — `--available-tools`
+   omitted `powershell`, so git was unreachable whatever `--allow-tool 'shell(git
+   diff)'` said, and Copilot surfaces that as a reasoning limitation rather than a
+   permission error. The skill's step-1 discipline is what made it visible: it *said*
+   the scope was unpinned instead of reviewing on and calling it clean. That is the
+   behaviour §15's theme asked for, caught working.
+
+### 28.4 What PORT.2 fed forward
+
+`COPILOT.md` gained a measured section it did not have — **three authoring hazards**
+that bind anything the kit writes for both CLIs, all three silent: the colon-space
+frontmatter drop (§27.2), the `model:` downgrade (§27.3), and the
+`--available-tools`/`--allow-tool` interaction found in 28.3.4. The loss table lost its
+largest row, with the deprecation caveat kept attached so a future batch does not read
+"pr-review-toolkit works on Copilot" and rebuild the dependency.

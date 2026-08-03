@@ -81,15 +81,27 @@ EOF
 
 ### 5. Whole-arc review
 
-Spawning the fan-out has a precondition, re-asserted from §1 because this is where it
-is load-bearing: **the working tree is clean and every fix so far is committed.** The
-reviewers run concurrently with this session in the same tree, and an uncommitted fix
-is a fix a reviewer's `git checkout` can silently revert — a real arc lost two that
-way, and the fix-batch commit's message claimed both. The corollary generalizes past
+Reviewing at this scope has a precondition, re-asserted from §1 because this is where
+it is load-bearing: **the working tree is clean and every fix so far is committed.**
+The arc review reads a committed range, so an uncommitted fix is simply invisible to
+it; and if a fan-out is spawned, its reviewers also run concurrently with this session
+in the same tree, where an uncommitted fix is a fix a reviewer's `git checkout` can
+silently revert — a real arc lost two that way, and the fix-batch commit's message
+claimed both. The corollary generalizes past
 the fan-out: **a fix with no test pinning it can silently leave, so a commit message
 may not claim one.**
 
-Run `pr-review-toolkit:review-pr` on the PR. **Verify each finding against the source
+Run the `diff-review` skill on the arc range (`git diff <main>...HEAD`), checked
+against the **phase's** exit criteria rather than any single slice's — at this scope
+its Spec axis is asking whether the arc delivered the phase it promised, which no
+slice-level review was ever positioned to see.
+
+On Claude Code a deeper specialist fan-out is optionally available
+(`pr-review-toolkit:review-pr`); it is not required, and the paragraphs below about
+concurrent reviewers bind **only if one ran**. Whether a deepening ran is stated in
+the hand-back either way.
+
+**Verify each finding against the source
 before it enters a fix batch, and report the findings that did not survive verification
 alongside those that did** — a review finding is a claim about the code, and a claim
 with a false premise can be CRITICAL-severity and still wrong. On a real arc, two of
@@ -98,7 +110,8 @@ literally, this step would have taken both fixes into a live authorization path.
 reporting half is not optional: a discarded finding is evidence about the reviewer, and
 dropping it silently teaches nobody anything.
 
-**The review is done only when every reviewer has returned.** With a fan-out, "done" is
+**The review is done only when every reviewer has returned** — trivially true of the
+single-reviewer default, and the trap only when a fan-out ran. With a fan-out, "done" is
 whenever the last reviewer comes back, and nothing else holds the batch: assemble the
 fix batch only after the last return, and take it through the gate as one unit. A
 finding that arrives after the batch is committed re-opens the review rather than

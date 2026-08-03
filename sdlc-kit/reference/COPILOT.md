@@ -25,8 +25,8 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |
 
 A repo that answers **both** at the interview gets both columns. Nothing is written
-twice: the seven commands exist once per CLI in different formats, the five vendored
-skills exist once in a shared directory, and every other row is already shared.
+twice: the seven commands exist once per CLI in different formats, the six skill
+directories exist once in a shared directory, and every other row is already shared.
 
 ### Why `CLAUDE.md` is not translated — and why `AGENTS.md` is prohibited
 
@@ -45,12 +45,13 @@ exactly one instructions file on either CLI.
 This is a prohibition, not an omission. A future batch that "helpfully" adds
 `AGENTS.md` for cross-agent compatibility is reintroducing the defect.
 
-### Why the vendored skills live under `.claude/skills/` even on Copilot
+### Why the skills live under `.claude/skills/` even on Copilot
 
 `.claude/skills` is one of the three project skill directories Copilot CLI reads
-(`.github/skills`, `.claude/skills`, `.agents/skills`). Installing the five vendored
-skills there means a dual-CLI repo carries **one** copy of each skill rather than two
-that can drift apart. The Claude-flavoured directory name on a Copilot-only project is
+(`.github/skills`, `.claude/skills`, `.agents/skills`) — confirmed first-hand against
+1.0.77, where a kit skill placed there is listed under *Project skills*. Installing the
+six skill directories there means a dual-CLI repo carries **one** copy of each skill
+rather than two that can drift apart. The Claude-flavoured directory name on a Copilot-only project is
 the accepted cost of that; it is a name, and the alternative is a sync surface.
 
 The seven kit commands are the deliberate exception, and go to `.github/skills/` —
@@ -190,16 +191,61 @@ above.
 
 **Parallel fan-out is still undocumented.** Where the kit's sweeps would fan out, they
 run serially on Copilot. The generated `spec/SDLC.md` says so — a sweep that quietly
-became serial is a sweep whose coverage nobody re-checked.
+became serial is a sweep whose coverage nobody re-checked. Measured against 1.0.77, the
+raw capability *is* present — `task`, `list_agents`, `read_agent` and `write_agent` are
+builtin tools, and delegation to a named custom agent succeeds — but no *subagent type*
+equivalent to Claude Code's `general-purpose` exists; only agents defined in
+`.github/agents/` or supplied by a plugin can be named. A skill that spawns
+`general-purpose` by name does nothing here.
+
+### Three authoring hazards, measured on 1.0.77
+
+These bind anything the kit writes that must run on both CLIs, and all three fail
+**silently** — which is what makes them worth a section rather than a footnote.
+
+1. **A `: ` inside an unquoted frontmatter value drops the whole file.** Copilot's YAML
+   frontmatter parser is stricter than Claude Code's. A plain scalar containing a
+   colon-space — easily introduced by an embedded example like `user: "do the thing"` —
+   makes the document unparseable, and the agent or skill simply does not appear. There
+   is no install warning and no listing error; the loss is visible only by asking for a
+   name that does not exist and reading which names *do*. Specimen: of
+   `pr-review-toolkit`'s six agents, exactly the one with a colon-space in its
+   description failed to load. **Quote the value or use a block scalar**, and check new
+   frontmatter with `copilot skill list` before shipping it.
+2. **`model:` naming a Claude model is downgraded, not honoured.** Copilot warns that
+   the model "is not available" and proceeds on `auto`. Kit files that must run on both
+   CLIs carry no `model:` at all; the model policy is recorded in `spec/SDLC.md` and
+   applied by the owner.
+3. **Tool names differ, and `--available-tools` silently overrides `--allow-tool`.**
+   Copilot's builtins are `powershell` (not `bash`), `view` / `create` / `edit` (not
+   `Read` / `Write` / `Edit`), plus `grep`, `glob`, `skill`, `task`, `web_fetch`, and a
+   `github-mcp-server-*` subset. Restricting `--available-tools` without including
+   `powershell` removes shell access no matter what `--allow-tool 'shell(git diff)'`
+   says, and the session reports a *reasoning* limitation rather than a permission
+   error — the failure looks like a bad answer, not a bad flag.
 
 ## What the kit loses on Copilot today
 
 Stated plainly, because a translation layer that hides its gaps is worse than one that
 does not exist. As of this file's date, no Copilot equivalent is installed for:
 
+**The review apparatus left this table in 0.14.0.** It was the largest entry: the kit's
+per-slice and whole-arc reviews named `pr-review-toolkit`, a Claude Code plugin, so a
+Copilot adopter was instructed to run a reviewer that did not exist for them. The kit
+now ships its own — `diff-review`, installed to `.claude/skills/`, which both CLIs read
+— and it names no CLI-specific agent, tool, or model, so both CLIs run the same
+reviewer. `pr-review-toolkit` survives only as an optional Claude-Code-only deepening
+at phase end, and nothing requires it.
+
+The measured caveat behind that decision is worth keeping: `pr-review-toolkit` *can*
+be made to install and run on Copilot CLI, but only via `copilot plugin install
+<owner>/<repo>:<path>`, which Copilot's own output announces as deprecated in favour of
+marketplace installs — and the marketplace route currently fails on the Claude
+marketplace's manifest. A capability reachable only through a path its vendor has
+announced it is removing is not one to build a process on.
+
 | Missing | What the kit uses it for | Available substitute today |
 |---|---|---|
-| `pr-review-toolkit` | per-slice diff review (`/end-slice`), whole-arc review (`/end-phase`) | none installed — the owner reviews the diff, and `/diff` summarizes it |
 | `/code-review` | the owner-typed, billed escalation | GitHub Copilot code review requested on the phase PR |
 | `verify` | end-to-end exercise before committing | none |
 | `simplify` | post-green refactor pass on the slice diff | none |

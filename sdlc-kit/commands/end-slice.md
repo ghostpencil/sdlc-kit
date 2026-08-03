@@ -30,13 +30,21 @@ never assume it is zero.
 
 ### 3. Slice code review
 
-Run the `pr-review-toolkit:code-reviewer` agent on the working diff (uncommitted
-changes, plus any commits this slice has already made on the branch —
-`git diff <main>...HEAD` if the slice spans commits). The built-in `/code-review` is
-the owner-typed, billed escalation — it is not this step, and this command cannot
-launch it. If the named agent is unavailable and something else must stand in, the
-substitution is **named in the hand-back** (step 7) — a good substitute review is
-exactly the kind nobody thinks to question.
+Run the `diff-review` skill on the working diff (uncommitted changes, plus any commits
+this slice has already made on the branch — `git diff <main>...HEAD` if the slice spans
+commits). It reviews along two axes that fail independently and are reported side by
+side, never merged: **Spec** — does this implement the slice's exit criteria, and only
+those — and **Standards** — does it follow the conventions recorded in `CLAUDE.md`
+*Runtime Conventions*. The skill is installed by `/sdlc-setup` into
+`.claude/skills/diff-review/` and is available on both CLIs; it names no CLI-specific
+agent or model.
+
+The built-in `/code-review` is the owner-typed, billed escalation — it is not this
+step, and this command cannot launch it. On Claude Code a deeper specialist fan-out
+(`pr-review-toolkit`) may be available; it is **optional**, and if it ran, say so in
+the hand-back (step 7). The same rule binds any substitution: a review whose depth is
+not stated is one nobody can weigh, and a good substitute review is exactly the kind
+nobody thinks to question.
 
 The reviewer reviews the **uncommitted working diff by design**, so a clean-tree rule
 cannot protect it; the discipline binds to the agent instead: **the review is read-only

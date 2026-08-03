@@ -239,7 +239,8 @@ Run `/next-slice` in a **fresh session**:
 Run `/end-slice` when the slice's exit criteria are met:
 
 5. Run the gate.
-6. Slice code review (`pr-review-toolkit:code-reviewer` on the diff; plus the matching
+6. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
+   reported side by side, never merged; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
    propagation or added a catch or failure path, swept for a pattern, touched an
    object that outlives a request or is reachable from more than one, took in outside
@@ -285,16 +286,20 @@ Run `/end-phase` when the last slice is done:
    instructions: fix `{{RUN_COMMAND}}` against the owner's result and record the
    resolved toolchain path in Environment gotchas.
 3. Push and open the PR (`gh`), body summarizing the phase against its exit criteria.
-4. Whole-arc review: `pr-review-toolkit:review-pr` on the PR — spawned only from a
-   clean tree with every fix committed, since the fan-out shares the tree with the
-   session; and a commit message may not claim a fix that has no test pinning it,
+4. Whole-arc review: the `diff-review` skill on the arc range (`<main>...HEAD`),
+   checked against the **phase's** exit criteria rather than a slice's — spawned only
+   from a clean tree with every fix committed, since any fan-out shares the tree with
+   the session; and a commit message may not claim a fix that has no test pinning it,
    because an untested fix can silently leave. Verify each finding against the source
    before it enters a fix batch, and report the ones that did not survive alongside
    the ones that did. The review is done only when **every** reviewer has returned:
    the fix batch is assembled after the last return and goes through the gate as one
    unit — a later-arriving finding re-opens the review rather than starting a second
-   batch. Then apply, re-run the gate, push. Deeper option when warranted:
-   `/code-review ultra <PR#>` (owner-triggered).
+   batch. Then apply, re-run the gate, push. Deeper options when warranted, both
+   Claude Code only and neither required: `pr-review-toolkit:review-pr` for a
+   specialist fan-out, and `/code-review ultra <PR#>` (owner-triggered). A deepening
+   that ran is named in the hand-back, because a review nobody can tell the depth of
+   is a review nobody can weigh.
 5. **Merge approval** *(halt 5)*, then merge.
 6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;

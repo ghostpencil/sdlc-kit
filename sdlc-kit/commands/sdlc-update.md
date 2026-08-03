@@ -171,7 +171,7 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   destinations: `sdlc-kit/commands/` and `sdlc-kit/reference/REVIEW_LENSES.md` into
   `.claude/commands/`; each `sdlc-kit/skills/<name>/` directory into
   `.claude/skills/<name>/`, copied whole so `tdd/tdd-references/` travels with it. The
-  five `SKILL.md` files share a basename — copy directories, not files. On a Copilot
+  six `SKILL.md` files share a basename — copy directories, not files. On a Copilot
   project, additionally re-package each command into `.github/skills/<name>/SKILL.md`
   by the rule in `sdlc-setup.md` New mode step 5 — **keeping the existing frontmatter
   block**, since the owner may have edited its `description`, and replacing only the
@@ -199,6 +199,18 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   additions, and check
   afterwards that no skill is left at **both** paths — two copies of `tdd` with
   different content is the one outcome this step must not produce.
+- **0.14.0 also adds a skill the process now requires: `diff-review/`.** It arrives by
+  the new-files clause like any other addition, but say what it means rather than
+  listing it: `/end-slice` step 3 and `/end-phase` step 5 previously named
+  `pr-review-toolkit`, a per-machine Claude Code plugin, and now name this skill, which
+  travels with the repo and runs on both CLIs. Two consequences for the owner, both
+  worth stating at the halt. **A Copilot project gains a per-slice review it never
+  had** — the commands used to name a reviewer that did not exist there. **A Claude
+  Code project loses nothing**: `pr-review-toolkit` stays installed and stays usable as
+  an optional deepening at phase end, it simply stops being required, so no one needs
+  to uninstall anything. If the project's onboarding docs tell new developers to
+  install that plugin, that instruction is now optional — flag it, but do not edit
+  project-owned docs.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target
