@@ -1396,3 +1396,110 @@ and root-CLAUDE.md roster already updated at ingestion. The report's own numberi
 trusted nowhere the tree disagreed — the three step-number corrections above are why
 §4a's rule (ripple lists are incomplete until walked) now applies to reports as well as
 to this plan.
+
+---
+
+## 16. SIMP — the simplification pass *(audit done 2026-08-03; owner decisions pending)*
+
+> **Status: AUDIT COMPLETE, decisions pending at the halt.** The §15 scope executed:
+> denominator enumerated from the CHANGELOG (0.5.0–0.9.0) cross-checked against the
+> edit maps (§7, §9, §10, §11, §12), every rule audited against the catch record in
+> the five field reports, the trial record (§13–§14), and the TFit migration notes
+> (§10–§12). Verdicts below are **proposed**; deletions happen only on owner decision.
+
+### The denominator
+
+Unit of audit: **one process requirement with its own trigger and cost** — not one
+CHANGELOG bullet (bullets bundle) and not one edit-map row (rows split by file).
+Enumerated: **38 adopter-facing rules** — R1: 18, F2: 5, R2: 3, G1: 4, R3: 8 — with
+one supersession (R1's `*.md eol` offer widened into F2's `* text=auto`, counted once
+under F2). Kit-development-side additions (invariants 14 and 15, their `/kit-check`
+passes, the issue templates, the release-asset renaming) are out of audit scope: they
+constrain this repo, not an adopter's process. Cross-check: every 0.5.0–0.9.0
+CHANGELOG `[installable]`/`[adoption-only]` bullet and every §7/§10/§11/§12 edit-map
+row maps into the 38; nothing in either source is uncovered.
+
+### The audit — catches are quoted from the record, not remembered
+
+Rule types matter for what counts as evidence: a **check** proves itself by catching;
+a **constraint** proves itself by its founding defect not recurring under exercise; an
+**availability** (optional tool, defined path) costs nothing until used and can only
+be audited on use.
+
+**Confirmed catches — 24 rules, the protected core.** The heavy hitters, each with at
+least one post-ship catch on record:
+
+| Rule | Catch record (post-ship only) |
+|---|---|
+| Mutation check (R1, `end-slice.md` §4) | FR4: 5 gaps converted to fact + caught the session's own no-op fix; trial: 28+8 mutations killed on exactly their tests; FR5: 22 at arc close, 9 survivors at 100% line coverage found and killed |
+| Re-derivation before the slice (R1+R2+R3.2, `next-slice.md` §2) | FR3: "still earns its keep"; trial/FR5: **D27 retracted a ratified number**, caught two unsatisfiable exit criteria and a budget that omitted half its own sentence |
+| Consumer-of-changed-behavior lens (R1, `end-slice.md` §3) | §14: three slices, three confirmations of its rationale; quoted by FR5 finding 1 as the discipline to extend |
+| Verify findings before applying (R3.4) | FR5: 3 of 31 re-graded or discarded, one of which would have driven a repo-wide change in the wrong direction |
+| Inertness + deploy-activation (R3.1) | FR5: **paid twice in one session** — deploy verified inert as designed, and a prior arc's CSRF liveness claim disproved from the same log (never live, fixed same day) |
+| Type-ceiling ratchet (R3.3) | FR5: first mandatory answer — the 171 ceiling **not** ratified; TFit Phase 07 exists to lower it |
+| Coverage bump-and-reconcile (R2) | FR5: two homes agree, second arc running; 42→52 bumped in one commit — the founding drift never recurred |
+| Gotcha escalation (R3.6) | FR5 finding 10: the mandated control "worked exactly as designed — failed the gate the same minute" an editor rewrote 685 lines |
+| Deploy question + verified outcome (R1+G1.1) | FR5: the live-server verification lineage — M4's acceptance gap found ~3h after phase "completion"; the CSRF disproof above |
+| Update-path rules (R1 ×3 + R2 copy-in-place) | three clean migrations (PRs #8, #10, #13) including the Windows platform that broke the old mechanism; the enumeration visibly working (28 on disk = 27 + manifest, nothing un-manifested) |
+| Retro co-development clause + unactioned-friction sweep (R1) | FR5 finding 4 exists because the retro read §14; finding 6 is the sweep reporting its own starvation — the reader working on an empty log |
+| measured/suspected + measured/estimated vocabulary (R1+R3.2) | FR5: all 26 new backlog entries tagged; the budget and threshold catches above ride on the tags |
+| Plan-phase fan-out + governing rules (F2) | §12.5: two mutually contradictory sweep analyses = positive evidence of independence; FR5 finding 1 cites the read-only discipline as the model |
+| Branch rules + halt-2 narrowing + volatile-bundle warning + changed-vs-touched + boundary-only updates + reviewer naming + model poll + eol pin (R1/F2) | constraints under continuous exercise, founding defects unrecurred (the eol pin: FR5 shows all 128 committed blobs correct while working copies drifted — the pin's job done; the drift is editor-side and now gated by R3.6's control) |
+
+**No post-ship catch — presented honestly, per §15's own criterion** ("no confirmed
+catch after two releases is a deletion candidate"):
+
+| Rule | Age | Standing cost | Assessment |
+|---|---|---|---|
+| `sdlc-surveyor` agent + optional feasibility spawn (F2) | 4 releases | ~zero (an availability; one sentence in `plan-phase.md`, one installed file) | **Zero observed uses in four arcs** — §12 carried exactly this signal clause. Complication: FR5 finding 1 quotes its text as the read-only-discipline specimen R4.1 copies, and deleting an install-mapped file complicates every future `/sdlc-update`. **Owner decision** |
+| Test-doubles lens (R1, `end-slice.md` §3) | 5 releases | one bullet per slice review | No attributed post-ship catch. But its failure class is demonstrably alive — FR5's S2 fixture hole (one dropped `::`-split, 16/16 green, headline number wrong) is the premise recurring, caught by other means. Founding defect was live in production. **Owner decision; recommend keep** |
+| Hotfix exception (G1.2) | 2 releases | zero until a hotfix happens | Unexercised. Fills a vacuum that was real (the only defined answer to "second branch"). Recommend keep |
+| Security-checks-in-gate (G1.3) | 2 releases | setup-time only | Unexercised — no adopter with security CI on record yet; Daiwa-targeted. Recommend keep |
+| Owner-shell verification (R3.5) | 1 release | setup-time + one clause | Under the two-release threshold; founding defect was a command broken for four phases. R4.2 extends the same step. Keep, re-audit next pass |
+| Mock policy (R1, `TESTING.template.md`) | 5 releases | template prose, zero recurring | Constraint whose exercise is invisible from here (adopter-side test authorship). Keep |
+
+**The two §15-named candidates:**
+
+- **R3.7's relocation** (archive per-slice detail at phase close): fired once, moved
+  1,571 lines, the file was still 1,716 lines after — FR5 finding 9's arithmetic:
+  written wrong five times, corrected once. R4.7 adds the prevention (status-only
+  close-outs). **Owner decision:** keep the archival bullet as the safety net for
+  legacy accumulation and leaks (recommended), or delete it as the report proposes
+  once prevention ships.
+- **R3.8's aging rule**: nothing to age — the log has had no writer for three arcs
+  (FR5 finding 6). **Contingent keep:** R4.6 ships the writer; if the log is still
+  empty at the retro after next, the aging rule goes. Same contingency covers F2's
+  friction-log seed itself.
+
+### Conversions — "do this" → "this is done when" *(rewordings, not new rules)*
+
+Six spots where a survivor admits a completion condition in one clause, applying FR5's
+cross-cutting theme to the rules that stay. Deliberately excluded: the whole-arc
+review and the acceptance pass — their completion conditions are R4.3 and R4.2,
+additions that belong to R4.
+
+1. `end-slice.md` §3 (triage): done when every finding is dispatched — fixed,
+   deferred-with-tag, discarded-with-reason, or raised to the owner — and the
+   hand-back names the discards.
+2. `end-slice.md` §4 (mutation): done when every new guard has been seen to fail on
+   exactly its own test — a guard not yet seen to fail is not yet closed.
+3. `next-slice.md` §2 (re-derivation): done when every `estimated` number the slice
+   implements carries a recorded derivation, and every changed number went back to
+   the owner.
+4. `end-phase.md` step 7 (coverage): done when the workflow value and both recorded
+   homes are identical — sharpening the existing assert into the stop condition.
+5. `end-slice.md` §6 (gotcha escalation): a third-recurrence hazard is closed only as
+   a check or a ratified-unpreventable entry — never as a sharper note.
+6. `sdlc-retro.md` §2 (friction sweep): done when no unabsorbed entry is left
+   unreported — each named with its age.
+7. `templates/SDLC.template.md`: the canonical statements of 1–5 move in the same
+   batch (inv 2).
+
+### What SIMP does not do
+
+No new rules (everything additive waits for R4), no new files, no new placeholders,
+no halt-point changes. The batch's headline is honest and small: **the audit found the
+rules mostly earned their keep** — 24 of 38 with post-ship catches on record, exactly
+as FR5 predicted ("a pruning, not a retreat") — and the pruning is one availability
+with zero uses, one relocation bullet under owner judgment, two contingent keeps, and
+six completion-condition rewordings.
