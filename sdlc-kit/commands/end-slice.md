@@ -1,7 +1,8 @@
 # End Slice
 
-Close out the current slice: gate → review → fix → commit → record. Runs without asking
-except for owner-facing design questions. Process reference: `spec/SDLC.md`.
+Close out the current slice: gate → quality pass → review → fix → commit → record. Runs
+without asking except for owner-facing design questions. Process reference:
+`spec/SDLC.md`.
 
 ## How to use
 
@@ -28,7 +29,34 @@ clean adoption, the recorded counts for a project adopted with a red baseline. A
 increase is a regression and is fixed in this slice. Read the baseline from `spec/SDLC.md`;
 never assume it is zero.
 
-### 3. Slice code review
+### 3. Quality pass — optional, and never silent
+
+Run the `change-simplify` skill on the working diff: reuse, simplification, efficiency,
+and altitude, applied only where this slice introduced or worsened the condition. It is
+installed by `/sdlc-setup` into `.claude/skills/change-simplify/` and is available on
+both CLIs.
+
+It runs **here, before the review**, so the reviewer reads the code that will actually
+be committed — a quality pass run afterwards invalidates the review it follows.
+
+Three rules make it safe to run automatically:
+
+- **Behavior is frozen.** Every move is behavior-preserving. An improvement that would
+  change what the code does is a **finding**, not an edit — including one that would fix
+  something obviously wrong. A behavior change smuggled in under a refactor is invisible
+  to step 4, because a reviewer reads a refactor as behavior-preserving by definition.
+- **One move at a time, gate between.** Not a batch then the gate. A batch that goes red
+  says only that the batch broke something; one at a time makes every failure
+  self-locating.
+- **Read-only about the tree's shape**, exactly as the review is: no `git checkout`,
+  `git restore`, or `git stash`. The code being improved is uncommitted, so there is no
+  restore point behind it.
+
+**Skipping it is legitimate; skipping it silently is not.** On a small or mechanical
+slice there may be nothing to do — say that in the hand-back (step 8), along with what
+was applied if it ran. A pass whose outcome nobody stated is one nobody can weigh.
+
+### 4. Slice code review
 
 Run the `diff-review` skill on the working diff (uncommitted changes, plus any commits
 this slice has already made on the branch — `git diff <main>...HEAD` if the slice spans
@@ -42,7 +70,7 @@ agent or model.
 The built-in `/code-review` is the owner-typed, billed escalation — it is not this
 step, and this command cannot launch it. On Claude Code a deeper specialist fan-out
 (`pr-review-toolkit`) may be available; it is **optional**, and if it ran, say so in
-the hand-back (step 7). The same rule binds any substitution: a review whose depth is
+the hand-back (step 8). The same rule binds any substitution: a review whose depth is
 not stated is one nobody can weigh, and a good substitute review is exactly the kind
 nobody thinks to question.
 
@@ -73,13 +101,13 @@ credentials or an externally reachable surface, also apply the matching lens fro
 Triage findings — **verify each one against the source before it enters any pile.** A
 finding is a claim about the code; severity is asserted by the reviewer, not measured,
 and a false premise survives review at CRITICAL just as easily as at LOW. Findings that
-did not survive verification are reported in the hand-back (step 7) alongside the ones
+did not survive verification are reported in the hand-back (step 8) alongside the ones
 that did, never dropped silently.
 
 - **Fix now:** correctness bugs, silent failures, trust-boundary violations, anything
   CRITICAL/HIGH.
 - **Defer:** style/structure improvements, latent issues with no current trigger. Each
-  deferred item gets a one-line entry with rationale (step 6), its stated cause marked
+  deferred item gets a one-line entry with rationale (step 7), its stated cause marked
   **measured** (you reproduced or observed it) or **suspected** (you inferred it) — the
   reader of that entry needs to know what still needs checking, because a backlog entry
   is a hypothesis with a timestamp, not a finding.
@@ -94,7 +122,7 @@ marker, discarded with its reason, or raised to the owner — and the hand-back 
 the discards. A finding still sitting in none of those states is the step not finished,
 however far the conversation has moved on.
 
-### 4. Mutation check — a new guard must be seen to fail
+### 5. Mutation check — a new guard must be seen to fail
 
 For every **new guard, branch, or error path** this slice added (review fixes
 included): delete or invert it once, run the suite, and watch it fail on exactly the
@@ -106,7 +134,7 @@ practice caught exactly that on a real project — twice — in guards whose tes
 not have failed. The step is done when every new guard has been seen to fail on
 exactly its own test; a guard not yet seen to fail is not yet closed.
 
-### 5. Commit the slice
+### 6. Commit the slice
 
 Use the Bash tool with a heredoc for the message (never shell-specific here-strings):
 
@@ -120,7 +148,7 @@ EOF
 )"
 ```
 
-### 6. Record in PROJECT_INDEX
+### 7. Record in PROJECT_INDEX
 
 Update `spec/PROJECT_INDEX.md`:
 - Mark the slice done in the current phase's status/START HERE section. **Status only —
@@ -130,7 +158,7 @@ Update `spec/PROJECT_INDEX.md`:
   index five times and paid an archiving step once per arc to move it back out; the
   phase-close archival bullet stays as the safety net, not the plan.
 - Append deferred review findings to the backlog with rationale, provenance
-  (e.g. "(slice review, <date>)"), and the cause marker from step 3's triage
+  (e.g. "(slice review, <date>)"), and the cause marker from step 4's triage
   (**measured** / **suspected**).
 - If this slice added a tool, runtime, or service the gate now requires, record it (gate
   section of `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and add it to CI in
@@ -161,16 +189,17 @@ Update `spec/PROJECT_INDEX.md`:
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).
 
-### 7. Hand back
+### 8. Hand back
 
 Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open with a
 plain-English executive summary in bullets: what the slice now does, gate green (test
 count), and what is next — with any decision the owner still owes **numbered and
 explicitly marked** (usually there is none; an open design question is the exception).
-Then the detail, after the summary and never mixed into it: review outcome (N fixed /
-N deferred / N discarded as unverified, naming those), mutation-check outcome (N
-guards checked, each seen to fail), any tool substituted for one this file names, and
-commit hashes. End with: **safe to `/clear`**.
+Then the detail, after the summary and never mixed into it: quality-pass outcome (N
+moves applied / N dropped, or **skipped** with the reason — never omitted), review
+outcome (N fixed / N deferred / N discarded as unverified, naming those),
+mutation-check outcome (N guards checked, each seen to fail), any tool substituted for
+one this file names, and commit hashes. End with: **safe to `/clear`**.
 
 ## Notes
 

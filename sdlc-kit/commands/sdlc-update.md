@@ -19,6 +19,7 @@ the project owns.**
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` | project | never overwritten — they hold the gate baseline, the project's own gate commands, owner decisions, backlog, gotchas |
+| `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
 
 **Which of those rows apply here is recorded, not guessed:** `spec/PROJECT_INDEX.md`
 names the project's agent CLI (`Claude Code` / `Copilot CLI` / `both`). A project on
@@ -201,7 +202,7 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   different content is the one outcome this step must not produce.
 - **0.14.0 also adds a skill the process now requires: `diff-review/`.** It arrives by
   the new-files clause like any other addition, but say what it means rather than
-  listing it: `/end-slice` step 3 and `/end-phase` step 5 previously named
+  listing it: `/end-slice` step 4 and `/end-phase` step 5 previously named
   `pr-review-toolkit`, a per-machine Claude Code plugin, and now name this skill, which
   travels with the repo and runs on both CLIs. Two consequences for the owner, both
   worth stating at the halt. **A Copilot project gains a per-slice review it never
@@ -211,6 +212,19 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   to uninstall anything. If the project's onboarding docs tell new developers to
   install that plugin, that instruction is now optional — flag it, but do not edit
   project-owned docs.
+- **0.14.0 adds two more kit-written skills, and one of them changes the slice loop:
+  `change-simplify/` and `change-verify/`.** Both arrive by the new-files clause, but
+  the owner needs the process change stated, not the filenames. `/end-slice` gains a
+  **new step 3**, an optional post-green quality pass, which renumbers every step after
+  it — review is now step 4, commit step 6, hand-back step 8. `/end-phase` step 2 now
+  names `change-verify` for the phase-level verification it previously described only
+  as "smoke test, end-to-end run, manual script". Two things to say plainly: the
+  quality-pass step is **optional but never silent**, so the hand-back gains a line
+  either way; and on Claude Code these do **not** replace the `verify` and `simplify`
+  built-ins, which remain available — the kit ships its own so the passes exist on
+  Copilot too, and running both over the same range is waste, not rigour.
+  A project whose own notes cite `/end-slice` step numbers will be stale after this
+  update. Flag that; do not edit project-owned docs to fix it.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target

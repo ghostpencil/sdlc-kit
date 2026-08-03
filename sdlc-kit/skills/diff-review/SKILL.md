@@ -16,7 +16,7 @@ itself and always passes.
 
 ## How to use
 
-Invoked by `/end-slice` (step 3, the working diff) and `/end-phase` (step 4, the whole
+Invoked by `/end-slice` (step 4, the working diff) and `/end-phase` (step 5, the whole
 arc). It can also be run directly on any range.
 
 Arguments, all optional:

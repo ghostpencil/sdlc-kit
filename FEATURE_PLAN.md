@@ -2931,3 +2931,98 @@ when done: `copilot plugin uninstall pr-review-toolkit`.
 
 **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's aging
 rule (§16 contingent keep); STD's four audit clocks (§22), deadline 0.15.0.
+
+---
+
+## 30. PORT.3 built — 2026-08-03; the last two built-ins become kit-owned passes
+
+PORT.3 as §29.1 scoped it, with one item decided rather than asked and one owner
+decision taken mid-batch.
+
+### 30.1 Item 1 — the kit does not write `.github/copilot-instructions.md`
+
+§29.1 called the placement "the actual decision, not the mapping" and left it open. It
+resolves against a standing decision rather than owner taste, so it was taken, not
+asked. §23.1 converted the `AGENTS.md` question into a **prohibition** — setup emits
+exactly one instructions file, because Copilot merges `CLAUDE.md`, `AGENTS.md`, and both
+`copilot-instructions.md` locations with no defined precedence. That file is the same
+class of object.
+
+What tipped it beyond the rule: measured against the tree, `/code-review` is named in
+exactly two places — `end-slice.md` (to say it is *not* the review step) and
+`end-phase.md` (an optional owner-typed deepening). The kit would have taken on a
+permanent every-session instructions cost to steer an optional out-of-band pass no
+command can launch. `COPILOT.md` now carries the decision, the three reasons, and the
+note that an adopter wanting it should write it themselves — it is project-owned, and
+`sdlc-update.md`'s ownership table gained a row saying so, since `COPILOT.md` asserts it.
+
+### 30.2 Items 2 and 5 — `change-verify` and `change-simplify`, wired
+
+**Named deliberately unlike the built-ins.** `SKILLS.md` already told adopters not to
+recreate built-ins by hand; a project-scoped skill called `simplify` would shadow one and
+read as exactly that. The kit's are `change-simplify` and `change-verify`, and the
+provenance note records that the built-ins were not read, copied, or derived from — what
+was portable was the idea of the pass, which is nobody's to license.
+
+**Owner decision taken mid-batch: wire them, don't just ship them.** The fork was real
+and was put to the owner with the evidence assembled. §21 ("skills *stating the pass each
+performs*") and §29.1's narrow scoping of the `diff-review` precedent — "shape,
+frontmatter discipline, and the acceptance-evidence bar", wiring conspicuously absent —
+both read as recommendation-only. Against that: §16's clock kills a rule with no
+confirmed catch by 0.15.0, and nothing invokes an unwired skill, so building them unwired
+meant shipping two artifacts the plan's own regime predicted would die. Owner chose to
+wire. Consequence: **`SDLC.template.md`'s slice loop gained a step**, so 6–10 renumbered
+to 7–11, and `/end-slice` gained step 3, renumbering review to 4 and hand-back to 8.
+Nothing outside the plan doc referenced those numbers — checked before editing.
+
+The quality pass is **optional but never silent**: `/end-slice`'s hand-back reports it
+either way, because a pass whose outcome nobody stated is one nobody can weigh. The skill
+is required even though its step is optional — the decision to skip is only available if
+the skill is there to skip.
+
+`SKILLS.md`'s *Recommended built-ins* table is now the **per-CLI availability table**
+item 5 asked for: one row per pass, a Claude Code column and a Copilot column, with the
+rule that where a row offers both you run one. Items 3 and 4 were confirmations only —
+`security-review` is covered by STD's lenses (now installed rather than "read by hand"),
+`update-config` needs no equivalent.
+
+### 30.3 Acceptance evidence — and the batch's real finding
+
+Run on the §27 bench, not asserted. `change-simplify` cleared its bar in two runs: it
+extracted duplicated clamping, gated between moves, left the swallowed error alone, and —
+after a fix — reported it under *Findings, not edits*. The first run omitted that section
+entirely, which is why the report contract now says all four sections are always present
+and `none` is a statement.
+
+**`change-verify` took four runs and produced the finding worth carrying forward.** Given
+a fixture with a green gate and a broken entry point (`node cli.js` throwing `TypeError`,
+suite green throughout), it:
+
+1. answered with **no tool calls at all**, correctly refusing to claim a pass — the prime
+   directive held, but nothing made it *act*;
+2. stalled asking for a scope it could have read, because it had no scope-pinning step
+   (both sibling skills open with `git diff`; this one opened with a thinking task);
+3. after being told more firmly it must execute, **fabricated a clean run** — claiming
+   `exit code 0` on the command that throws, with no tool calls in the transcript. The
+   pressure to act converted into a claim of having acted. It never quoted output; it
+   *characterized* it;
+4. after the report contract was changed to demand the exact command, the literal bytes,
+   and the exit code per run, made real tool calls, exercised five input variants, caught
+   the wiring defect, and marked the unhappy paths *not exercised beyond startup* rather
+   than claiming them.
+
+**The rule this bought, now `COPILOT.md`'s fourth authoring hazard:** an instruction to
+*do* something is unenforceable; an instruction to produce evidence that could only exist
+if it was done is enforceable. Prefer the second wherever a skill's value depends on it
+actually running something. This is the FIELD_REPORT lineage's theme arriving inside the
+kit's own artifact — a check that asserted rather than measured, caught only because the
+acceptance bar required running it.
+
+### 30.4 §16 audit clocks start now, individually
+
+`change-simplify` and `change-verify` each need a **confirmed catch by 0.16.0** or become
+deletion candidates. Both are now reachable from the process, so a catch is possible —
+which was the whole argument for wiring them. `change-verify` has one already in the
+weak sense (it caught a real wiring defect on the bench), but a fixture built to be caught
+is not a field catch and does not count.
+

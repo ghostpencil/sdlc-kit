@@ -239,7 +239,16 @@ Run `/next-slice` in a **fresh session**:
 Run `/end-slice` when the slice's exit criteria are met:
 
 5. Run the gate.
-6. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
+6. Quality pass, **optional** (the `change-simplify` skill on the working diff — reuse,
+   simplification, efficiency, altitude, applied only where this slice introduced or
+   worsened the condition). It runs here and not later because the reviewer should read
+   the code that will actually be committed. **Behavior is frozen**: every move is
+   behavior-preserving, one move at a time with the gate between, and an improvement
+   that would change behavior is a finding rather than an edit. It requires a green
+   gate — a quality pass over red code cannot tell an improvement from a fix. Skipping
+   it is a legitimate choice on a small or mechanical slice; skipping it silently is
+   not, so say so in the hand-back either way.
+7. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
    reported side by side, never merged; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
    propagation or added a catch or failure path, swept for a pattern, touched an
@@ -258,25 +267,31 @@ Run `/end-slice` when the slice's exit criteria are met:
    measured or suspected. Re-run the gate if anything changed. The review is done when
    every finding is dispatched — fixed, deferred with its marker, discarded with its
    reason, or raised to the owner — and the hand-back names the discards.
-7. Mutation check: every new guard, branch, or error path this slice added is deleted
+8. Mutation check: every new guard, branch, or error path this slice added is deleted
    or inverted once and the suite watched to fail on exactly the intended test
    (mutation-testing skill for anything beyond a quick delete-and-run). A check is
    trustworthy only once it has been made to disagree; the step is done when every new
    guard has been seen to fail on exactly its own test.
-8. Commit (heredoc for multi-line messages, via the Bash tool).
-9. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
-   detail lives in the phase spec and the commit message), deferred items appended,
-   and any friction with the process itself written to the Kit friction log now,
-   while the evidence is still accurate — then commit the docs change. Push the
-   branch (no PR — that is phase end).
-10. Owner clears context (`/clear`). Every slice starts from a fresh window.
+9. Commit (heredoc for multi-line messages, via the Bash tool).
+10. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
+    detail lives in the phase spec and the commit message), deferred items appended,
+    and any friction with the process itself written to the Kit friction log now,
+    while the evidence is still accurate — then commit the docs change. Push the
+    branch (no PR — that is phase end).
+11. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end
 
 Run `/end-phase` when the last slice is done:
 
 1. Run the gate; run whatever phase-level verification the phase spec calls for
-   (smoke test, end-to-end run, manual script).
+   (the `change-verify` skill on the arc, plus any smoke test, end-to-end run, or
+   manual script the spec names). The gate is evidence about the suite; this step is
+   the only one before halt 4 that produces evidence about the **behavior**, since a
+   suite exercises code through the harness rather than through the path a caller
+   takes. **A pass not observed is not a pass** — anything that could not be exercised
+   here is reported as unverified rather than assumed, because the alternative spends
+   halt 4's credibility on a check that never ran.
 2. **Owner acceptance review** *(halt 4)* — owner runs `{{RUN_COMMAND}}` and verifies the
    phase's visible behavior against the spec's checklist. Findings become fix commits
    (back to the slice loop if large). This is the one step in the whole process that

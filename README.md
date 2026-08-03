@@ -142,6 +142,10 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── mutation-testing/            ← always installed — /end-slice's mutation check invokes it
 │   ├── diff-review/                 ← always installed — kit-written; the reviewer /end-slice
 │   │                                   and /end-phase name (Spec + Standards axes, both CLIs)
+│   ├── change-simplify/             ← always installed — kit-written; the post-green quality
+│   │                                   pass /end-slice step 3 names (optional step, required skill)
+│   ├── change-verify/               ← always installed — kit-written; the phase-level
+│   │                                   verification /end-phase step 2 names
 │   ├── python-pro/                  ← Python projects only
 │   └── hypothesis-tests/            ← Python projects only
 ├── templates/                       ← instantiated into the project by /sdlc-setup

@@ -35,7 +35,8 @@ VERSION                  ← the kit version this bundle is
 MANIFEST.sha256          ← checksums of every file below (see "Verifying" and "Updating")
 commands/                ← installed into <project>/.claude/commands/
                            (Copilot CLI: .github/skills/<name>/SKILL.md)
-skills/                  ← TDD skill set + the diff-review reviewer
+skills/                  ← TDD skill set + the three kit-written passes
+                           (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
 templates/               ← instantiated into the project by /sdlc-setup

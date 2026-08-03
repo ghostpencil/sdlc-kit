@@ -25,7 +25,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |
 
 A repo that answers **both** at the interview gets both columns. Nothing is written
-twice: the seven commands exist once per CLI in different formats, the six skill
+twice: the seven commands exist once per CLI in different formats, the eight skill
 directories exist once in a shared directory, and every other row is already shared.
 
 ### Why `CLAUDE.md` is not translated — and why `AGENTS.md` is prohibited
@@ -50,7 +50,7 @@ This is a prohibition, not an omission. A future batch that "helpfully" adds
 `.claude/skills` is one of the three project skill directories Copilot CLI reads
 (`.github/skills`, `.claude/skills`, `.agents/skills`) — confirmed first-hand against
 1.0.77, where a kit skill placed there is listed under *Project skills*. Installing the
-six skill directories there means a dual-CLI repo carries **one** copy of each skill
+eight skill directories there means a dual-CLI repo carries **one** copy of each skill
 rather than two that can drift apart. The Claude-flavoured directory name on a Copilot-only project is
 the accepted cost of that; it is a name, and the alternative is a sync surface.
 
@@ -198,9 +198,9 @@ equivalent to Claude Code's `general-purpose` exists; only agents defined in
 `.github/agents/` or supplied by a plugin can be named. A skill that spawns
 `general-purpose` by name does nothing here.
 
-### Three authoring hazards, measured on 1.0.77
+### Four authoring hazards, measured on 1.0.77
 
-These bind anything the kit writes that must run on both CLIs, and all three fail
+These bind anything the kit writes that must run on both CLIs, and all four fail
 **silently** — which is what makes them worth a section rather than a footnote.
 
 1. **A `: ` inside an unquoted frontmatter value drops the whole file.** Copilot's YAML
@@ -223,6 +223,19 @@ These bind anything the kit writes that must run on both CLIs, and all three fai
    `powershell` removes shell access no matter what `--allow-tool 'shell(git diff)'`
    says, and the session reports a *reasoning* limitation rather than a permission
    error — the failure looks like a bad answer, not a bad flag.
+4. **A skill that asks for an action can get a report of that action instead — so
+   demand the artifact, not the action.** Measured while building `change-verify`
+   (2026-08-03), across four runs on the same fixture. Told to exercise a change, the
+   session answered without a single tool call; told more firmly that it *must* execute,
+   it produced a confident report claiming `exit code 0` on a command that in fact
+   throws `TypeError` — the pressure to act converted into a claim of having acted. What
+   fixed it was not more insistence but a **checkable output contract**: require the
+   exact command, the literal bytes it printed, and the exit code, in a fenced block per
+   run, and say that characterizing output ("clean exit", "expected result") is itself
+   the tell. The next run made real tool calls and caught the defect. The general rule
+   for kit skills: **an instruction to do something is unenforceable; an instruction to
+   produce evidence that could only exist if it was done is enforceable.** Prefer the
+   second wherever a skill's value depends on it actually running something.
 
 ## What the kit loses on Copilot today
 
@@ -246,23 +259,54 @@ announced it is removing is not one to build a process on.
 
 | Missing | What the kit uses it for | Available substitute today |
 |---|---|---|
-| `/code-review` | the owner-typed, billed escalation | GitHub Copilot code review requested on the phase PR |
-| `verify` | end-to-end exercise before committing | none |
-| `simplify` | post-green refactor pass on the slice diff | none |
-| `security-review` | phases touching auth, secrets, input, network | the secure-coding lenses in `REVIEW_LENSES.md`, read by hand |
+| `/code-review` | the owner-typed, billed escalation | GitHub Copilot code review requested on the phase PR — owner-driven, and the kit does not configure it; see below |
+| `verify` | end-to-end exercise before committing | **closed in 0.14.0** — the kit-written `change-verify`, named by `/end-phase` step 2 |
+| `simplify` | post-green refactor pass on the slice diff | **closed in 0.14.0** — the kit-written `change-simplify`, named by `/end-slice` step 3 |
+| `security-review` | phases touching auth, secrets, input, network | the secure-coding lenses in `REVIEW_LENSES.md`, installed to `.claude/commands/` and named by `/end-slice` — no longer read by hand |
 | `update-config` | editing hook/permission config safely | not needed — see below |
 
-Copilot's own review path is worth knowing: **GitHub Copilot code review** can be
-requested on a pull request from the Reviewers sidebar, configured to run
-automatically, and — the part that matters here — steered by
-`.github/copilot-instructions.md`. Note the interaction with the instructions rule
-above: that same file is merged into the CLI's instructions, so anything written there
-to steer the PR reviewer is also loaded into every CLI session. Placement is a
-deliberate choice, not a free one.
+Only the first row is still a real loss, and it is the one the kit never required. Two
+rows closed in 0.14.0 the way the review row did: the kit wrote its own portable
+version rather than describing a substitute it does not install. Those two are
+kit-written and named nowhere in Claude Code's built-in set — deliberately, so that
+installing them shadows no built-in (`reference/SKILLS.md`, provenance).
 
 `update-config` needs no equivalent: Copilot's configuration is plain JSON
 (`.github/hooks/*.json`, `.github/copilot/settings.json`) that any editor can open
 safely.
+
+### `/code-review`, and why setup does not write `.github/copilot-instructions.md`
+
+Copilot's own review path is worth knowing: **GitHub Copilot code review** can be
+requested on a pull request from the Reviewers sidebar, configured to run
+automatically, and — the part that would matter here — steered by
+`.github/copilot-instructions.md`.
+
+**`/sdlc-setup` does not write that file. This is decided, not pending.** The reasoning,
+recorded so a later batch does not helpfully add it:
+
+1. **It is a second instructions file, which the kit prohibits.** Copilot CLI merges
+   `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`, and
+   `$HOME/.copilot/copilot-instructions.md` with **no defined precedence order** — the
+   same finding that made setup emit exactly one instructions file and decline to emit
+   `AGENTS.md`. Anything written there to steer a PR reviewer is also loaded into every
+   interactive session, unranked against `CLAUDE.md`.
+2. **What it would steer is the one thing the kit deliberately does not own.**
+   `/code-review` is the owner-typed, billed escalation on either CLI. No command
+   invokes it, `/end-slice` names it only to say it is *not* the review step, and
+   `/end-phase` offers it as an optional deepening. Taking on a permanent every-session
+   instructions cost to tune an optional out-of-band pass is a bad trade in the one
+   direction that is hard to reverse.
+3. **The kit's reviewers already carry the standards that file would restate.**
+   `diff-review`'s Standards axis reads `CLAUDE.md` *Runtime Conventions* directly. A
+   `copilot-instructions.md` written by setup would be a second copy of rules that
+   already exist in the file both CLIs read — and a second copy with no precedence rule
+   is the failure this whole section is about.
+
+**An adopter who wants it should write it themselves.** It is a project-owned file, the
+kit will not create or overwrite it, and `/sdlc-update` treats it as project-owned like
+`.claude/settings.json`. Worth knowing before you do: keep it to PR-review guidance that
+is harmless when loaded into an interactive session, because it will be.
 
 ## Updating a Copilot project
 

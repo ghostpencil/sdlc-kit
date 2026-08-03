@@ -24,8 +24,21 @@ Green means green **against the gate baseline recorded in `spec/SDLC.md`** — z
 clean adoption, the recorded counts for a project adopted with a red baseline. Any
 increase is a regression. Read the baseline from `spec/SDLC.md`; never assume it is zero.
 
-Also run whatever phase-level verification the phase spec calls for (smoke test,
-end-to-end run, manual script). Fix and re-run until green.
+Also run whatever phase-level verification the phase spec calls for: the
+`change-verify` skill on the arc, plus any smoke test, end-to-end run, or manual script
+the spec names. Fix and re-run until green.
+
+`change-verify` is installed by `/sdlc-setup` into `.claude/skills/change-verify/` and
+is available on both CLIs. It exercises the arc through the path a real caller takes
+rather than through the harness, which is the gap the gate cannot cover — a suite
+reaches the code through the test process, and the failures that survive a green suite
+live in startup, wiring, and configuration. Its discipline is that **a pass not
+observed is not a pass**: anything it could not exercise is reported as unverified, not
+assumed.
+
+This is what step 3 draws on. An arc that reaches the acceptance halt with nothing
+observed puts the owner in front of a system no one has run, and the halt passes
+vacuously.
 
 ### 3. Owner acceptance review — HALT
 
