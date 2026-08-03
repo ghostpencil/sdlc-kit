@@ -1619,6 +1619,14 @@ hash; text-mode hashes, no `*` prefixes — §16's in-pass finding did not recur
   all copied files UNCHANGED — the two runs disagreeing about the copied files is the
   discrimination proof. Gate CI green on the PR; only project-owned line touched was
   the `spec/SDLC.md` stamp. **Phase 07 is now free to open** on kit 0.11.0.
-- **Next kit input:** any sixth field report (TFit Phase 07 would produce it). R3.8's
-  aging rule is on a clock — if the friction log is still empty at the retro after
-  next despite R4.6's writer, it goes (§16 contingent keep).
+- **Next session opens on owner-led brainstorming** (owner-decided 2026-08-03, end of
+  the R4 session): the owner wants to plan additional improvements with the session,
+  not work a queued batch — nothing is queued. Come with the kit's own record as the
+  raw material: the five reports' cross-cutting themes, §16's audit (what earned its
+  keep, what is on a clock), and the §4 rejected list, so brainstorming starts from
+  evidence rather than a blank page. Ideas that survive get triaged into this plan the
+  usual way before anything is built.
+- **Standing kit inputs, independent of the brainstorm:** any sixth field report
+  (TFit Phase 07 would produce it). R3.8's aging rule is on a clock — if the friction
+  log is still empty at the retro after next despite R4.6's writer, it goes (§16
+  contingent keep).
