@@ -2500,3 +2500,81 @@ that no skill ends up at both paths.
 - **One thing PORT.2 should know:** `reference/SKILLS.md` now points at COPILOT.md's
   loss table rather than carrying a per-CLI availability column. §23.5's "SKILLS.md
   gains a per-CLI availability column" is still PORT.3's to build if it wants one.
+
+---
+
+## 25. PORT.4 built — 2026-08-03; `/sdlc-update` learns the Copilot side
+
+§21's definition, minus `AGENTS.md`, which 23.1 turned into a prohibition — there is no
+such file to classify. Two halves: the target CLI is now *recorded*, and the update
+command classifies the Copilot artifacts.
+
+**The record.** `{{TARGET_CLI}}` — an *Agent CLI:* line at the top of
+`PROJECT_INDEX.template.md`, resolved from the preflight confirmation (`Claude Code` /
+`Copilot CLI` / `both`). `/sdlc-update` reads it at step 1 to know which directories are
+kit-owned. Projects adopted before 0.14.0 have no such line: the update infers it from
+what the repo holds, has the owner confirm, and writes the line as it lands — so
+`spec/SDLC.md`'s version stamp and this line are now **the two** project-owned lines an
+update may write, the second only when absent. Both READMEs and `sdlc-update.md` say so
+identically (invariant 8).
+
+**The problem PORT.4 actually had to solve, which §21 did not anticipate.** "Classify
+the Copilot artifacts exactly as the `.claude/` set" is not possible as written: the
+kit's whole proof of "unmodified" is byte-identity with a manifest entry, and a packaged
+skill is *not* byte-identical to anything in the bundle — it is a frontmatter block plus
+the kit command. Options considered and rejected: shipping a second copy of each command
+in Copilot shape (body duplication, a drift surface between two files with the same
+content), and shipping pointer-skills whose body just names the real file (an
+indirection the model may or may not follow). What shipped instead: **the packaging
+shape is specified exactly** — frontmatter, one blank line, then the kit file
+byte-for-byte, nothing else inserted — and the classifier strips that block and compares
+the remainder against `commands/<name>.md`. The install rule and the update rule are now
+the same statement read in two directions.
+
+Three consequences worth recording:
+
+- **It fails safe.** A broken strip hashes nothing, matches no manifest entry, and the
+  file lands in `DRIFTED` in front of the owner rather than in `UNCHANGED` behind their
+  back. Both `sdlc-update.md` and the README say that seven packaged skills going
+  `DRIFTED` at once means the strip, not seven edits.
+- **It tolerates the right edit.** An owner who rewords a skill's `description` has not
+  modified the command; the strip ignores frontmatter by construction, so that file
+  still classifies `UNCHANGED` and still gets the new body.
+- **The gate hook is project-owned**, like `.claude/settings.json` — it holds the
+  project's own lint and typecheck commands. A release that changes the hook recipe
+  reaches an adopted project as a changelog entry, never as an overwrite.
+
+`.github/agents/explore.agent.md` needed no special handling but did need a rule: it
+copies `templates/explore.agent.template.md` verbatim (no placeholders), so it is the
+**second exception** to "templates are never re-applied to an adopted project" —
+`reference/REVIEW_LENSES.md` was the first. Both READMEs now name both.
+
+**Verified against a synthetic adopted project**, not by reading. The classifier block
+was extracted verbatim from `sdlc-update.md` and run over a repo holding all five
+classes: a kit command, `REVIEW_LENSES.md`, a vendored skill with its nested
+`tdd-references/`, a packaged Copilot skill, the agent profile, one deliberately drifted
+command, and one file the kit never shipped. Nine files, nine lines, every verdict
+correct — and correct on a repo with **no `.gitattributes`**, whose working tree is CRLF,
+which is the kit's own standing warning demonstrated rather than asserted. Two negative
+cases followed: editing the packaged skill's body → `DRIFTED`; editing only its
+`description` → `UNCHANGED`.
+
+**One latent bug fixed on the way.** The classify loop had no `*)` catch-all, so a path
+matching none of its cases would silently reuse the previous iteration's `want` and
+`base` — unreachable while the directory list produced only matching paths, and no longer
+unreachable now that `.github/skills/*/SKILL.md` is a specific pattern. A stray file
+under a kit-owned directory now reports `UNKNOWN`, which is the honest answer.
+
+### Hand-off — state as of 2026-08-03, PORT.1 and PORT.4 complete
+
+- **Next: PORT.2, then PORT.3.** PORT.2 opens with the cheap decisive experiment from
+  23.3 — attempt `pr-review-toolkit`'s install on Copilot CLI and invoke one reviewer —
+  and closes at the PORT.2a owner halt, now a three-way choice (kit-owned reviewer /
+  keep `pr-review-toolkit` / adopt `mattpocock/skills`' `code-review`, 23.6), presented
+  with evidence.
+- **Release bookkeeping still open:** CHANGELOG, the VERSION bump to 0.14.0, and the
+  full `/kit-check` pass. `MANIFEST.sha256` is current (29/29, discrimination proven)
+  but needs one final regeneration after the VERSION bump, since `VERSION` is a bundle
+  file. Whether PORT.2/PORT.3 join this release or follow it is the owner's call.
+- **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's
+  aging rule (§16 contingent keep); STD's four audit clocks (§22).

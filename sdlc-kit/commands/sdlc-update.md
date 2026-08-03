@@ -16,7 +16,14 @@ the project owns.**
 | `.claude/commands/*.md` (from the kit's `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | kit | overwrite when provably unmodified; owner decides when drifted |
 | `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from the kit's `skills/`; this mapping starts at 0.14.0) | kit | same rule; on a project coming from ≤ 0.13.0 these are *new* files and their `.claude/commands/` originals are *removed* |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | project | never overwritten — they hold the gate baseline, owner decisions, backlog, gotchas |
+| `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
+| `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` | project | never overwritten — they hold the gate baseline, the project's own gate commands, owner decisions, backlog, gotchas |
+
+**Which of those rows apply here is recorded, not guessed:** `spec/PROJECT_INDEX.md`
+names the project's agent CLI (`Claude Code` / `Copilot CLI` / `both`). A project on
+both holds the seven commands twice — once user-typed under `.claude/commands/`, once
+packaged under `.github/skills/` — and both copies update.
 
 ## How to use
 
@@ -35,6 +42,11 @@ unavoidable, record the version change against the affected slices in
 - Read the project's version from `spec/SDLC.md` (*Kit version: X.Y.Z*). Do not guess
   and do not assume the newest: classification runs against the manifest of the version
   the project is *on*, which is what makes "unmodified" provable rather than hopeful.
+- Read the project's agent CLI from `spec/PROJECT_INDEX.md` (*Agent CLI:*). It decides
+  which directories step 3 enumerates. Absent — projects adopted before 0.14.0 have no
+  such line — infer it from what the repo holds (`.claude/settings.json` vs
+  `.github/hooks/`), state the inference to the owner, and have them confirm it; the
+  update writes the line as part of landing, so the next update reads rather than infers.
 - The target is the argument, or the newest release tag.
 - No stamp, or a stamp reading `unknown (pre-0.2.0)` → the project predates manifests.
   Clone the kit repo (step 2) and follow the *No version stamp* section of its root
@@ -59,7 +71,9 @@ drifted, uniformly and plausibly wrong.
 cd <project root>
 MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
-for f in $(git ls-files .claude/commands .claude/skills .claude/agents); do
+for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
+                        .github/skills .github/agents); do
+  have=""
   case "$f" in
     .claude/commands/*)
       base=${f#.claude/commands/}
@@ -80,8 +94,24 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents); do
       # (Against a pre-0.6.0 manifest they classify UNKNOWN — the denominator check
       # still counts them.)
       want=$(awk -v b="$base" '$2 == "agents/" b {print $1}' "$MAN") ;;
+    .github/skills/*/SKILL.md)
+      # Copilot packaging: a frontmatter block, one blank line, then the kit command
+      # verbatim. Strip that block and the file must hash to commands/<name>.md — which
+      # is why setup specifies the shape exactly and inserts nothing else.
+      base=${f#.github/skills/}; base=${base%/SKILL.md}
+      want=$(awk -v b="commands/$base.md" '$2 == b {print $1}' "$MAN")
+      have=$(git cat-file -p ":$f" | awk \
+        'NR==1 && $0=="---" {fm=1; next} fm && $0=="---" {fm=0; blank=1; next}
+         fm {next} blank && $0=="" {blank=0; next} {blank=0; print}' |
+        sha256sum | cut -d' ' -f1)
+      base="$base (packaged skill)" ;;
+    .github/agents/explore.agent.md)
+      base=explore.agent.md
+      # copied verbatim from the template — it carries no placeholders to resolve.
+      want=$(awk '$2 == "templates/explore.agent.template.md" {print $1}' "$MAN") ;;
+    *) base=$f; want="" ;;
   esac
-  have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
+  [ -n "$have" ] || have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
   if   [ -z "$want" ];        then echo "UNKNOWN   $base"
   elif [ "$want" = "$have" ]; then echo "UNCHANGED $base"
   else                             echo "DRIFTED   $base"
@@ -93,12 +123,21 @@ Two checks on the check — required, because both failure modes produce a plaus
 result rather than an error:
 
 - **Denominator.** The loop must print exactly as many lines as
-  `git ls-files .claude/commands .claude/skills .claude/agents | wc -l`. Fewer means the
-  matching dropped files (`tdd-references/` lives two directories down and is the usual
-  casualty).
+  `git ls-files .claude/commands .claude/skills .claude/agents .github/skills
+  .github/agents | wc -l` — the same directory list the loop walks, so the two cannot
+  drift apart. Fewer means the matching dropped files (`tdd-references/` lives two
+  directories down and is the usual casualty). On a Copilot project the count includes
+  files under `.github/` that a Claude-only project does not have, and on a "both"
+  project the seven commands are counted twice, once per copy; a count that looks too
+  high is the recorded CLI telling the truth, not an error.
 - **Never probe for a path with `git cat-file … | sha256sum`.** A pipeline reports the
   *last* command's status, so a missing path hashes empty input and silently matches
   the wrong thing. Look paths up in the manifest, as above.
+- **The frontmatter strip fails safe, and that is the point.** If it breaks, it yields
+  the hash of nothing, which matches no manifest entry, so the file classifies
+  `DRIFTED` and reaches the owner. A strip that silently *succeeded* on the wrong bytes
+  would report a modified command as untouched — so if every packaged skill classifies
+  `DRIFTED` at once, suspect the strip before suspecting seven simultaneous edits.
 
 ### 4. Present the plan — the ONE owner halt
 
@@ -132,7 +171,14 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   destinations: `sdlc-kit/commands/` and `sdlc-kit/reference/REVIEW_LENSES.md` into
   `.claude/commands/`; each `sdlc-kit/skills/<name>/` directory into
   `.claude/skills/<name>/`, copied whole so `tdd/tdd-references/` travels with it. The
-  five `SKILL.md` files share a basename — copy directories, not files.
+  five `SKILL.md` files share a basename — copy directories, not files. On a Copilot
+  project, additionally re-package each command into `.github/skills/<name>/SKILL.md`
+  by the rule in `sdlc-setup.md` New mode step 5 — **keeping the existing frontmatter
+  block**, since the owner may have edited its `description`, and replacing only the
+  body below it — and copy `templates/explore.agent.template.md` over
+  `.github/agents/explore.agent.md`. The gate hook is project-owned and is not touched;
+  if the target changes the hook recipe, that is a changelog entry for the owner to
+  apply by hand, exactly as on the Claude side.
 - The symmetric case: files **removed from the target's install set** — listed in the
   old version's manifest under an install mapping but absent from the target's. An
   `UNCHANGED` one is provably the kit's and is deleted; a `DRIFTED` one goes to the
@@ -192,9 +238,12 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   to keep. The two runs disagreeing about the copied files (old manifest: changed;
   new: matching) is what proves the classifier discriminates — an all-clear it could
   not fail to produce proves nothing.
-- Re-stamp `spec/SDLC.md` (*Kit version: X.Y.Z (updated <date>)*) — the one line an
-  update may change in a project-owned file. Do it last, so an aborted update never
-  claims a version it does not hold.
+- Re-stamp `spec/SDLC.md` (*Kit version: X.Y.Z (updated <date>)*). On a project adopted
+  before 0.14.0, also write the *Agent CLI:* line into `spec/PROJECT_INDEX.md` with the
+  value the owner confirmed at step 1. **These two lines are the only project-owned
+  content an update may write**, and the second only when it is absent — never to
+  overwrite an answer already recorded. Do both last, so an aborted update never claims
+  a version it does not hold.
 - Land as a normal PR (`chore/update-sdlc-kit-X.Y.Z`), the same way the adoption landed.
   Report to the owner what changed *behaviorally* (from the changelog), not just which
   files moved.

@@ -213,12 +213,20 @@ The whole procedure rests on this split:
 | `.claude/commands/*.md` (from `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
 | `.claude/skills/*/SKILL.md` (from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | **project** | **Never overwritten.** These hold your gate baseline, owner decisions, backlog, and gotchas. |
+| `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, owner decisions, backlog, and gotchas. |
+
+Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names
+your agent CLI. A project set up for both holds the seven commands twice — once
+user-typed under `.claude/commands/`, once packaged under `.github/skills/` — and both
+copies update.
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
-re-applied to an already-adopted project — with one exception: `reference/REVIEW_LENSES.md`
-is installed into `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the
-kit folder is gone) and tracks upstream like the commands. A kit release that changes only
+re-applied to an already-adopted project — with two exceptions, both of which track
+upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
+`.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
+gone), and — on Copilot projects — `templates/explore.agent.template.md`, which is
+copied verbatim rather than instantiated because it carries no placeholders. A kit release that changes only
 the non-installed templates and reference docs is an adoption-only change — it affects new
 adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
 
@@ -226,6 +234,11 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
 
 1. **Find the version you are on.** `spec/SDLC.md` records it (*Kit version: X.Y.Z*).
    Projects adopted before 0.2.0 have no stamp; see *No version stamp* below.
+   **And your agent CLI:** `spec/PROJECT_INDEX.md` records it (*Agent CLI:*), which
+   decides which directories step 3 enumerates. Projects adopted before 0.14.0 have no
+   such line — infer it from what the repo holds (`.claude/settings.json` versus
+   `.github/hooks/`) and write the line as part of this update, so the next one reads
+   it instead of inferring.
 
 2. **Get both versions of the kit.**
 
@@ -249,7 +262,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    cd /path/to/your-project
    MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
-   for f in $(git ls-files .claude/commands .claude/skills .claude/agents); do
+   for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
+                           .github/skills .github/agents); do
+     have=""
      case "$f" in
        .claude/skills/*)
          base=${f#.claude/skills/}
@@ -268,8 +283,23 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
          # (Against a pre-0.6.0 manifest they classify UNKNOWN — the denominator
          # below still counts them).
          want=$(awk -v b="$base" '$2 == "agents/" b {print $1}' "$MAN") ;;
+       .github/skills/*/SKILL.md)
+         # Copilot packaging: a frontmatter block, one blank line, then the kit command
+         # verbatim. Strip the block and it must hash to commands/<name>.md.
+         base=${f#.github/skills/}; base=${base%/SKILL.md}
+         want=$(awk -v b="commands/$base.md" '$2 == b {print $1}' "$MAN")
+         have=$(git cat-file -p ":$f" | awk \
+           'NR==1 && $0=="---" {fm=1; next} fm && $0=="---" {fm=0; blank=1; next}
+            fm {next} blank && $0=="" {blank=0; next} {blank=0; print}' |
+           sha256sum | cut -d' ' -f1)
+         base="$base (packaged skill)" ;;
+       .github/agents/explore.agent.md)
+         # copied verbatim from the template — it carries no placeholders.
+         base=explore.agent.md
+         want=$(awk '$2 == "templates/explore.agent.template.md" {print $1}' "$MAN") ;;
+       *) base=$f; want="" ;;
      esac
-     have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
+     [ -n "$have" ] || have=$(git cat-file -p ":$f" | sha256sum | cut -d' ' -f1)
      if   [ -z "$want" ];        then echo "UNKNOWN   $base  (not from the kit — yours)"
      elif [ "$want" = "$have" ]; then echo "UNCHANGED $base  (safe to overwrite)"
      else                             echo "DRIFTED   $base  (review the diff — your call)"
@@ -285,9 +315,14 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
      empty input and silently "matches" the wrong entry. Look the path up in the manifest,
      as above, rather than probing for it.
    - **Check the denominator.** The loop should report exactly as many files as
-     `git ls-files .claude/commands .claude/skills .claude/agents | wc -l`. If it reports
-     fewer, your prefix matching is dropping files — `tdd-references/` lives two
-     directories down and is the usual casualty.
+     `git ls-files` over the same directory list the loop walks. If it reports fewer,
+     your prefix matching is dropping files — `tdd-references/` lives two directories
+     down and is the usual casualty. A Copilot project counts files under `.github/`
+     too, and a project set up for both counts the seven commands twice, once per copy.
+   - **The frontmatter strip fails safe.** If it breaks it hashes nothing, which matches
+     no manifest entry, so the file lands in `DRIFTED` in front of you rather than in
+     `UNCHANGED` behind your back. Seven packaged skills all going `DRIFTED` at once
+     means the strip, not seven edits.
 
 4. **Act on the classification.**
    - `UNCHANGED` → provably untouched since adoption. Copy the new version over it.
@@ -337,8 +372,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    short list is the one to read closely; the long one is the noise deletions hide in.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
-   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, or `.claude/settings.json`.
-   They hold your recorded baseline and decisions; the kit cannot regenerate them.
+   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`, or
+   `.github/hooks/*.json`. They hold your recorded baseline, your gate commands, and
+   your decisions; the kit cannot regenerate them. The two exceptions are named in step
+   6, and they are single lines.
    And claim only what was checked: "nothing project-owned touched" may be said once
    the final diff has been read against the ownership table — not asserted from the
    manifest, which structurally cannot see files it never listed. An unverified
@@ -349,7 +386,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    entries are files you chose to keep. The two runs disagreeing about the copied files
    is what proves the classifier discriminates — an all-clear it could not fail to
    produce proves nothing. Then re-record the version in `spec/SDLC.md`
-   (*Kit version: X.Y.Z*, dated). From here every later update is mechanical.
+   (*Kit version: X.Y.Z*, dated), and — only if it was missing — write the *Agent CLI:*
+   line into `spec/PROJECT_INDEX.md`. Those two lines are the only project-owned content
+   an update writes, and the second never overwrites an answer already there. From here
+   every later update is mechanical.
 
 7. **Land it as a normal PR** (`chore/update-sdlc-kit-X.Y.Z`) — the same way the adoption
    landed. Read `CHANGELOG.md` for the versions you skipped; entries marked

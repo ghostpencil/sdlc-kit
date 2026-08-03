@@ -3,6 +3,13 @@
 Single source of truth for phase/slice status, the deferred backlog, and what to do
 next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 
+**Agent CLI:** {{TARGET_CLI}}
+<!-- Recorded at setup: `Claude Code`, `Copilot CLI`, or `both`. It is not a preference —
+     it is which install mapping this project holds, and /sdlc-update reads it to know
+     which directories are kit-owned here. Changing CLI means re-running /sdlc-setup,
+     not editing this line. -->
+
+
 <!-- Sections below are marked **bounded** or **growing**. Bounded sections answer "what
      do I do next" and are what a fresh session reads first: they stay short, and stale
      content leaves them rather than accumulating. Growing sections are records and may

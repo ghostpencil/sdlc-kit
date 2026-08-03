@@ -41,6 +41,10 @@ existing file becomes a shown merge plan, not a silent clobber.
    version floor in `reference/COPILOT.md`; an older CLI means the gate hook's matcher
    may never fire, so say that plainly now rather than installing a hook that cannot
    report anything.
+   The confirmed answer resolves `{{TARGET_CLI}}` in `spec/PROJECT_INDEX.md`
+   (`Claude Code` / `Copilot CLI` / `both`) — `/sdlc-update` reads it to know which
+   directories are kit-owned in this project, so an unrecorded answer is one a later
+   update has to guess at.
 3. **Verify skills** (see `reference/SKILLS.md`): the TDD skill is NOT built into either
    CLI — it is vendored in `sdlc-kit/skills/` and installed in step 2a/2b
    below; HALT if `sdlc-kit/skills/tdd/SKILL.md` is missing. On Claude Code, check for the
@@ -194,8 +198,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    | the 5 vendored skills | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
    | `REVIEW_LENSES.md` | `.claude/commands/REVIEW_LENSES.md` | the same path — it is a document, not an executable |
 
-   Packaging a command as a Copilot skill is mechanical: the markdown body unchanged,
-   `name` + `description` frontmatter added. A project answering "both" gets both
+   Packaging a command as a Copilot skill is mechanical, and the shape is **exact**: a
+   `---` fenced block carrying `name` (the command's filename without `.md`) and
+   `description` (one sentence, from the command's own opening paragraph), then one
+   blank line, then the kit file byte-for-byte. Nothing else is inserted and nothing in
+   the body is reworded — `/sdlc-update` classifies these files by stripping that block
+   and comparing the remainder against the manifest, so a tidy-up at the top of the body
+   makes an untouched command read as drifted. A project answering "both" gets both
    columns, and the seven commands are the only files that exist twice — deliberately
    not in a directory where Claude Code would list them as model-invocable skills. The
    list:

@@ -218,6 +218,24 @@ deliberate choice, not a free one.
 (`.github/hooks/*.json`, `.github/copilot/settings.json`) that any editor can open
 safely.
 
+## Updating a Copilot project
+
+`/sdlc-update` treats the Copilot-side artifacts exactly as it treats the `.claude/`
+set — with one adjustment the packaging forces. The seven packaged skills are *not*
+byte-identical to any bundle file: each is a frontmatter block plus the kit command
+verbatim. So the update strips that block and compares the remainder against the
+manifest's `commands/<name>.md` entry, which is why setup's packaging shape is specified
+exactly and inserts nothing else. `.github/agents/explore.agent.md` needs no such
+handling — it copies its template verbatim, placeholders being absent.
+
+The gate hook is **project-owned**, like `.claude/settings.json`: it holds the project's
+own lint and typecheck commands, so an update never rewrites it. A release that changes
+the hook recipe reaches an adopted project as a changelog entry the owner applies, not
+as a silent overwrite.
+
+Which of this applies is recorded rather than sniffed: `/sdlc-setup` writes the project's
+agent CLI into `spec/PROJECT_INDEX.md`, and `/sdlc-update` reads it there.
+
 ## Considered and declined: shipping the kit as a plugin
 
 Copilot CLI reads a `marketplace.json` from `.github/plugin/` **or `.claude-plugin/`**,

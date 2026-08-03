@@ -61,8 +61,9 @@ cd sdlc-kit && sha256sum -c MANIFEST.sha256      # shasum -a 256 -c on macOS
 Run `/sdlc-update` in the adopted project (setup installs it alongside the daily
 commands), or see the *Updating an adopted project* section of the home repository's
 README — both state the same procedure. The short version: compare your installed
-`.claude/commands/*.md` and `.claude/skills/*/SKILL.md` (and, on kits 0.6.0–0.9.0,
-`.claude/agents/*.md`) against the
+`.claude/commands/*.md` and `.claude/skills/*/SKILL.md` (plus `.github/skills/` and
+`.github/agents/` on a Copilot CLI project, and `.claude/agents/*.md` on kits
+0.6.0–0.9.0) against the
 `MANIFEST.sha256` of the version you are currently
 on (recorded in your `spec/SDLC.md`). Files that match are provably unmodified and safe
 to overwrite; files that differ are yours to reconcile.
