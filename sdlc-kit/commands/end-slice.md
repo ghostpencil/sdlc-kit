@@ -56,9 +56,11 @@ Two lenses the diff-shaped review structurally lacks — apply them explicitly:
   error surface of what it replaces? A double one field simpler than reality makes the
   defect it hides structurally unreachable in tests (`spec/TESTING.md`, mock policy).
 
-If the slice changed error propagation, swept the codebase for a pattern, or touched
-an object that outlives a request or is reachable from more than one, also apply the
-matching lens from `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
+If the slice changed error propagation or added a catch or failure path, swept the
+codebase for a pattern, touched an object that outlives a request or is reachable
+from more than one, took in outside data or passed it to an interpreter, or touched
+credentials or an externally reachable surface, also apply the matching lens from
+`.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
 
 Triage findings — **verify each one against the source before it enters any pile.** A
 finding is a claim about the code; severity is asserted by the reviewer, not measured,

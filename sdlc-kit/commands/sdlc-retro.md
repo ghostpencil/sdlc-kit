@@ -152,13 +152,22 @@ is the authoritative statement of the format):
 ## Cross-cutting theme                (the one thing, if only one thing is taken)
 ```
 
-Each finding must name the kit file it implicates (`commands/end-slice.md`,
-`templates/SDLC.template.md`, …) and quote the evidence it rests on. A finding that
+Each finding must name the kit file it implicates by its upstream path
+(`commands/end-slice.md`, `templates/SDLC.template.md`, …) and quote the evidence it
+rests on. A finding that
 cannot name a file is not yet a finding — it is a feeling, and it goes back to step 3 as
 a question.
 
 The citation is **read off the file at writing time, never from memory of the
-process**: quote the implicated text with a section or step number taken from the file
+process** — and the file to read is the copy **this project actually holds**, since
+the kit folder is optional after setup: for a command, the installed
+`.claude/commands/<name>.md` (byte-identical to upstream `commands/<name>.md`, which
+stays the citation path); for a template, the instantiated file (`spec/SDLC.md`,
+`spec/TESTING.md`, `spec/PROJECT_INDEX.md`, `CLAUDE.md`), cited as its
+`templates/*.template.md` source with a note that the quote comes from the
+instantiated copy, placeholders resolved. Kit-repo paths are read directly only when
+step 1's co-development clause applies. Quote the implicated text with a section or
+step number taken from the file
 as it is now — or, for a finding about silence, locate the silence between two named
 steps that do exist. Then name **every home** of the quoted wording: a rule usually
 lives in a command *and* in `spec/SDLC.md`'s canonical statement, and a fix that

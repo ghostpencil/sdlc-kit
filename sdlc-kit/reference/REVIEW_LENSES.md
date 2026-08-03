@@ -31,6 +31,29 @@ Caveat: on the project that surfaced this lens it went 3-for-3 — but during a
 STABILIZATION phase, which is by definition when swallowed errors get fixed. It is a
 lens to look through, not a claim about universal defect rates.
 
+## Lens: logging and swallowed errors
+
+**Trigger:** the slice added or changed a catch/except, added a new failure path, or
+added logging around one.
+
+1. **Every new handler names where the signal goes.** For each catch this slice added:
+   the error is re-raised, returned as an explicit error value, or logged at a level
+   someone watches — and the handler can say which. A body of `pass`, a lone
+   `log.debug`, or a silent default return is the finding: the failure still happens,
+   only the evidence is deleted. This is *error propagation* point 2 made concrete —
+   that lens asks what stopped being seen; this one asks where seeing now happens.
+2. **The level is a routing decision, checked against the project's conventions**
+   (`CLAUDE.md`, *Runtime Conventions*). ERROR claims someone should act; WARNING
+   claims the system degraded and continued — and the code must be able to make its
+   claim honestly, the same test the status-code rule applies. A failure logged below
+   any level anyone watches is swallowed with a receipt.
+3. **A log line at a failure point carries what its reader needs to act:** the
+   operation, the identifying inputs (ids, paths, keys — never secrets or payloads),
+   and the causing exception attached by the language's mechanism (`raise … from`,
+   `exc_info`, cause-chaining) rather than flattened to a message. And the mirror
+   bound: one failure, one ERROR — a failure re-logged at every layer it passes
+   through reads as five incidents and buries the one line that had the context.
+
 ## Lens: verify the denominator
 
 **Trigger:** the slice swept the codebase for a pattern (an audit, a bulk fix, a
@@ -94,3 +117,47 @@ The measurement is half the lens. 410/600 is a measured consequence, where revie
 have twice asserted CRITICAL on premises that turned out false — so a hit through this
 lens is exercised concurrently (or otherwise reproduced) before it drives a fix,
 severity read off the result rather than asserted.
+
+## Lens: untrusted input
+
+**Trigger:** the slice added or changed a place where outside data enters the process —
+an HTTP/RPC handler, CLI argument, file or format parse, message consumer — or passes
+such data onward to an interpreter.
+
+1. **Name every interpreter the input reaches, and the mechanism that neutralizes it
+   there.** SQL, a shell, a file path, a template, HTML, `eval`/deserialization — each
+   hop named, each with its parameterization, escaping, or allowlist stated. Building
+   the query or command by string assembly from input **is** the finding even when
+   today's callers look safe: the review question is the mechanism, not the current
+   values.
+2. **A path built from input is canonicalized and prefix-checked before use.** Resolve
+   first (realpath or the language's equivalent — `..`, absolute segments, and symlinks
+   all fold in), then check the *result* sits under the intended root. Checking the raw
+   string is the classic near-miss: it passes every test written against strings.
+3. **Deserializers that can execute are not for untrusted data.** `pickle`,
+   `yaml.load` without a safe loader, native object serialization, `eval` of any
+   dialect: if the slice feeds one from outside the process, the fix is a different
+   format, not a sanitizer in front of this one.
+
+## Lens: secrets and exposure
+
+**Trigger:** the slice touched credentials, tokens, or their configuration; added or
+changed an externally reachable surface (endpoint, port, webhook, a CLI that runs
+remote input); or added logging or error output near either.
+
+1. **A secret has exactly one home** — the project's configured secret source — and
+   appears in no code, no committed config, no default value, and no log line. The
+   indirect paths are the ones that ship: an exception message embedding a connection
+   string, a debug line dumping a config object whose repr includes the key.
+2. **A new surface names who may call it and what enforces that.** "Internal-only"
+   names the control that makes it internal — a network rule, auth middleware — as it
+   is configured where the code will actually run, not the intention. A surface
+   nobody restricted is public, whatever the docstring says.
+3. **Error output to a caller is a disclosure decision.** Stack traces, raw queries,
+   internal paths, and dependency versions go to the log; the caller gets the honest
+   claim (*error propagation* point 3) plus an opaque reference to correlate with it.
+
+Provenance note: the three lenses above (logging and swallowed errors, untrusted
+input, secrets and exposure) shipped as standards in kit 0.13.0 rather than from a
+measured field catch. The caveat on *error propagation* applies to them doubly:
+lenses to look through, not defect-rate claims.

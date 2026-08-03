@@ -1998,3 +1998,56 @@ single-review-path question — an explicit owner halt in the build session.
   the docs before building.
 - **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
   R3.8's aging rule still on its clock (§16 contingent keep).
+
+## 22. STD shipped — 2026-08-03; release 0.13.0
+
+The standards batch, built to §18's definition with §20's confirmed input (lenses,
+portable prose — the built-in they would otherwise lean on is Claude-only). The three
+build-time opens, resolved:
+
+1. **Conventions home: a *Runtime Conventions* section in `CLAUDE.template.md`**, not
+   a new file. Two placeholders (`{{LOGGING_CONVENTIONS}}`, `{{ERROR_CONVENTIONS}}`),
+   taught to setup in the same batch (inv 3). Rationale: the conventions govern every
+   slice's code, and the instantiated `CLAUDE.md` is one of the two files every
+   session already reads — a separate `spec/CONVENTIONS.md` would carry a spec-loading
+   trigger that fires on essentially every slice, i.e. an indirection with no
+   filtering value, plus a README-tree/manifest/install-mapping surface the section
+   avoids entirely. The section names its enforcement (inv 14): linter rules for the
+   mechanical part, the new lenses for the rest.
+2. **Lens set: three.** *Logging and swallowed errors* (sited next to *error
+   propagation*, per §18), *untrusted input*, *secrets and exposure*. Each names its
+   own trigger; the trigger summaries in `SDLC.template.md` slice-loop step 6 and
+   `end-slice.md` §3 were extended to match (inv 2). The file carries an explicit
+   provenance note: shipped as standards, not from a measured field catch — the
+   *error propagation* caveat applies doubly.
+3. **Gate rules: a *Runtime-standards rules* section in `GATE_RECIPES.md`.** Rules
+   land in the linter's own config, so the existing gate + hook enforce them with no
+   new command: ruff `E722`/`BLE001`/`B904`/`T20` + the bandit `S` family; eslint
+   `no-console`/`no-empty`/`no-eval` kin + `no-floating-promises`; .NET
+   `latest-recommended` analyzers; golangci-lint `errcheck`+`gosec`; checkstyle
+   `EmptyCatchBlock`/`IllegalCatch`; clippy `unwrap_used`/`expect_used`/
+   `print_stdout`. Existing mode measures each proposed rule's violation count before
+   the owner adopts it, and new-rule violations land in the step 4 measured baseline —
+   never a setup-time fix spree. The adopted set is proven the way the hook is proven:
+   one deliberate violation must fail the lint run (inv 13).
+
+**§16 audit clocks start now, individually:** the three lenses and the
+runtime-standards recipe section each need a confirmed catch by 0.15.0 or become
+deletion candidates. The conventions section itself is exempt as a record, not a rule
+— but a conventions bullet no lens or rule ever enforced is worth the same skepticism.
+
+### Hand-off — state as of 2026-08-03, end of the STD session
+
+- STD shipped as `v0.13.0`; `/kit-check` run before release — clean on the STD
+  additions themselves (both new trigger lists match; both new placeholders asked in
+  both modes; all new pointers and step references resolve), and it surfaced **seven
+  pre-existing findings** (invariants 2, 3, 5 — none introduced by this batch), all
+  fixed in the same release; the itemized list is CHANGELOG 0.13.0 *Fixed*. Manifest
+  regenerated with discrimination proven.
+- **Next session opens on PORT** (§21's definition, unchanged): PORT.1 first
+  (detection, then the seam and mapping table), then PORT.4, then PORT.2/PORT.3 —
+  re-verify §20.2 against the Copilot docs before building; one owner halt (PORT.2a).
+  STD's lenses now exist for PORT.2's reviewer to consume, as §21 sequenced.
+- **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
+  R3.8's aging rule still on its clock (§16 contingent keep); STD's four new audit
+  clocks above.

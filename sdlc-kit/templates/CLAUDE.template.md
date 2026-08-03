@@ -76,6 +76,24 @@ If unsure → ask
 
 ---
 
+# Runtime Conventions
+
+How this project's code logs and fails. Recorded at setup — owner-answered (New
+Project) or discovered from the code and confirmed (Existing). Enforcement: the linter
+rules named below run in the gate and the edit-time hook; the *logging and swallowed
+errors*, *untrusted input*, and *secrets and exposure* lenses in
+`.claude/commands/REVIEW_LENSES.md` cover what no rule can state. A convention changed
+here without its linter rule is a claim, not a control — change both together.
+
+- **Logging:** {{LOGGING_CONVENTIONS}}
+- **Error handling:** {{ERROR_CONVENTIONS}}
+<!-- Each bullet names: the framework or mechanism; the level or wrapping policy (what
+     ERROR means here, where errors are wrapped, whether blind catches are ever
+     acceptable and where); what may never appear (secrets, PII in logs; bare excepts);
+     and which parts are mechanically enforced (linter rule IDs) versus review-only. -->
+
+---
+
 # Skills
 
 ## TDD Skill

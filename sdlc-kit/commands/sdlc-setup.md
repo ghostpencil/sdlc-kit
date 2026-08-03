@@ -62,8 +62,23 @@ questionnaire.
   `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end step); CI provider (default GitHub
   Actions); any always-active
   rules for CLAUDE.md (portability, serialization, DI seams for external services);
-  the **model policy** (see below); anything the owner already knows about Phase 1
+  the **runtime conventions** — how the software logs and fails (see below); the
+  **model policy** (see below); anything the owner already knows about Phase 1
   (recorded for `/plan-phase`, not acted on now).
+
+  **The runtime-conventions ask.** Two questions, recorded as the *Runtime
+  Conventions* section of `CLAUDE.md`: how the software **logs** — framework or
+  mechanism, what each level means here, what may never be logged (secrets, PII) —
+  resolving `{{LOGGING_CONVENTIONS}}`; and how it **fails** — fail fast or degrade,
+  any error taxonomy or wrapping at boundaries, whether blind catches are ever
+  acceptable and where — resolving `{{ERROR_CONVENTIONS}}`. Then propose the matching
+  *Runtime-standards rules* from `reference/GATE_RECIPES.md` for the Round 2
+  toolchain; adopted rules go into the linter config with the other tool configs at
+  scaffold step 1, so the gate and hook enforce them from the first slice. Note in
+  each conventions bullet which parts are mechanically enforced (rule IDs) and which
+  are review-only, and include one adopted rule's violation in step 6's hook
+  verification — a rule proposed and never seen to fire is configuration that reads
+  as enforcement.
 
   **The model-policy poll.** Present this three-tier recommendation as the default and
   ask the owner to confirm or adjust (aliases only, never model IDs — IDs go stale):
@@ -114,9 +129,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    carves the exception (`*.bat text eol=crlf`) rather than dropping the default.
 2. **Establish the gate green on the walking skeleton:** one trivial module + one real
    test; run lint + typecheck + tests per `GATE_RECIPES.md`. Do not proceed red.
-3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md`,
-   `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status: PRE-PHASE-1), `spec/TESTING.md`
-   (layer strategy + mandatory-mock table for THIS stack; leave
+3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md` (the
+   spec-loading table's `{{EXTRA_SPEC_ROWS}}` resolves empty for a new project —
+   delete the placeholder line), `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status:
+   PRE-PHASE-1), `spec/TESTING.md`
+   (layer strategy, mandatory-mock table, and the integration-vs-unit boundary —
+   where integration tests live and what they may touch — for THIS stack; leave
    `{{ISOLATION_HARNESS}}` for step 4, which authors what it describes).
    `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
    <date> on the walking skeleton)`, which step 2 just proved. Never write a baseline
@@ -164,7 +182,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    command; how the app is deployed, if it is (CD workflows, hosting config,
    Dockerfiles); any security scanning CI already runs (dependency audit, secret
    scanning, static analysis — the proposed gate folds these in per
-   `reference/GATE_RECIPES.md`); test layout and any existing mocking conventions; any existing
+   `reference/GATE_RECIPES.md`); test layout and any existing mocking conventions; the
+   runtime conventions the code actually follows — logging framework(s) imported and
+   how levels are used, error-handling patterns (custom exception types, wrapping at
+   boundaries) and the count of bare/blind catches — plus which *Runtime-standards
+   rules* (`reference/GATE_RECIPES.md`) the linter config already enables; any existing
    test-isolation enforcement (network blockers, sanitized env vars) and the seams it
    misses; whether the repo holds more than the app (docs site, infra, data pipelines
    — anything the process might not govern); and whether any file named
@@ -197,7 +219,14 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    deploy is **verified** — the same asks as New mode Round 3, resolving
    `{{DEPLOY_NOTE}}` (step 1's survey of CI/CD config seeds the proposed answer); in-flight
    work (open branches/PRs to record in START HERE), known trouble spots for the
-   backlog, always-active rules worth encoding, and the **model policy** — same poll,
+   backlog, always-active rules worth encoding, the **runtime conventions** — propose
+   what step 1 *discovered* (framework, level usage, wrapping) as the recorded
+   conventions, resolving `{{LOGGING_CONVENTIONS}}`/`{{ERROR_CONVENTIONS}}` in the
+   merged `CLAUDE.md` per New mode Round 3's *runtime-conventions ask*, and propose
+   the *Runtime-standards rules* delta with each rule's **measured** current violation
+   count — the owner adopts a rule knowing its cost, and the violations a newly
+   adopted rule surfaces land in step 4's measured baseline, never in a setup-time fix
+   spree — and the **model policy** — same poll,
    same recording rules as New mode Round 3 (`{{MODEL_POLICY}}` in `spec/SDLC.md`;
    `{{DEFAULT_MODEL}}` in `.claude/settings.json` or the line deleted; never into a
    command file). If CI already enforces a coverage floor,
@@ -206,9 +235,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    propose one.
 3. **Generate** (same placeholder-resolution rules as New mode):
    - `CLAUDE.md` — merge, never replace; existing instructions win on conflict and
-     conflicts are surfaced to the owner.
+     conflicts are surfaced to the owner. `{{EXTRA_SPEC_ROWS}}`: one spec-loading row
+     with a precise trigger per existing doc step 1 found worth loading on demand
+     (ARCHITECTURE.md, DATA_MODEL.md, …); none found → delete the placeholder line.
    - `spec/SDLC.md`, `spec/TESTING.md` — document the conventions the project
-     *actually* follows today (test layout, real mock seams), not aspirations.
+     *actually* follows today (test layout, real mock seams, the integration-vs-unit
+     boundary as the tests actually draw it), not aspirations.
    - The test-isolation harness (`spec/TESTING.md` §Test Isolation): author it — or
      extend what step 1 found — and prove each check by its negative case (deliberate
      violation → loud failure naming the attempt → remove → green). If the owner

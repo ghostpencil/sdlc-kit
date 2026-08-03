@@ -77,7 +77,10 @@ fix application, bookkeeping, commits) proceeds without asking.
    locally against real data before the PR: the halt otherwise passes vacuously on a
    phase with no visible behavior yet, which is exactly when nothing has ever run
    outside the test suite.
-5. **Merge approval** — the owner approves the PR merge.
+5. **Merge approval** — the owner approves the PR merge. A team that routes merge
+   approval through a human PR reviewer instead of the owner-in-session records that
+   routing here; the reviewer's approval then satisfies this halt, and the merge still
+   waits for it.
 
 ### The hand-back standard
 
@@ -231,8 +234,10 @@ Run `/end-slice` when the slice's exit criteria are met:
 5. Run the gate.
 6. Slice code review (`pr-review-toolkit:code-reviewer` on the diff; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
-   propagation, swept for a pattern, or touched an object that outlives a request or
-   is reachable from more than one). The review is **read-only in the shared tree** —
+   propagation or added a catch or failure path, swept for a pattern, touched an
+   object that outlives a request or is reachable from more than one, took in outside
+   data or passed it to an interpreter, or touched credentials or an externally
+   reachable surface). The review is **read-only in the shared tree** —
    the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
    fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that

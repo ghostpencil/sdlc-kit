@@ -17,11 +17,16 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 
 **{{INITIAL_PHASE_STATUS}}**
 <!-- New Project mode:  "PRE-PHASE-1. Project scaffolded <date> via /sdlc-setup.
-     No feature phases yet — run /plan-phase to define Phase 1."
+     No feature phases yet — run /plan-phase to define Phase 1.
+     Coverage floor: TBD from first CI run."
      Existing Project mode: either
      "STABILIZATION. SDLC adopted <date> via /sdlc-setup on an existing codebase.
-      Gate baseline: <green | N lint / N type / N test failures — see backlog>."
-     or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature. -->
+      Gate baseline: <green | N lint / N type / N test failures — see backlog>.
+      Coverage floor: <TBD from first CI run | the CI-enforced figure>."
+     or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature.
+     In every mode this block carries the coverage-floor line: /end-phase's post-merge
+     bookkeeping asserts it, spec/SDLC.md's recorded floor, and the CI workflow value
+     are identical at every phase close. -->
 
 ## START HERE — Next work — *bounded*
 

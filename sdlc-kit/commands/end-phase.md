@@ -52,7 +52,8 @@ If that command fails in the owner's shell, treat it as a defect in the instruct
 not as the owner's problem: the shell an agent runs commands in and the shell the owner
 types into are different environments (different `PATH`, different interpreter, a
 profile the agent never loads), and only the owner's is authoritative for anything the
-owner executes. Fix the command in `CLAUDE.md` and record the resolved interpreter or
+owner executes. Fix the command in **both its homes** — `CLAUDE.md` (*Commands*) and
+`spec/SDLC.md` (halt 4) — and record the resolved interpreter or
 toolchain path in PROJECT_INDEX's Environment gotchas — this step is the only one in the
 whole process that exercises that environment, so what it finds has been wrong since
 setup.

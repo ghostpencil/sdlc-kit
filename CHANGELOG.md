@@ -10,6 +10,83 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.13.0 — 2026-08-03
+
+The STD batch: the kit's first product-quality standards — logging, error handling,
+secure coding — last of the owner-ordered LEG → COP → STD queue (`FEATURE_PLAN.md`
+§18, built as §22), in the shape the first field report taught: checks that fail
+loudly, not prose rules. Owner decisions honored: secure coding ships as review
+lenses, not a command; conventions ship as setup interview + project-owned record +
+lenses + gate rules where mechanical. Two new template placeholders
+(`{{LOGGING_CONVENTIONS}}`, `{{ERROR_CONVENTIONS}}`), taught to setup in the same
+release; no new files; no halt-point changes.
+
+### Added
+- **[adoption-only]** `CLAUDE.template.md` gains a *Runtime Conventions* section —
+  how the project's code logs and fails, recorded at setup, each bullet noting which
+  parts are mechanically enforced (linter rule IDs) versus review-only. A convention
+  changed without its linter rule is a claim, not a control.
+- **[installable]** `sdlc-setup.md`: the **runtime-conventions ask** (New mode
+  Round 3) — how the software logs (framework, level meanings, what may never be
+  logged) and how it fails (fail fast or degrade, wrapping at boundaries, whether
+  blind catches are ever acceptable), then the matching gate rules proposed for the
+  chosen toolchain, with one adopted rule's violation included in the hook
+  verification. Existing mode **discovers first** (frameworks imported, level usage,
+  bare/blind-catch count, which rules the linter config already enables) and
+  proposes with each rule's measured current violation count — new-rule violations
+  land in the measured gate baseline, never a setup-time fix spree.
+- **[installable]** `reference/REVIEW_LENSES.md`: three lenses — **logging and
+  swallowed errors** (every new handler names where the signal goes; the level is a
+  routing decision checked against the recorded conventions; one failure, one
+  ERROR), **untrusted input** (name every interpreter the input reaches and the
+  mechanism neutralizing it there; canonicalize-then-prefix-check paths built from
+  input; deserializers that can execute are not for untrusted data), and **secrets
+  and exposure** (a secret has exactly one home; a new surface names its enforcing
+  control as configured where the code actually runs; error output to a caller is a
+  disclosure decision). The file states their provenance: shipped as standards, not
+  from a field catch — each enters the audit regime individually.
+- **[adoption-only]** `reference/GATE_RECIPES.md` gains **Runtime-standards rules**:
+  per-linter rule sets (ruff `E722`/`BLE001`/`B904`/`T20` + the bandit `S` family;
+  eslint `no-console`/`no-empty`/`no-eval` kin + `no-floating-promises`; .NET
+  `latest-recommended` analyzers; golangci-lint `errcheck` + `gosec`; checkstyle
+  `EmptyCatchBlock`/`IllegalCatch`; clippy `unwrap_used`/`expect_used`/
+  `print_stdout`). Rules live in the linter's own config, so the existing gate and
+  edit-time hook enforce them with no new command, proven the way the hook is
+  proven: one deliberate violation must fail the lint run.
+
+### Changed
+- **[adoption-only]** `SDLC.template.md` slice-loop step 6 and **[installable]**
+  `end-slice.md` §3: the lens-trigger summary now also fires when the slice added a
+  catch or failure path, took in outside data or passed it to an interpreter, or
+  touched credentials or an externally reachable surface.
+
+### Fixed
+Seven pre-existing defects caught by the release `/kit-check` (all older than this
+batch; invariants 2, 3, and 5):
+- **[installable]** `end-phase.md` acceptance-review note told the session to fix a
+  run command proven broken in the owner's shell in `CLAUDE.md` only, leaving
+  `spec/SDLC.md`'s halt-4 line naming the broken command — it now names both homes.
+- **[adoption-only]** `SDLC.template.md` halt 5 now carries the reviewer-routing
+  clause `end-phase.md` already shipped (a team may route merge approval through a
+  human PR reviewer, recorded in the project's `spec/SDLC.md`) — the rule existed
+  only in the command, and the template is canonical.
+- **[adoption-only]** `PROJECT_INDEX.template.md`: the Phase block now carries a
+  coverage-floor line. `/end-phase` and `SDLC.template.md` both assert the floor
+  recorded in `spec/PROJECT_INDEX.md` matches the workflow value — against a
+  template that had no such field, making a "not done until they are" step
+  unsatisfiable on a clean adoption.
+- **[installable]** `sdlc-retro.md`: the read-the-citation-off-the-file rule now
+  names the copy an adopted project actually holds (installed command / instantiated
+  template) — the kit-repo paths it required do not exist where the kit folder was
+  deleted, which the rule's own hard gate turned into an unsatisfiable requirement.
+- **[installable]** `sdlc-setup.md` now resolves two placeholders it never named:
+  the integration-vs-unit boundary in `spec/TESTING.md` (both modes), and
+  `{{EXTRA_SPEC_ROWS}}` in `CLAUDE.md`'s spec-loading table (empty for a new
+  project; one row per on-demand doc discovered on an existing one).
+- **[adoption-only]** `GATE_RECIPES.md`: the hook table now states that `CLAUDE.md`'s
+  prose restatement (`{{HOOK_TOOLS}}`, `{{SOURCE_EXT}}`) resolves from the same
+  values, so the prose and the hook cannot disagree.
+
 ## 0.12.0 — 2026-08-03
 
 The LEG batch: owner-led legibility work from the `FEATURE_PLAN.md` §18 brainstorm,

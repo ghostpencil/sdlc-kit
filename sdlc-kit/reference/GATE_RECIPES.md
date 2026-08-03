@@ -8,6 +8,10 @@ Per-language commands for the two places tooling is configured during `/sdlc-set
    `templates/settings.template.json`) — the same lint/typecheck run on the single
    file just edited, so failures surface immediately.
 
+A third section, *Runtime-standards rules*, lists per-linter rule sets for the
+runtime-conventions interview — those land inside the linter's own config, so both
+places above enforce them without a new command.
+
 These are starting points. Always prefer the commands the project **already uses**
 (check CI workflows, `Makefile`, `package.json` scripts) over these defaults — the gate
 must match CI, or the gate lies. That includes security checks CI already runs
@@ -34,6 +38,10 @@ case "$f" in *<app_dir>*) t=$(<typecheck cmd> "$f" 2>&1); trc=$? ;; esac;
 
 If the language has no separate typecheck step, replace the whole block with a single
 space and leave `trc=0`.
+
+The instantiated `CLAUDE.md` restates the same facts in prose (`{{HOOK_TOOLS}}`,
+`{{SOURCE_EXT}}`); resolve both from this table's values, so the prose and the hook
+cannot disagree.
 
 Note: the hook's file-path extraction uses `python -c` for JSON parsing. On machines
 without Python, substitute `jq`: `f=$(jq -r '.tool_input.file_path // empty' 2>/dev/null)`.
@@ -107,6 +115,47 @@ cargo test                                   # tests
 
 Hook: `SOURCE_GLOB` = `*.rs`; per-file clippy isn't supported — use `cargo clippy` on
 the whole crate if it's fast, otherwise rely on the gate.
+
+---
+
+## Runtime-standards rules (logging, error handling, secure coding)
+
+Mechanical enforcement for the conventions recorded in the project's `CLAUDE.md`
+*Runtime Conventions* section: where the linter can state the rule, the rule goes in
+the **linter's own config**, so the gate and the edit-time hook enforce it with no new
+command. The match-reality rule above applies here too: check what the project's
+linter config already enables before proposing anything, and on an existing project
+measure each proposed rule's current violation count first — the owner adopts a rule
+knowing its cost, and the violations a newly adopted rule surfaces land in the
+recorded gate baseline, never in a setup-time fix spree.
+
+Starting points per linter (rule IDs current at kit release; IDs drift — the linter's
+own docs win over this table):
+
+- **Python (ruff):** `E722` (bare `except`), `BLE001` (blind `except Exception`),
+  `B904` (`raise … from` inside handlers), `T201`/`T203` (stray `print`), and the `S`
+  family (bandit: hardcoded credentials S105–S107, `pickle` S301, shell/SQL injection
+  S602–S609). Exempt tests via `per-file-ignores` (`tests/*: S101, T201`) rather than
+  weakening a rule globally.
+- **TypeScript / JavaScript (eslint):** `no-console` (or scope the allowed methods),
+  `no-empty` (flags an empty `catch`), `no-eval` / `no-implied-eval` / `no-new-func`;
+  with typed linting, `@typescript-eslint/no-floating-promises` — an unawaited promise
+  is the ecosystem's bare except.
+- **C# (.NET analyzers):** `<AnalysisLevel>latest-recommended</AnalysisLevel>` in the
+  project file, plus explicit severities in `.editorconfig` for the rules that set
+  leaves off — `dotnet_diagnostic.CA1031.severity = warning` (catch-general-
+  exceptions) is the one to name; the gate's `-warnaserror` promotes them to failures.
+- **Go (golangci-lint):** `errcheck` is on by default — keep it on; enable `gosec`;
+  `forbidigo` for stray `fmt.Print*`.
+- **Java:** checkstyle `EmptyCatchBlock` + `IllegalCatch`; where the project already
+  runs SpotBugs, add `find-sec-bugs`.
+- **Rust (clippy):** promote the allow-by-default `unwrap_used`, `expect_used`, and
+  `print_stdout` for library code (tests and bins as the project decides); the gate's
+  `-D warnings` makes them binding.
+
+Prove the adopted set the way the hook is proven: one deliberate violation (a bare
+`except:`, a stray `print`) must fail the lint run before the rules are trusted — a
+rule proposed and never seen to fire is configuration that reads as enforcement.
 
 ---
 
