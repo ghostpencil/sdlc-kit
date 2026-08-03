@@ -131,6 +131,15 @@ instances of that one gap. `FEATURE_PLAN.md` §12 records the triage, including 
 claims that did not survive verification against the tree and the one already fixed in
 0.7.0.
 
+`FIELD_REPORT_2026-08-02.md` is the fifth — the same adopter's sixth phase (its first
+BUILD arc, and the first report written against the then-current release, 0.9.0), filed
+as `sdlc-kit#2`, with 10 findings and a priority table whose top row is owner-ranked:
+finding 7, a simplification pass auditing every rule added since 0.5.0 against a
+confirmed catch, runs **as its own batch before any R4 fix batch**. Its theme completes
+the lineage: **the kit specifies what each step must produce and almost never what makes
+it done** — the gate is the only step with a completion condition and the only step that
+never failed. Triage will live in `FEATURE_PLAN.md` §15.
+
 ## Writing conventions for these files
 
 Command files are prompts, not documentation. The established shape is: a title, a

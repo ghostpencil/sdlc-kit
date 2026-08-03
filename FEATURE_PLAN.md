@@ -1292,3 +1292,13 @@ Every batch in this file is now closed — F1, R1, F2, R2, G1, R3 shipped; F3 tr
 declined. **The backlog is empty.** The next input is field evidence: TFit's Phase 06 close
 (`/end-phase`, and the first close that must answer for the 171 type-error ceiling under
 R3.3 — now four arcs unchanged), and the `/sdlc-retro` that follows it.
+
+> **Update 2026-08-03: it landed.** Phase 06 closed 2026-08-02 (TFit PR #15); the retro
+> filed **[sdlc-kit#2](https://github.com/ghostpencil/sdlc-kit/issues/2)** — 10 findings,
+> ingested verbatim as `FIELD_REPORT_2026-08-02.md`. R3.3 fired for real: the 171 ceiling
+> was **not** ratified; TFit's Phase 07 is a stabilization arc whose product is that
+> number falling. **Owner decision on batch order (2026-08-03, do not re-litigate):** the
+> simplification pass the report ranks first (finding 7 — audit every rule added since
+> 0.5.0 against a confirmed catch, convert survivors from "do this" toward "this is done
+> when") runs **as its own batch, before R4**. Otherwise the fifth batch of added steps
+> would arrive inside the pass meant to prune the previous four. Triage: §15.
