@@ -2051,3 +2051,307 @@ deletion candidates. The conventions section itself is exempt as a record, not a
 - **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
   R3.8's aging rule still on its clock (§16 contingent keep); STD's four new audit
   clocks above.
+
+---
+
+## 23. PORT.0 — §20.2 re-verified against the docs, 2026-08-03; four claims moved
+
+The re-verification §21 made a precondition ("all §20.2 capability claims must be
+**re-verified against the docs at build time** before code is written against them").
+Run before any PORT file was touched; kit tree still at v0.13.0, untouched. Sources are
+`docs.github.com` pages fetched this session — hooks reference, CLI add-skills,
+create-custom-agents-for-cli, cli-command-reference, cli-plugin-reference, CLI
+add-custom-instructions, Copilot code review — plus two non-GitHub sources named where
+used. **Six claims stand as written; four moved.** The four that moved are below first,
+because three of them change what PORT builds.
+
+### 23.1 C2 instructions — MOVED, in the kit's favour: no translation needed
+
+§20.2 recorded "Reads `AGENTS.md`, `.github/copilot-instructions.md`,
+`.github/instructions/**`" and §21 wrote the mapping row `CLAUDE.template.md` →
+`AGENTS.md`. The CLI's own custom-instructions page is more generous than the spike
+found: **Copilot CLI reads `CLAUDE.md` directly**, alongside
+`$HOME/.copilot/copilot-instructions.md`, `.github/copilot-instructions.md`, and
+`AGENTS.md`. Multiple applicable files are **combined**, and the page states it "does
+not define a general precedence order between these files."
+
+Consequences, both real:
+
+- **The `CLAUDE.template.md` → `AGENTS.md` mapping row is deleted.** The instantiated
+  `CLAUDE.md` — including STD's new *Runtime Conventions* section — is read unchanged
+  by both CLIs. C2 stops being a coupling. This is the single largest simplification
+  the re-verification bought.
+- **§21's open question "whether `AGENTS.md` is emitted on both CLIs or Copilot-only"
+  is answered: emit neither.** And it converts to a *prohibition* — because the files
+  merge with no precedence, a project carrying both `CLAUDE.md` and a kit-written
+  `AGENTS.md` would load two copies of the same instructions with no rule for which
+  wins. Setup emits exactly one instructions file on either CLI, and
+  `reference/COPILOT.md` must say why rather than leaving a future batch to
+  "helpfully" add the second.
+
+### 23.2 C3 hook — stands in substance, four corrections that change the recipe
+
+The dialect is as §20.2 recorded (`.github/hooks/*.json`, `"version": 1`,
+`bash`/`powershell`/`command` keys, `cwd`, `env`, `timeoutSec`; also settable via a
+`hooks` field in `.github/copilot/settings.json`). Four details the spike did not have,
+each of which lands in the recipe PORT.1 writes:
+
+1. **`postToolUse` cannot block or deny.** Its documented output is `modifiedResult`
+   and `additionalContext` only (the 10 KB cap applies when multiple hooks return).
+   §20.2's "functionally what the kit's exit-2 stderr feedback does" survives — Claude
+   Code's exit-2 is advice-to-the-model too — but the recipe must not promise blocking.
+2. **`preToolUse` *can* deny**, is **fail-closed** on error and exit 2, and takes
+   `permissionDecision: allow|deny|ask`. It is the closer analogue to the kit's exit-2
+   gate. Not adopting it in PORT (the kit's gate is a post-edit check, not a
+   pre-approval), but the recipe should record that the stronger event exists so a
+   later batch doesn't rediscover it.
+3. **`timeoutSec` defaults to 30, and timeouts are documented fail-open** — "a
+   timed-out hook surfaces a warning and lets the tool call proceed." The kit's gate
+   hook runs lint *and* typecheck; on a cold typecheck 30s is not a generous budget,
+   and the failure mode is a **silently green gate**. This is invariant 15 territory
+   (the process is silent about the environment it runs in) and FR1's fail-loudly
+   principle: the Copilot recipe sets `timeoutSec` explicitly, states the value's
+   basis, and says in the generated `SDLC.md` that a timeout reads as a pass. Claude
+   Code's hook has no equivalent documented fail-open, so this is a Copilot-only hazard
+   the mapping table must carry, not a symmetric detail.
+4. **The `matcher` regex is anchored** — compiled as `^(?:PATTERN)$`. So `Edit|Write`
+   does not port as a substring match, and it does not port at all until Copilot's own
+   edit-tool names are known. **Open, build-time, unresolved by this pass:** the exact
+   `toolName` values Copilot CLI emits for file edits. The command and hooks references
+   document the matcher mechanism, not the tool vocabulary. PORT.1 must establish these
+   empirically or from a tool reference before the recipe can be written — a guessed
+   matcher is a gate that never fires, which is the FIELD_REPORT_2026-07-22 failure
+   mode exactly (a number in prose that isn't the number the machine enforces).
+
+Also confirmed, unchanged in status: `agentStop` can force another turn via
+`decision: "block"`, now with a documented bound — "After 8 consecutive `block`
+continuations, the CLI overrides the hook and ends the turn anyway." Still out of PORT
+scope; still the most interesting Copilot-only capability the kit doesn't use.
+
+### 23.3 C7 review — MOVED: the marketplace absence was overstated
+
+§20.2 said the plugin system exists but `pr-review-toolkit` "and its reviewer agents do
+not exist there," and §21 told PORT.2 to "verify, don't assume absence." Verified, and
+the picture is different in one structurally important way: Copilot's plugin system
+reads a `marketplace.json` from **`.github/plugin/` or `.claude-plugin/`** — i.e. the
+Claude plugin marketplace layout is one of the two documented locations, with
+`copilot plugin install` accepting a marketplace, GitHub repo, Git URL, or local path,
+and `plugin.json` declaring `agents`, `skills`, `commands`, `hooks`, `mcpServers`,
+`lspServers`, `extensions`.
+
+What this does and does not license:
+
+- It does **not** establish that `pr-review-toolkit@claude-plugins-official` installs
+  and runs on Copilot CLI. Its reviewer agents are Claude Code subagent definitions;
+  reading the manifest layout is not executing the contents. **Build-time experiment,
+  cheap and decisive:** attempt the install and invoke one reviewer. Until run, treat
+  C7 as a loss.
+- It does mean the kit's own Copilot-side delivery has a packaging option §20/§21 did
+  not consider: **ship the kit as a plugin** (`plugin.json` naming its skills, agents,
+  and hooks) rather than as loose files setup copies into place. Not proposing it —
+  it is a second install path to maintain and setup already copies files well — but it
+  belongs in `reference/COPILOT.md` as a considered-and-declined alternative.
+- Still no evidence of an official GitHub-published review plugin. The plugin reference
+  lists no official plugin inventory; absence of a listing is not absence of a plugin,
+  so this stays "not found," not "does not exist."
+
+### 23.4 PORT.1 signal 1 — MOVED: the session marker is asymmetric, and one CLI has none
+
+§21 required this be settled rather than assumed: "verify each CLI's environment marker
+at build time (Claude Code's session env vars; Copilot's documented equivalent — find
+it, don't assume one exists)." Both halves answered, and they do not match.
+
+- **Claude Code: verified empirically, in this session.** `CLAUDECODE=1`,
+  `CLAUDE_CODE_ENTRYPOINT`, `CLAUDE_CODE_SESSION_ID`, `CLAUDE_CODE_EXECPATH`, plus
+  `AI_AGENT=claude-code_2-1-220_agent`. Solid positive signal.
+- **Copilot CLI: no documented session marker exists.** The command reference
+  enumerates `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, `GITHUB_TOKEN`, `COPILOT_HOME`,
+  `COPILOT_MODEL` — every one of them **user-set configuration or auth**, not something
+  the CLI stamps on a running session. `vercel/detect-agent` (third-party, MIT; cited
+  as the only structured detection source found) detects Copilot on exactly those
+  user-set vars: `COPILOT_MODEL` / `COPILOT_ALLOW_ALL` / `COPILOT_GITHUB_TOKEN`. A
+  developer who exported `GITHUB_TOKEN` in their shell profile trips that test from
+  inside Claude Code; a Copilot user who authenticated by `/login` may trip none of it.
+
+Two design consequences for PORT.1, both tightening what §21 sketched:
+
+1. **Signal 1 becomes positive-only, per CLI, and never negative.** Absence of
+   `CLAUDECODE` is not evidence of Copilot. If no CLI's positive marker fires,
+   detection falls through to signals 2 and 3 — it does not infer the other CLI. The
+   Copilot-side auth-var test is too weak to propose an answer on and is **not**
+   adopted as signal 1; Copilot detection rests on signals 2/3 (repo artifacts, PATH)
+   until GitHub documents a session marker.
+2. **`AI_AGENT` is a proposed convention, not an implemented standard** —
+   `vercel/detect-agent` promotes it and does not claim the tools set it. It is usable
+   only as a bonus positive signal, and **only matched by prefix**: the observed value
+   here is `claude-code_2-1-220_agent`, while the convention's documented form is
+   `claude-code`. An equality test against the convention would have failed in the very
+   session that verified it. Recorded because it is precisely the kind of assumption
+   the kit's field reports keep catching.
+
+### 23.5 The six claims that stand
+
+- **C4 commands→skills — stands, and the near-miss is confirmed.** Markdown custom
+  slash commands still do not exist: `github/copilot-cli#1113` (markdown slash
+  commands) is **closed as a duplicate of #618** (`.github/prompts/` support), which
+  remains open. Skills are invoked `/skill-name`, `SKILL.md` frontmatter is `name` +
+  `description` required with **`license` and `allowed-tools` optional** (both new,
+  both useful — see 23.6). Project skill directories: `.github/skills`,
+  **`.claude/skills`**, `.agents/skills`; personal: `~/.copilot/skills`,
+  `~/.agents/skills`. `.claude/commands` is read by neither the docs nor Copilot — the
+  kit's install path remains the near-miss. **§21's open question "`.github/skills/` vs
+  `.claude/skills/`" is now an owner decision, not a build detail — see 23.7.**
+- **C5 models — stands, with one claim downgraded.** `/model` and `/models` confirmed;
+  `COPILOT_MODEL` confirmed. §20.2's "per-agent model pinning" was **not** confirmed by
+  the custom-agents page, which documents `name`, `description`, and an optional
+  `tools` restriction and mentions no `model` field. Downgraded to unverified; the tier
+  table must not be built assuming per-agent pinning.
+- **C6 subagents — stands, including the gap.** `.github/agents/*.agent.md`, project
+  and user level (`~/.copilot/agents/`), user-level wins on name collision; invocable
+  via `/agent`, by name, by inference from the description, or
+  `copilot --agent NAME --prompt`. Tool restriction exists; **exact `tools` syntax is
+  undocumented** on that page — PORT.1 must find it before writing `explore.agent.md`.
+  **Parallel fan-out is still undocumented**, so §21's fallback stands unchanged:
+  sweeps serialize on Copilot, stated in the generated `SDLC.md`, never silently.
+  (Corroborating evidence subagents are first-class: the hooks reference documents
+  `subagentStart`/`subagentStop`.)
+- **C8 built-ins — stands.** No `/code-review`, `security-review`, `verify`, `simplify`,
+  or `update-config`. Newly noted, and useful: **`/diff`** ("Review changes in the
+  current directory") and **`/ask`** exist.
+- **C8's `/code-review` replacement — confirmed available.** GitHub Copilot code review
+  is requestable on a PR from the Reviewers sidebar, can be configured to run
+  automatically, and — the part that matters to the kit — **is customizable via
+  `.github/copilot-instructions.md`**. So PORT.3's candidate holds *and* gains a
+  steering surface: the kit's review lenses can be written where that reviewer reads
+  them. Note the interaction with 23.1: that same file is also merged into CLI
+  instructions, so lenses placed there are not free — PORT.3 must decide placement
+  deliberately.
+- **C9 sessions — stands.** `/clear`, `/new`, `/reset` documented verbatim.
+
+### 23.6 `mattpocock/skills` — assessed as owner-directed, 2026-08-03
+
+The owner pointed PORT at `github.com/mattpocock/skills` as a first place to look for
+replacements for the missing components. Assessed against C7/C8; **MIT-licensed**,
+`SKILL.md` format, README states the skills "work with any model" and ships three
+installs (Claude plugin, `npx skills add`, manual). Findings:
+
+- **`code-review` is a genuine C7/C8 candidate, and a good one.** Two axes —
+  *Standards* (does the diff follow the repo's documented standards?) and *Spec* (does
+  it implement what the originating issue/spec asked?) — run as parallel sub-agents and
+  reported side by side, deliberately not merged or reranked. The fit with this kit is
+  unusually close and not accidental: the kit **has** a spec (`spec/`, the whole point
+  of the process) and, as of STD, **has** documented runtime standards. Its Standards
+  axis also carries a built-in Fowler smell baseline (12 smells, each *what it is* →
+  *how to fix*), with the rule that a documented repo standard overrides the baseline.
+- **Three frictions, all real, none disqualifying:** (a) it depends on
+  `docs/agents/issue-tracker.md` and a `/setup-matt-pocock-skills` bootstrap the kit
+  would have to supply or excise; (b) it spawns Claude Code's `Agent` tool with the
+  `general-purpose` subagent type — a C6 coupling that needs `.github/agents/` on
+  Copilot and hits the undocumented-parallel-fan-out gap in 23.5; (c) its smell
+  baseline **overlaps `REVIEW_LENSES.md`**, and two review checklists in one kit is the
+  duplication invariant 2 exists to prevent. Adoption means reconciling them, not
+  shipping both.
+- **Coverage of the rest is partial, and the gaps should be stated plainly:**
+  `improve-codebase-architecture` is the nearest thing to `simplify` but is a
+  scan-and-grill workflow, not a diff-scoped cleanup pass; **nothing corresponds to
+  `verify`**; `tdd` duplicates the kit's already-vendored TDD skill and is not needed;
+  `security-review` is covered by STD's lenses as planned; `update-config` needs no
+  equivalent. So the repo solves C7 and part of C8, and PORT.3 still writes `verify`
+  and `simplify` itself.
+- **Vendoring regime, if adopted:** identical to the existing TDD skills under
+  invariant 3 — per-file provenance and verification date in `reference/SKILLS.md`,
+  attribution in `THIRD_PARTY_NOTICES.md`, and any kit edit recorded as a divergence
+  rather than silently drifted. The `license` frontmatter field found in 23.5 is the
+  natural place to carry it in-file.
+
+### 23.7 What this pass changed, and the two decisions it surfaced
+
+Net effect on PORT as defined in §21: **C2's mapping row is deleted** (23.1), **the
+hook recipe gains four requirements and one hard build-time unknown** (23.2), **C7
+gains a cheap decisive experiment and a real third option** (23.3, 23.6), and
+**PORT.1's strongest detection signal turns out to work on one CLI only** (23.4).
+Nothing found invalidates the owner's build decision; the translation layer remains
+mechanical.
+
+Carried into the build as build-time unknowns: the custom-agent `tools` restriction
+syntax (23.5) and whether `pr-review-toolkit` installs on Copilot at all (23.3).
+
+**23.2's `toolName` unknown — closed enough to build on, with a discovery procedure.**
+The hooks reference's own matcher example is `"matcher": "bash|edit"`, which makes
+`bash` and `edit` documented tool names. A third-party cookbook shows a *post-edit
+quality-feedback* hook — the kit's gate-hook shape exactly — matching
+`^(?:edit|create|apply_patch)$` at `timeoutSec: 60`, and an SDK example filtering on
+`toolName !== "edit" && toolName !== "create"`. So `create` and `apply_patch` are
+plausible but unofficial, and `github/copilot-cli#3820` ("Document matcher support for
+command hooks") confirms the vocabulary is under-documented. The kit does not guess
+silently: the recipe ships `edit|create|apply_patch` as the **starting** matcher and
+leans on the proof step it already requires (invariant 13 — a deliberate violation must
+fail the run), which turns a wrong matcher into a loud setup-time failure rather than a
+gate that never fires. `reference/COPILOT.md` carries the provenance of each name and
+the discovery procedure for when the proof fails: register a matcher-less `postToolUse`
+hook that echoes `toolName`, edit one file, read the real vocabulary off the log.
+Same-source caveat, recorded for invariant 15: that cookbook states postToolUse
+matchers "were fixed in v1.0.63" — so setup reads `copilot --version` and says
+plainly if the installed CLI is older, rather than installing a gate that cannot fire.
+
+**Two owner decisions, both surfaced by evidence rather than planned:**
+
+1. **Skills install path — RESOLVED by the owner, 2026-08-03, both parts.** The
+   question: `.claude/skills/` is read by *both* CLIs, which means the kit's five
+   vendored skills could install once and need no translation at all, but the kit
+   installs them to `.claude/commands/` and `CLAUDE.md` records that as deliberate
+   ("project-scoped, so they travel with a `git clone`") — a rationale that applies
+   just as well to `.claude/skills/`. **Decisions: (a) the Copilot-side install writes
+   to `.claude/skills/`, not `.github/skills/`** — one directory both CLIs read, so a
+   dual-CLI repo carries one copy of each skill and there is no sync surface to drift
+   (invariant 2); the Claude-flavoured directory name on a Copilot-only project is the
+   accepted cost and `reference/COPILOT.md` must explain it. **(b) The five vendored
+   skills move from `.claude/commands/` to `.claude/skills/`** — they are skills, not
+   user-typed commands, and `.claude/skills/` is equally project-scoped, so the
+   original rationale is preserved rather than overturned. Consequences PORT.1 owns:
+   C1's mentions across 9 shipped files, the README tree, `reference/SKILLS.md`, the
+   MANIFEST, and an `sdlc-update` migration (remove from the old path, add at the new
+   one) for adopters already on ≤0.13.0 — the removal clause exercised in §17 is the
+   mechanism. **The seven kit commands stay commands** in `.claude/commands/` on Claude
+   Code and are packaged as skills under `.claude/skills/` on Copilot; the owner
+   declined moving them, on the ground that they are user-typed workflow entry points
+   and model-invocable skills could fire unbidden.
+2. **PORT.2a, now with better evidence than §21 anticipated** — the review path is no
+   longer a two-way choice between a kit-owned reviewer and keeping `pr-review-toolkit`.
+   `mattpocock/skills`' `code-review` is a third option that is MIT, portable, and
+   spec-aware. Presented at the PORT.2 halt as planned, not now.
+
+### Hand-off — state as of 2026-08-03, mid-PORT
+
+- **PORT.0 (this pass) is complete**; kit tree untouched at v0.13.0. §20.2 remains the
+  spike's record; §23 supersedes it wherever the two disagree.
+- **Next session opens on PORT.1 — unblocked; decision 1 is resolved (23.7).** Per
+  §21's order, and now with a known shape. The work, in build order:
+  1. **Detection + confirm in `sdlc-setup.md` preflight** — built to 23.4's corrected
+     signal model: positive-only per CLI, never negative, `AI_AGENT` prefix-matched as
+     a bonus signal only, Copilot resting on repo artifacts and PATH. Detection sets
+     the *proposed* answer inside the existing interview; the prime directive stands.
+  2. **`sdlc-kit/reference/COPILOT.md`** — the mapping table, stated once, dated and
+     provenance-style like `SKILLS.md`. Minus the C2 row (23.1), plus: the
+     `AGENTS.md`-prohibition rationale, the `toolName` provenance and discovery
+     procedure, the v1.0.63 floor, the `.claude/skills/` naming explanation, and the
+     ship-as-a-plugin alternative recorded as considered-and-declined (23.3).
+  3. **Copilot hook recipe in `GATE_RECIPES.md`**, beside the existing one, same
+     `{{HOOK_*}}` placeholder set (inv 1) and 23.2's four requirements — explicit
+     `timeoutSec`, the fail-open-timeout warning in the generated `SDLC.md`, no
+     promise of blocking, the anchored starting matcher.
+  4. **`explore.agent.md`** read-only profile — blocked on finding the `tools`
+     restriction syntax (23.5); if parallel fan-out is still undocumented, sweeps
+     serialize on Copilot and the generated `SDLC.md` says so, never silently.
+  5. **The `.claude/commands/` → `.claude/skills/` migration** for the five vendored
+     skills (decision 1b): 9 shipped files, the README tree (inv 5),
+     `reference/SKILLS.md`, `MANIFEST.sha256`, and an `sdlc-update` removal-and-re-add
+     path for adopters on ≤0.13.0.
+  Close with `/kit-check` before release, as STD did — it surfaced seven pre-existing
+  findings last time, so budget for that.
+- **Then PORT.4, then PORT.2/PORT.3**, PORT.2 opening with the `pr-review-toolkit`
+  install experiment (23.3) and closing at the PORT.2a halt — now a three-way choice
+  (kit-owned reviewer / keep `pr-review-toolkit` / adopt `mattpocock/skills`'
+  `code-review`, 23.6), to be presented with evidence.
+- **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's
+  aging rule (§16 contingent keep); STD's four audit clocks (§22).
