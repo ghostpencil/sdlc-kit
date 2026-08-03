@@ -221,6 +221,7 @@ The whole procedure rests on this split:
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, owner decisions, backlog, and gotchas. |
+| `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
 Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names
 your agent CLI. A project set up for both holds the seven commands twice — once

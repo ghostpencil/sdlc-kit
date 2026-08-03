@@ -245,7 +245,10 @@ Run `/end-slice` when the slice's exit criteria are met:
    the code that will actually be committed. **Behavior is frozen**: every move is
    behavior-preserving, one move at a time with the gate between, and an improvement
    that would change behavior is a finding rather than an edit. It requires a green
-   gate — a quality pass over red code cannot tell an improvement from a fix. Skipping
+   gate — a quality pass over red code cannot tell an improvement from a fix. It is
+   **read-only about the tree's shape** exactly as the review is — no `git
+   checkout/restore/stash` — because the code it improves is uncommitted and has no
+   restore point behind it. Skipping
    it is a legitimate choice on a small or mechanical slice; skipping it silently is
    not, so say so in the hand-back either way.
 7. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes

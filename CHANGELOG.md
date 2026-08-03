@@ -10,6 +10,102 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.14.0 — 2026-08-03
+
+The PORT batch: the kit runs on **GitHub Copilot CLI** as well as Claude Code
+(`FEATURE_PLAN.md` §21, built as §23–§30, shipped as one release per §26). The process
+itself does not change shape — same phases, slices, TDD cycles, five halts — but the kit
+stops assuming which CLI is reading it. Three things made that possible and each is a
+change an adopter can feel: skills move to a directory **both** CLIs read, the kit stops
+depending on a Claude-Code-only review plugin and ships its own reviewer, and the two
+remaining Claude Code built-ins the kit leaned on are replaced by portable equivalents.
+
+**Read the two *Changed* entries before updating** — one is a file move and one renumbers
+`/end-slice`'s steps. Neither is visible as a plain addition.
+
+### Added
+- **[installable]** `skills/diff-review/` — the kit's own two-axis reviewer, **required**,
+  named by `/end-slice` step 4 and `/end-phase` step 5. **Spec** (does the change
+  implement the slice's or phase's exit criteria, and only those — including scope creep
+  and *silent narrowing*, the failure a green gate cannot catch) and **Standards**
+  (`CLAUDE.md` *Runtime Conventions* first, a structural-smell baseline only if the
+  project documented nothing), reported side by side and never merged. Its prime
+  directive is **never invent the spec**: an inferred spec reviews the diff against
+  itself and always passes, so "no spec located" is a legitimate axis result. Names no
+  CLI-specific agent, tool, or model, so both CLIs run the same reviewer. Kit-written,
+  not vendored — see `reference/SKILLS.md` for the design debt to `mattpocock/skills`.
+- **[installable]** `skills/change-simplify/` — the post-green quality pass named by
+  `/end-slice` step 3 (reuse, simplification, efficiency, altitude). Unlike the reviewer
+  it **edits**, so **behavior is frozen**: one behavior-preserving move at a time with
+  the gate between, and an improvement that would change behavior is a finding rather
+  than an edit. The step is optional; the skill is not, because the decision to skip is
+  only available if the skill is there to skip.
+- **[installable]** `skills/change-verify/` — the phase-level verification named by
+  `/end-phase` step 2. Exercises the arc through the path a real caller takes rather than
+  through the test harness, which is the gap a green gate structurally cannot cover.
+  **A pass not observed is not a pass**: every claimed run must appear as the exact
+  command, the literal bytes it printed, and the exit code, and anything that could not
+  be exercised is reported *not exercised* rather than assumed.
+- **[adoption-only]** `reference/COPILOT.md` — the Copilot CLI mapping: install paths per
+  artifact, the hook dialect, target-CLI detection, what the kit loses there and what
+  stands in, four measured authoring hazards, and the alternatives considered and
+  declined (shipping the kit as a plugin; emitting `AGENTS.md`).
+- **[adoption-only]** `templates/copilot-hook.template.json` — the edit-time gate hook in
+  Copilot's dialect. Records that `postToolUse` **cannot block** (it advises, like Claude
+  Code's exit-2), that `timeoutSec` defaults to 30 and **timeouts fail open** — a
+  timed-out hook reads as a pass, which the generated `spec/SDLC.md` now says out loud —
+  and that the `matcher` regex is anchored, so tool names must be exact.
+- **[adoption-only]** `templates/explore.agent.template.md` — a read-only sweep profile
+  for Copilot's `.github/agents/`, used by `/plan-phase` and the Existing-mode surveys.
+- **[installable]** `sdlc-setup.md`: **target-CLI detection**, proposed from positive-only
+  signals and confirmed by the owner. The absence of one CLI's marker is never evidence
+  of the other — Copilot CLI stamps no session marker at all, so its detection rests on
+  repo artifacts and `PATH`, and `CLAUDE.md`/`AGENTS.md`/`.claude/skills/` discriminate
+  nothing because both CLIs read them. The answer is recorded in `spec/PROJECT_INDEX.md`
+  so `/sdlc-update` reads it rather than sniffing.
+- **[installable]** `sdlc-update.md` classifies the Copilot-side artifacts
+  (`.github/skills/`, `.github/hooks/`, `.github/agents/`) and handles the 0.14.0 skills
+  move as a removal-and-re-add. `.github/copilot-instructions.md` and `AGENTS.md` are
+  recorded as **project-owned** — setup writes neither.
+- **[adoption-only]** `PROJECT_INDEX.template.md` records the project's agent CLI.
+
+### Changed
+- **[installable] The five vendored skills MOVED, they were not re-added.** They lived in
+  `.claude/commands/<name>.md` through 0.13.0 and now live in
+  `.claude/skills/<name>/SKILL.md`, one directory per skill. **An update removes the old
+  path and adds the new one; do not end up holding both** — two copies of `tdd` with
+  different content is the one outcome the update must not produce, and `/sdlc-update`
+  checks for it. The reason for the move is the whole batch: `.claude/skills/` is read by
+  Copilot CLI too, so one copy now serves both. The seven commands deliberately did *not*
+  move — a command sitting in a skills directory can be invoked by the model unbidden.
+- **[installable] `pr-review-toolkit` is demoted from required to optional**, and Claude
+  Code only. This is the other half of the `diff-review` entry above and an adopter
+  reading a bare addition would miss it: the per-slice and whole-arc reviews used to name
+  a per-machine plugin, so a Copilot adopter was told to run a reviewer that did not
+  exist for them and every new developer owed an install step. **Nothing requires it
+  now.** It stays installed and stays usable as an optional deepening at phase end;
+  nobody needs to uninstall anything, and team onboarding loses the per-machine step
+  entirely. (Measured caveat kept in `reference/COPILOT.md`: it *can* be made to run on
+  Copilot, but only through an install path its vendor has announced as deprecated.)
+- **[installable] `/end-slice` gained a step, so its later steps renumbered.** The new
+  optional quality pass is step 3; review is now step 4, commit 6, record 7, hand-back 8.
+  A project whose own notes cite `/end-slice` step numbers will be stale after updating —
+  `/sdlc-update` flags this and does not edit project-owned docs to fix it.
+- **[adoption-only]** `SDLC.template.md`: the matching slice-loop step (old 6–10 became
+  7–11), `change-verify` named in phase-end step 1, and both review steps now name
+  `diff-review` instead of the plugin.
+- **[installable]** `end-phase.md` step 2 names `change-verify` for the phase-level
+  verification it previously described only as "smoke test, end-to-end run, manual
+  script", and step 3 draws on it — an arc reaching the acceptance halt with nothing
+  observed puts the owner in front of a system no one has run.
+- **[adoption-only]** `reference/SKILLS.md`'s *Recommended built-ins* table is now a
+  **per-CLI availability table**: one row per pass, a Claude Code column and a Copilot
+  column, and the rule that where a row offers both you run one. The kit's equivalents
+  are deliberately named unlike the built-ins (`change-verify`, `change-simplify`) so
+  installing them shadows nothing.
+- **[adoption-only]** `reference/COPILOT.md`'s loss table: of five rows, four are closed.
+  Only `/code-review` remains a real loss, and it is the one the kit never required.
+
 ## 0.13.0 — 2026-08-03
 
 The STD batch: the kit's first product-quality standards — logging, error handling,

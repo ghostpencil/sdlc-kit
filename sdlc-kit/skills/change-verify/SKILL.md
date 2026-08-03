@@ -165,7 +165,8 @@ an obstacle.
 
 - **Both CLIs.** This skill installs to `.claude/skills/change-verify/`, which Claude
   Code and Copilot CLI both read. It names no CLI-specific agent, tool, or model on
-  purpose — see `reference/COPILOT.md`.
+  purpose: a pinned model is silently downgraded on one CLI, and a named subagent type
+  does not exist on it at all. Keep it that way when editing.
 - **On the Claude Code built-in.** Claude Code ships a `verify` skill of its own. This
   one is the kit's portable equivalent, so the pass exists on both CLIs and the process
   can name it without knowing which CLI is running. Where both are present, either

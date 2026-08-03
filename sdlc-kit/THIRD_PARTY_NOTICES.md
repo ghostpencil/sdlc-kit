@@ -1,9 +1,16 @@
 # Third-Party Notices
 
-The files under `skills/` are vendored from (or derived from) the following projects —
-all *identified* upstreams are MIT-licensed; `python-pro/SKILL.md` has no identified upstream
-repo or license text, only its in-file author attribution. Full provenance detail,
-including how each local copy was verified against its upstream, is in
+**Not everything under `skills/` is third-party.** Three files are **kit-written and
+carry no upstream** — `skills/diff-review/SKILL.md`, `skills/change-simplify/SKILL.md`,
+and `skills/change-verify/SKILL.md` (all 2026-08-03). They are covered by this kit's own
+`LICENSE`, and nothing in this file applies to them. `diff-review` owes a design debt to
+`mattpocock/skills` that is recorded in `reference/SKILLS.md`; the text is not copied and
+the file is not a derivative, so the debt is real without being a licence obligation.
+
+The **remaining** files under `skills/` are vendored from (or derived from) the following
+projects — all *identified* upstreams are MIT-licensed; `python-pro/SKILL.md` has no
+identified upstream repo or license text, only its in-file author attribution. Full
+provenance detail, including how each local copy was verified against its upstream, is in
 `reference/SKILLS.md`.
 
 | File(s) in this repo | Upstream | Copyright |

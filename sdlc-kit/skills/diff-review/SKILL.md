@@ -146,8 +146,9 @@ is the review unfinished, however complete the other one looks.
 ## Notes
 
 - **Both CLIs.** This skill installs to `.claude/skills/diff-review/`, which Claude Code
-  and Copilot CLI both read. It names no CLI-specific agent, tool, or model on purpose —
-  see `reference/COPILOT.md`.
+  and Copilot CLI both read. It names no CLI-specific agent, tool, or model on purpose:
+  a pinned model is silently downgraded on one CLI, and a named subagent type does not
+  exist on it at all. Keep it that way when editing.
 - **On fan-out.** Running the two axes as parallel sub-agents is a legitimate
   optimization where the CLI supports it, and it is how the design this skill borrows
   from works. It is not required, and the axes must stay unmerged either way. Where a

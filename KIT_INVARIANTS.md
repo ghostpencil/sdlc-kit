@@ -147,9 +147,15 @@ trusted only after it flagged the 3 genuinely changed files at `v0.2.0` and no o
 
 ## 11. Vendored skills match their recorded provenance
 
-Everything in `skills/` is third-party MIT content. Each file either matches the
-upstream verification recorded in `reference/SKILLS.md`, or its divergence is documented
-there. `THIRD_PARTY_NOTICES.md` carries the attributions.
+`skills/` holds **two provenance regimes, and the check must not conflate them.** The
+five vendored files are third-party MIT content: each either matches the upstream
+verification recorded in `reference/SKILLS.md`, or its divergence is documented there,
+and `THIRD_PARTY_NOTICES.md` carries the attributions. The three kit-written files
+(`diff-review`, `change-simplify`, `change-verify`, all 2026-08-03) have **no upstream to
+verify against** — for them the invariant is the opposite one: they must not be described
+as vendored, and `THIRD_PARTY_NOTICES.md` must say the notices do not apply to them.
+Attributing kit-written work to a third party is as much a provenance defect as the
+reverse.
 
 **Check:** diff against the provenance claims; confirm any edit is noted. **Specimen:**
 none yet — the field report's #11 proposed editing `skills/tdd/tdd-references/tests.md`
