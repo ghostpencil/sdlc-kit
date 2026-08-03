@@ -2849,3 +2849,85 @@ frontmatter drop (§27.2), the `model:` downgrade (§27.3), and the
 `--available-tools`/`--allow-tool` interaction found in 28.3.4. The loss table lost its
 largest row, with the deprecation caveat kept attached so a future batch does not read
 "pr-review-toolkit works on Copilot" and rebuild the dependency.
+
+## 29. Hand-off — state as of 2026-08-03, end of the PORT.2 session
+
+**Done and committed** (five commits on `main`, tree clean, `VERSION` still `0.13.0`):
+PORT.0 (§23), PORT.1 (§24), PORT.4 (§25), the C7 experiment (§27), PORT.2 (§28).
+
+**Unreleased and deliberate:** `MANIFEST.sha256` is stale by exactly one file — 29
+entries against 30 bundle files, `diff-review/SKILL.md` absent. §26's checklist
+regenerates it *after* the version bump because `VERSION` is itself a bundle file.
+Regenerating it now and bumping later just makes it stale again.
+
+**Standing decisions a fresh session must not re-open:** all of PORT ships as one
+release (§26); the kit owns its reviewer, and neither `pr-review-toolkit` nor
+`mattpocock/skills` is adopted (§28); `pr-review-toolkit` is optional and Claude Code
+only.
+
+### 29.1 A fresh session opens on PORT.3
+
+The scope, and what §27 already established for each so it is not re-derived:
+
+1. **`/code-review` → GitHub Copilot code review on the phase PR**, steered by
+   `.github/copilot-instructions.md`. **The placement is the actual decision, not the
+   mapping.** §23.1 established that this file is merged into *every CLI session's*
+   instructions with no precedence order against `CLAUDE.md` — so anything written there
+   to steer the PR reviewer is also loaded into every interactive session, and the kit
+   already prohibits emitting a second instructions file for exactly this reason. Decide
+   deliberately whether the kit writes this file at all.
+2. **`verify` and `simplify` as kit-written skills.** Both are Claude Code built-ins with
+   no Copilot equivalent, and both currently sit in `SKILLS.md`'s *Recommended built-ins*
+   table with `COPILOT.md` recording "none" as the substitute. Each enters the §16 audit
+   regime **individually** — §26 was explicit about that. `diff-review` (§28.2) is the
+   worked precedent for shape, frontmatter discipline, and the acceptance-evidence bar.
+3. **`security-review`** is already covered by STD's lenses — no new artifact, just
+   confirm the row says so.
+4. **`update-config`** needs no equivalent; `COPILOT.md` already explains why (Copilot's
+   config is plain JSON).
+5. **The per-CLI availability column in `SKILLS.md`.** Today the *Recommended built-ins*
+   table is Claude-Code-shaped with a paragraph underneath pointing at `COPILOT.md`'s
+   loss table. Building the column is PORT.3's call — note that §28 already removed the
+   review row from that loss table, so the two are currently in step and must stay so.
+
+**Inputs §27.6 already gathered, so PORT.3 need not re-measure them:** Copilot exposes
+exactly **one** builtin skill (`customize-cloud-agent`), so this list is mostly things
+the kit must supply rather than map; its builtin tools are `powershell`, `view`,
+`create`, `edit`, `grep`, `glob`, `skill`, `task`, `web_fetch`,
+`fetch_copilot_cli_documentation`, `sql`, `session_store_sql`, `read_agent`,
+`list_agents`, `write_agent`, plus a `github-mcp-server-*` subset.
+
+**Three authoring hazards now recorded in `COPILOT.md`** bind anything PORT.3 writes,
+and all three fail silently: no colon-space in an unquoted frontmatter value, no
+`model:` pin, and `--available-tools` silently overriding `--allow-tool` when testing.
+
+### 29.2 Then the release — §26's checklist, with one step already part-done
+
+1. Reconcile `COPILOT.md`'s *What the kit loses on Copilot today* against what shipped.
+   **The review row is already done** (§28.4) — PORT.3 owns the `verify` and `simplify`
+   rows. The table must not outlive the gap.
+2. `CHANGELOG.md` for 0.14.0, entries marked *[installable]* / *[adoption-only]*. Two
+   that need their nature stated rather than listed: the skills move (§24.6) is a
+   **move**, and `diff-review` (§28) is a **new required skill plus a demotion of
+   `pr-review-toolkit` to optional** — an adopter reading a bare addition would not know
+   the per-machine install is gone.
+3. Bump `sdlc-kit/VERSION` to `0.14.0`.
+4. **Regenerate `MANIFEST.sha256` after the bump.** Prove discrimination on a *copy*,
+   never on a tracked file.
+5. Full `/kit-check`. Budget for it: this batch moved install paths (invariant 7's whole
+   surface), added a skill directory (invariant 5's file tree), and added a kit-written
+   file to a directory whose provenance rules are invariant 3's. Expect findings against
+   3, 5, 7 and 8 in particular.
+
+### 29.3 The Copilot bench is still standing
+
+`pr-review-toolkit` remains installed on the owner's Copilot CLI, and the test repo at
+`D:\AICourse\copilot-ci-test` still holds the fixture, a three-criterion slice spec, a
+one-rule `CLAUDE.md`, and a copy of `diff-review`. Neither is a kit artifact and neither
+is tracked. The binary is at
+`%LOCALAPPDATA%\Microsoft\WinGet\Packages\GitHub.Copilot_*\copilot.exe` and is **not on
+the PATH of an already-running shell** — that cost this session twenty minutes. Reversal
+when done: `copilot plugin uninstall pr-review-toolkit`.
+
+**Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's aging
+rule (§16 contingent keep); STD's four audit clocks (§22), deadline 0.15.0.
