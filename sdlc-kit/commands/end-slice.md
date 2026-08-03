@@ -73,7 +73,9 @@ that did, never dropped silently.
   **measured** (you reproduced or observed it) or **suspected** (you inferred it) — the
   reader of that entry needs to know what still needs checking, because a backlog entry
   is a hypothesis with a timestamp, not a finding.
-- **Owner question:** anything that is a design decision, not a defect — HALT and ask.
+- **Owner question:** anything that is a design decision, not a defect — HALT and ask,
+  per the hand-back standard (`spec/SDLC.md`, *Owner halt points*): plain English, the
+  decision numbered and marked, options with a recommendation.
 
 If fixes were applied, re-run the gate.
 
@@ -132,8 +134,7 @@ Update `spec/PROJECT_INDEX.md`:
   states; a sharper note is neither. Prose in a status document is not a
   control: a real adoption recorded an editor silently rewriting line endings four
   times, each note sharper than the last, each one followed, and the hazard recurred
-  every time. Sharpening the wording is what the process does instead of preventing the
-  thing. And when the check becomes a control: **a control that hands the operator a
+  every time. And when the check becomes a control: **a control that hands the operator a
   remediation command must scope that command to the population the control actually
   flags.** An operator acts on the failure message under time pressure — an unscoped
   fix-everything one-liner from a line-endings check, applied over the whole tracked
@@ -152,10 +153,14 @@ Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next u
 
 ### 7. Hand back
 
-Report in one short block: gate results (test count), review outcome (N fixed / N
-deferred / N discarded as unverified, naming those), mutation-check outcome (N guards checked, each seen to fail), any tool
-substituted for one this file names, commit hashes, and the next slice. End with:
-**safe to `/clear`**.
+Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open with a
+plain-English executive summary in bullets: what the slice now does, gate green (test
+count), and what is next — with any decision the owner still owes **numbered and
+explicitly marked** (usually there is none; an open design question is the exception).
+Then the detail, after the summary and never mixed into it: review outcome (N fixed /
+N deferred / N discarded as unverified, naming those), mutation-check outcome (N
+guards checked, each seen to fail), any tool substituted for one this file names, and
+commit hashes. End with: **safe to `/clear`**.
 
 ## Notes
 

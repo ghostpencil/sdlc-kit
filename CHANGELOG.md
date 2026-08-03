@@ -10,6 +10,51 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.12.0 — 2026-08-03
+
+The LEG batch: owner-led legibility work from the `FEATURE_PLAN.md` §18 brainstorm,
+first of the owner-ordered LEG → COP → STD queue. Input-side and output-side
+legibility in one batch: LEG.1 adds the owner hand-back standard (words in), LEG.2 is
+the measured token pass over the bundle (words out), baselined on the tree that
+includes LEG.1 so the tension stays honest. No new files, no new placeholders, no
+halt-point changes.
+
+### Added
+- **[adoption-only]** `SDLC.template.md` *Owner halt points* (LEG.1): **the hand-back
+  standard** — every owner-facing moment (each of the five halts, and the hand-back
+  that ends each command) opens with an executive summary in plain-English bullets;
+  every decision the owner is being asked to make is **numbered and explicitly
+  marked** (`Decision 1: …`) with options and a recommendation; supporting detail
+  follows the summary and never interleaves with it. Motivation: five generations of
+  rigor fixes made the agent's output correct, and none asked whether the owner
+  could follow it — the owner reports phase/slice output too detailed to follow.
+- **[installable]** the six installed commands enforce the standard at their
+  halt/hand-back steps, each restating the format inline so it survives in an
+  adoption whose project-owned `spec/SDLC.md` predates it: `plan-phase.md` steps
+  2 and 6 (the spec presentation opens with a summary; everything being ratified is
+  numbered), `next-slice.md` steps 2, 4, and 5 (a derived number that differs from
+  the ratified one returns as its own marked decision), `end-slice.md` steps 3 and 7
+  (the hand-back restructured: summary first, dispositions as detail), `end-phase.md`
+  steps 3, 5, 6, and 7 (post-merge bookkeeping presents its several owner decisions
+  together, numbered — never one at a time buried in the bullet that raised each),
+  `sdlc-retro.md` steps 2 and 6 (the submit-upstream call is a marked decision),
+  `sdlc-update.md` steps 4 and 5 (per-file DRIFTED calls and un-manifested-file
+  halts are numbered decisions).
+
+### Changed
+- **[installable]** LEG.2, the measured token pass — wording-only trims, no rule,
+  halt, or completion condition touched: `plan-phase.md`, `end-slice.md`,
+  `end-phase.md`, `sdlc-retro.md`, `sdlc-setup.md` (largest win: Existing mode
+  restated New-mode asks verbatim; now cross-references). **[adoption-only]** two
+  trims in `SDLC.template.md`. Bundle counts, `wc -w` / bytes÷4 over
+  `git ls-files`: 27,882 → 27,765 words, ~46,677 → ~46,487 estimated tokens
+  against the post-LEG.1 baseline. The measured finding: SIMP (0.10.0) already
+  took the wording fat; what remains is rules, negative cases, and
+  confirmed-catch evidence the §16 audit protects. Vendored `skills/**`
+  untouched.
+- Root-side, no marker: README's field-report count corrected to five (was four)
+  — caught by `/kit-check` inv 9 during the batch's closing pass.
+
 ## 0.11.0 — 2026-08-03
 
 The R4 batch: the fix batch of the fifth field report (`FIELD_REPORT_2026-08-02.md`,

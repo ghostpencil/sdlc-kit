@@ -95,7 +95,11 @@ result rather than an error:
 ### 4. Present the plan — the ONE owner halt
 
 Before writing anything, show the owner the full classification plus the changelog
-entries marked *[installable]* for every version being skipped.
+entries marked *[installable]* for every version being skipped. Open with a
+plain-English executive summary in bullets — current version, target, what changes
+behaviorally — and put every per-file `DRIFTED` call to the owner **numbered and
+explicitly marked** (`Decision 1: <file> — keep / overwrite / merge`), each with its
+diff as detail below; the classification table follows the summary, never replaces it.
 
 Report **content-changed counts separately from touched counts**: how many files the
 update will rewrite with genuinely different committed content, versus how many it
@@ -136,7 +140,8 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   list is not the kit's to delete: a project put it there (the kit's own field-report
   convention invites exactly that). Report the comparison **with its counts** — N files
   on disk, M in the manifest — so a sweep that enumerated nothing is visibly wrong
-  rather than silently clean; then, for every un-manifested file, HALT — the owner
+  rather than silently clean; then, for every un-manifested file, HALT — a numbered,
+  explicitly marked decision per file: the owner
   moves it to a project-owned path (`spec/` is the usual home) or explicitly
   releases it. "It is a verbatim copy of the kit" is the *intended* state of that
   folder, not a fact the procedure may assume; a wholesale replace that never looked

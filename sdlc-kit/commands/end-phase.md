@@ -40,7 +40,10 @@ arc that bought this rule, the local pass found the arc's worst defect three com
 before the PR — 474 hermetic tests green throughout, the defect in the composition,
 invisible to every unit.
 
-Tell the owner the phase is gate-green and ready for their acceptance pass. List what to
+Tell the owner the phase is gate-green and ready for their acceptance pass, per the
+hand-back standard (`spec/SDLC.md`, *Owner halt points*): a plain-English executive
+summary in bullets — what the phase delivers, what to exercise, the exact command to
+run — with the checklist as detail below it. List what to
 look at: the phase's user-visible behaviors from the spec's acceptance checklist, plus
 any live-data notes from PROJECT_INDEX. The owner exercises the product themselves (run
 command in CLAUDE.md) — do not perform this review on the owner's behalf.
@@ -109,12 +112,15 @@ This is not a repeat of the slice reviews: each of those saw one layer, so arc-l
 live in the seams between slices and are invisible to every per-slice review by construction.
 
 Owner-facing design questions found by review HALT — they go to the owner, not into the
-fix batch.
+fix batch, each per the hand-back standard: plain English, numbered and marked, options
+with a recommendation.
 
 ### 6. Merge approval — HALT
 
-Present: PR link, review outcome (N fixed / N deferred-to-backlog), final gate results,
-CI status (`gh pr checks`). Ask for merge approval. On approval:
+Present per the hand-back standard: a plain-English executive summary in bullets — PR
+link, review outcome (N fixed / N deferred-to-backlog), final gate results, CI status
+(`gh pr checks`) — then the merge approval as an explicitly marked decision
+(`Decision 1: merge?`). On approval:
 
 ```
 gh pr merge <PR#> --merge
@@ -122,6 +128,12 @@ git checkout <main> && git pull
 ```
 
 ### 7. Post-merge bookkeeping (on the main branch)
+
+This step asks the owner several decisions inside one conversation — the deploy
+question, the backlog disposition, the red-baseline call, the retro offer. Per the
+hand-back standard, present them **together, each numbered and explicitly marked**
+(`Decision 1: …`), after a plain-English summary of where the phase landed — never
+one at a time buried in the bullet that raised it.
 
 - **Ask the deploy question, then record the verified outcome:** does this phase need
   a deploy for its changes to reach users, and has it happened? Merging is not
@@ -182,8 +194,7 @@ git checkout <main> && git pull
   baseline) are what a fresh session reads first; they stop working as an answer to
   "what do I do next" once closed history sits above them, and one real adoption reached
   2,400 lines with the answer buried under five phases of merged detail. Nothing is
-  deleted — the detail is genuinely valuable evidence, it is simply not this file's job
-  past the phase close.
+  deleted — the detail is simply not this file's job past the phase close.
 - Trim/align the phase spec if the review changed behavior described there.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Suggest any durable lessons worth saving to auto-memory.

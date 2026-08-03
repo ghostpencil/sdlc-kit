@@ -30,8 +30,8 @@ window is the phase named in the argument, or the most recent Phase History row.
 **When the kit is co-developed alongside this project** — its home repository is on
 this machine, or the project's notes point at kit planning documents — read the kit's
 own planning and field-report docs for the window too. Half the friction record of a
-co-developed adoption lives on the kit's side, written by sessions that worked on the
-kit; a retro that reads only the project's spec files once missed a friction item the
+co-developed adoption lives on the kit's side; a retro that reads only the project's
+spec files once missed a friction item the
 kit's plan had already recorded *and labeled as retro material*. For an ordinary
 adoption with no kit repo at hand, skip this — it is a co-development clause, not a
 new dependency.
@@ -88,8 +88,9 @@ none of them writes anything.
   no gate movement) and the one record of such noise may sit in prose nothing else here
   reads.
 
-Report what the sweeps found as a short evidence summary before interviewing. The owner
-is about to be asked to interpret it.
+Report what the sweeps found as a short evidence summary before interviewing — plain-
+English bullets per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). The
+owner is about to be asked to interpret it.
 
 ### 3. Owner interview — rounds of ≤4 questions
 
@@ -176,8 +177,10 @@ legitimate outcome and worth recording; a manufactured finding is not.
 - Apply the project lessons to `spec/PROJECT_INDEX.md` (Notes, Environment gotchas,
   backlog entries tagged `(retro, <date>)`).
 - Commit the report and the index together as a docs commit.
-- Tell the owner what the report contains and that submitting it upstream — as a GitHub
-  issue on the kit's repository — is their call. **Do not open it, and do not draft a
+- Tell the owner what the report contains — per the hand-back standard: a plain-English
+  executive summary of the findings in damage order, with the submit-upstream call as
+  an explicitly marked decision (`Decision 1: submit as a GitHub issue on the kit's
+  repository, or keep it local?`). **Do not open it, and do not draft a
   submission unless asked.** The report is written for a reader who does not have this
   project; if the owner does want to submit, offer to check it reads that way.
 

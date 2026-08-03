@@ -388,7 +388,7 @@ GitHub issues are the channel; two templates are provided:
 
 Either way, a finding is most useful when it names the kit file(s) that would have to
 change and separates what was observed from what is suspected. That loop is how the kit
-improves: the four `FIELD_REPORT*.md` files at the repo root are real reports from
+improves: the five `FIELD_REPORT*.md` files at the repo root are real reports from
 adopting projects, and the fix batches in `CHANGELOG.md` were triaged directly out of
 them.
 

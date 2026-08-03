@@ -25,7 +25,9 @@ slice touches their area.
 ### 2. Confirm scope — the ONE owner halt
 
 Ask one question (AskUserQuestion): the slice you propose to do, its exit criteria in a
-sentence or two, and what it deliberately does NOT include. Offer the next-best alternative
+sentence or two, and what it deliberately does NOT include — plain-English bullets per
+the hand-back standard (`spec/SDLC.md`, *Owner halt points*), the decision explicitly
+marked. Offer the next-best alternative
 slice as a second option. Do not proceed until answered; do not ask anything else unless a
 genuine design question surfaces later.
 
@@ -61,8 +63,10 @@ cap whose approved value implied roughly two orders of magnitude more spend than
 intended. A derived number that differs from the ratified one goes back to the owner
 **inside this halt** — it is a scope question, not a new halt, and it un-skips the
 recorded-OWNER-DECIDED shortcut above, because what was decided is no longer what is
-true. Never absorb the difference quietly. When the derivation confirms the number,
-re-tag the decision **measured** in the spec with what you ran.
+true. Never absorb the difference quietly — present it as its own numbered, marked
+decision (`Decision 2: the derived value differs — keep the ratified number or adopt
+the derived one?`), with both numbers and the derivation. When the derivation confirms
+the number, re-tag the decision **measured** in the spec with what you ran.
 
 The re-derivation is done when every marker has had its proportional check and every
 `estimated` number the slice implements carries a recorded derivation — any changed
@@ -95,12 +99,14 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
 2. Invoke the TDD skill.
 3. Implement the slice in small red–green–refactor cycles, one behavior at a time.
 4. A spec conflict or owner-facing design decision HALTS with a question — never resolve
-   one silently.
+   one silently. State it per the hand-back standard: plain English, the decision
+   numbered and marked, options with a recommendation.
 
 ### 5. Finish
 
 When the slice's exit criteria are met, tell the owner the slice is ready for close-out
-and run `/end-slice` (gate, review, commit, PROJECT_INDEX, then `/clear`).
+— an executive summary per the hand-back standard: what the slice now does, in plain
+English — and run `/end-slice` (gate, review, commit, PROJECT_INDEX, then `/clear`).
 
 ## Notes
 

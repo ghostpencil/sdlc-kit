@@ -1725,3 +1725,51 @@ two releases makes it a deletion candidate, so prefer few and fail-loud.
   across the six installed commands, don't recall the list.
 - **Standing kit inputs unchanged from §17:** any sixth field report (TFit Phase
   07); R3.8's aging rule still on its clock (§16 contingent keep).
+
+## 19. LEG shipped — 2026-08-03; released as v0.12.0
+
+Built to §18's definition in one session; `/kit-check` clean on all 15 invariants,
+with one root-side finding fixed inside the pass (the README said "four
+`FIELD_REPORT*.md` files" over a tree holding five — the stale-denominator class
+again, caught by inv 9's reading pass).
+
+- **LEG.1 — hand-back standard.** Edit map derived by sweep (§4a), not recall.
+  Canonical statement in `templates/SDLC.template.md` under *Owner halt points*
+  (inv 2); enforcement at every owner-facing step the sweep found: `plan-phase`
+  steps 2/6 (the spec presentation — the moment that motivated the batch — now
+  opens with a summary and numbers everything being ratified), `next-slice` 2/4/5
+  (the derived-number return is its own marked decision), `end-slice` 3/7 (the
+  hand-back restructured: summary first, dispositions as detail), `end-phase`
+  3/5/6/7 (the bookkeeping conversation presents its several decisions together,
+  numbered), `sdlc-retro` 2/6 (submit-upstream as a marked decision),
+  `sdlc-update` 4/5 (per-file DRIFTED calls and un-manifested-file halts as
+  numbered decisions). Each command restates the format inline, so an updated
+  command set still carries the rule where a pre-0.12.0 project-owned `SDLC.md`
+  lacks the section (the accepted [adoption-only] skew). The standard enters the
+  §16 audit regime: it needs a confirmed catch — an owner decision that would
+  have been missed in prose — or it is a deletion candidate after two releases.
+- **LEG.2 — measured token pass.** Method recorded: `wc -w` words and bytes÷4
+  token estimate per file over `git ls-files` in `sdlc-kit/`, POSIX `wc`, LF
+  tree, 2026-08-03. Baseline post-LEG.1 (as §18 required): **27,882 words /
+  ~46,677 est. tokens**. After the trim: **27,765 words / ~46,487** (−117 words,
+  −0.4%). Wording only — no rule, halt, or completion condition touched;
+  `skills/**` untouched (inv 3/11). The largest single win was Existing-mode
+  setup restating New-mode asks verbatim (now cross-references). The measured
+  finding, worth carrying forward: **SIMP already took the wording fat** — what
+  remains is rules, negative cases, and confirmed-catch evidence §16 protects,
+  so future economy gains come from structure (pointers over restatement), not
+  from adjectives. A trim pass of this shape is not worth re-running until the
+  tree has grown substantially.
+
+### Hand-off — state as of 2026-08-03, end of the LEG session
+
+- Kit `main` at v0.12.0, tag pushed, tree clean. LEG closed.
+- **Next session opens on COP** (§18): the read-only Copilot CLI research spike —
+  enumerate the kit's Claude-Code couplings by sweep (§4a), verify Copilot CLI's
+  capabilities against its documentation at spike time, deliver a verdict with
+  evidence (portable-with-translation-layer / fork-required / decline). Nothing
+  is built until the owner reads that report.
+- STD stays queued behind COP (§18's sequencing note: COP's verdict may reshape
+  STD's lens work).
+- **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
+  R3.8's aging rule still on its clock (§16 contingent keep).

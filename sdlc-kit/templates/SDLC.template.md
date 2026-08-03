@@ -36,9 +36,8 @@ bug-fix/cleanup slices on a cleanup branch named for the arc's theme
 
 **One arc, one branch, one PR — in both modes.** Slices accumulate on the arc branch
 until `/end-phase`; only `/end-phase` opens a PR. Work arising from a slice's own
-review stays on the same branch. Splitting an arc across branches produces two PRs and
-no single whole-arc review spanning both — and the whole-arc review is the stage that
-catches what slice reviews structurally cannot.
+review stays on the same branch. Splitting an arc across branches forfeits the single
+whole-arc review — the stage that catches what slice reviews structurally cannot.
 
 **The hotfix exception — the only sanctioned second unmerged branch.** An urgent
 production fix that cannot wait for the open arc branches `fix/<slug>` off
@@ -79,6 +78,20 @@ fix application, bookkeeping, commits) proceeds without asking.
    phase with no visible behavior yet, which is exactly when nothing has ever run
    outside the test suite.
 5. **Merge approval** — the owner approves the PR merge.
+
+### The hand-back standard
+
+Every owner-facing moment — each of the five halts above, and the hand-back that ends
+each command — opens with an executive summary the owner can act on without reading
+further: **plain English, bullet form, a few lines** — what happened, what state the
+work is in, what happens next. Every decision the owner is being asked to make is
+**numbered and explicitly marked** (`Decision 1: …`), with its options and a
+recommendation where one exists — a question buried in a paragraph is a question the
+owner was never asked, and an answer to it is a decision that was never made.
+Supporting detail (evidence, per-finding dispositions, counts, logs) follows the
+summary; it never replaces it and never interleaves with it. The rules elsewhere in
+this file make the *agent's* output correct; this is the one that makes it possible
+for the *owner* to follow.
 
 ## The Gate
 
@@ -168,8 +181,8 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
 2. Requirements interview in rounds (≤4 questions each) until a round surfaces nothing
    new, then an adversarial gap analysis (walkthrough, trust-boundary sweep,
    consequence sweep, cross-system sweep, persistence/compatibility sweep, testability
-   sweep, contradiction sweep, minimal-version attack — the sweeps may run as parallel read-only subagents per the
-   fan-out rule above, with findings returning to the main session). Every gap becomes
+   sweep, contradiction sweep, minimal-version attack — the sweeps may fan out as
+   parallel read-only subagents per the rule above). Every gap becomes
    a question or a numbered decision — never an assumption. Two rules bind the
    consequence sweep's hits: a claim that a consequence **ships inert** (flag, env var,
    "off in prod", "merging changes nothing") names the variable and quotes its value

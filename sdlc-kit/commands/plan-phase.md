@@ -29,7 +29,8 @@ scope/feature spec if one exists. Context-minimization rule applies.
 ### 2. Candidate selection — owner halt 1
 
 Present the candidate phases (roadmap order, deferred backlog pressure, anything the
-owner raised) with a recommendation and a one-line value statement each. AskUserQuestion.
+owner raised) with a recommendation and a one-line value statement each — plain-English
+bullets per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). AskUserQuestion.
 Record the choice as OWNER-DECIDED with the date.
 
 ### 3. Requirements interview — grill in rounds
@@ -64,9 +65,9 @@ a full round surfaces nothing new. Cover, minimum:
 After the interview, actively try to break the requirements. The sweeps are this
 command's heaviest context load, and they are read-only — run each applicable sweep as
 its own **parallel read-only subagent** (give it the phase idea, the interview's
-answers, and the relevant spec pointers; it reads what it needs and returns findings).
-Sweep agents analyze, so they inherit the session model. The findings come
-back to **this** session: every one becomes either a new interview question (back to
+answers, and the relevant spec pointers).
+Sweep agents analyze, so they inherit the session model. Findings come
+back to **this** session: each becomes a new interview question (back to
 step 3) or a recorded decision, and every question goes to the owner from here — no
 subagent ever interacts with the owner.
 
@@ -151,10 +152,15 @@ slices — no behavior left unassigned.
 
 ### 6. Approval — owner halt
 
-Present the spec: decision list (flagging *(proposed)* ones, and naming which numbers
-are **estimated** — the owner is ratifying those against no measurement, and
-`/next-slice` re-derives each one before the slice that implements it), slice
-breakdown, and the top 3 risks. On approval: create `feat/phase-NN-<slug>` off the up-to-date main branch,
+Present the spec per the hand-back standard (`spec/SDLC.md`, *Owner halt points*):
+open with a plain-English executive summary in bullets — what the phase delivers, the
+slice count, the top 3 risks — then everything the owner is being asked to ratify,
+**numbered and explicitly marked** (`Decision 1: …`): each *(proposed)* decision, and
+each number tagged **estimated** (the owner is ratifying those against no measurement,
+and `/next-slice` re-derives each one before the slice that implements it). The full
+decision list and slice breakdown follow as detail — the owner approves from the
+summary; the spec file is where the detail lives. On approval: create
+`feat/phase-NN-<slug>` off the up-to-date main branch,
 flip `spec/PROJECT_INDEX.md` to BUILD with the spec pointer and OWNER-DECIDED note,
 commit the spec + index (docs commit), and hand off: **`/clear`, then `/next-slice`.**
 

@@ -59,8 +59,7 @@ questionnaire.
   a library/local tool, and for a deploying project also how a deploy is **verified**:
   where the platform exposes the deployed commit (the deploy run's SHA, a dashboard
   field) and the URL or command for a post-deploy smoke check (all of it resolves
-  `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end step, which asks the deploy question
-  and records its verified outcome at every phase close); CI provider (default GitHub
+  `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end step); CI provider (default GitHub
   Actions); any always-active
   rules for CLAUDE.md (portability, serialization, DI seams for external services);
   the **model policy** (see below); anything the owner already knows about Phase 1
@@ -109,7 +108,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    and a `.gitattributes` that pins `* text=auto eol=lf` — the kit ships every text
    file as LF, and on a checkout with no eol policy (Windows, `core.autocrlf`) every
    later kit update reports a page of phantom-modified files, which is the noise a
-   real deletion hides in. The repo-wide pin is the kit repo's own choice and covers
+   real deletion hides in. The repo-wide pin covers
    the kit's non-markdown files (`LICENSE`, `VERSION`, `MANIFEST.sha256`, JSON) that a
    `*.md`-only pin was measured to miss; a project that must keep CRLF for some path
    carves the exception (`*.bat text eol=crlf`) rather than dropping the default.
@@ -175,10 +174,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    check as the leftover-`{{` exit grep.
 2. **Present findings + proposal — the feedback halt.** Show: detected stack, proposed
    gate commands (prefer what CI already runs), proposed hook, whether `.gitattributes`
-   defines an eol policy — if not, offer `* text=auto eol=lf` (recommended: one line
-   that permanently removes the phantom-modified noise every kit update otherwise
-   produces on an autocrlf checkout, including on the kit's non-markdown files, which
-   a `*.md`-only pin was measured to miss); an owner wary of a repo-wide change can
+   defines an eol policy — if not, offer `* text=auto eol=lf` (recommended; the
+   rationale and the non-markdown evidence are in §2a scaffold step 1); an owner wary
+   of a repo-wide change can
    take the scoped fallback instead (`*.md text eol=lf` plus `sdlc-kit/** text eol=lf`
    if the kit folder stays) — the test-isolation
    harness to author or extend (`spec/TESTING.md` §Test Isolation — what step 1 found,
@@ -195,11 +193,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    result, and the resolved interpreter path goes in Environment gotchas.** An existing
    project makes this more likely to bite, not less: the run command already exists, so
    nothing prompts anyone to test it, and it has usually only ever been run by the owner
-   or only ever by tooling — never both; how a merged phase reaches users — the deploy
-   procedure, or "none", and for a deploying project also how a deploy is **verified**:
-   where the platform exposes the deployed commit and the URL or command for a
-   post-deploy smoke check (resolves `{{DEPLOY_NOTE}}` in `spec/SDLC.md`'s phase-end
-   step; step 1's survey of CI/CD config seeds the proposed answer); in-flight
+   or only ever by tooling — never both; how a merged phase reaches users and how a
+   deploy is **verified** — the same asks as New mode Round 3, resolving
+   `{{DEPLOY_NOTE}}` (step 1's survey of CI/CD config seeds the proposed answer); in-flight
    work (open branches/PRs to record in START HERE), known trouble spots for the
    backlog, always-active rules worth encoding, and the **model policy** — same poll,
    same recording rules as New mode Round 3 (`{{MODEL_POLICY}}` in `spec/SDLC.md`;
