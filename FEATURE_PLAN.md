@@ -1898,21 +1898,37 @@ answer.
 
 **Owner decision, dated 2026-08-03 — do not re-litigate:** build the translation
 layer, and solve both genuine losses (C7, C8) rather than shipping a degraded
-Copilot edition. Recorded the same day §20 posed the question. Ordering: the owner
-asked to pick this up after COP, so **PORT runs next and STD moves behind it**
-(queue is now PORT → STD). No dependency breaks: STD's lens work is
-`REVIEW_LENSES.md` content, independent of PORT's plumbing — though note the
-interplay in PORT.2 below, which makes the lenses more load-bearing.
+Copilot edition. Recorded the same day §20 posed the question. Ordering (owner,
+amended later the same day): **STD stays first; PORT queues behind it** (queue is
+STD → PORT). The order helps PORT: STD's secure-coding lenses exist before PORT
+builds the reviewer that consumes them, so PORT.3's `security-review` replacement
+no longer waits on anything.
 
-### PORT — the Copilot CLI translation layer *(next to build; ships as `v0.13.0`)*
+### PORT — the Copilot CLI translation layer *(queued behind STD; version assigned
+at build)*
 
 Shape per §20.3's recommendation: a seam in `sdlc-setup`, not a maintained second
 kit. All §20.2 capability claims must be **re-verified against the docs at build
 time** before code is written against them — Copilot CLI's documented churn is the
 standing risk, and §20.2 is dated evidence, not a durable fact.
 
-- **PORT.1 — target-CLI seam.** `sdlc-setup.md` asks at interview start: Claude
-  Code or Copilot CLI. One mapping table, stated once in a new
+- **PORT.1 — target-CLI seam, detection-first (owner amendment, 2026-08-03).**
+  `sdlc-setup.md` *detects* the target CLI before asking, in the Existing-mode
+  shape the kit already uses (discover → propose → confirm; detection sets the
+  proposed answer, never the answer — the prime directive stands). Signals, in
+  strength order:
+  1. The session itself — setup runs *inside* one of the two CLIs. Verify each
+     CLI's environment marker at build time (Claude Code's session env vars;
+     Copilot's documented equivalent — find it, don't assume one exists) and fall
+     through to the weaker signals if neither is present.
+  2. Repo artifacts (Existing mode): `.claude/settings.json`/`CLAUDE.md` vs
+     `.github/copilot-instructions.md`/`.github/hooks/`/`.github/agents/`.
+     `AGENTS.md` alone is not a signal (cross-agent standard).
+  3. PATH binaries (`claude`, `copilot`) — machine-level, weak tiebreak only.
+  Unambiguous evidence → propose as the default inside the existing interview,
+  one confirm, no new question. Conflicting or absent evidence → ask open-ended.
+  Both-CLIs teams answer "both" at the confirm — the mapping table must tolerate
+  a dual install. One mapping table, stated once in a new
   `reference/COPILOT.md` (dated, provenance-style like `SKILLS.md`) and consumed by
   setup:
   - Commands/skills: `.claude/commands/*.md` → per-command skill directories
@@ -1947,8 +1963,8 @@ standing risk, and §20.2 is dated evidence, not a durable fact.
     Each enters the §16 audit regime individually — no confirmed catch after two
     releases, deletion candidate.
   - `security-review` → covered by STD's secure-coding lenses (the PORT.2
-    reviewer runs them). This is the C8 item STD was already solving; PORT does
-    not duplicate it, it waits for STD.
+    reviewer runs them). This is the C8 item STD was already solving, and with
+    STD sequenced first the lenses exist before PORT builds against them.
   - `update-config` → no equivalent needed: Copilot config is plain JSON files;
     a paragraph in `reference/COPILOT.md` suffices.
   - `SKILLS.md` gains a per-CLI availability column rather than a second edition.
@@ -1972,11 +1988,13 @@ single-review-path question — an explicit owner halt in the build session.
 
 ### Hand-off — state as of 2026-08-03, end of the COP session (amended)
 
-- **Next session opens on PORT** — PORT.1 first (the seam and mapping table),
-  then PORT.4, then PORT.2/PORT.3 which carry their own build-time verifications
-  and one owner halt (PORT.2a). Re-verify §20.2 against the docs before building.
-- **STD queued behind PORT**; its lens work is unchanged and PORT.2's reviewer
-  will consume it. PORT.3's `security-review` replacement *waits for STD* — it
-  ships with STD's lenses, not before them.
+- **Next session opens on STD** (§18's definition, unchanged): setup interview
+  for logging/error-handling conventions, fail-loud lenses in `REVIEW_LENSES.md`,
+  mechanical gate rules via `GATE_RECIPES.md`. Build the lenses knowing PORT.2's
+  reviewer will consume them.
+- **PORT queued behind STD**, defined above — PORT.1 first (detection, then the
+  seam and mapping table), then PORT.4, then PORT.2/PORT.3, which carry their own
+  build-time verifications and one owner halt (PORT.2a). Re-verify §20.2 against
+  the docs before building.
 - **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07);
   R3.8's aging rule still on its clock (§16 contingent keep).
