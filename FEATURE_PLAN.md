@@ -2565,16 +2565,70 @@ matching none of its cases would silently reuse the previous iteration's `want` 
 unreachable now that `.github/skills/*/SKILL.md` is a specific pattern. A stray file
 under a kit-owned directory now reports `UNKNOWN`, which is the honest answer.
 
-### Hand-off — state as of 2026-08-03, PORT.1 and PORT.4 complete
+---
 
-- **Next: PORT.2, then PORT.3.** PORT.2 opens with the cheap decisive experiment from
-  23.3 — attempt `pr-review-toolkit`'s install on Copilot CLI and invoke one reviewer —
-  and closes at the PORT.2a owner halt, now a three-way choice (kit-owned reviewer /
-  keep `pr-review-toolkit` / adopt `mattpocock/skills`' `code-review`, 23.6), presented
-  with evidence.
-- **Release bookkeeping still open:** CHANGELOG, the VERSION bump to 0.14.0, and the
-  full `/kit-check` pass. `MANIFEST.sha256` is current (29/29, discrimination proven)
-  but needs one final regeneration after the VERSION bump, since `VERSION` is a bundle
-  file. Whether PORT.2/PORT.3 join this release or follow it is the owner's call.
-- **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's
-  aging rule (§16 contingent keep); STD's four audit clocks (§22).
+## 26. Release shape — owner decision, 2026-08-03: one release for all of PORT
+
+**Owner decision, dated 2026-08-03 — do not re-litigate:** PORT.1, PORT.2, PORT.3 and
+PORT.4 ship together as a single release. Nothing is cut until PORT.2 and PORT.3 are
+built, so the tree stays at `0.13.0` with PORT.1 and PORT.4 committed on top of it, and
+the version bump is the last act before tagging.
+
+The consequence to hold onto: **an adopter never sees a half-translated kit.** A release
+carrying detection, the mapping, the hook dialect, the sweep agent and the update path
+but no review apparatus would install a process on Copilot whose `/end-slice` names a
+reviewer that does not exist there. That is precisely the "specifies what each step must
+produce and almost never what makes it done" failure §15 was written about, and shipping
+it would have made `reference/COPILOT.md`'s *What the kit loses on Copilot today* a
+description of the kit's own release rather than of the CLI.
+
+### Hand-off — state as of 2026-08-03, end of the PORT.1/PORT.4 session
+
+**Done and committed** (three commits on `main`, tree clean, `VERSION` still `0.13.0`):
+PORT.0 (§23, the re-verification), PORT.1 items 1–5 (§24), PORT.4 (§25).
+
+**A fresh session opens on PORT.2.** Everything it needs, in order:
+
+1. **The experiment first, before any design** (23.3): attempt
+   `pr-review-toolkit@claude-plugins-official`'s install on Copilot CLI and invoke one
+   reviewer. Copilot's plugin system reads `marketplace.json` from `.github/plugin/` **or
+   `.claude-plugin/`**, so the layout is one of the two documented locations — but the
+   reviewers are Claude Code subagent definitions, and reading a manifest layout is not
+   executing its contents. Until the experiment runs, C7 is a loss. Cheap and decisive:
+   run it, then design.
+2. **The PORT.2a owner halt** — a three-way choice, presented with evidence, not
+   decided in advance: a kit-owned reviewer, keeping `pr-review-toolkit`, or adopting
+   `mattpocock/skills`' `code-review` (23.6: MIT, portable, spec-aware, and unusually
+   well fitted since this kit *has* a spec and, since STD, documented standards). The
+   three frictions in 23.6 are real and none is disqualifying; note especially that its
+   smell baseline overlaps `REVIEW_LENSES.md`, and two review checklists in one kit is
+   what invariant 2 exists to prevent — adoption means reconciling them, not shipping
+   both.
+3. **Then PORT.3** (§21, as amended by 23.5): `/code-review` → Copilot code review on
+   the phase PR, steered by `.github/copilot-instructions.md` — but that same file is
+   merged into CLI instructions with no precedence order (23.1), so placement is a
+   deliberate choice, not a free one. `verify` and `simplify` are kit-written skills,
+   each entering the §16 audit regime individually. `security-review` is already covered
+   by STD's lenses. `update-config` needs no equivalent. `SKILLS.md` currently points at
+   COPILOT.md's loss table instead of carrying a per-CLI availability column — building
+   that column is PORT.3's call.
+
+**Then, and only then, the release** — the checklist, in order:
+
+1. Reconcile `reference/COPILOT.md`'s *What the kit loses on Copilot today* against what
+   PORT.2/PORT.3 actually shipped. That table is the honest statement of the gap and it
+   must not outlive the gap.
+2. `CHANGELOG.md` for 0.14.0, entries marked *[installable]* / *[adoption-only]* — note
+   that the skills move (§24.6) is installable and is a *move*, so its entry says so
+   rather than listing deletions and additions.
+3. Bump `sdlc-kit/VERSION` to `0.14.0`.
+4. **Regenerate `MANIFEST.sha256` after the bump** — `VERSION` is itself a bundle file,
+   so the manifest is stale the moment it changes. Prove discrimination on a *copy*, not
+   on a tracked file.
+5. Full `/kit-check`. Budget for it: STD's pass surfaced seven pre-existing findings, and
+   this batch moved install paths, which is invariant 7's whole surface. Expect findings
+   against invariants 3, 5, 7 and 8 in particular.
+
+**Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's aging
+rule (§16 contingent keep); STD's four audit clocks (§22), whose deadline is 0.15.0 —
+one release later than the one now being assembled.
