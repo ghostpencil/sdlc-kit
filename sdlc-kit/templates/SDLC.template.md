@@ -6,7 +6,8 @@
      the boundary here so no session has to guess it. -->
 
 Canonical description of the development process. The commands `/plan-phase`,
-`/next-slice`, `/end-slice`, and `/end-phase` (in `.claude/commands/`) automate it; if
+`/next-slice`, `/end-slice`, and `/end-phase` (installed project-scoped by
+`/sdlc-setup`, so they travel with the repo) automate it; if
 this file and a command disagree, this file wins — fix the command.
 
 Commands state nothing project-specific; every project fact lives in this file. Anything
@@ -161,8 +162,9 @@ before adjusting any threshold, because the gap is usually a symptom (a git-igno
 file, an environment difference, a test reaching a real service), not noise to average
 away.
 
-A PostToolUse hook (`.claude/settings.json`) runs the lint/typecheck steps on every
-edited source file, so most gate failures surface at edit time rather than at slice end.
+An edit-time hook ({{HOOK_CONFIG_PATH}}) runs the lint/typecheck steps on every edited
+source file, so most gate failures surface at edit time rather than at slice end.
+{{HOOK_FEEDBACK_NOTE}}
 
 ## Model policy
 
@@ -171,9 +173,11 @@ edited source file, so most gate failures surface at edit time rather than at sl
      kit's recommended default is three tiers by task shape: High (`opus`) for
      planning, analysis, and adversarial review; Medium (`sonnet`) for writing code to
      an existing plan/spec; Low (`haiku`) for mechanical collection. Aliases only,
-     never model IDs — IDs go stale.
+     never model IDs — IDs go stale. On a CLI other than Claude Code the tiers are the
+     same and the models are that CLI's own, mapped with the owner at setup.
      Switch any session with /model; the pinned session default, if one was chosen,
-     lives in .claude/settings.json ("model"). -->
+     lives in .claude/settings.json ("model") on Claude Code, or in COPILOT_MODEL on
+     Copilot CLI, and this section says which. -->
 
 ## Phase start
 

@@ -3,7 +3,8 @@
 Bootstrap the Agentic SDLC (phases → slices → TDD, owner halt points, the gate) into
 this project. Two modes: **New Project** (interview → scaffold) and **Existing Project**
 (analyze → propose → confirm → generate). Kit reference: the `sdlc-kit/` folder
-(README, `templates/`, `reference/GATE_RECIPES.md`, `reference/SKILLS.md`).
+(README, `templates/`, `reference/GATE_RECIPES.md`, `reference/SKILLS.md`, and
+`reference/COPILOT.md` when the target CLI is Copilot).
 
 Prime directive: **never fill a gap with an assumption, and never overwrite what
 exists.** Every unclear choice becomes a question to the owner; every collision with an
@@ -23,20 +24,42 @@ existing file becomes a shown merge plan, not a silent clobber.
    `reference/` are missing. Read `sdlc-kit/VERSION` — this resolves `{{KIT_VERSION}}`, and today's date
    resolves `{{ADOPTION_DATE}}`. If `VERSION` is absent the kit predates version
    stamping: record `{{KIT_VERSION}}` as `unknown (pre-0.2.0)` rather than guessing.
-2. **Verify skills** (see `reference/SKILLS.md`): the TDD skill is NOT built into
-   Claude Code — it is vendored in `sdlc-kit/skills/` and installed in step 2a/2b
-   below; HALT if `sdlc-kit/skills/tdd.md` is missing. Check for the
+2. **Detect the target CLI** — which agent CLI this project's team will run the process
+   in. It decides where commands, skills, and the gate hook are installed, and nothing
+   downstream can be written until it is settled. `reference/COPILOT.md` holds the
+   signal table and the full mapping; read it and follow it rather than reasoning about
+   the signals here. Three rules bind this step:
+   - **Signals are positive-only.** The absence of one CLI's marker is never evidence
+     of the other — Copilot CLI stamps no session marker at all, so a Copilot project
+     is detected from repo artifacts and `PATH`, or not at all.
+   - **Detection sets the proposed answer, never the answer.** Unambiguous evidence →
+     carry it into step 5's confirmation round as the default, one confirm, no new
+     question. Conflicting or absent evidence → ask open-ended. The prime directive
+     applies here like everywhere else.
+   - **"Both" is a valid answer** and changes only install paths, never the process.
+   If the answer includes Copilot, run `copilot --version` and compare it against the
+   version floor in `reference/COPILOT.md`; an older CLI means the gate hook's matcher
+   may never fire, so say that plainly now rather than installing a hook that cannot
+   report anything.
+3. **Verify skills** (see `reference/SKILLS.md`): the TDD skill is NOT built into either
+   CLI — it is vendored in `sdlc-kit/skills/` and installed in step 2a/2b
+   below; HALT if `sdlc-kit/skills/tdd.md` is missing. On Claude Code, check for the
    `pr-review-toolkit` plugin; if absent, tell the owner to run
    `/plugin install pr-review-toolkit@claude-plugins-official` (setup can continue,
    but the plugin is needed by both `/end-slice` — its per-slice reviewer is the
    `pr-review-toolkit:code-reviewer` agent — and `/end-phase`, so it must be installed
-   before the first slice closes, not just before the first phase does).
-3. `git status` / `git rev-parse`. Not a git repo → note that New mode will `git init`.
+   before the first slice closes, not just before the first phase does). On Copilot,
+   that plugin and the built-ins the kit leans on are absent, each with its own
+   consequence: show the owner *What the kit loses on Copilot today* from
+   `reference/COPILOT.md` — that table is the answer, not a count repeated here — and
+   let them decide knowing it. Do not describe a substitute the kit does not install.
+4. `git status` / `git rev-parse`. Not a git repo → note that New mode will `git init`.
    Dirty working tree in an existing repo → ask the owner to commit/stash first.
-4. Detect the mode: no source files beyond scaffolding/docs → **New Project**;
+5. Detect the mode: no source files beyond scaffolding/docs → **New Project**;
    otherwise **Existing Project**. Confirm the detection with the owner in the same
-   question round as step 2's findings (AskUserQuestion). A forced-mode argument skips
-   only the detection, not the confirmation of anything else.
+   question round as steps 2–3's findings (AskUserQuestion). A forced-mode argument
+   skips only the mode detection, not the confirmation of anything else — the target
+   CLI is confirmed in this round whether or not the mode was forced.
 
 ### 2a. New Project mode — interview, then scaffold
 
@@ -80,21 +103,30 @@ questionnaire.
   verification — a rule proposed and never seen to fire is configuration that reads
   as enforcement.
 
-  **The model-policy poll.** Present this three-tier recommendation as the default and
-  ask the owner to confirm or adjust (aliases only, never model IDs — IDs go stale):
+  **The model-policy poll.** The three tiers are the kit's vocabulary on either CLI;
+  only the models filling them differ. Present this as the default and ask the owner to
+  confirm or adjust (aliases only, never model IDs — IDs go stale):
 
-  | Tier | Alias | Used for |
+  | Tier | Alias (Claude Code) | Used for |
   |---|---|---|
   | High | `opus` | planning, analysis, adversarial review |
   | Medium | `sonnet` | writing code to an existing plan/spec |
   | Low | `haiku` | mechanical collection — file search, enumeration, verbatim gathering |
 
+  On Copilot CLI the alias column is **asked, not proposed**: the available models come
+  from that CLI's own `/model` listing, so show the owner the listing and have them map
+  the three tiers against it. Proposing names from memory is the same mistake as
+  proposing gate commands the project does not run. See `reference/COPILOT.md` — and do
+  not build the policy on per-agent model pinning, which is unverified there.
+
   Record the confirmed policy as `{{MODEL_POLICY}}` (*Model policy* section of
-  `spec/SDLC.md`). Then ask whether to pin a session default: if yes, resolve
-  `{{DEFAULT_MODEL}}` in `.claude/settings.json` (`"model"` key) with the chosen
-  alias; if the owner keeps the harness default, **delete that line** from the
-  instantiated settings rather than inventing a value. Never write a model into any
-  installed command file — the poll lands in project-owned files only.
+  `spec/SDLC.md`). Then ask whether to pin a session default: on Claude Code, if yes,
+  resolve `{{DEFAULT_MODEL}}` in `.claude/settings.json` (`"model"` key) with the chosen
+  alias, and if the owner keeps the harness default, **delete that line** from the
+  instantiated settings rather than inventing a value. On Copilot there is no such
+  settings key — the pin is `/model` per session or `COPILOT_MODEL` in the environment,
+  so record which the owner chose in the policy text itself. Never write a model into
+  any installed command file — the poll lands in project-owned files only.
 
   **The owner's shell — verify the run command there, not here.** Anything the *owner*
   will execute has to work in the owner's terminal, which is not the shell this session
@@ -148,8 +180,18 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    remove the violation, confirm green. Resolve `{{ISOLATION_HARNESS}}` with where the
    harness lives and each recorded proof. An unproven blocker is partial isolation
    that reads as complete — the proof step is not optional.
-5. Install commands and skills into `.claude/commands/` (project-scoped, so the team
-   inherits them via git):
+5. Install commands and skills — always project-scoped, so the team inherits them via
+   git. **Where they go depends on the target CLI from preflight step 2**; this list is
+   the definition, and `reference/COPILOT.md` carries the evidence and the reasoning
+   behind the Copilot column. On Claude Code the
+   destination is `.claude/commands/`, as below. On Copilot CLI the same files install
+   as skills: the seven kit commands become `.github/skills/<name>/SKILL.md` (the
+   markdown body unchanged, `name` + `description` frontmatter added), the vendored
+   skills go to `.claude/skills/<name>/SKILL.md`, and `REVIEW_LENSES.md` keeps the
+   `.claude/commands/` path the installed prose points at — it is a document, not an
+   executable. A project answering "both" gets both, and the seven commands are the
+   only files that exist twice: once user-typed, once model-invocable, and deliberately
+   not in a directory where Claude Code would list them as skills. The list:
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
      `sdlc-retro.md`, `sdlc-update.md` (and this file);
    - the TDD skill set from `sdlc-kit/skills/`: `tdd.md` + `tdd-references/` +
@@ -163,9 +205,22 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - If a same-named skill already exists on this machine in `~/.claude/commands/`,
      note that the project copy and user copy will both be listed; recommend the
      owner keep the project copy authoritative (it is versioned with the repo).
-6. Install the edit-time hook: instantiate `settings.template.json` →
-   `.claude/settings.json` using the hook recipe for the language; verify by editing a
-   scratch source file with a deliberate lint error and confirming the hook blocks.
+6. Install the edit-time hook, in the dialect the target CLI speaks — *Hook dialects*
+   in `reference/GATE_RECIPES.md` names the template, the destination, and what differs.
+   Claude Code: `settings.template.json` → `.claude/settings.json`. Copilot CLI:
+   `copilot-hook.template.json` → `.github/hooks/sdlc-gate.json`. The same
+   `{{HOOK_*}}` values fill either one, and two of them — `{{HOOK_CONFIG_PATH}}` and
+   `{{HOOK_FEEDBACK_NOTE}}` — are the dialect's own facts restated in the prose of
+   `CLAUDE.md` and `spec/SDLC.md`, so take both from that table when step 3 instantiates
+   those files. On Copilot, `{{HOOK_FEEDBACK_NOTE}}` must not claim the feedback blocks,
+   and must carry the warning that a timed-out hook is reported as a pass.
+   Then verify: edit a scratch source file with a deliberate lint error and confirm the
+   hook reports it — blocking on Claude Code, as injected feedback on Copilot. On
+   Copilot, **time that run** and raise `timeoutSec` to at least 3× the measurement,
+   recording the basis; a hook whose budget was never measured against a real run is
+   a gate that goes quiet on the first cold typecheck. If nothing is reported at all,
+   the matcher is the first suspect — `reference/COPILOT.md` has the discovery
+   procedure.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
@@ -177,7 +232,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    read-only by tool restriction, findings return here, every owner question stays in
    this session; the built-in Explore type serves). Collect:
    languages + versions; build system; how tests are actually run (CI config is the
-   best witness); lint/typecheck config present or absent; existing CLAUDE.md /
+   best witness); lint/typecheck config present or absent; which agent CLI the repo is
+   already set up for, if either — the artifact signals in `reference/COPILOT.md`, which
+   is the evidence preflight step 2 proposes its answer from, and note that `CLAUDE.md`,
+   `AGENTS.md`, and `.claude/skills/` are read by both CLIs and so discriminate nothing;
+   existing CLAUDE.md /
    README / docs / ADRs; branch + PR conventions from `git log`; app entry point / run
    command; how the app is deployed, if it is (CD workflows, hosting config,
    Dockerfiles); any security scanning CI already runs (dependency audit, secret
@@ -250,11 +309,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - `spec/PROJECT_INDEX.md` — seeded with reality: current status, a few Phase
      History rows from git history (pre-SDLC is fine), in-flight work in START HERE,
      known issues in the backlog.
-   - Commands, the vendored TDD skill set, and `reference/REVIEW_LENSES.md` into
-     `.claude/commands/`; hook into
-     `.claude/settings.json` (merge with any existing hooks), verified the same way as
-     New mode step 6 — a deliberate lint error in a scratch source file must be
-     blocked. An unverified hook is enforcement that reads as complete.
+   - Commands, the vendored TDD skill set, and `reference/REVIEW_LENSES.md` installed
+     per New mode step 5 — the destinations depend on the confirmed target CLI; hook
+     installed and verified per New mode step 6, merged with any existing hooks rather
+     than replacing them (Copilot's live in `.github/hooks/*.json` or inline in
+     `.github/copilot/settings.json`, so look in both). A deliberate lint error in a
+     scratch source file must produce the hook's feedback. An unverified hook is
+     enforcement that reads as complete.
 4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in
    `spec/SDLC.md` with what you measured — this is the placeholder step 3 could not fill,
    because the measurement did not exist yet. Leave it unresolved until now rather than
@@ -273,9 +334,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
 ### 3. Close-out (both modes)
 
-1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty.
-   The scope is exactly the files setup instantiates — a blanket `.claude/` grep would
-   trip on the installed copy of this command, which legitimately names placeholders.
+1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
+   plus `.github/hooks/sdlc-gate.json` when the target CLI is Copilot. The scope is
+   exactly the files setup instantiates — a blanket `.claude/` grep would
+   trip on the installed copy of this command, which legitimately names placeholders,
+   and on Copilot the same is true of `.github/skills/sdlc-setup/SKILL.md`. Name the
+   instantiated files explicitly; a check whose scope drifted with the install path is
+   a check that stopped covering the file it was written for.
    Every other installed file is `{{`-free and stays that way. Re-run the gate one
    final time (New mode: must be green).
 2. Ask the owner: commit the setup? If yes — New mode: initial commit; Existing mode:

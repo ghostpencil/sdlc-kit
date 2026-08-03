@@ -2355,3 +2355,92 @@ plainly if the installed CLI is older, rather than installing a gate that cannot
   `code-review`, 23.6), to be presented with evidence.
 - **Standing kit inputs unchanged:** any sixth field report (TFit Phase 07); R3.8's
   aging rule (§16 contingent keep); STD's four audit clocks (§22).
+
+---
+
+## 24. PORT.1 items 1–3 built — 2026-08-03; detection, COPILOT.md, the hook dialect
+
+Built to §23's hand-off order, unreleased (tree is 0.13.0 + these changes; MANIFEST,
+CHANGELOG, and the `/kit-check` pass all wait for PORT.1 to finish). Items 4 and 5 are
+untouched.
+
+**Shipped:**
+
+- **`sdlc-kit/reference/COPILOT.md`** (new, ~200 lines) — the mapping stated once,
+  dated and provenance-style like `SKILLS.md`: the file-by-file table, the `AGENTS.md`
+  prohibition and why, the install-path rationale, the four hook hazards, the tool-name
+  provenance table with the discovery procedure, the v1.0.63 floor, models and tiers,
+  the subagent gaps, *What the kit loses on Copilot today*, ship-as-a-plugin recorded as
+  declined, the detection signal table with its three traps, and a Provenance section
+  separating GitHub docs from the two named third-party sources.
+- **`sdlc-kit/templates/copilot-hook.template.json`** (new) + a *Hook dialects* section
+  in `GATE_RECIPES.md` — same `{{HOOK_*}}` set, no new hook-body placeholder.
+- **Detection and the CLI seam in `sdlc-setup.md`** — new preflight step 2 (the old
+  2–4 shift to 3–5; the one internal cross-reference was updated, and the 2a step
+  numbers that README and `/kit-check` cite are untouched). Install step 5 and hook
+  step 6 branch per CLI, the model-policy poll asks rather than proposes on Copilot,
+  Existing mode's survey collects the artifact signals, and the close-out `{{` grep
+  covers the Copilot hook file.
+
+**Four decisions taken at build, none of them re-litigating §23:**
+
+1. **Owner decision, 2026-08-03: the seven kit commands packaged as Copilot skills
+   install to `.github/skills/`, not `.claude/skills/`.** 23.7's decision 1a resolved
+   the *vendored skills* question, and its rationale (one directory both CLIs read → no
+   sync surface) does not transfer to the seven, whose Claude-side copy lives in
+   `.claude/commands/` regardless. Putting them in `.claude/skills/` would make them
+   model-invocable in Claude Code on any dual-CLI repo — precisely what the owner
+   declined when they kept them as commands. `.github/skills/` is read by Copilot and
+   not by Claude Code, so the carve-out costs one directory and nothing else.
+2. **Two new placeholders, `{{HOOK_CONFIG_PATH}}` and `{{HOOK_FEEDBACK_NOTE}}`**, both
+   in the existing `{{HOOK_*}}` family, both taught to setup at step 6 (inv 1). They
+   exist because `CLAUDE.template.md` asserted the hook's feedback "is blocking" and
+   `SDLC.template.md` named `.claude/settings.json` — two sentences that are simply
+   false on Copilot, where `postToolUse` cannot block. The second placeholder is also
+   what carries the timeout-reads-as-a-pass warning into the generated `spec/SDLC.md`
+   (inv 15). Two further Claude-only paths in template prose were made path-free rather
+   than parameterized.
+3. **The hook body parses with `python`, not `jq`** — the reverse of the draft. `jq` is
+   absent from the machine this kit is developed on while Python is present, which is
+   the same asymmetry the existing Claude-side hook already assumes; adding a second
+   tool dependency to the Copilot path would have made the Copilot gate the more
+   fragile of the two for no gain.
+4. **`/kit-check` check 7 now names `reference/COPILOT.md`** as a derived statement and
+   states that the install mapping is per-CLI — a statement naming one CLI's path as
+   universal is a finding.
+
+**Verified, not assumed.** Two facts §23 left open were closed by fetching the docs
+before writing code against them: the `postToolUse` stdin payload (both the camelCase
+and VS Code shapes) and the stdout contract (`modifiedResult` / `additionalContext`).
+The instantiated hook body was then run against six payloads — both dialects with a
+failing linter, a non-source file, a clean source file, a payload with no path, a path
+whose file is missing, and unparseable input — and behaved correctly in all six
+(recorded in `GATE_RECIPES.md` with its date). That run also produced two fixes no
+reading pass would have found: non-ASCII in the hook's own text came back mojibake
+through a Windows locale codec, so the messages are ASCII-only and stdin is decoded
+`errors='replace'`; and the no-path case, which had been a quiet `exit 0`, is now loud —
+a hook that cannot find the file it was called about is otherwise indistinguishable
+from a clean edit.
+
+**Still open, unchanged:** the `toolArgs` key holding the edited file path is
+undocumented for every tool, exactly like the `toolName` vocabulary — the body tries the
+plausible keys, reports loudly when none matches, and the same echo-hook discovery
+procedure answers both. The custom-agent `tools` syntax (item 4's blocker) was not
+pursued this session.
+
+### Hand-off — state as of 2026-08-03, PORT.1 items 1–3 done
+
+- **Next: PORT.1 item 4** (`explore.agent.md`, blocked on the `tools` restriction
+  syntax — establish it or state the sweeps serialize) **then item 5**, the
+  `.claude/commands/` → `.claude/skills/` migration for the five vendored skills.
+- **One transient inconsistency item 5 closes:** the vendored skills still install to
+  `.claude/commands/` on the Claude path, so `COPILOT.md` points at `sdlc-setup.md`'s
+  list as the definition for that row rather than asserting a shared path. Two shipped
+  files still name a vendored skill's `.claude/commands/` path in prose
+  (`end-slice.md`, `sdlc-retro.md`); both are on item 5's list of 9.
+- **Then PORT.4, then PORT.2/PORT.3**, unchanged from §23. PORT.4 still owns recording
+  the chosen CLI in `PROJECT_INDEX.md` — setup uses the answer within its own run today,
+  but nothing persists it for `/sdlc-update` to read.
+- Release bookkeeping deferred to the end of PORT.1: MANIFEST regeneration, CHANGELOG,
+  README tree already updated, and the full `/kit-check` pass (STD's surfaced seven
+  pre-existing findings — budget for it).

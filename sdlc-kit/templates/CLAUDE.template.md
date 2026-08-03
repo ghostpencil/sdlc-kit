@@ -33,8 +33,8 @@ in `spec/SDLC.md`. Session commands that drive it:
 - `/sdlc-retro` — extract lessons from a finished phase (project facts to this project's
   files; process findings to a report you decide whether to send upstream)
 
-A PostToolUse hook (`.claude/settings.json`) runs {{HOOK_TOOLS}} on every edited
-{{SOURCE_EXT}} file; its feedback is blocking — fix it before moving on.
+An edit-time hook ({{HOOK_CONFIG_PATH}}) runs {{HOOK_TOOLS}} on every edited
+{{SOURCE_EXT}} file. {{HOOK_FEEDBACK_NOTE}}
 
 ---
 
@@ -99,7 +99,7 @@ here without its linter rule is a claim, not a control — change both together.
 ## TDD Skill
 
 When writing tests for a new phase or new feature, use the installed TDD skill
-(`.claude/commands/tdd.md` — installed by `/sdlc-setup`, versioned with this repo).
+(`tdd` — installed project-scoped by `/sdlc-setup`, versioned with this repo).
 
 **Before invoking the TDD skill, read `spec/TESTING.md`.** It defines the mock
 policy, the integration vs. unit boundary, and the per-cycle checklist. Do not

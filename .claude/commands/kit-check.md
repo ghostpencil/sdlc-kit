@@ -63,9 +63,13 @@ For each, read the named files in full — do not sample — and cite evidence p
   target exists in what setup installs or instantiates, not merely in this repo.
 - **7 — install mapping:** take `sdlc-setup.md`'s install list (New mode step 5) as the
   definition; verify every derived statement against it — both READMEs, root
-  `CLAUDE.md`'s flow diagram, `sdlc-update.md`'s table, and the prefix lists in **both**
+  `CLAUDE.md`'s flow diagram, `sdlc-update.md`'s table, `reference/COPILOT.md`'s mapping
+  table, and the prefix lists in **both**
   classification scripts, including their denominator checks (`.claude/agents/` stays
   enumerated there for the 0.6.0–0.9.0 transition, though the mapping is retired).
+  The definition is now per-CLI: verify each derived statement against the column that
+  applies to it, and treat a statement that names one CLI's path as universal as a
+  finding.
 - **8 — update procedure agrees:** `sdlc-update.md` beside the root README's *Updating
   an adopted project*: same classification rules, same ownership table, same traps.
 - **11 — vendored provenance:** each `skills/` file matches `reference/SKILLS.md`'s

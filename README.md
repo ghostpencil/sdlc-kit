@@ -144,9 +144,11 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── CLAUDE.template.md           → CLAUDE.md           (agent instructions)
 │   ├── PROJECT_INDEX.template.md    → spec/PROJECT_INDEX.md (source of truth)
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
-│   └── settings.template.json       → .claude/settings.json (edit-time gate hook)
+│   ├── settings.template.json       → .claude/settings.json (edit-time gate hook)
+│   └── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (the same hook, Copilot dialect)
 ├── reference/                       ← consulted by /sdlc-setup
-│   ├── GATE_RECIPES.md              ← gate + hook commands per language
+│   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
+│   ├── COPILOT.md                   ← the Copilot CLI mapping: install paths, hook, detection
 │   ├── SKILLS.md                    ← required/recommended skills and how to install
 │   └── REVIEW_LENSES.md             → <project>/.claude/commands/ (the one installed reference file)
 ├── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (all MIT)

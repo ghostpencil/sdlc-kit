@@ -4,9 +4,11 @@ Per-language commands for the two places tooling is configured during `/sdlc-set
 
 1. **The gate** (`spec/SDLC.md`) — lint, typecheck, full test suite; run at every
    `/end-slice` and `/end-phase`.
-2. **The edit-time hook** (`.claude/settings.json`, from
-   `templates/settings.template.json`) — the same lint/typecheck run on the single
-   file just edited, so failures surface immediately.
+2. **The edit-time hook** — the same lint/typecheck run on the single file just edited,
+   so failures surface immediately. Two dialects, one per target CLI: Claude Code's
+   (`.claude/settings.json`, from `templates/settings.template.json`) and Copilot CLI's
+   (`.github/hooks/sdlc-gate.json`, from `templates/copilot-hook.template.json`). The
+   owner confirms the target CLI at setup; *Hook dialects* below states what differs.
 
 A third section, *Runtime-standards rules*, lists per-linter rule sets for the
 runtime-conventions interview — those land inside the linter's own config, so both
@@ -27,7 +29,9 @@ floor below, enforced in CI and recorded locally.
 | `{{SOURCE_GLOB}}` | case-pattern for source files; `\|`-separate alternatives | `*.py` |
 | `{{HOOK_LINT_CMD}}` | lints the single file `$f` | `python -m ruff check "$f"` |
 | `{{HOOK_TYPECHECK_BLOCK}}` | optional typecheck of `$f`, often scoped to the app dir | see below |
-| `{{HOOK_STATUS_MESSAGE}}` | spinner text | `ruff + mypy on edited file` |
+| `{{HOOK_STATUS_MESSAGE}}` | spinner text (Claude Code hook only) | `ruff + mypy on edited file` |
+| `{{HOOK_CONFIG_PATH}}` | where the hook is configured, named in the generated prose | `.claude/settings.json` |
+| `{{HOOK_FEEDBACK_NOTE}}` | what this CLI's hook feedback does — see *Hook dialects* | `its feedback is blocking — fix it before moving on.` |
 
 `{{HOOK_TYPECHECK_BLOCK}}` is a bash fragment ending in `;` that sets `t` (output) and
 `trc` (exit code). To scope it to application code only (skip tests/tools):
@@ -41,10 +45,74 @@ space and leave `trc=0`.
 
 The instantiated `CLAUDE.md` restates the same facts in prose (`{{HOOK_TOOLS}}`,
 `{{SOURCE_EXT}}`); resolve both from this table's values, so the prose and the hook
-cannot disagree.
+cannot disagree. `{{HOOK_CONFIG_PATH}}` and `{{HOOK_FEEDBACK_NOTE}}` appear in both
+`CLAUDE.template.md` and `SDLC.template.md` and are resolved from the dialect below —
+the same value in both files.
 
 Note: the hook's file-path extraction uses `python -c` for JSON parsing. On machines
 without Python, substitute `jq`: `f=$(jq -r '.tool_input.file_path // empty' 2>/dev/null)`.
+Python is the default deliberately — it is the more commonly present of the two (the
+machine this kit is developed on has Python and no `jq`).
+
+---
+
+## Hook dialects
+
+The per-language lint and typecheck commands below are CLI-neutral; only the hook's
+wrapper differs. Resolve the same `{{HOOK_*}}` placeholders either way.
+
+| | Claude Code | Copilot CLI |
+|---|---|---|
+| Template | `templates/settings.template.json` | `templates/copilot-hook.template.json` |
+| Instantiates to | `.claude/settings.json` | `.github/hooks/sdlc-gate.json` |
+| Event | `PostToolUse` | `postToolUse` |
+| Matcher | `Edit\|Write` (substring) | `edit\|create\|apply_patch` (anchored `^(?:…)$`) |
+| Failure channel | stderr + `exit 2` | JSON `additionalContext` on stdout |
+| Timeout key | `"timeout": 120` (ms-free seconds) | `"timeoutSec": 120` |
+| `{{HOOK_STATUS_MESSAGE}}` | used | no such key — the placeholder does not occur in the Copilot template, so it is not asked for on that path |
+
+**Copilot specifics, each of which changed the recipe** (full evidence and dates in
+`reference/COPILOT.md`):
+
+- **It cannot block.** `postToolUse` returns `modifiedResult` or `additionalContext`
+  and nothing else; the text is injected as a prepended user message. Resolve
+  `{{HOOK_FEEDBACK_NOTE}}` accordingly — *advisory*, not blocking. Claude Code's exit-2
+  stderr is also advice to the model, so the gate is no weaker; the generated files just
+  may not claim a stop that does not happen.
+- **A timeout is a pass.** The documented default is 30 seconds and a timed-out hook
+  surfaces a warning and lets the tool call proceed — a silently green gate, which is
+  invariant 15's failure exactly. The template ships `timeoutSec: 120` to match the
+  Claude-side value; **setup must time one real hook run during the verification below
+  and raise the number to at least 3× what it measured**, then state the measured basis
+  in `spec/SDLC.md` alongside the timeout-reads-as-a-pass warning.
+- **It reports loudly when it cannot do its job.** The tool vocabulary and the field of
+  `toolArgs` holding the edited path are under-documented upstream, so the body tries
+  the plausible keys and, when none matches — or when the file cannot be found from the
+  hook's working directory — emits `additionalContext` saying the gate did **not** run.
+  A hook that quietly exits 0 because it could not find its file is indistinguishable
+  from a clean edit; that is the whole hazard.
+- **`toolArgs` arrives as a JSON-encoded string**, not an object, so it is parsed in two
+  steps. The body accepts the camelCase payload (`toolArgs`, `cwd`) and the VS Code
+  compatible one (`tool_input`), because both are documented and which one arrives is
+  not stated.
+- **Output is capped at 8000 characters** — the documented cap is 10 KB across all
+  returning hooks — and decoded with `errors='replace'`, because a Windows locale codec
+  mangles any non-ASCII in lint output on the way through. For the same reason the
+  hook's own messages are ASCII only.
+
+**Verified 2026-08-03** against the instantiated body, six cases: both payload dialects
+with a failing linter (loud), a non-source file (silent), a clean source file (silent),
+a payload with no path (loud), a path whose file is missing (loud), and unparseable
+input (loud). That is the negative-case proof for the recipe itself; the per-project
+proof below is separate and still required.
+
+**Proving the hook in the project (invariant 13).** Same standard as the Claude side:
+edit a scratch source file with a deliberate lint error and confirm the hook reports it.
+On Copilot this proof does double duty — it is also what catches a wrong `matcher`,
+since a matcher that never fires and a clean file look identical. If the proof produces
+nothing, run the tool-name discovery procedure in `reference/COPILOT.md` before
+adjusting anything else, and check `copilot --version` against the version floor
+recorded there.
 
 ---
 
