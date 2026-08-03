@@ -1602,8 +1602,13 @@ hash; text-mode hashes, no `*` prefixes — §16's in-pass finding did not recur
 
 - **R4 is committed; the fifth report is fully actioned** — all ten §15 rows plus
   SIMP's four owner decisions are on disk. Nothing from `sdlc-kit#2` remains queued.
-- **Release status:** [filled in at close — tag `v0.11.0` push and `release.yml`
-  verification, per the owner's call at the end of the R4 session.]
+- **Release status: shipped and verified.** Tag `v0.11.0` pushed (owner-approved),
+  `release.yml` green (run 30815265100 — manifest-coverage check, package, publish all
+  passed), three assets published. The published tarball itself checked, not assumed:
+  `CHECKSUMS.txt` verifies both archives, 27 files, zero `agents/` entries, `VERSION`
+  reads 0.11.0, and the shipped `MANIFEST.sha256` verifies clean against the extracted
+  contents. Kit `main` = origin at the R4 commit; working tree clean; nothing in
+  flight.
 - **TFit migrates 0.9.0 → 0.11.0 directly, once, now** — the §16 hand-off's
   owner-decided migration is unblocked. The removal clause fires on the hop (surveyor
   classifies UNCHANGED → deleted). **Phase 07 must not open before the migration.**
