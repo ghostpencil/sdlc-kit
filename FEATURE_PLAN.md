@@ -1534,3 +1534,25 @@ listed, five mirrored in `SDLC.template.md` (the friction sweep lives retro-side
 only). Bookkeeping: `VERSION` → 0.10.0, CHANGELOG entry (with a **Removed** section,
 the kit's first), manifest regenerated at 26 entries (27 − surveyor, `sha256sum -c`
 clean), README trees updated. `/kit-check` closes the batch.
+
+### Hand-off — state as of 2026-08-03, end of the SIMP session
+
+- **Shipped and verified.** `v0.10.0` released (tag pushed, `release.yml` green, three
+  assets); the published tarball itself checked — zero `agents/` entries, 26 files,
+  `VERSION` reads 0.10.0. `/kit-check` clean on all 15 invariants; the one in-pass
+  finding (a regenerated manifest carrying sha256sum's binary-mode `*` prefixes, which
+  would have broken both classification scripts' `$2` matching) was fixed and
+  discrimination re-proven. Kit `main` = origin at the SIMP commit; working tree clean;
+  nothing in flight.
+- **Next session opens directly on R4** (`v0.11.0`) — the ten-rule edit map in §15 is
+  fully specified and verified against the tree at 0.9.0; SIMP touched three of its
+  target files (`end-slice.md`, `end-phase.md`, `next-slice.md` — conversions only, no
+  §15 row invalidated) so re-read the exact anchor lines before editing, per §4a. Two
+  R4 rows carry SIMP-decided context: R4.7 keeps R3.7's archival bullet as the safety
+  net (owner decision, §16), and R4.6's writer is what R3.8's contingent keep waits on.
+- **TFit migrates 0.9.0 → 0.11.0 directly, once, after R4 ships** — owner-decided
+  2026-08-03. Skipping 0.10.0 is the update command's documented case (classify against
+  0.9.0's manifest, copy from the target); the removal clause fires on the same hop, its
+  first real exercise: `.claude/agents/sdlc-surveyor.md` should classify UNCHANGED and
+  be deleted. **Phase 07 must not open before that migration** — the arc-boundary
+  window is open now, and `/plan-phase` would close it until Phase 07's end.
