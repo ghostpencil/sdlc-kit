@@ -2358,11 +2358,16 @@ plainly if the installed CLI is older, rather than installing a gate that cannot
 
 ---
 
-## 24. PORT.1 items 1–3 built — 2026-08-03; detection, COPILOT.md, the hook dialect
+## 24. PORT.1 built — 2026-08-03; detection, COPILOT.md, the hook dialect, the skills move
 
-Built to §23's hand-off order, unreleased (tree is 0.13.0 + these changes; MANIFEST,
-CHANGELOG, and the `/kit-check` pass all wait for PORT.1 to finish). Items 4 and 5 are
-untouched.
+Built to §23's hand-off order. **Items 1–3 are §24.0–24.4 below; items 4 and 5 are
+§24.5–24.6.** Unreleased: the tree is 0.13.0 + these changes, and CHANGELOG, the VERSION
+bump, and the `/kit-check` pass still wait. `MANIFEST.sha256` was regenerated early —
+the skills move renamed seven bundle files, so a stale manifest would have listed paths
+that no longer exist; it verifies 29/29 and was proven to discriminate (a deliberate
+byte appended to `VERSION` failed the check, then restored).
+
+### 24.0 Items 1–3
 
 **Shipped:**
 
@@ -2425,22 +2430,73 @@ from a clean edit.
 **Still open, unchanged:** the `toolArgs` key holding the edited file path is
 undocumented for every tool, exactly like the `toolName` vocabulary — the body tries the
 plausible keys, reports loudly when none matches, and the same echo-hook discovery
-procedure answers both. The custom-agent `tools` syntax (item 4's blocker) was not
-pursued this session.
+procedure answers both.
 
-### Hand-off — state as of 2026-08-03, PORT.1 items 1–3 done
+### 24.5 Item 4 — the blocker was a wrong page, and closing it reversed a §23 downgrade
 
-- **Next: PORT.1 item 4** (`explore.agent.md`, blocked on the `tools` restriction
-  syntax — establish it or state the sweeps serialize) **then item 5**, the
-  `.claude/commands/` → `.claude/skills/` migration for the five vendored skills.
-- **One transient inconsistency item 5 closes:** the vendored skills still install to
-  `.claude/commands/` on the Claude path, so `COPILOT.md` points at `sdlc-setup.md`'s
-  list as the definition for that row rather than asserting a shared path. Two shipped
-  files still name a vendored skill's `.claude/commands/` path in prose
-  (`end-slice.md`, `sdlc-retro.md`); both are on item 5's list of 9.
-- **Then PORT.4, then PORT.2/PORT.3**, unchanged from §23. PORT.4 still owns recording
+§23.5 recorded the custom-agent `tools` restriction syntax as undocumented, having read
+the CLI how-to page. The **custom-agents configuration reference** documents it fully,
+and states it applies to the CLI as well as GitHub.com and the IDEs. Two consequences:
+
+- **Item 4 is unblocked and built.** `tools` takes a YAML array or a comma-separated
+  string; omitted or `["*"]` means everything, `[]` means nothing. The built-in aliases
+  are `execute`, `read`, `edit`, `search`, `agent`, `web`, `todo`. Read-only is
+  `tools: ["read", "search"]`, which is what `templates/explore.agent.template.md`
+  ships with → `.github/agents/explore.agent.md`, Copilot only (Claude Code has its
+  built-in `Explore`).
+- **§23.5's "per-agent model pinning is unverified" is overturned** — `model` is a
+  documented field. Recorded in `COPILOT.md` with the correction named, because the
+  earlier reading was not wrong about the how-to page; it was wrong to treat a how-to as
+  the contract. The kit still ships no model in any installed file: a model name is a
+  project fact.
+- **A trap found while closing it, now recorded:** the agent tool aliases are *not* the
+  hook's `toolName` vocabulary — the agent reference calls the shell tool `execute`, the
+  hooks reference's matcher example calls it `bash`, and `edit` appears in both, which
+  is exactly what would make someone derive a hook matcher from the wrong list.
+
+Parallel fan-out is still undocumented, so §21's fallback stands and is now stated where
+it binds: `SDLC.template.md`'s parallelism rule and `plan-phase.md` both say that where
+the CLI cannot fan out the sweeps run one after another, and that a sweep dropped for
+time is reported as not run — never as a sweep that found nothing.
+
+### 24.6 Item 5 — the skills move, done as a bundle restructure
+
+Decision 1b said the five vendored skills move to `.claude/skills/`. Building it forced
+one design choice §23 did not anticipate: **the kit-side layout had to move too.** Skills
+are directories (`<name>/SKILL.md`), so five installed files would have shared the
+basename `SKILL.md` — and `/sdlc-update`'s classifier matches installed files to manifest
+entries **by basename**. Left flat kit-side, every vendored skill would have collided in
+that lookup. So `skills/` is now one directory per skill, mirroring the install layout,
+with `tdd/tdd-references/` nested under `tdd/` so `SKILL.md`'s relative links survive.
+
+Touched, all verified against the install list as invariant 7 requires: `sdlc-setup.md`
+(the install list, now a per-CLI table), `sdlc-update.md` (ownership table, the classify
+loop's new `.claude/skills/*` case, the denominator, the apply sources, and the
+removal-and-re-add clause), `end-slice.md`, `sdlc-retro.md`, `reference/SKILLS.md`
+(tables, provenance paths, onboarding checklist), `THIRD_PARTY_NOTICES.md`, both READMEs
+(trees, ownership tables, both classification scripts), root `CLAUDE.md`, `COPILOT.md`,
+`KIT_INVARIANTS.md` (invariant 7 restated as per-CLI with two destinations), and
+`MANIFEST.sha256`.
+
+**The classifiers keep the `skills/` → `.claude/commands/` prefix on purpose.** It is
+what classifies a project still on ≤ 0.13.0; dropping it would report every vendored
+skill `UNKNOWN` — "not from the kit, yours" — which is invariant 7's own specimen
+failure repeated. The migration then runs as the removal clause's second exercise: old
+paths leave, new paths arrive, stated to the owner as one move, with an explicit check
+that no skill ends up at both paths.
+
+### Hand-off — state as of 2026-08-03, PORT.1 complete
+
+- **PORT.1 is done, items 1–5.** Not released: CHANGELOG, the VERSION bump to 0.14.0,
+  and the full `/kit-check` pass remain (STD's pass surfaced seven pre-existing findings
+  — budget for it). `MANIFEST.sha256` is current but will need one more regeneration
+  after the VERSION bump, since `VERSION` is itself a bundle file.
+- **Next: PORT.4**, then PORT.2/PORT.3, unchanged from §23. PORT.4 still owns recording
   the chosen CLI in `PROJECT_INDEX.md` — setup uses the answer within its own run today,
-  but nothing persists it for `/sdlc-update` to read.
-- Release bookkeeping deferred to the end of PORT.1: MANIFEST regeneration, CHANGELOG,
-  README tree already updated, and the full `/kit-check` pass (STD's surfaced seven
-  pre-existing findings — budget for it).
+  but nothing persists it for `/sdlc-update` to read, and `SKILLS.md`'s onboarding
+  checklist currently tells a new developer to infer the CLI from what the repo holds.
+  PORT.4 also owns teaching `/sdlc-update` the Copilot-side paths (`.github/skills/`,
+  `.github/hooks/`, `.github/agents/`), which this batch deliberately left alone.
+- **One thing PORT.2 should know:** `reference/SKILLS.md` now points at COPILOT.md's
+  loss table rather than carrying a per-CLI availability column. §23.5's "SKILLS.md
+  gains a per-CLI availability column" is still PORT.3's to build if it wants one.

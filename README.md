@@ -95,10 +95,12 @@ Setup auto-detects the mode and confirms it with you:
   becomes your initial STABILIZATION backlog, not a blocker.
 
 Either way, setup **installs the required skills**. The TDD skill is *not* built into
-Claude Code — the kit vendors it in `skills/` and setup copies it into the target
-project's `.claude/commands/`, so the whole team inherits it via `git clone`. Built-in
+either CLI — the kit vendors it in `skills/` and setup copies it into the target
+project's `.claude/skills/`, so the whole team inherits it via `git clone`. Built-in
 skills (code-review, verify, …) are verified, and the one plugin (`pr-review-toolkit`)
-gets a one-line install instruction if absent. See `reference/SKILLS.md`.
+gets a one-line install instruction if absent — both are Claude Code only; on Copilot
+CLI setup shows you what is missing instead. See `reference/SKILLS.md` and
+`reference/COPILOT.md`.
 
 ### After setup, the daily loop
 
@@ -124,7 +126,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 ├── VERSION                          ← the kit version this bundle is
 ├── MANIFEST.sha256                  ← checksums of every file in the bundle
 ├── README.md                        ← install + verify, for people who only have the bundle
-├── commands/                        ← installed into <project>/.claude/commands/
+├── commands/                        ← installed into <project>/.claude/commands/ (Copilot: .github/skills/)
 │   ├── sdlc-setup.md                ← the two-mode setup command (start here)
 │   ├── plan-phase.md
 │   ├── next-slice.md
@@ -132,20 +134,22 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── end-phase.md
 │   ├── sdlc-retro.md                ← lessons-learned extraction at a phase boundary
 │   └── sdlc-update.md               ← brings an adopted project to a newer kit release
-├── skills/                          ← vendored skills → <project>/.claude/commands/
-│   ├── tdd.md                       ← THE TDD skill (not built into Claude Code)
-│   ├── tdd-references/              ← tests.md + mocking.md (linked from tdd.md)
-│   ├── tdd-guide.md                 ← optional: broader TDD guide for teams new to it
-│   ├── mutation-testing.md          ← always installed — /end-slice's mutation check invokes it
-│   ├── python-pro.md                ← Python projects only
-│   └── hypothesis-tests.md          ← Python projects only
+├── skills/                          ← vendored skills → <project>/.claude/skills/ (both CLIs read it)
+│   ├── tdd/                         ← THE TDD skill (not built into either CLI)
+│   │   ├── SKILL.md
+│   │   └── tdd-references/          ← tests.md + mocking.md (linked from SKILL.md)
+│   ├── tdd-guide/                   ← optional: broader TDD guide for teams new to it
+│   ├── mutation-testing/            ← always installed — /end-slice's mutation check invokes it
+│   ├── python-pro/                  ← Python projects only
+│   └── hypothesis-tests/            ← Python projects only
 ├── templates/                       ← instantiated into the project by /sdlc-setup
 │   ├── SDLC.template.md             → spec/SDLC.md        (the canonical process)
 │   ├── CLAUDE.template.md           → CLAUDE.md           (agent instructions)
 │   ├── PROJECT_INDEX.template.md    → spec/PROJECT_INDEX.md (source of truth)
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
 │   ├── settings.template.json       → .claude/settings.json (edit-time gate hook)
-│   └── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (the same hook, Copilot dialect)
+│   ├── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (the same hook, Copilot dialect)
+│   └── explore.agent.template.md    → .github/agents/explore.agent.md (Copilot only: read-only sweeps)
 ├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
 │   ├── COPILOT.md                   ← the Copilot CLI mapping: install paths, hook, detection
@@ -206,7 +210,8 @@ The whole procedure rests on this split:
 
 | Path in your project | Owner | Update behavior |
 |---|---|---|
-| `.claude/commands/*.md` (from `commands/`, `skills/`, `reference/REVIEW_LENSES.md`) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
+| `.claude/commands/*.md` (from `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
+| `.claude/skills/*/SKILL.md` (from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | **project** | **Never overwritten.** These hold your gate baseline, owner decisions, backlog, and gotchas. |
 
@@ -244,12 +249,16 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    cd /path/to/your-project
    MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
-   for f in $(git ls-files .claude/commands .claude/agents); do
+   for f in $(git ls-files .claude/commands .claude/skills .claude/agents); do
      case "$f" in
+       .claude/skills/*)
+         base=${f#.claude/skills/}
+         # skills/ installs one directory per skill here from 0.14.0 on.
+         want=$(awk -v b="$base" '$2 == "skills/" b {print $1}' "$MAN") ;;
        .claude/commands/*)
          base=${f#.claude/commands/}
-         # commands/, skills/, and reference/REVIEW_LENSES.md all install into
-         # .claude/commands/, so try all three prefixes.
+         # commands/ and reference/REVIEW_LENSES.md install here — and skills/ did too
+         # on kits <= 0.13.0, so that prefix stays for projects still on one.
          want=$(awk -v b="$base" \
            '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN") ;;
        .claude/agents/*)
@@ -276,9 +285,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
      empty input and silently "matches" the wrong entry. Look the path up in the manifest,
      as above, rather than probing for it.
    - **Check the denominator.** The loop should report exactly as many files as
-     `git ls-files .claude/commands .claude/agents | wc -l`. If it reports fewer, your
-     prefix matching is dropping files — `tdd-references/` lives in a subdirectory and is
-     the usual casualty.
+     `git ls-files .claude/commands .claude/skills .claude/agents | wc -l`. If it reports
+     fewer, your prefix matching is dropping files — `tdd-references/` lives two
+     directories down and is the usual casualty.
 
 4. **Act on the classification.**
    - `UNCHANGED` → provably untouched since adoption. Copy the new version over it.
@@ -296,9 +305,15 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    The symmetric case: files **removed from the target's install set** — listed in your
    old version's manifest under an install mapping but absent from the target's. An
    `UNCHANGED` one is provably the kit's and is deleted; a `DRIFTED` one is yours to
-   keep (move it to a project-owned path outside `.claude/commands/` and
-   `.claude/agents/`) or delete. First instance: `agents/sdlc-surveyor.md` and the
+   keep (move it to a project-owned path outside the kit-managed directories) or delete.
+   First instance: `agents/sdlc-surveyor.md` and the
    whole `agents/` → `.claude/agents/` mapping (0.6.0–0.9.0), retired in 0.10.0.
+
+   The second instance is the 0.14.0 skills move, and it is a removal and a re-add of
+   the same content: the five vendored skills leave `.claude/commands/<name>.md` and
+   arrive at `.claude/skills/<name>/SKILL.md`. Both halves run in the same update. When
+   it is done, check that no skill is left at both paths — two copies of `tdd` with
+   different content is the one outcome to avoid.
 
    If you kept a `sdlc-kit/` folder from adoption, replace it with the new version's
    bundle — but **list its actual contents against the old version's manifest first**,

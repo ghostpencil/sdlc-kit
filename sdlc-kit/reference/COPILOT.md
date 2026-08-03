@@ -17,7 +17,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 |---|---|---|
 | Agent instructions | `CLAUDE.md` | `CLAUDE.md` — **read directly, no translation** |
 | Kit commands (7) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
-| Vendored skills (5) | the install list in `commands/sdlc-setup.md` is the definition | `.claude/skills/<name>/SKILL.md` — a directory both CLIs read, so one copy serves both |
+| Vendored skills (5) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.json`, `postToolUse` |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
@@ -153,9 +153,14 @@ differ. On Copilot CLI the available set comes from `/model` (or `/models`), and
 three tiers against that listing rather than proposing model names — the same rule the
 gate recipes follow, for the same reason.
 
-**Per-agent model pinning is unverified on Copilot.** The custom-agents documentation
-describes `name`, `description`, and an optional `tools` restriction, and mentions no
-`model` field. Do not build a tier table that assumes an agent can pin its own model.
+**Per-agent model pinning is supported** — the custom-agents *configuration reference*
+documents a `model` field ("Model to use when this custom agent executes. If unset,
+inherits the default model"), applying to GitHub.com, the Copilot CLI, and supported
+IDEs. This corrects an earlier reading of the CLI's how-to page, which lists only
+`name`, `description`, and `tools`: the how-to is a subset of the reference, not a
+narrower contract. The kit still ships no pinned model in any file it installs — a model
+name is a project fact, so if the owner wants the sweep agent pinned to their Low tier,
+setup adds `model:` from the recorded policy.
 
 ## Subagents and sweeps
 
@@ -164,14 +169,28 @@ Custom agents are `.github/agents/*.agent.md` (project) or `~/.copilot/agents/`
 from the description, or `copilot --agent NAME --prompt`. Hooks exist for
 `subagentStart` / `subagentStop`, so subagents are first-class.
 
-Two gaps, both material to `/plan-phase` and `/sdlc-setup`, whose sweeps fan out to
-read-only subagents on Claude Code:
+The kit's read-only sweep agent — used by `/plan-phase`'s gap analysis and
+`/sdlc-setup`'s Existing-mode survey, where Claude Code uses its built-in `Explore` —
+ships as `templates/explore.agent.template.md` → `.github/agents/explore.agent.md`.
 
-- **The `tools` restriction syntax is undocumented.** Until it is established, the kit
-  ships no `explore.agent.md`.
-- **Parallel fan-out is undocumented.** Where the kit's sweeps would fan out, they run
-  serially on Copilot. The generated `spec/SDLC.md` says so — a sweep that quietly
-  became serial is a sweep whose coverage nobody re-checked.
+**Frontmatter, from the custom-agents configuration reference.** `tools` takes a YAML
+array or a comma-separated string; omitted (or `["*"]`) means every tool, and `[]` means
+none. The built-in aliases are `execute` (run a shell command), `read`, `edit`, `search`,
+`agent` (invoke another custom agent), `web`, and `todo`. Read-only is therefore
+`tools: ["read", "search"]` — the restriction the kit's profile ships with. Also
+available: `model` (above), `target` (`vscode` / `github-copilot`, defaulting to both),
+`user-invocable`, and `disable-model-invocation` — the last of which is described in
+cloud-agent terms, so do not assume it governs the CLI.
+
+**A trap worth naming: these aliases are not the hook's tool names.** The agent
+reference calls the shell tool `execute`; the hooks reference's matcher example calls it
+`bash`. `edit` appears in both, which is what makes the mismatch easy to miss. Do not
+derive a hook matcher from this list — use the provenance table and discovery procedure
+above.
+
+**Parallel fan-out is still undocumented.** Where the kit's sweeps would fan out, they
+run serially on Copilot. The generated `spec/SDLC.md` says so — a sweep that quietly
+became serial is a sweep whose coverage nobody re-checked.
 
 ## What the kit loses on Copilot today
 
@@ -255,7 +274,10 @@ reference (payload, output contract, config schema, matcher anchoring, `timeoutS
 *Using hooks with GitHub Copilot CLI* (`timeoutSec` default, the `toolArgs`-as-string
 example); *Using hooks with Copilot CLI for predictable, policy-compliant execution*
 (the two-step `jq` parse); CLI custom instructions; CLI add-skills; create custom agents
-for the CLI; the CLI command reference; the CLI plugin reference; Copilot code review.
+for the CLI **and the custom-agents configuration reference** (the frontmatter fields,
+the `tools` syntax, and the built-in tool aliases — the reference is the fuller of the
+two and corrects the how-to); the CLI command reference; the CLI plugin reference;
+Copilot code review.
 
 Named non-GitHub sources, each cited in place above and **not** corroborated by GitHub's
 docs: a third-party Copilot CLI cookbook (the `create` / `apply_patch` tool names, the

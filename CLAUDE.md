@@ -34,8 +34,11 @@ way they read once the folder is sitting in a target project.
 ```
 sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
   templates/*.template.*                     CLAUDE.md, spec/*.md, .claude/settings.json
+                                             (Copilot: .github/hooks/, .github/agents/)
   commands/*.md                              .claude/commands/*.md
-  skills/** (incl. tdd-references/)          .claude/commands/**   (project-scoped)
+                                             (Copilot: .github/skills/<name>/SKILL.md)
+  skills/<name>/SKILL.md                     .claude/skills/<name>/SKILL.md
+                                             (project-scoped; both CLIs read it)
   reference/*.md                             (stays put — consulted by setup, not installed,
                                               EXCEPT REVIEW_LENSES.md → .claude/commands/)
 ```
@@ -56,11 +59,20 @@ the canonical statement of that process; the four daily commands (`plan-phase`,
 `PROJECT_INDEX.template.md`) is the single source of truth in an adopted project — the
 load-bearing piece that lets a fresh session orient in seconds.
 
-Note that **skills install into `.claude/commands/`, not `.claude/skills/`** — that is
-deliberate (project-scoped, so they travel with a `git clone`) and is stated in several
-files; keep it consistent if you touch install paths. (An `agents/` → `.claude/agents/`
+**The install split is by how a file is invoked, not by what it contains.** The seven
+commands are user-typed entry points and go to `.claude/commands/`; the five vendored
+skills are model-invocable and go to `.claude/skills/<name>/SKILL.md`. Both are
+project-scoped, so both travel with a `git clone` — that was always the point, and until
+0.14.0 it was served by putting everything in `.claude/commands/`. The move happened
+because `.claude/skills/` is read by Copilot CLI as well, so one copy now serves both
+CLIs; the commands stayed put for the opposite reason, since a command sitting in a
+skills directory can be invoked by the model unbidden. The Copilot column of every
+mapping is in `sdlc-kit/reference/COPILOT.md`, and `commands/sdlc-setup.md`'s install
+list (New mode step 5) is the definition both READMEs and `sdlc-update.md` derive from —
+keep them in step if you touch install paths. (An `agents/` → `.claude/agents/`
 mapping existed on kits 0.6.0–0.9.0 and was retired in 0.10.0 with its only occupant,
-the surveyor; `sdlc-update.md` still classifies `.claude/agents/` for the transition.)
+the surveyor; `sdlc-update.md` still classifies `.claude/agents/` for the transition,
+and now also handles the 0.14.0 skills move as a removal-and-re-add.)
 
 ## Invariants to preserve when editing
 

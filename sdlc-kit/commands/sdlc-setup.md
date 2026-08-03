@@ -43,7 +43,7 @@ existing file becomes a shown merge plan, not a silent clobber.
    report anything.
 3. **Verify skills** (see `reference/SKILLS.md`): the TDD skill is NOT built into either
    CLI — it is vendored in `sdlc-kit/skills/` and installed in step 2a/2b
-   below; HALT if `sdlc-kit/skills/tdd.md` is missing. On Claude Code, check for the
+   below; HALT if `sdlc-kit/skills/tdd/SKILL.md` is missing. On Claude Code, check for the
    `pr-review-toolkit` plugin; if absent, tell the owner to run
    `/plugin install pr-review-toolkit@claude-plugins-official` (setup can continue,
    but the plugin is needed by both `/end-slice` — its per-slice reviewer is the
@@ -183,28 +183,44 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 5. Install commands and skills — always project-scoped, so the team inherits them via
    git. **Where they go depends on the target CLI from preflight step 2**; this list is
    the definition, and `reference/COPILOT.md` carries the evidence and the reasoning
-   behind the Copilot column. On Claude Code the
-   destination is `.claude/commands/`, as below. On Copilot CLI the same files install
-   as skills: the seven kit commands become `.github/skills/<name>/SKILL.md` (the
-   markdown body unchanged, `name` + `description` frontmatter added), the vendored
-   skills go to `.claude/skills/<name>/SKILL.md`, and `REVIEW_LENSES.md` keeps the
-   `.claude/commands/` path the installed prose points at — it is a document, not an
-   executable. A project answering "both" gets both, and the seven commands are the
-   only files that exist twice: once user-typed, once model-invocable, and deliberately
-   not in a directory where Claude Code would list them as skills. The list:
+   behind the Copilot column.
+
+   The seven kit commands are user-typed workflow entry points; the vendored skills are
+   model-invocable capabilities. They install to different places for that reason:
+
+   | | Claude Code | Copilot CLI |
+   |---|---|---|
+   | the 7 commands | `.claude/commands/<name>.md` | `.github/skills/<name>/SKILL.md` |
+   | the 5 vendored skills | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
+   | `REVIEW_LENSES.md` | `.claude/commands/REVIEW_LENSES.md` | the same path — it is a document, not an executable |
+
+   Packaging a command as a Copilot skill is mechanical: the markdown body unchanged,
+   `name` + `description` frontmatter added. A project answering "both" gets both
+   columns, and the seven commands are the only files that exist twice — deliberately
+   not in a directory where Claude Code would list them as model-invocable skills. The
+   list:
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
      `sdlc-retro.md`, `sdlc-update.md` (and this file);
-   - the TDD skill set from `sdlc-kit/skills/`: `tdd.md` + `tdd-references/` +
-     `mutation-testing.md` (always — `/end-slice`'s mutation-check step invokes it, so
-     it is not optional), `tdd-guide.md` (offer), `python-pro.md` +
-     `hypothesis-tests.md` (Python projects only — offer). Preserve the
-     `tdd-references/` subfolder; `tdd.md` links into it relatively.
+   - the TDD skill set from `sdlc-kit/skills/`, each already a skill directory that is
+     copied whole: `tdd/` (with its `tdd-references/` subfolder, which `SKILL.md` links
+     into relatively) and `mutation-testing/` (always — `/end-slice`'s mutation-check
+     step invokes it, so it is not optional), `tdd-guide/` (offer), `python-pro/` +
+     `hypothesis-tests/` (Python projects only — offer). Copy directories, not files:
+     the five `SKILL.md` files share a basename and only their parent directory tells
+     them apart.
    - `reference/REVIEW_LENSES.md` → `.claude/commands/REVIEW_LENSES.md` (always) —
      `end-slice.md` §3 points at that installed path, so skipping this breaks the
      pointer. The rest of `reference/` stays uninstalled.
-   - If a same-named skill already exists on this machine in `~/.claude/commands/`,
-     note that the project copy and user copy will both be listed; recommend the
-     owner keep the project copy authoritative (it is versioned with the repo).
+   - Copilot CLI only: `templates/explore.agent.template.md` →
+     `.github/agents/explore.agent.md`, the read-only sweep profile the surveys in step
+     2b and `/plan-phase` delegate to (Claude Code uses its built-in `Explore` instead,
+     so nothing is installed there). It ships restricted to `read` and `search` and
+     carries no model — add `model:` from the recorded policy only if the owner asks,
+     and never a model name of your own choosing.
+   - If a same-named skill already exists on this machine (`~/.claude/skills/`,
+     `~/.claude/commands/`, or the Copilot personal directories), note that the project
+     copy and user copy will both be listed; recommend the owner keep the project copy
+     authoritative (it is versioned with the repo).
 6. Install the edit-time hook, in the dialect the target CLI speaks — *Hook dialects*
    in `reference/GATE_RECIPES.md` names the template, the destination, and what differs.
    Claude Code: `settings.template.json` → `.claude/settings.json`. Copilot CLI:
@@ -230,7 +246,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 1. **Analyze before asking.** Survey the repo — for large ones, fan the survey out to
    parallel read-only subagents (the same pattern `/plan-phase` uses for its sweeps:
    read-only by tool restriction, findings return here, every owner question stays in
-   this session; the built-in Explore type serves). Collect:
+   this session; Claude Code's built-in `Explore` type serves. On Copilot nothing is
+   installed yet — the `explore` profile arrives at step 5, for `/plan-phase` and after
+   — so this survey runs in this session, and serially if fan-out is unavailable rather
+   than being trimmed to fit). Collect:
    languages + versions; build system; how tests are actually run (CI config is the
    best witness); lint/typecheck config present or absent; which agent CLI the repo is
    already set up for, if either — the artifact signals in `reference/COPILOT.md`, which

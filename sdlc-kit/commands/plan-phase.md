@@ -65,7 +65,10 @@ a full round surfaces nothing new. Cover, minimum:
 After the interview, actively try to break the requirements. The sweeps are this
 command's heaviest context load, and they are read-only — run each applicable sweep as
 its own **parallel read-only subagent** (give it the phase idea, the interview's
-answers, and the relevant spec pointers).
+answers, and the relevant spec pointers) — the CLI's own read-only agent type where it
+has one, otherwise the `explore` profile `/sdlc-setup` installed. Where the CLI cannot
+fan out, run the sweeps one after another; dropping a sweep for time is a gap in the
+analysis, not a saving, and is reported as one.
 Sweep agents analyze, so they inherit the session model. Findings come
 back to **this** session: each becomes a new interview question (back to
 step 3) or a recorded decision, and every question goes to the owner from here — no

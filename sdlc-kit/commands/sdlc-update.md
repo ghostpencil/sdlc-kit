@@ -13,7 +13,8 @@ the project owns.**
 
 | Path in this project | Owner | Update behavior |
 |---|---|---|
-| `.claude/commands/*.md` (from the kit's `commands/`, `skills/`, `reference/REVIEW_LENSES.md`) | kit | overwrite when provably unmodified; owner decides when drifted |
+| `.claude/commands/*.md` (from the kit's `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | kit | overwrite when provably unmodified; owner decides when drifted |
+| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from the kit's `skills/`; this mapping starts at 0.14.0) | kit | same rule; on a project coming from ≤ 0.13.0 these are *new* files and their `.claude/commands/` originals are *removed* |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json` | project | never overwritten — they hold the gate baseline, owner decisions, backlog, gotchas |
 
@@ -49,8 +50,8 @@ git -C /tmp/kit worktree add /tmp/kit-old vX.Y.Z                # the version yo
 
 ### 3. Classify every installed file
 
-Compare everything under `.claude/commands/` and `.claude/agents/` against the **old**
-version's manifest. Hash committed content (`git cat-file -p :path`), never the working
+Compare everything under `.claude/commands/`, `.claude/skills/`, and `.claude/agents/`
+against the **old** version's manifest. Hash committed content (`git cat-file -p :path`), never the working
 tree — an unpinned checkout on Windows holds CRLF and would report every file as
 drifted, uniformly and plausibly wrong.
 
@@ -58,14 +59,20 @@ drifted, uniformly and plausibly wrong.
 cd <project root>
 MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
-for f in $(git ls-files .claude/commands .claude/agents); do
+for f in $(git ls-files .claude/commands .claude/skills .claude/agents); do
   case "$f" in
     .claude/commands/*)
       base=${f#.claude/commands/}
-      # commands/, skills/, and reference/REVIEW_LENSES.md all install into
-      # .claude/commands/, so try all three prefixes.
+      # commands/ and reference/REVIEW_LENSES.md install here. So did skills/ on kits
+      # <= 0.13.0 — keep that prefix: it is what classifies a project still on one of
+      # those versions, and dropping it would report every vendored skill UNKNOWN.
       want=$(awk -v b="$base" \
         '$2 == "commands/" b || $2 == "skills/" b || $2 == "reference/" b {print $1}' "$MAN") ;;
+    .claude/skills/*)
+      base=${f#.claude/skills/}
+      # skills/ installs one directory per skill here from 0.14.0 on; base already
+      # carries the directory (tdd/SKILL.md, tdd/tdd-references/tests.md).
+      want=$(awk -v b="$base" '$2 == "skills/" b {print $1}' "$MAN") ;;
     .claude/agents/*)
       base=${f#.claude/agents/}
       # agents/ installed into .claude/agents/ on kits 0.6.0–0.9.0; the mapping was
@@ -86,8 +93,9 @@ Two checks on the check — required, because both failure modes produce a plaus
 result rather than an error:
 
 - **Denominator.** The loop must print exactly as many lines as
-  `git ls-files .claude/commands .claude/agents | wc -l`. Fewer means the matching
-  dropped files (`tdd-references/` lives in a subdirectory and is the usual casualty).
+  `git ls-files .claude/commands .claude/skills .claude/agents | wc -l`. Fewer means the
+  matching dropped files (`tdd-references/` lives two directories down and is the usual
+  casualty).
 - **Never probe for a path with `git cat-file … | sha256sum`.** A pipeline reports the
   *last* command's status, so a missing path hashes empty input and silently matches
   the wrong thing. Look paths up in the manifest, as above.
@@ -120,18 +128,31 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
 
 - Copy the target version's files over the `UNCHANGED` set and whatever `DRIFTED` files
   the owner released — plus any files **new in the target's install set**, which
-  classification never saw because the project does not hold them yet. Sources:
-  `sdlc-kit/commands/`, `sdlc-kit/skills/`, and `sdlc-kit/reference/REVIEW_LENSES.md` —
-  all into `.claude/commands/`, preserving the `tdd-references/` subfolder.
+  classification never saw because the project does not hold them yet. Sources and
+  destinations: `sdlc-kit/commands/` and `sdlc-kit/reference/REVIEW_LENSES.md` into
+  `.claude/commands/`; each `sdlc-kit/skills/<name>/` directory into
+  `.claude/skills/<name>/`, copied whole so `tdd/tdd-references/` travels with it. The
+  five `SKILL.md` files share a basename — copy directories, not files.
 - The symmetric case: files **removed from the target's install set** — listed in the
   old version's manifest under an install mapping but absent from the target's. An
   `UNCHANGED` one is provably the kit's and is deleted; a `DRIFTED` one goes to the
   owner (keep it by moving it to a project-owned path outside the kit-managed
   directories, or delete it) — the owner may have invested in the drift. Step 6's
   re-classification confirms the removal: the file is gone, or it is an owner-kept
-  copy living outside `.claude/commands/` and `.claude/agents/`. First instance:
+  copy living outside the kit-managed directories. First instance:
   `agents/sdlc-surveyor.md` and its whole `agents/` → `.claude/agents/` mapping,
   retired in 0.10.0.
+- **The 0.14.0 skills move is the second instance, and it is a removal and a re-add of
+  the same content.** A project coming from ≤ 0.13.0 holds the five vendored skills at
+  `.claude/commands/<name>.md`; the target installs them at
+  `.claude/skills/<name>/SKILL.md`. Both halves run: the old paths leave by the removal
+  clause above (`UNCHANGED` → deleted; `DRIFTED` → the owner's call, and a drifted
+  vendored skill is worth keeping deliberately — see `reference/SKILLS.md` on
+  divergence), and the new paths arrive as files new in the target's install set. Say
+  this to the owner as one move rather than as a column of unrelated deletions and
+  additions, and check
+  afterwards that no skill is left at **both** paths — two copies of `tdd` with
+  different content is the one outcome this step must not produce.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target

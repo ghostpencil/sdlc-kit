@@ -54,6 +54,9 @@ parallel only for read-only work *within* a step (analysis sweeps, repo surveys,
 lenses), made safe by tool restriction; never for implementation, never across slices.
 Findings return to the main session, and every owner interaction happens there —
 subagents cannot ask the owner anything, so no halt point ever moves into one.
+Where the CLI in use cannot fan out in parallel, the same sweeps run one after another:
+the coverage is identical, only the wall-clock differs. A sweep dropped for time is a
+sweep that did not run, and is reported that way — never as a sweep that found nothing.
 
 ## Owner halt points
 

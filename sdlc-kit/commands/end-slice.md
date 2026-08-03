@@ -91,7 +91,7 @@ however far the conversation has moved on.
 For every **new guard, branch, or error path** this slice added (review fixes
 included): delete or invert it once, run the suite, and watch it fail on exactly the
 test that claims to pin it — then restore and confirm green. Use the mutation-testing
-skill (`.claude/commands/mutation-testing.md`) for anything beyond a quick
+skill (`mutation-testing`, installed by `/sdlc-setup`) for anything beyond a quick
 delete-and-run. A check is only trustworthy once it has been made to disagree; a guard
 whose deletion leaves the suite green is untested code wearing a test's name, and this
 practice caught exactly that on a real project — twice — in guards whose tests could

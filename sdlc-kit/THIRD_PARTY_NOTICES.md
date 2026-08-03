@@ -1,17 +1,17 @@
 # Third-Party Notices
 
 The files under `skills/` are vendored from (or derived from) the following projects —
-all *identified* upstreams are MIT-licensed; `python-pro.md` has no identified upstream
+all *identified* upstreams are MIT-licensed; `python-pro/SKILL.md` has no identified upstream
 repo or license text, only its in-file author attribution. Full provenance detail,
 including how each local copy was verified against its upstream, is in
 `reference/SKILLS.md`.
 
 | File(s) in this repo | Upstream | Copyright |
 |---|---|---|
-| `skills/tdd.md`, `skills/tdd-references/tests.md`, `skills/tdd-references/mocking.md` | [mattpocock/skills](https://github.com/mattpocock/skills) (`skills/engineering/tdd/`) | Copyright (c) 2026 Matt Pocock |
-| `skills/hypothesis-tests.md` (verbatim), `skills/mutation-testing.md` (condensed derivative) | [honnibal/claude-skills](https://github.com/honnibal/claude-skills) | Copyright (c) 2026 Matthew Honnibal |
-| `skills/tdd-guide.md` (truncated, lightly adapted) | [alirezarezvani/claude-code-skill-factory](https://github.com/alirezarezvani/claude-code-skill-factory) (`generated-skills/tdd-guide/`) | Copyright (c) 2025 Reza Rezvani |
-| `skills/python-pro.md` | attributed in-file to [github.com/Jeffallan](https://github.com/Jeffallan) (attribution header kept intact) | see file header |
+| `skills/tdd/SKILL.md`, `skills/tdd/tdd-references/tests.md`, `skills/tdd/tdd-references/mocking.md` | [mattpocock/skills](https://github.com/mattpocock/skills) (`skills/engineering/tdd/`) | Copyright (c) 2026 Matt Pocock |
+| `skills/hypothesis-tests/SKILL.md` (verbatim), `skills/mutation-testing/SKILL.md` (condensed derivative) | [honnibal/claude-skills](https://github.com/honnibal/claude-skills) | Copyright (c) 2026 Matthew Honnibal |
+| `skills/tdd-guide/SKILL.md` (truncated, lightly adapted) | [alirezarezvani/claude-code-skill-factory](https://github.com/alirezarezvani/claude-code-skill-factory) (`generated-skills/tdd-guide/`) | Copyright (c) 2025 Reza Rezvani |
+| `skills/python-pro/SKILL.md` | attributed in-file to [github.com/Jeffallan](https://github.com/Jeffallan) (attribution header kept intact) | see file header |
 
 Each of the three repositories above is distributed under the MIT License. The
 license text below applies to each, with the copyright line as listed in the table:

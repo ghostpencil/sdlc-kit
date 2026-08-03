@@ -87,16 +87,22 @@ mode's "same rules as New mode step 4" — caught only by this grep (plan §8.5)
 ## 7. The install mapping has one source of truth
 
 The kit-path → installed-path mapping is **defined** by `sdlc-setup.md`'s install list
-(New mode step 5; Existing mode step 3 inherits it). Since 0.10.0 the mapping has one
-destination: `commands/`, `skills/`, and `reference/REVIEW_LENSES.md` →
-`.claude/commands/` (an `agents/` → `.claude/agents/` mapping existed 0.6.0–0.9.0 and
-was retired with its only occupant; the update path still classifies `.claude/agents/`
-so the transition can remove it). Every other statement of the
+(New mode step 5; Existing mode step 3 inherits it). Since 0.14.0 the mapping is
+**per-CLI and has two destinations**: `commands/` and `reference/REVIEW_LENSES.md` →
+`.claude/commands/`, `skills/<name>/` → `.claude/skills/<name>/`, and on Copilot CLI the
+commands are packaged instead as `.github/skills/<name>/SKILL.md`. (Before 0.14.0
+`skills/` also landed in `.claude/commands/`, which is why the classifiers keep that
+prefix; an `agents/` → `.claude/agents/` mapping existed 0.6.0–0.9.0 and was retired with
+its only occupant, and the update path still classifies `.claude/agents/`
+so the transition can remove it.) Every other statement of the
 mapping is derived and must be verified against it: the root README's ownership table
 and file tree, the bundle README, root `CLAUDE.md`'s flow diagram, `sdlc-update.md`'s
-ownership table, and — the ones with teeth — the prefix lists in **both**
+ownership table, `reference/COPILOT.md`'s mapping table, and — the ones with teeth — the
+prefix lists in **both**
 classification scripts (`sdlc-update.md` step 3 and the README's update section),
-including their denominator checks, which must enumerate both destination directories.
+including their denominator checks, which must enumerate every destination directory.
+A derived statement that names one CLI's path as though it were universal is a
+violation, not a simplification.
 
 **Check:** reading pass; diff each derived statement against the install list.
 **Specimen:** installing `REVIEW_LENSES.md` (B4) falsified five derived statements at
@@ -146,7 +152,8 @@ upstream verification recorded in `reference/SKILLS.md`, or its divergence is do
 there. `THIRD_PARTY_NOTICES.md` carries the attributions.
 
 **Check:** diff against the provenance claims; confirm any edit is noted. **Specimen:**
-none yet — the field report's #11 proposed editing `skills/tdd-references/tests.md` and
+none yet — the field report's #11 proposed editing `skills/tdd/tdd-references/tests.md`
+(then at `skills/tdd-references/tests.md`) and
 was rejected precisely because it would have silently invalidated the certification.
 
 ## 12. Nothing kit-development-only lives under `sdlc-kit/`
