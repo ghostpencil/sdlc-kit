@@ -1,8 +1,8 @@
 # The Agentic SDLC Kit — bundle
 
 This folder is the kit itself: a language-agnostic software development lifecycle for
-AI-assisted development with Claude Code, delivered as Claude Code prompt files. There is
-no application code here and nothing to build.
+AI-assisted development with Claude Code or GitHub Copilot CLI, delivered as prompt
+files. There is no application code here and nothing to build.
 
 Version: see `VERSION`. Full documentation, the field report, and the changelog live in
 the kit's home repository: <https://github.com/ghostpencil/sdlc-kit>
@@ -11,19 +11,31 @@ the kit's home repository: <https://github.com/ghostpencil/sdlc-kit>
 
 ## Install
 
-Prerequisites: Claude Code (CLI, desktop app, or IDE extension), `git`, and — for the
-verify and update scripts — a POSIX shell with `sha256sum` (standard on Linux,
-`shasum -a 256` on macOS, Git Bash on Windows).
+Prerequisites: an agent CLI — Claude Code (CLI, desktop app, or IDE extension) or GitHub
+Copilot CLI 1.0.63 or newer — plus `git`, and — for the verify and update scripts — a
+POSIX shell with `sha256sum` (standard on Linux, `shasum -a 256` on macOS, Git Bash on
+Windows).
 
 1. Make sure this folder sits at the root of your project and is named `sdlc-kit` —
    `/sdlc-setup` looks for it by name.
-2. Copy `commands/sdlc-setup.md` into your project's `.claude/commands/`.
-3. Open Claude Code in your project and run **`/sdlc-setup`**.
+2. Install `sdlc-setup` by hand. It is the only one: setup installs the other six
+   commands itself, but it cannot install its own entry point.
+   - **Claude Code:** copy `commands/sdlc-setup.md` into your project's
+     `.claude/commands/`.
+   - **Copilot CLI:** write `.github/skills/sdlc-setup/SKILL.md` — a `---` block
+     carrying `name: sdlc-setup` and a **quoted** one-line `description`, then one blank
+     line, then `commands/sdlc-setup.md` byte-for-byte. Copilot reads no
+     `.claude/commands/` and has no markdown slash commands. Keeping the body unchanged
+     is what lets `/sdlc-update` recognize the file later; quoting the description is
+     what stops an unquoted `: ` from making Copilot drop it silently.
+     `reference/COPILOT.md` has the mapping for every other file.
+3. Open your CLI in the project and run **`/sdlc-setup`** — on Copilot, confirm
+   `/skills` lists it under *Project skills* first, since a frontmatter error is silent.
 
 Setup auto-detects **New Project** mode (interview → scaffold → establish a green gate)
 or **Existing Project** mode (analyze → propose → confirm → generate, merging and never
-overwriting), instantiates every template, installs the daily commands and the vendored
-TDD skill set, and writes the edit-time gate hook.
+overwriting), instantiates every template, installs the daily commands and the eight
+skills (five vendored, three kit-written), and writes the edit-time gate hook.
 
 After setup the daily loop is `/plan-phase` → `/next-slice` → `/end-slice` → `/end-phase`,
 one slice per session, `/clear` between slices.

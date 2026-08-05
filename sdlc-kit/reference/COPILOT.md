@@ -66,14 +66,21 @@ the command's markdown body unchanged, with frontmatter added —
 ```yaml
 ---
 name: end-slice
-description: Close a slice — gate, code review, mutation check, commit, PROJECT_INDEX.
+description: "Close a slice — gate, code review, mutation check, commit, PROJECT_INDEX."
 ---
 ```
 
-`name` and `description` are required; `license` and `allowed-tools` are optional.
+`name` and `description` are required; `license` and `allowed-tools` are optional. The
+description is quoted here deliberately — see authoring hazard 1 below; an unquoted
+value that later grows a `: ` drops the whole file with no error.
 Markdown custom slash commands do not exist on Copilot CLI — the near-miss is real and
 tracked upstream (`github/copilot-cli#1113`, closed as a duplicate of `#618`, which is
 open), so this packaging step is what a future release deletes if `#618` ships.
+
+**One command is packaged by hand: `sdlc-setup` itself.** Setup packages the other six
+at install time, but it cannot install its own entry point, so the adopter does that one
+before the first session — a single file copy on Claude Code, this `SKILL.md` shape
+here. Both READMEs carry the procedure; this file is why the two CLIs differ at all.
 
 ## The gate hook
 

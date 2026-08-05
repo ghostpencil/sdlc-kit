@@ -45,7 +45,9 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
 
 ### Prerequisites
 
-- **Claude Code** — CLI, desktop app, or IDE extension; the kit is prompt files for it.
+- **An agent CLI** — **Claude Code** (CLI, desktop app, or IDE extension) or **GitHub
+  Copilot CLI** (1.0.63 or newer, below which the gate hook's matcher may never fire).
+  The kit is prompt files; both CLIs read them, and a project may adopt both.
 - **git** — the target project must be a git repository; the process commits per slice
   and lands each phase as a PR.
 - A **POSIX shell with `sha256sum`** for the verify and update scripts — standard on
@@ -78,9 +80,36 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
 
    Either way you end up with plain files (not a nested git repo) that you commit
    alongside your project.
-2. Copy `sdlc-kit/commands/sdlc-setup.md` into the target's `.claude/commands/`
-   (create the folder if needed).
-3. Open Claude Code in the target repo and run **`/sdlc-setup`**.
+2. Put `sdlc-setup` where your CLI will find it. **This is the one file you install by
+   hand** — setup installs the other six commands itself, but it cannot install its own
+   entry point.
+
+   **Claude Code** — copy it into the target's `.claude/commands/`:
+
+   ```bash
+   mkdir -p .claude/commands && cp sdlc-kit/commands/sdlc-setup.md .claude/commands/
+   ```
+
+   **Copilot CLI** — it does not read `.claude/commands/`, and markdown slash commands
+   do not exist there (`github/copilot-cli#618`), so the command ships as a skill: a
+   frontmatter block, one blank line, then the kit file unchanged.
+
+   ```bash
+   mkdir -p .github/skills/sdlc-setup
+   { printf -- '---\nname: sdlc-setup\ndescription: "Bootstrap the Agentic SDLC into this project."\n---\n\n'
+     cat sdlc-kit/commands/sdlc-setup.md
+   } > .github/skills/sdlc-setup/SKILL.md
+   ```
+
+   Keep the body byte-for-byte and the description quoted. `/sdlc-update` classifies
+   these files by stripping the frontmatter and comparing the remainder against the
+   manifest, so a tidy-up in the body makes an untouched command read as drifted — and
+   an unquoted `: ` anywhere in the frontmatter makes Copilot drop the file silently.
+   `sdlc-kit/reference/COPILOT.md` carries the mapping for every other file, which
+   setup handles.
+3. Open your CLI in the target repo and run **`/sdlc-setup`**. On Copilot, confirm
+   `/skills` lists `sdlc-setup` under *Project skills* before you do — a frontmatter
+   parse failure produces no error, and absence is the only symptom.
 
 Setup auto-detects the mode and confirms it with you:
 
