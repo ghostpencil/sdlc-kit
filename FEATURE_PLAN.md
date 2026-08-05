@@ -38,16 +38,29 @@ second source of truth, which is its own recurring hazard
 
 ## Standing clocks and inputs
 
-- **0.16.0 — STD's audit clock, extended once** (§22, §31.6): the audit ran at its
-  0.15.0 deadline (2026-08-05) — no lens catch, and no evidence the lenses *activated*
-  in the one arc of exposure, which the pre-R5.6 records could not distinguish from
-  "ran and caught nothing". Owner decision 2026-08-05: **extended to 0.16.0, once** —
-  R5.6's step-evidence sweep now produces the per-step catch record at source, so
-  0.16.0 is a deadline with real evidence behind it. No further extension on
-  no-evidence grounds: after R5.6, "no evidence" means "did not run".
-- **0.16.0 — `change-simplify` and `change-verify`** (§30.4): a confirmed field catch
-  each, or deletion candidates. R5.1 exists partly to give `change-verify` a
-  slice-level path to one.
+**Clocks are counted in field arcs, not releases — owner decision 2026-08-05.** Both
+clocks below were originally set in release numbers, and 0.15.0 and 0.16.0 then shipped
+on the same day. Applied literally that would have deleted three pieces of machinery for
+failing a test they were never given the chance to sit: the evidence each clock demands
+is produced by steps that shipped hours earlier, and no adopter had run an arc under
+them. A release is something this repo can do twice in an afternoon; an arc is the unit
+that actually exercises a rule. The denominator was wrong, not the rule — this is the
+same defect the field reports keep surfacing, found this time in the audit regime
+itself. **The §16 audit regime ("no confirmed catch after two releases") has the
+identical flaw and is a standing decision, so it is flagged here rather than rewritten:
+it wants the same re-denomination whenever it is next opened.**
+
+- **STD's audit clock — two field arcs from 2026-08-05** (§22, §31.6): the audit ran at
+  its 0.15.0 deadline — no lens catch, and no evidence the lenses *activated* in the one
+  arc of exposure, which the pre-R5.6 records could not distinguish from "ran and caught
+  nothing". R5.6's step-evidence sweep now produces the per-step catch record at source,
+  so the next two arcs are a deadline with real evidence behind it. No further extension
+  on no-evidence grounds once those arcs have run: after R5.6, "no evidence" means "did
+  not run".
+- **`change-simplify` and `change-verify` — two field arcs from 2026-08-05** (§30.4): a
+  confirmed field catch each, or deletion candidates. R5.1 (shipped 0.15.0) exists partly
+  to give `change-verify` a slice-level path to one, and had no arc of exposure before
+  this clock was re-denominated.
 - **R3.8's aging rule** — §16 contingent keep, waiting on R4.6's writer producing
   friction entries to age.
 - **Standing input:** a TFit field report (Phase 07), whenever it arrives.
@@ -913,3 +926,49 @@ first time it was caught inside the invariant that exists to catch it.
 release commit from **staged** content in text mode (no `*` prefix — the trap that has
 broken two previous tags), discrimination proven, and all four release-workflow gates
 simulated green locally before the tag.
+
+### 31.16 Bench protocol for the shipped guard — pre-registered 2026-08-05, before the run
+
+**Why a bench run at all, when the guard passed 25 offline cases under both parsers:**
+the offline suite proves the *script's logic* against captured payloads. It cannot prove
+the *wiring*. The shipped guard is a rewrite of the one the trial proved — dual-parser
+detection, a self-locating prelude that derives the repo root from the payload, session
+scoping, and a rewritten path loop — and **the prelude has never executed inside a real
+Copilot session.** Everything between the CLI and the script's first line is unproven,
+which is exactly the gap the 0.15.0 gate hook sat in for a whole release. This run is
+also the only way to answer the resume question §31.14 flagged and could not close.
+
+Bench: `copilot-ci-test`, Copilot CLI 1.0.77, hooks under WSL bash (31.7.5). Runs stay
+in **logging mode** — nothing is armed. Known harness hazards, both already paid for:
+`copilot.exe` is reachable only by its WinGet path, and piping `copilot -p` output
+through a head-style filter kills the CLI before its stop hooks run (capture to a
+variable instead).
+
+**Criteria, and what each outcome means:**
+
+- **B1 — the wiring works at all.** On a real session that edits a file and runs a test,
+  `.git/sdlc-tdd/guard.log` gains lines from the shipped guard. Failure means the
+  prelude, the matcher, or the parser detection is broken in the live environment, and
+  0.16.0's guards do not work as shipped — a point-release fix, and the honest reading
+  is that the offline suite bought less than it appeared to.
+- **B2 — the parser resolves in the hook's own shell.** No `GUARD ERROR` line appears.
+  A `GUARD ERROR: no JSON parser` line is a *pass for the guard's honesty* and a finding
+  about this machine, and it makes the dual-dialect work load-bearing rather than
+  theoretical.
+- **B3 — the catch still catches.** A session told to write production code without a
+  failing test first produces a `VIOLATION` line naming the file. This is V1 from §31.8
+  re-run against the rewritten script; failure is a regression the offline suite missed.
+- **B4 — silence on a clean run.** A strict-TDD sequence produces zero `VIOLATION` lines
+  and a clean stop. Failure is a false positive, which under deny would block real work.
+- **B5 — the resume question, the one genuinely new unknown.** Record the `sessionId` of
+  a session, resume it, and read whether the guard logs `new session … previous
+  observations cleared`. **Cleared on resume = the session-scoping shipped in 0.16.0
+  false-denies after any resume once deny is armed**, and the fix is to key on session
+  *start* rather than id equality. Not cleared = the scoping is sound as shipped. Either
+  answer is worth the run; this is the criterion the batch shipped without.
+
+**Decision rule, fixed now:** B1–B4 green and B5 "not cleared" → the shipped guards are
+proven live and the deny ramp is available to any adopter who wants it. B5 "cleared" →
+a 0.16.1 fix to the scoping, and the changelog says plainly that session-scoping as
+shipped is unsafe to arm. Any B1–B4 failure → the guards are not what 0.16.0 claimed,
+and that is a point release, not a note.
