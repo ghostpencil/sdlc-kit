@@ -499,3 +499,44 @@ repo-scoped, not session-scoped (a trial finding if it bites); G2's "green obser
 accepts any green test run, not specifically the full gate (bench fixture has one
 suite; the distinction is a ship-time design point).
 
+### 31.9 ENF logging-mode trial — run 2026-08-05, same day: ALL SEVEN CRITERIA MET
+
+Guards built after 31.8 was committed (`4928fa9` precedes the guard code, provably).
+Offline first: a 12-case unit pass drove every state transition with the *captured
+probe payloads* before any live session — every verdict as expected, including
+red-goes-stale-on-test-edit and the exempt-file no-op. Then live, on the bench:
+
+- **V1 met** — implementation-before-red run: `VIOLATION production write without
+  observed red: payments.js` (`.git/enf-runA.log`).
+- **V2 met** — same run's close: `stop: WOULD-BLOCK — no green test run observed`.
+- **V3 + S1 met** — scripted strict-TDD run: test-edit → RED observed (exit 1) → OK
+  production write → GREEN → `stop: clean`. **Zero violations, zero false positives**
+  (`.git/enf-runB.log`).
+- **S2 met** — every guard invocation 31–88 ms against the 30 s budget; the guard
+  reads and writes marker files only.
+- **S3 met** — nothing denied, nothing blocked, in any run.
+- **S4 met** — hooks renamed away + state deleted → clean session, no guard artifact
+  recreated; hooks restored after.
+
+Facts the trial added to the record (each would have bitten the shipped version):
+
+1. **Patch paths arrive in both forms** — absolute Windows (`D:\…\payments.js`, run
+   A) *and* repo-relative (`payments.js`, run B). Classification must normalize to
+   the basename; fixed between runs A and B (disclosed: run A's verdict predates the
+   fix and is unaffected — the fix touches test-file classification only).
+2. **`agentStop` fires in `-p` mode**; payload measured: `sessionId`, `cwd`,
+   `transcriptPath`, `stopReason: "end_turn"`, snake_case `stop_hook_active`.
+   `sessionStart`/`sessionEnd` also exist and fire. (The run-A "agentStop missing"
+   scare was a harness artifact: piping `copilot -p` through a head-style filter
+   kills the CLI before its stop hooks run — recorded on the bench as a hazard.)
+3. **The guard depends on `jq`** (present in this bench's WSL) — a ship-time
+   dependency question for the template, alongside 31.7.5's WSL-bash hazard.
+
+**Per the decision rule, the deny-ramp may now be proposed — and is. Owner halt:**
+the report is above; the options are (a) ramp the bench guards to deny (next unknown
+to measure: `preToolUse`'s deny output schema in practice, plus G2's real block
+behavior and the 8-block cap), (b) skip to template-izing for the kit with deny
+unproven, or (c) stop at logging. Recommendation: (a) — the report's own rollout
+ordering, and deny is exactly the half the field problem needs (31.3: skills treated
+as prompts). Nothing enters the installed set before the ramp's own results are read.
+
