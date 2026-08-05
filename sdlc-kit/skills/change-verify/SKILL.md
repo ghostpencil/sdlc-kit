@@ -28,8 +28,9 @@ a path you attempted and could not reach.
 
 ## How to use
 
-Invoked before committing a nontrivial slice, and at phase end for the phase-level
-verification `/end-phase` step 2 calls for. It can also be run directly on any change.
+Invoked at slice close (`/end-slice` step 6 — optional on a small or mechanical slice,
+but a skip is stated, never silent) and at phase end for the phase-level verification
+`/end-phase` step 2 calls for. It can also be run directly on any change.
 
 Arguments, all optional:
 

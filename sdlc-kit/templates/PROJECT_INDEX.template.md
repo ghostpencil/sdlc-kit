@@ -72,13 +72,19 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 
 <!-- Process friction, not code findings: a step that cost more than it returned, a
      rule worked around, tooling noise (stderr warnings, phantom diffs), a moment the
-     process was silent. One line each, dated. /end-slice's close-out writes here, at
-     the moment the friction is still accurate. This is /sdlc-retro's raw material —
-     its recorded-but-unactioned sweep mines this section first, because friction that
+     process was silent. One line each, in exactly this shape:
+       - <YYYY-MM-DD> — <the friction, one sentence> — open
+     flipped in place when a retro absorbs the entry into a report:
+       - <YYYY-MM-DD> — <the friction, one sentence> — absorbed by retro <YYYY-MM-DD>
+     /end-slice's close-out writes the `open` form here, at the moment the friction is
+     still accurate; /sdlc-retro's sweep reads the status word, reports every entry
+     still `open` with its age, and carries anything older than one phase into the
+     next report. One shape for writer and sweep — an entry without a status word is
+     one the sweep has to infer about, which is how two entries in a real adoption
+     sat statusless until a retro guessed. This is /sdlc-retro's raw material — its
+     recorded-but-unactioned sweep mines this section first, because friction that
      produces no backlog entry, no commit, and no gate movement is invisible to every
-     other sweep. When a retro absorbs an entry into a report, mark it absorbed rather
-     than deleting it — /sdlc-retro reads that marker, reports the entries without one
-     with their age, and carries anything older than one phase into the next report. -->
+     other sweep. -->
 
 - (none yet)
 

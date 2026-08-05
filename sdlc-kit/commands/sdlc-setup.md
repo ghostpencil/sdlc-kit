@@ -40,7 +40,10 @@ existing file becomes a shown merge plan, not a silent clobber.
    If the answer includes Copilot, run `copilot --version` and compare it against the
    version floor in `reference/COPILOT.md`; an older CLI means the gate hook's matcher
    may never fire, so say that plainly now rather than installing a hook that cannot
-   report anything.
+   report anything. That run resolves in **this session's** shell — if the owner runs
+   Copilot from a different shell or machine, have them run it there (the same
+   two-environments rule as the run command below); step 6's live hook proof is the
+   backstop either way.
    The confirmed answer resolves `{{TARGET_CLI}}` in `spec/PROJECT_INDEX.md`
    (`Claude Code` / `Copilot CLI` / `both`) — `/sdlc-update` reads it to know which
    directories are kit-owned in this project, so an unrecorded answer is one a later
@@ -121,12 +124,24 @@ questionnaire.
 
   On Copilot CLI the alias column is **asked, not proposed**: the available models come
   from that CLI's own `/model` listing, so show the owner the listing and have them map
-  the three tiers against it. Proposing names from memory is the same mistake as
-  proposing gate commands the project does not run. See `reference/COPILOT.md` — and do
-  not build the policy on per-agent model pinning, which is unverified there.
+  the three tiers against it — each tier gets a named model from that listing, **or the
+  owner ratifies `auto` for that tier, and the question itself states what `auto`
+  forfeits**: on Copilot no installed file routes models (`reference/COPILOT.md`,
+  *Models and tiers*), so under `auto` the process-heavy commands — `/plan-phase`,
+  `/end-phase`, `/end-slice`'s review — may run below the work's tier, and a field run
+  has already paid for that in manual mid-arc overrides. A dated record of the choice
+  is not the fix — a record cannot show whether the consequence was understood; the
+  question must carry it. Proposing names from memory is the same mistake as proposing
+  gate commands the project does not run: the mapping must match an **informed**
+  decision, or the mapping lies. Do not build the policy on per-agent model pinning —
+  `COPILOT.md` records what is and is not verified about `model:` frontmatter there.
 
   Record the confirmed policy as `{{MODEL_POLICY}}` (*Model policy* section of
-  `spec/SDLC.md`). Then ask whether to pin a session default: on Claude Code, if yes,
+  `spec/SDLC.md`). On Copilot CLI the policy text is **operator-facing** — the
+  template's comment states the shape: it names which commands run at which tier and
+  the moment the routing is executed (set `/model` in-session, or `COPILOT_MODEL` for
+  a scripted run, **before** a High-tier command), because a tier policy nobody
+  executes is prose. Then ask whether to pin a session default: on Claude Code, if yes,
   resolve `{{DEFAULT_MODEL}}` in `.claude/settings.json` (`"model"` key) with the chosen
   alias, and if the owner keeps the harness default, **delete that line** from the
   instantiated settings rather than inventing a value. On Copilot there is no such
@@ -219,8 +234,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      step 4 and `/end-phase` step 5 both name it, and it is the only reviewer that
      exists on both CLIs), `change-simplify/` (always — `/end-slice` step 3 names it;
      the step is optional, the skill is not, because a step that may run needs the
-     skill present to decide against), and `change-verify/` (always — `/end-phase`
-     step 2 names it); then `tdd-guide/` (offer), `python-pro/` +
+     skill present to decide against), and `change-verify/` (always — `/end-slice`
+     step 6 and `/end-phase` step 2 name it); then `tdd-guide/` (offer), `python-pro/` +
      `hypothesis-tests/` (Python projects only — offer). Copy directories, not files:
      the eight `SKILL.md` files share a basename and only their parent directory tells
      them apart.

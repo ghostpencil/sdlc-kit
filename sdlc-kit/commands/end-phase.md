@@ -1,12 +1,17 @@
 # End Phase
 
 Close out the phase: gate → owner acceptance review → PR → whole-arc review → merge
-approval → bookkeeping. Halts exactly twice: acceptance review and merge approval.
-Process reference: `spec/SDLC.md`.
+approval → bookkeeping. Halts twice by schedule — acceptance review and merge
+approval — plus any owner-facing design question the work or the review surfaces,
+which halts like everywhere else. Process reference: `spec/SDLC.md`.
 
 ## How to use
 
 `/end-phase` — after the last slice of the phase has been through `/end-slice`.
+
+This command is review-heavy; check the model policy recorded in `spec/SDLC.md`
+(`/model` to switch — on a CLI where routing is operator-performed, the policy names
+the moment to set it).
 
 ## Workflow
 

@@ -120,7 +120,7 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
 done
 ```
 
-Two checks on the check — required, because both failure modes produce a plausible
+Three checks on the check — required, because each failure mode produces a plausible
 result rather than an error:
 
 - **Denominator.** The loop must print exactly as many lines as
@@ -216,15 +216,34 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `change-simplify/` and `change-verify/`.** Both arrive by the new-files clause, but
   the owner needs the process change stated, not the filenames. `/end-slice` gains a
   **new step 3**, an optional post-green quality pass, which renumbers every step after
-  it — review is now step 4, commit step 6, hand-back step 8. `/end-phase` step 2 now
+  it — review became step 4 (the 0.14.0 commit/hand-back numbers were 6 and 8; 0.15.0
+  renumbers again — next bullet). `/end-phase` step 2 now
   names `change-verify` for the phase-level verification it previously described only
-  as "smoke test, end-to-end run, manual script". Two things to say plainly: the
+  as "smoke test, end-to-end run, manual script" (0.15.0 adds a slice-close naming
+  too — next bullet). Two things to say plainly: the
   quality-pass step is **optional but never silent**, so the hand-back gains a line
   either way; and on Claude Code these do **not** replace the `verify` and `simplify`
   built-ins, which remain available — the kit ships its own so the passes exist on
   Copilot too, and running both over the same range is waste, not rigour.
   A project whose own notes cite `/end-slice` step numbers will be stale after this
   update. Flag that; do not edit project-owned docs to fix it.
+- **0.15.0 changes the slice loop again, and prescribes two record formats.**
+  `/end-slice` gains a **new step 6** — slice verification via `change-verify`,
+  optional but never silent, same contract as the quality pass — renumbering commit to
+  7, PROJECT_INDEX to 8, hand-back to 9. The TDD loop's RED becomes evidence-bearing:
+  the failing run is observed and recorded as it happens, and the slice commit body
+  now carries the `RED:` lines and a `verify:` outcome line. The Kit friction log gets
+  one prescribed entry shape (`- <date> — <friction> — open`, flipped by the retro to
+  `absorbed by retro <date>`). The catch to state at the halt: those rules live in the
+  target's `templates/SDLC.template.md`, `templates/TESTING.template.md`, and
+  `templates/PROJECT_INDEX.template.md`, which an update never re-instantiates — so
+  the project's `spec/SDLC.md` and `spec/TESTING.md` still describe the old loop, and
+  `spec/SDLC.md` **wins over the commands by its own first paragraph**. Until the
+  owner folds the template diff into their spec files, the updated commands and the
+  project's process file disagree, in the direction that disables the new steps. Hand
+  the owner the diff of the three templates between the two versions; do not edit
+  project-owned files. Step-number citations in project notes go stale again — flag,
+  do not fix.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target

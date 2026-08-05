@@ -10,6 +10,67 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.15.0 — 2026-08-05
+
+The R5 batch (`FEATURE_PLAN.md` §31): the sixth field report — the first from a second
+adopter, and the first from a Copilot CLI adoption — triaged and fixed. Its theme is
+the kit's own hazard-4 rule arrived at independently: *an instruction to do is
+unenforceable; an instruction to produce evidence that could only exist if it was done
+is enforceable.* Every substantive change here converts a written step into an
+evidenced one.
+
+### Added
+- **[installable]** **`/end-slice` gains step 6, slice verification** — the
+  `change-verify` skill run at slice close, in exactly the shape the quality pass
+  already uses: **optional, and never silent**. The skill's own description always said
+  "before committing a nontrivial slice", but no slice-level step fired it — on Copilot
+  CLI, where skill activation is relevance-based, it demonstrably never ran, and an
+  ingestion break survived a slice close-out to surface at phase end, four fix commits
+  later. Commit, PROJECT_INDEX, and hand-back renumber to 7/8/9.
+  (`templates/SDLC.template.md` slice loop gains the matching step 9;
+  `skills/change-verify/SKILL.md` *How to use* now names the step, so skill and
+  process state one trigger.)
+- **[installable]** **Observed-RED evidence.** RED was written, never evidenced: the
+  template said "write one test", not "run it and watch it fail". Now
+  `templates/TESTING.template.md`'s RED step demands the observed failing run;
+  `/next-slice` §4 records each observation **as it happens** (command, failing line,
+  exit code — it cannot be reconstructed at close-out); the slice commit body carries
+  the `RED:` lines and the `verify:` outcome as the durable record; `/end-slice`'s
+  hand-back states them per behavior batch, with **"not observed" stated, never
+  omitted**. The mutation check proves test *sensitivity*; this is the first artifact
+  proving red-before-green *ordering*.
+- **[installable]** **`/sdlc-retro` gains a step-evidence enumeration sweep** — reads
+  the steps `spec/SDLC.md` names and reports each as ran / caught / skipped-with-reason
+  / no evidence, off the records the two changes above create. Silent non-activation
+  surfaces by enumeration instead of by damage; the report skeleton gains a *Step
+  evidence* table.
+- **[adoption-only]** **Copilot model routing is operator-performed, and now says so.**
+  Setup's tier question states what ratifying `auto` forfeits (process-heavy commands
+  may route below the work's tier — a field run paid for this in manual overrides);
+  the `spec/SDLC.md` model-policy shape names which commands run at which tier and the
+  moment the operator sets the model (`/model` / `COPILOT_MODEL`, before a High-tier
+  command); `reference/COPILOT.md` records the three operator levers and marks the
+  Copilot-model `model:` pin **unverified pending a bench run** — no per-file pins
+  ship until the bench answers.
+
+### Changed
+- **[installable]** **Friction-log entries get one prescribed shape** —
+  `- <date> — <friction> — open`, flipped by the retro to `absorbed by retro <date>`.
+  `templates/PROJECT_INDEX.template.md` prescribes it, `/end-slice` writes it,
+  `/sdlc-retro` flips it: one format for writer and sweep, so status is read, not
+  inferred.
+- **[adoption-only]** `reference/SKILLS.md` — new section: kit skills must never be
+  updated via `gh skill install`/`update`, which inject provenance frontmatter
+  (repository, ref, tree SHA) into `SKILL.md` and compare against an upstream that is
+  not the kit. CLI-neutral: the extension targets six agents including Claude Code.
+  `reference/COPILOT.md` cross-references it, and records three dated hook facts for
+  any future enforcement batch (`preToolUse` fails open on timeout, `agentStop`'s
+  eight-block cap and `stop_hook_active`, `userPromptTransformed` is mutation-only).
+
+### Fixed
+- **[installable]** `reference/REVIEW_LENSES.md` — its header still said "`/end-slice`
+  §3 points here"; the lens pointer has lived in §4 since the 0.14.0 renumber.
+
 ## 0.14.1 — 2026-08-05
 
 A patch release: the Copilot bootstrap becomes documented, plus three findings from a

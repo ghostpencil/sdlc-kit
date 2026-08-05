@@ -17,7 +17,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 |---|---|---|
 | Agent instructions | `CLAUDE.md` | `CLAUDE.md` — **read directly, no translation** |
 | Kit commands (7) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
-| Vendored skills (5) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
+| Kit skills (8: 5 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.json`, `postToolUse` |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
@@ -98,7 +98,8 @@ hazards belong to this file, because they change what the *process* can claim:
 2. **A hook that times out is treated as a pass.** `timeoutSec` defaults to 30, and a
    timed-out hook surfaces a warning and lets the tool call proceed. The kit's hook
    runs lint *and* typecheck; 30 seconds is not a generous budget for a cold typecheck,
-   and the failure mode is a silently green gate — invariant 15 exactly. The recipe
+   and the failure mode is a silently green gate — a check that verifies nothing while
+   reading as one that passed. The recipe
    therefore sets `timeoutSec` explicitly and states the basis for the number, and the
    generated `spec/SDLC.md` says that a timeout reads as a pass.
 3. **The matcher is anchored.** It is compiled as `^(?:PATTERN)$` and must match the
@@ -108,6 +109,24 @@ hazards belong to this file, because they change what the *process* can claim:
    on exit 2, and takes `permissionDecision: allow|deny|ask`. The kit does not use it:
    its gate is a post-edit check, not a pre-approval. Recorded so a later batch does not
    rediscover it and assume it was overlooked.
+
+### Hook capabilities on record — the kit builds nothing on these yet
+
+Verified against the hooks reference 2026-08-05, recorded so a later batch starts from
+dated facts instead of re-research:
+
+- **`preToolUse`'s fail behavior is asymmetric: closed on a command error, open on a
+  timeout.** The reference is explicit that a timed-out hook lets the tool call
+  proceed *even for `preToolUse`*. Hazard 2's arithmetic therefore applies to any
+  future pre-hook too: a guard that outruns its `timeoutSec` silently stops guarding,
+  which is why a guard script must stay cheap — state reads and writes, never running
+  a suite inline.
+- **`agentStop` can block a session from stopping**, with a documented cap of eight
+  consecutive blocks. Its input carries a `stop_hook_active` flag telling the hook it
+  is already inside a forced continuation — a well-behaved hook reads the flag rather
+  than fighting the cap.
+- **`userPromptTransformed` can rewrite the model-facing prompt** — mutation only; it
+  cannot block.
 
 ### Tool names — what is documented, and how to find the rest
 
@@ -123,7 +142,8 @@ name the recipe ships with:
 | `apply_patch` | same cookbook's post-edit hook | plausible, unofficial |
 
 The recipe ships `edit|create|apply_patch` as a **starting** matcher and proves it the
-way the kit proves every other check (invariant 13): a deliberate lint error must
+way the kit proves every other check — it is trusted only once it has been made to
+fail: a deliberate lint error must
 produce hook feedback before the hook is trusted. A wrong matcher therefore fails
 loudly at setup time instead of becoming a gate that never fires.
 
@@ -161,6 +181,24 @@ differ. On Copilot CLI the available set comes from `/model` (or `/models`), and
 three tiers against that listing rather than proposing model names — the same rule the
 gate recipes follow, for the same reason.
 
+**Routing is operator-performed on Copilot.** No file the kit installs can set the
+model for a session or a command: kit files carry no `model:` (authoring hazard 2 — a
+Claude model name is downgraded to `auto` with a warning, and a model name is a
+project fact besides), and skill frontmatter has no documented `model` field at all —
+the CLI skills page documents `name`, `description`, `license`, and `allowed-tools`
+only (checked 2026-08-05); only custom agents document `model` (below). The levers are
+therefore the operator's three: `/model` in-session, `COPILOT_MODEL` in the
+environment for a scripted run, and a per-agent `model:` pin on
+`.github/agents/explore.agent.md` if the owner wants the sweep agent held to the Low
+tier. The generated `spec/SDLC.md` names which commands run at which tier and
+instructs the operator to set the model **before** a High-tier command —
+`/plan-phase`, `/end-phase`, and `/end-slice`'s review at minimum; the escalation is
+manual, and the CLI's low execution visibility (a session does not announce which
+model served each turn) is a CLI property the kit can report around but not fix. A
+field run on 0.14.0 paid for the un-named version of this in manual mid-arc
+overrides; the recorded tier mapping, the setup question that states what `auto`
+forfeits, and the operator step in `SDLC.md` are the response.
+
 **Per-agent model pinning is supported** — the custom-agents *configuration reference*
 documents a `model` field ("Model to use when this custom agent executes. If unset,
 inherits the default model"), applying to GitHub.com, the Copilot CLI, and supported
@@ -168,7 +206,13 @@ IDEs. This corrects an earlier reading of the CLI's how-to page, which lists onl
 `name`, `description`, and `tools`: the how-to is a subset of the reference, not a
 narrower contract. The kit still ships no pinned model in any file it installs — a model
 name is a project fact, so if the owner wants the sweep agent pinned to their Low tier,
-setup adds `model:` from the recorded policy.
+setup adds `model:` from the recorded policy. **Unverified as of 2026-08-05, pending a
+bench run:** whether `model:` naming a *Copilot* model (the docs document the field for
+agents; hazard 2's measurement covered only a Claude name being downgraded) is honoured
+in practice on the CLI. Until the bench answers, setup offers no per-file pins — the
+operator levers above are the load-bearing mechanism, and on a dual-CLI project
+per-file pins are off the table regardless, since one CLI's model name is the other's
+downgrade warning.
 
 ## Subagents and sweeps
 
@@ -267,7 +311,7 @@ announced it is removing is not one to build a process on.
 | Missing | What the kit uses it for | Available substitute today |
 |---|---|---|
 | `/code-review` | the owner-typed, billed escalation | GitHub Copilot code review requested on the phase PR — owner-driven, and the kit does not configure it; see below |
-| `verify` | end-to-end exercise before committing | **closed in 0.14.0** — the kit-written `change-verify`, named by `/end-phase` step 2 |
+| `verify` | end-to-end exercise before committing | **closed in 0.14.0** — the kit-written `change-verify`, named by `/end-slice` step 6 and `/end-phase` step 2 |
 | `simplify` | post-green refactor pass on the slice diff | **closed in 0.14.0** — the kit-written `change-simplify`, named by `/end-slice` step 3 |
 | `security-review` | phases touching auth, secrets, input, network | the secure-coding lenses in `REVIEW_LENSES.md`, installed to `.claude/commands/` and named by `/end-slice` — no longer read by hand |
 | `update-config` | editing hook/permission config safely | not needed — see below |
@@ -329,6 +373,13 @@ The gate hook is **project-owned**, like `.claude/settings.json`: it holds the p
 own lint and typecheck commands, so an update never rewrites it. A release that changes
 the hook recipe reaches an adopted project as a changelog entry the owner applies, not
 as a silent overwrite.
+
+One more way a skill file can mutate outside `/sdlc-update`: the `gh skill` extension
+injects provenance frontmatter into `SKILL.md` on install, and its `update` compares
+tree SHAs against an upstream that is not the kit. The full note is in
+`reference/SKILLS.md` — it is CLI-neutral (the extension targets six agents including
+Claude Code), not a Copilot hazard; it is named here only because this file is where
+update expectations live. (Verified 2026-08-05.)
 
 Which of this applies is recorded rather than sniffed: `/sdlc-setup` writes the project's
 agent CLI into `spec/PROJECT_INDEX.md`, and `/sdlc-update` reads it there.
@@ -398,6 +449,13 @@ Named non-GitHub sources, each cited in place above and **not** corroborated by 
 docs: a third-party Copilot CLI cookbook (the `create` / `apply_patch` tool names, the
 v1.0.63 matcher floor) and `vercel/detect-agent`, MIT (the `AI_AGENT` convention and the
 Copilot auth-variable detection this file declines to use).
+
+Re-verified **2026-08-05**, same sources unless named: the hooks reference (the
+`preToolUse` timeout asymmetry, `agentStop`'s eight-block cap and `stop_hook_active`,
+`userPromptTransformed` — the *Hook capabilities on record* section above); the CLI
+skills page (SKILL.md frontmatter documents no `model` field — *Models and tiers*);
+GitHub's changelog, 2026-04-16 entry (`gh skill install`/`update` frontmatter
+injection — repository, ref, tree SHA).
 
 Upstream issues tracked, open as of 2026-08-03: `github/copilot-cli#618` (markdown
 prompt files), `github/copilot-cli#3820` (matcher / tool-name documentation).

@@ -98,6 +98,12 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
 1. Read `spec/TESTING.md` — fresh, every time; do not rely on memory.
 2. Invoke the TDD skill.
 3. Implement the slice in small red–green–refactor cycles, one behavior at a time.
+   **RED is observed, not assumed:** run each behavior's new test and watch it fail
+   before writing the code, and record the observation **as it happens** — the exact
+   test command, the failing test's line, the exit code — in a running record kept for
+   `/end-slice`, which writes it into the slice commit body. An observed red cannot be
+   reconstructed at close-out; a red never recorded reads later as a red never run,
+   and the close-out states `not observed` rather than omitting the line.
 4. A spec conflict or owner-facing design decision HALTS with a question — never resolve
    one silently. State it per the hand-back standard: plain English, the decision
    numbered and marked, options with a recommendation.
@@ -106,7 +112,8 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
 
 When the slice's exit criteria are met, tell the owner the slice is ready for close-out
 — an executive summary per the hand-back standard: what the slice now does, in plain
-English — and run `/end-slice` (gate, review, commit, PROJECT_INDEX, then `/clear`).
+English — and run `/end-slice` (gate, quality pass, review, mutation check,
+verification, commit, PROJECT_INDEX, then `/clear`).
 
 ## Notes
 

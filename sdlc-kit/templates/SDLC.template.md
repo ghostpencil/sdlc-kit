@@ -180,7 +180,15 @@ source file, so most gate failures surface at edit time rather than at slice end
      same and the models are that CLI's own, mapped with the owner at setup.
      Switch any session with /model; the pinned session default, if one was chosen,
      lives in .claude/settings.json ("model") on Claude Code, or in COPILOT_MODEL on
-     Copilot CLI, and this section says which. -->
+     Copilot CLI, and this section says which.
+     Copilot CLI dialect — routing is OPERATOR-PERFORMED: no file the kit installs can
+     set the model, so the policy text above must name which commands run at which
+     tier (/plan-phase, /end-phase, and /end-slice's review are High at minimum) and
+     instruct the operator to set the model — /model in-session, or COPILOT_MODEL for
+     a scripted run — BEFORE invoking a High-tier command. A tier policy nobody
+     executes is prose; naming the moment it is executed is what makes it a step. A
+     tier the owner left on `auto` is recorded as `auto (ratified <date>)` with what
+     that forfeits stated beside it. -->
 
 ## Phase start
 
@@ -234,7 +242,12 @@ Run `/next-slice` in a **fresh session**:
 3. Ensure the arc branch is checked out (create it if phase start was skipped; check for
    any unmerged arc branch before creating a new one — see *Shape*).
 4. Read `spec/TESTING.md`, invoke the TDD skill, implement the slice in small
-   red–green–refactor steps. Design questions halt *(halt 3)*.
+   red–green–refactor steps. **RED is observed, not assumed:** each behavior's new test
+   is run and watched to fail before the code is written, and the observation is
+   recorded as it happens — the exact test command, the failing test's line, the exit
+   code — in a running record the session keeps for `/end-slice`, which writes it into
+   the slice commit body. An observed red cannot be reconstructed at close-out; a red
+   never recorded reads later as a red never run. Design questions halt *(halt 3)*.
 
 Run `/end-slice` when the slice's exit criteria are met:
 
@@ -250,7 +263,9 @@ Run `/end-slice` when the slice's exit criteria are met:
    checkout/restore/stash` — because the code it improves is uncommitted and has no
    restore point behind it. Skipping
    it is a legitimate choice on a small or mechanical slice; skipping it silently is
-   not, so say so in the hand-back either way.
+   not, so say so in the hand-back either way — and the one-line outcome
+   (`quality: <N moves applied | nothing to do | skipped — reason>`) is recorded in
+   the slice commit body.
 7. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
    reported side by side, never merged; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
@@ -274,14 +289,31 @@ Run `/end-slice` when the slice's exit criteria are met:
    or inverted once and the suite watched to fail on exactly the intended test
    (mutation-testing skill for anything beyond a quick delete-and-run). A check is
    trustworthy only once it has been made to disagree; the step is done when every new
-   guard has been seen to fail on exactly its own test.
-9. Commit (heredoc for multi-line messages, via the Bash tool).
-10. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
+   guard has been seen to fail on exactly its own test. The one-line outcome
+   (`mutation: <N guards, each seen to fail | none — no new guards>`) is recorded in
+   the slice commit body.
+9. Slice verification, **optional** (the `change-verify` skill on a nontrivial slice):
+   exercise the changed behavior through the path its real caller takes rather than
+   through the test harness — the gate is evidence about the suite; this is the only
+   slice-level evidence about the behavior, and without it nothing runs the change
+   outside the harness before phase end. Skipping it is a legitimate choice on a small
+   or mechanical slice; skipping it silently is not — the skip and its reason are
+   stated in the hand-back, and the one-line outcome (`verify: ran — <verdicts>` /
+   `verify: skipped — <reason>`) is recorded in the slice commit body either way.
+   A break it observes is fixed through the same loop as a review fix: apply, re-run
+   the gate, and any new guard joins step 8's mutation obligation.
+10. Commit (heredoc for multi-line messages, via the Bash tool). The commit body
+    carries the slice's evidence record: the observed-RED lines from step 4's running
+    record (one per behavior batch — command, failing line, exit code, with
+    `not observed — <reason>` stated rather than omitted) and the `quality:`,
+    `mutation:`, and `verify:` lines from steps 6, 8, and 9.
+11. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
     detail lives in the phase spec and the commit message), deferred items appended,
     and any friction with the process itself written to the Kit friction log now,
-    while the evidence is still accurate — then commit the docs change. Push the
+    while the evidence is still accurate, in the log's one-line shape
+    (`- <date> — <friction> — open`) — then commit the docs change. Push the
     branch (no PR — that is phase end).
-11. Owner clears context (`/clear`). Every slice starts from a fresh window.
+12. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end
 
@@ -328,7 +360,9 @@ Run `/end-phase` when the last slice is done:
    <where tracked>` / `n/a — no deploy`), with a pending deploy carried in START HERE
    until verified, and followed by the question the deploy outcome does not answer —
    **what did this deploy turn on**, and what disables each newly-live control by
-   itself; the coverage-floor ratchet (set the workflow value, then reconcile
+   itself (newly-live controls recorded in the same Notes cell; one without an
+   independent off switch goes to the backlog as a risk); the coverage-floor ratchet
+   (set the workflow value, then reconcile
    it against the recorded floor — see *Coverage floor* above); the red-baseline
    decision (lower it here, schedule it, or ratify holding it with the arc count — see
    *Gate baseline* above); the backlog surfaced

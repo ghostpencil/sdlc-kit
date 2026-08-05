@@ -1,12 +1,16 @@
 # End Slice
 
-Close out the current slice: gate → quality pass → review → fix → commit → record. Runs
-without asking except for owner-facing design questions. Process reference:
-`spec/SDLC.md`.
+Close out the current slice: gate → quality pass → review → fix → mutation check →
+verification → commit → record. Runs without asking except for owner-facing design
+questions. Process reference: `spec/SDLC.md`.
 
 ## How to use
 
 `/end-slice` — after the slice's exit criteria are met, before `/clear`.
+
+The review (step 4) is the analysis-heavy part; check the model policy recorded in
+`spec/SDLC.md` (`/model` to switch — on a CLI where routing is operator-performed, the
+policy names the moment to set it).
 
 ## Workflow
 
@@ -53,8 +57,11 @@ Three rules make it safe to run automatically:
   restore point behind it.
 
 **Skipping it is legitimate; skipping it silently is not.** On a small or mechanical
-slice there may be nothing to do — say that in the hand-back (step 8), along with what
+slice there may be nothing to do — say that in the hand-back (step 9), along with what
 was applied if it ran. A pass whose outcome nobody stated is one nobody can weigh.
+Either way the one-line outcome also goes into the slice commit body (step 7) —
+`quality: <N moves applied | nothing to do | skipped — reason>` — so the record
+outlives the session.
 
 ### 4. Slice code review
 
@@ -70,7 +77,7 @@ agent or model.
 The built-in `/code-review` is the owner-typed, billed escalation — it is not this
 step, and this command cannot launch it. On Claude Code a deeper specialist fan-out
 (`pr-review-toolkit`) may be available; it is **optional**, and if it ran, say so in
-the hand-back (step 8). The same rule binds any substitution: a review whose depth is
+the hand-back (step 9). The same rule binds any substitution: a review whose depth is
 not stated is one nobody can weigh, and a good substitute review is exactly the kind
 nobody thinks to question.
 
@@ -101,13 +108,13 @@ credentials or an externally reachable surface, also apply the matching lens fro
 Triage findings — **verify each one against the source before it enters any pile.** A
 finding is a claim about the code; severity is asserted by the reviewer, not measured,
 and a false premise survives review at CRITICAL just as easily as at LOW. Findings that
-did not survive verification are reported in the hand-back (step 8) alongside the ones
+did not survive verification are reported in the hand-back (step 9) alongside the ones
 that did, never dropped silently.
 
 - **Fix now:** correctness bugs, silent failures, trust-boundary violations, anything
   CRITICAL/HIGH.
 - **Defer:** style/structure improvements, latent issues with no current trigger. Each
-  deferred item gets a one-line entry with rationale (step 7), its stated cause marked
+  deferred item gets a one-line entry with rationale (step 8), its stated cause marked
   **measured** (you reproduced or observed it) or **suspected** (you inferred it) — the
   reader of that entry needs to know what still needs checking, because a backlog entry
   is a hypothesis with a timestamp, not a finding.
@@ -132,9 +139,32 @@ delete-and-run. A check is only trustworthy once it has been made to disagree; a
 whose deletion leaves the suite green is untested code wearing a test's name, and this
 practice caught exactly that on a real project — twice — in guards whose tests could
 not have failed. The step is done when every new guard has been seen to fail on
-exactly its own test; a guard not yet seen to fail is not yet closed.
+exactly its own test; a guard not yet seen to fail is not yet closed. The one-line
+outcome goes into the slice commit body (step 7) —
+`mutation: <N guards, each seen to fail | none — no new guards>`.
 
-### 6. Commit the slice
+### 6. Slice verification — optional, and never silent
+
+Run the `change-verify` skill on a nontrivial slice: exercise the changed behavior
+through the path its real caller takes — the CLI's argv, the HTTP route, the queue
+message — not the test harness. The gate (step 2) is evidence about the suite; this is
+the only slice-level evidence about the **behavior**, and without it the first time
+anything runs the change outside the harness is phase end — a real adoption's ingestion
+break survived its slice's close-out exactly that way and surfaced at phase end, four
+fix commits later. The skill is installed by `/sdlc-setup` into
+`.claude/skills/change-verify/` and is available on both CLIs; its own report contract
+applies (a transcript block per run — a pass not observed is not a pass).
+
+Same contract as step 3: **skipping is legitimate; skipping silently is not.** On a
+small or mechanical slice — docs, config, a change the gate fully pins — state the skip
+and its reason in the hand-back (step 9). Either way the one-line outcome goes into the
+slice commit body (step 7): `verify: ran — <verdict per behavior>` or
+`verify: skipped — <reason>`, so the record outlives the session.
+
+If it observed a break, fixes go through the loop the review's fixes do: apply, re-run
+the gate, and any new guard joins step 5's mutation obligation.
+
+### 7. Commit the slice
 
 Use the Bash tool with a heredoc for the message (never shell-specific here-strings):
 
@@ -144,11 +174,24 @@ git commit -m "$(cat <<'EOF'
 <type>(<area>): <slice summary>
 
 <what and why, briefly>
+
+RED: <test command> — <the failing line> — exit <code>   (one per behavior batch)
+quality: <N moves applied | nothing to do | skipped — reason>
+mutation: <N guards, each seen to fail | none — no new guards>
+verify: <ran — verdicts | skipped — reason>
 EOF
 )"
 ```
 
-### 7. Record in PROJECT_INDEX
+The `RED:` lines are the slice's observed-red record, copied from the running record
+`/next-slice` §4 keeps as each red is observed — the exact test command, the failing
+test's line, the exit code. A behavior whose red was not observed is written
+`RED: not observed — <reason>`, never omitted. The commit body is where this record
+lives durably: `/sdlc-retro`'s step-evidence sweep reads it off `git log`, and an
+observed red cannot be reconstructed at close-out — the commit only carries what the
+loop already wrote down.
+
+### 8. Record in PROJECT_INDEX
 
 Update `spec/PROJECT_INDEX.md`:
 - Mark the slice done in the current phase's status/START HERE section. **Status only —
@@ -181,7 +224,10 @@ Update `spec/PROJECT_INDEX.md`:
 - **Kit friction gets written now or never.** Was anything in this slice friction with
   the *process* rather than with the code — a rule fought, worked around, or silent
   where a decision was needed? If so, one line to the Kit friction log in
-  PROJECT_INDEX, dated, now. Slice close is the last moment the evidence is still
+  PROJECT_INDEX, now, in the log's prescribed shape —
+  `- <YYYY-MM-DD> — <the friction, one sentence> — open` — the same shape the retro
+  later flips to `absorbed by retro <date>`; an entry without the status word is one
+  the sweep has to guess about. Slice close is the last moment the evidence is still
   accurate; the retro reads this log and cannot reconstruct what was never recorded —
   one adoption's retros produced 23 findings across three arcs while the log gained
   zero entries, because no step ever prompted the writing.
@@ -189,7 +235,7 @@ Update `spec/PROJECT_INDEX.md`:
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).
 
-### 8. Hand back
+### 9. Hand back
 
 Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open with a
 plain-English executive summary in bullets: what the slice now does, gate green (test
@@ -198,8 +244,11 @@ explicitly marked** (usually there is none; an open design question is the excep
 Then the detail, after the summary and never mixed into it: quality-pass outcome (N
 moves applied / N dropped, or **skipped** with the reason — never omitted), review
 outcome (N fixed / N deferred / N discarded as unverified, naming those),
-mutation-check outcome (N guards checked, each seen to fail), any tool substituted for
-one this file names, and commit hashes. End with: **safe to `/clear`**.
+mutation-check outcome (N guards checked, each seen to fail), **RED evidence per
+behavior batch** (the command, the failing line, the exit code — with `not observed`
+stated, never omitted, same contract as the quality pass), **verification outcome**
+(the verdicts, or skipped with the reason), any tool substituted for one this file
+names, and commit hashes. End with: **safe to `/clear`**.
 
 ## Notes
 

@@ -22,14 +22,28 @@ listing (a user can type `/` to browse) — on either CLI. A skill is "available
 appears there. `/sdlc-setup` checks this; after setup, `tdd` must appear or the
 install failed.
 
+## How kit skills must NOT be updated: `gh skill`
+
+Kit skills arrive by `/sdlc-setup` copying directories and move forward by
+`/sdlc-update` — never by the `gh skill` extension. `gh skill install` **injects
+provenance fields into `SKILL.md` frontmatter** — repository, ref, and git tree SHA —
+and `gh skill update` compares those tree SHAs against the upstream repository.
+(Confirmed against GitHub's changelog, 2026-04-16 entry; verified 2026-08-05.) Run
+against a kit-installed skill, that mutates a file `/sdlc-update`'s enumeration and
+this file's provenance regime expect byte-stable: the skill reads as drifted, or —
+worse — gets "updated" to an upstream that is not the kit's version at all. This is
+CLI-neutral, not a Copilot hazard: the extension targets six agents **including Claude
+Code**. If a kit skill was already touched this way, strip the injected frontmatter
+fields and let `/sdlc-update` re-verify the file against its manifest.
+
 ## Required
 
 | Skill | Source | Role in the SDLC |
 |---|---|---|
 | `tdd` (+ `tdd-references/`) | **kit-vendored** → project `.claude/skills/tdd/` | The red–green–refactor loop for every slice; the vertical-slicing mandate and mock policy it enforces. `/next-slice` invokes it after reading `spec/TESTING.md`. **Setup must install this and halt if the copy fails.** |
-| `diff-review` | **kit-vendored** → project `.claude/skills/diff-review/` | The reviewer both `/end-slice` (step 4, working diff) and `/end-phase` (step 5, arc range) name. Two axes reported side by side and never merged: **Spec** — does the change implement the slice's or phase's exit criteria, and only those — and **Standards** — does it follow `CLAUDE.md` *Runtime Conventions*, falling back to a structural-smell baseline. Names no CLI-specific agent or model, so it works on both CLIs. The built-in `/code-review` is the owner-typed, billed escalation — agents cannot launch it, and it is not what any command means by "review". |
+| `diff-review` | **kit-written** → project `.claude/skills/diff-review/` | The reviewer both `/end-slice` (step 4, working diff) and `/end-phase` (step 5, arc range) name. Two axes reported side by side and never merged: **Spec** — does the change implement the slice's or phase's exit criteria, and only those — and **Standards** — does it follow `CLAUDE.md` *Runtime Conventions*, falling back to a structural-smell baseline. Names no CLI-specific agent or model, so it works on both CLIs. The built-in `/code-review` is the owner-typed, billed escalation — agents cannot launch it, and it is not what any command means by "review". |
 | `change-simplify` | **kit-written** → project `.claude/skills/change-simplify/` | The post-green quality pass `/end-slice` step 3 names — reuse, simplification, efficiency, altitude, applied only where the slice introduced or worsened the condition. **The step is optional; the skill is not**, because a step that may run needs the skill present to decide against. Unlike `diff-review` it **edits**, so its prime directive is that behavior is frozen: an improvement that would change behavior is a finding, not an edit. |
-| `change-verify` | **kit-written** → project `.claude/skills/change-verify/` | The phase-level verification `/end-phase` step 2 names. Exercises the arc through the path a real caller takes rather than through the test harness — the gap a green gate structurally cannot cover. Its rule is that **a pass not observed is not a pass**: anything it could not exercise is reported unverified, so halt 4 is not spent on a check that never ran. |
+| `change-verify` | **kit-written** → project `.claude/skills/change-verify/` | The verification pass named at **both** closes: `/end-slice` step 6 (slice close — optional but never silent, same contract as the quality pass) and `/end-phase` step 2 (phase level, on the arc). Exercises the change through the path a real caller takes rather than through the test harness — the gap a green gate structurally cannot cover. Its rule is that **a pass not observed is not a pass**: anything it could not exercise is reported unverified, so halt 4 is not spent on a check that never ran. |
 | kit commands | this kit | `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`, `end-phase`, `sdlc-retro`, `sdlc-update` → copied into `<project>/.claude/commands/`, or packaged into `<project>/.github/skills/<name>/SKILL.md` on Copilot CLI; either way they travel with the repo. `sdlc-setup` is installed by hand — it cannot install its own entry point. The install list in `commands/sdlc-setup.md` (New mode step 5) is the source of truth for this set. |
 
 ## Shipped in `sdlc-kit/skills/` — what gets installed when
@@ -49,7 +63,7 @@ directory tells them apart, so they are copied as directories, never as files.
 | `mutation-testing/` | **always** | Test-suite strength assessment by injecting deliberate bugs. Required since 0.5.0: `/end-slice`'s mutation-check step invokes it, so it installs with the core set. |
 | `diff-review/` | **always** | The two-axis reviewer (Spec + Standards) named by `/end-slice` step 4 and `/end-phase` step 5. Required since 0.14.0 — without it both commands name a reviewer that does not exist. **Kit-written, not vendored:** see the provenance note below. |
 | `change-simplify/` | **always** | The post-green quality pass named by `/end-slice` step 3. Required since 0.14.0 even though the step is optional — the decision to skip it is only available if the skill is there to skip. **Kit-written, not vendored.** |
-| `change-verify/` | **always** | The phase-level verification named by `/end-phase` step 2. Required since 0.14.0 — without it the command names a pass that does not exist. **Kit-written, not vendored.** |
+| `change-verify/` | **always** | The verification pass named by `/end-slice` step 6 (since 0.15.0) and `/end-phase` step 2. Required since 0.14.0 — without it the commands name a pass that does not exist. **Kit-written, not vendored.** |
 | `python-pro/` | Python projects only | Typed, strict-mypy Python idioms (attribution: github.com/Jeffallan). |
 | `hypothesis-tests/` | Python projects only | Property-based test authoring with Hypothesis. |
 
@@ -137,8 +151,9 @@ Two rules for reading that table:
 
 Rows one and two used to read "none" on the Copilot side. `change-verify` and
 `change-simplify` closed them in 0.14.0, and both are now named by the process rather
-than merely recommended — `/end-phase` step 2 and `/end-slice` step 3 respectively.
-Row three was closed by the review lenses in 0.13.0.
+than merely recommended — `change-verify` at `/end-slice` step 6 and `/end-phase`
+step 2, `change-simplify` at `/end-slice` step 3. Row three was closed by the review
+lenses in 0.13.0.
 
 **The review apparatus left this list entirely.** Until 0.14.0 the per-slice and
 whole-arc reviews named `pr-review-toolkit`, which does not exist on Copilot, so an

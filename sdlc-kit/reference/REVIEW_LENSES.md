@@ -1,7 +1,7 @@
 # Review Lenses
 
 Deep-dive lenses for slice review. This file is **not** part of the per-slice read:
-`/end-slice` §3 points here conditionally, and each lens names its own trigger. If no
+`/end-slice` §4 points here conditionally, and each lens names its own trigger. If no
 trigger matches the slice, close this file — reading it "just in case" is the context
 bloat the pointer exists to avoid.
 

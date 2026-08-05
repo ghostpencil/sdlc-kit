@@ -173,8 +173,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   │                                   and /end-phase name (Spec + Standards axes, both CLIs)
 │   ├── change-simplify/             ← always installed — kit-written; the post-green quality
 │   │                                   pass /end-slice step 3 names (optional step, required skill)
-│   ├── change-verify/               ← always installed — kit-written; the phase-level
-│   │                                   verification /end-phase step 2 names
+│   ├── change-verify/               ← always installed — kit-written; the verification
+│   │                                   /end-slice step 6 and /end-phase step 2 name
 │   ├── python-pro/                  ← Python projects only
 │   └── hypothesis-tests/            ← Python projects only
 ├── templates/                       ← instantiated into the project by /sdlc-setup
@@ -274,8 +274,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    **And your agent CLI:** `spec/PROJECT_INDEX.md` records it (*Agent CLI:*), which
    decides which directories step 3 enumerates. Projects adopted before 0.14.0 have no
    such line — infer it from what the repo holds (`.claude/settings.json` versus
-   `.github/hooks/`) and write the line as part of this update, so the next one reads
-   it instead of inferring.
+   `.github/hooks/`), state the inference to the owner and have them confirm it, then
+   write the line as part of this update, so the next one reads it instead of
+   inferring.
 
 2. **Get both versions of the kit.**
 
@@ -344,8 +345,8 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    done
    ```
 
-   Two traps worth knowing, because both produce confident wrong answers rather than
-   errors:
+   Three traps worth knowing, because each produces a confident wrong answer rather
+   than an error:
 
    - **Never write `git cat-file … | sha256sum` as the test of whether a path exists.** A
      pipeline reports the *last* command's status, so a missing path yields the hash of
@@ -363,6 +364,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
 
 4. **Act on the classification.**
    - `UNCHANGED` → provably untouched since adoption. Copy the new version over it.
+     On a Copilot project the packaged skills (`.github/skills/<name>/SKILL.md`) are
+     re-packaged, not copied: keep the existing frontmatter block and replace only the
+     body below it with the new `commands/<name>.md`; `.github/agents/explore.agent.md`
+     is the new template copied verbatim.
    - `DRIFTED` → you or setup edited it. Diff it against both versions and decide, file
      by file. **Never auto-overwrite a drifted file** — `spec/SDLC.md` explicitly invites
      you to fix a command that disagrees with it, so drift is often deliberate.

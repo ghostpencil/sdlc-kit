@@ -11,7 +11,12 @@ one behavior at a time:
 
 1. **Identify a Public Behavior:** Pick one specific capability from the current slice's
    exit criteria.
-2. **RED:** Write **one** test targeting the public interface.
+2. **RED:** Write **one** test targeting the public interface — then **run it and
+   observe it fail.** The failing run is the evidence that the test can fail; a red
+   never seen proves nothing about the green that follows. Record the observation as it
+   happens — the exact test command, the failing test's line, the exit code — because
+   an observed red cannot be reconstructed at close-out; `/end-slice` carries the
+   record into the slice commit body.
 3. **GREEN:** Implement the **minimal** application code required to pass that specific test.
 4. **REFACTOR:** Clean the code while ensuring the test stays green.
 5. **REPEAT:** Move to the next behavior.

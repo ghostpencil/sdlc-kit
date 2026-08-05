@@ -74,6 +74,7 @@ jobs:
 
           Extract \`sdlc-kit/\` into the root of your project, copy
           \`sdlc-kit/commands/sdlc-setup.md\` into \`.claude/commands/\`, and run \`/sdlc-setup\`.
+          (Copilot CLI bootstraps differently — see *Getting started* in the README.)
 
           Verify the bundle with \`cd sdlc-kit && sha256sum -c MANIFEST.sha256\`.
           EOF

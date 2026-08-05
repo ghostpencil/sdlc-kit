@@ -67,6 +67,23 @@ none of them writes anything.
   gate run (a red gate that got through), repeated gate runs on one slice, commits after
   a review that undo review changes, reverts, and slices whose commit span is much wider
   than their siblings'.
+- **Step-evidence enumeration.** Read the named steps out of `spec/SDLC.md` — every
+  skill, lens, and check the slice loop and phase end name (the quality pass, the
+  reviewer and its lenses, the mutation check, the verification pass, observed-RED) —
+  and report each one's evidence in the window: **ran** (and what it caught, if
+  anything), **skipped with a stated reason**, or **no evidence**. Where to look: slice
+  commit bodies (the `RED:`, `quality:`, `mutation:`, and `verify:` evidence lines —
+  `git log` carries them), the deferred
+  backlog's provenance tags (a `(slice review, <date>)` tag is evidence the review
+  ran), the friction log. This sweep exists because a step can silently never run —
+  on a CLI where skill activation is relevance-based, *presence is not activation* —
+  and every other sweep here detects that only by the damage it eventually causes; a
+  real adoption's slice-close verification was skipped silently for a whole arc and
+  was caught by the break that survived to phase end, not by any enumeration. The
+  per-step ran / caught / skipped / no-evidence record this produces is also the raw
+  material the kit's own keep-or-delete decisions read, produced at the source instead
+  of reconstructed later. The sweep is done when every named step has one of the four
+  states beside it.
 - **Recorded-but-unactioned friction.** Sweep the *Kit friction log* section of
   `spec/PROJECT_INDEX.md` first (adoptions from kit 0.6.0 on seed it; treat its absence
   as a small finding on an older adoption, since friction with no home goes unrecorded),
@@ -147,6 +164,8 @@ is the authoritative statement of the format):
 ## What worked well
   Practices that earned their place.
 
+## Step evidence                      (table: named step | ran / caught / skipped+reason / no evidence)
+
 ## Suggested priority                 (table: # | change | file(s) | effort)
 
 ## Cross-cutting theme                (the one thing, if only one thing is taken)
@@ -187,6 +206,10 @@ legitimate outcome and worth recording; a manufactured finding is not.
 
 - Apply the project lessons to `spec/PROJECT_INDEX.md` (Notes, Environment gotchas,
   backlog entries tagged `(retro, <date>)`).
+- Flip each Kit-friction-log entry this report absorbed to its absorbed form —
+  `- <date> — <friction> — absorbed by retro <date>` — the one shape the log's own
+  comment prescribes and step 2's sweep reads; flipping in any other wording forks the
+  format the next sweep parses.
 - Commit the report and the index together as a docs commit.
 - Tell the owner what the report contains — per the hand-back standard: a plain-English
   executive summary of the findings in damage order, with the submit-upstream call as

@@ -51,7 +51,8 @@ skills/                  ← TDD skill set + the three kit-written passes
                            (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup
+templates/               ← instantiated into the project by /sdlc-setup (the explore
+                           agent template is the exception: copied verbatim, Copilot only)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
 LICENSE                  ← MIT
 THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (all MIT)
@@ -60,7 +61,8 @@ THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (all MIT)
 `commands/`, `skills/`, and the installed `reference/REVIEW_LENSES.md` are
 **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything `/sdlc-setup` writes into your project
-(`CLAUDE.md`, `spec/*.md`, `.claude/settings.json`) is **project-owned** and is never
+(`CLAUDE.md`, `spec/*.md`, and the gate hook — `.claude/settings.json` on Claude Code,
+`.github/hooks/sdlc-gate.json` on Copilot CLI) is **project-owned** and is never
 overwritten by an update — it holds your recorded gate baseline, owner decisions, and
 gotchas.
 

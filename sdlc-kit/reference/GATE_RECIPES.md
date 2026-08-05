@@ -80,8 +80,8 @@ wrapper differs. Resolve the same `{{HOOK_*}}` placeholders either way.
   stderr is also advice to the model, so the gate is no weaker; the generated files just
   may not claim a stop that does not happen.
 - **A timeout is a pass.** The documented default is 30 seconds and a timed-out hook
-  surfaces a warning and lets the tool call proceed — a silently green gate, which is
-  invariant 15's failure exactly. The template ships `timeoutSec: 120` to match the
+  surfaces a warning and lets the tool call proceed — a silently green gate: a check
+  that stops checking without saying where it stopped. The template ships `timeoutSec: 120` to match the
   Claude-side value; **setup must time one real hook run during the verification below
   and raise the number to at least 3× what it measured**, then state the measured basis
   in `spec/SDLC.md` alongside the timeout-reads-as-a-pass warning.
@@ -106,7 +106,8 @@ a payload with no path (loud), a path whose file is missing (loud), and unparsea
 input (loud). That is the negative-case proof for the recipe itself; the per-project
 proof below is separate and still required.
 
-**Proving the hook in the project (invariant 13).** Same standard as the Claude side:
+**Proving the hook in the project — a check is trusted only once it has been made to
+fail.** Same standard as the Claude side:
 edit a scratch source file with a deliberate lint error and confirm the hook reports it.
 On Copilot this proof does double duty — it is also what catches a wrong `matcher`,
 since a matcher that never fires and a clean file look identical. If the proof produces
