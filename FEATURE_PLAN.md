@@ -396,3 +396,55 @@ All six items, one session, commit `39dda84`. Build decisions and deltas against
 R5.3(d) model-pin probe while the bench is warm — then the two guards, logging-only
 ramp, pre-registered criteria before anything runs.
 
+### 31.7 ENF bench probes — run 2026-08-05, Copilot CLI 1.0.77, Windows 11
+
+The probes 31.5 pre-registered, run same-day from the kit session (copilot.exe reached
+via its WinGet install path; bench-side record and reversal list in the fixture repo's
+`ENF_PROBE_NOTES.md`; raw payloads kept as `probe-*.jsonl` there). Five facts, each
+load-bearing for the guard design:
+
+1. **The ENF.3 named question is settled: `postToolUseFailure` never fires for a
+   failing shell command.** `node test-fail.js` (exit 1) arrived as `postToolUse` with
+   `resultType: "success"`. The exit code is recoverable without parsing test-runner
+   output: `textResultForLlm` ends with a `<shellId: N completed with exit code M>`
+   trailer. The observed-red detector is therefore a `postToolUse` text parse keyed on
+   that trailer — cheaper and sharper than expected.
+2. **Tool-name vocabulary, measured (supersedes the provenance table's
+   plausible-unofficial rows):** shell = `powershell`, write = `apply_patch` for both
+   create and edit flows (the UI label "Edit" is not the hook name — the display-name
+   trap, confirmed), read = `view`. `edit` and `create` did not fire on the tested
+   flows; ENF.1's draft matcher `create|edit|apply_patch` would have worked by its
+   third alternative only, and the shipped gate hook's matcher misses shell-tool
+   writes exactly as 31.5 warned.
+3. **`apply_patch` breaks the toolArgs-is-JSON assumption**: its `toolArgs` is raw
+   patch text (`*** Begin Patch / *** Add File: <path>`), so the kit's gate hook —
+   which JSON-parses `toolArgs` for a path — falls to its loud no-path branch on
+   every `apply_patch` edit and never runs the gate on it. Real 0.15.0 hook-recipe
+   defect, found by the probe; the fix (a patch-text path parse) belongs to the ENF
+   batch or a hook-recipe patch release, owner's call at the trial halt.
+4. **R5.3(d) closed, both halves, as the doc datum predicted: agents yes, skills
+   no.** An agent pinned `model: claude-sonnet-4.5` executed on it while the session
+   default was `gpt-5.3-codex` (the CLI's own transcript names it:
+   `Pin-probe(claude-sonnet-4.5)`). A skill carrying `model:` loads and fires
+   normally — the undocumented field does not trip hazard 1 — but the turn stays on
+   the session model. `COPILOT.md`'s pending-bench paragraph can now be resolved
+   (0.16.0 material); the Copilot-only setup pin offer in R5.3(d) becomes *possible*
+   for the explore agent only, and remains off the table for skills and dual-CLI
+   projects.
+5. **A new environment hazard with field reach: hook `bash` commands resolve against
+   the system PATH, and on Windows-with-WSL that is WSL bash** (`system32\bash.exe`),
+   where `D:/…` paths do not exist. Observed live, both documented fail modes in one
+   errored run: cold WSL start blew the 10 s `timeoutSec` → fail-open (the command
+   ran unguarded); warm error → `preToolUse` fail-closed (denied). The kit's shipped
+   hook body runs `python` via that same `bash` — on a machine like this one (which
+   is also the sixth report's adopter machine) the gate hook's behavior under WSL
+   bash is untested and plausibly broken. Needs its own bench check before the ENF
+   guards ship; inv 13's proof step is what catches it per-project today.
+
+**ENF's remaining work, revised by the probes:** the guards' event surface is
+`preToolUse`/`postToolUse` only (drop `postToolUseFailure` from ENF.1's design); the
+write-guard matcher must cover `apply_patch` with a patch-text path parse and treat
+shell-tool writes as out of scope honestly (cooperative backstop, not a boundary);
+guard scripts must be WSL-bash-safe (or the hook recipe grows a bash-flavor detection
+note). Trial criteria pre-registration (ENF.3) is still owed before the guards run.
+
