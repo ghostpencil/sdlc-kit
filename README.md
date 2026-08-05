@@ -205,11 +205,12 @@ CHANGELOG.md                         ← kit version history
 FIELD_REPORT.md                      ← findings from the first external adoption
 FIELD_REPORT_2026-07-20.md           ← findings from the second arc — /sdlc-retro's first real run
 FIELD_REPORT_2026-07-22.md           ← findings from the third arc — first full arc on kit 0.6.0
-FIELD_REPORT_2026-08-01.md           ← findings from a 5th phase (sdlc-kit#1) — triaged in FEATURE_PLAN.md §12
-FIELD_REPORT_2026-08-02.md           ← findings from the 6th phase (sdlc-kit#2) — triaged in FEATURE_PLAN.md §15
-CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN.md §11
+FIELD_REPORT_2026-08-01.md           ← findings from a 5th phase (sdlc-kit#1) — triaged in FEATURE_PLAN_HISTORY.md §12
+FIELD_REPORT_2026-08-02.md           ← findings from the 6th phase (sdlc-kit#2) — triaged in FEATURE_PLAN_HISTORY.md §15
+CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN_HISTORY.md §11
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
-FEATURE_PLAN.md                      ← post-field-report feature work (retro, agents, model tiers)
+FEATURE_PLAN.md                      ← the live plan: standing decisions, clocks, active work
+FEATURE_PLAN_HISTORY.md              ← its retired sections §1–§30, numbering preserved
 KIT_INVARIANTS.md                    ← the invariant ledger /kit-check verifies
 LICENSE                              ← MIT
 ```

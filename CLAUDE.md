@@ -20,8 +20,12 @@ The repo root is **not** the kit. `sdlc-kit/` is the shippable product — the o
 that is copied into an adopting project, and the unit that gets packaged as a release
 artifact. Everything at the root (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`,
 `FIELD_REPORT_2026-07-20.md`, `FIELD_REPORT_2026-07-22.md`, `IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`,
-`KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`) is documentation *about*
-the kit and must never end up in an adopter's repo.
+`FEATURE_PLAN_HISTORY.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`)
+is documentation *about* the kit and must never end up in an adopter's repo.
+`FEATURE_PLAN.md` carries only the standing decisions, running clocks, and active work;
+its retired sections (§1–§30) live in `FEATURE_PLAN_HISTORY.md` with numbering
+preserved, so a `FEATURE_PLAN.md §N` reference with N ≤ 30 — here or in any older
+document — resolves there.
 
 When adding a file, the question is always: does an adopting project need this at setup or
 slice time? Yes → `sdlc-kit/`. No → root.
@@ -128,14 +132,14 @@ more prose rules.
 
 `FIELD_REPORT_2026-07-20.md` is the second report from the same adoption — the first real
 run of `/sdlc-retro` (F1's acceptance evidence), with 12 findings and a 15-row priority
-table, all 15 rows actioned by R1 (`FEATURE_PLAN.md` §7, shipped as v0.5.0). Its
+table, all 15 rows actioned by R1 (`FEATURE_PLAN_HISTORY.md` §7, shipped as v0.5.0). Its
 cross-cutting theme extends the first report's: checks whose *denominator* was assumed
 rather than enumerated — including inside the kit's own `/sdlc-update`.
 
 `FIELD_REPORT_2026-07-22.md` is the third — the first full arc run on kit 0.6.0, with 3
 findings and a 3-row priority table. Its theme sharpens the lineage again: a number
 recorded in prose is not the number the machine enforces, and the kit's bookkeeping
-updates the prose without reconciling against the enforcing artifact. `FEATURE_PLAN.md`
+updates the prose without reconciling against the enforcing artifact. `FEATURE_PLAN_HISTORY.md`
 §10 records how it was triaged.
 
 `FIELD_REPORT_2026-08-01.md` is the fourth — a different adopter's fifth phase, filed as
@@ -143,7 +147,7 @@ updates the prose without reconciling against the enforcing artifact. `FEATURE_P
 carries an invariant of its own (15): **the process verifies the artifact and is silent
 about the environment it will run in** — a gate green in the test environment said
 nothing about a control that was live in production, and four of its eight findings are
-instances of that one gap. `FEATURE_PLAN.md` §12 records the triage, including the three
+instances of that one gap. `FEATURE_PLAN_HISTORY.md` §12 records the triage, including the three
 claims that did not survive verification against the tree and the one already fixed in
 0.7.0.
 
@@ -154,7 +158,7 @@ finding 7, a simplification pass auditing every rule added since 0.5.0 against a
 confirmed catch, runs **as its own batch before any R4 fix batch**. Its theme completes
 the lineage: **the kit specifies what each step must produce and almost never what makes
 it done** — the gate is the only step with a completion condition and the only step that
-never failed. `FEATURE_PLAN.md` §15 records the triage: nine of ten findings stood
+never failed. `FEATURE_PLAN_HISTORY.md` §15 records the triage: nine of ten findings stood
 (three with step-number or scope corrections), and the work shipped as two batches —
 SIMP, the simplification pass (v0.10.0), then R4, the ten-rule fix batch (v0.11.0,
 §17).
