@@ -972,3 +972,45 @@ proven live and the deny ramp is available to any adopter who wants it. B5 "clea
 a 0.16.1 fix to the scoping, and the changelog says plainly that session-scoping as
 shipped is unsafe to arm. Any B1–B4 failure → the guards are not what 0.16.0 claimed,
 and that is a point release, not a note.
+
+### 31.17 Shipped-guard bench run — 2026-08-05: all five criteria met, and the resume question is answered
+
+Run against §31.16's protocol, which was committed before the guard was installed
+(`ea892b3` precedes it, provably). Copilot CLI had moved to **1.0.78** during the batch;
+everything measured on 1.0.77 held, which is itself worth having.
+
+- **B1 met — the wiring works.** The self-locating prelude resolved the repo root from
+  the payload's own `cwd` inside a real session, found the script, and ran it. This is
+  the half the 25 offline cases could not touch, and the half the 0.15.0 gate hook
+  failed for a whole release.
+- **B2 met — no `GUARD ERROR`.** A JSON parser resolved in the hook's own shell (WSL
+  bash on this machine), so the dual-dialect detection works where it has to.
+- **B3 met.** Told to write production code with no test, the session was caught:
+  `VIOLATION production write without observed red`.
+- **B4 met — zero violations on a strict-TDD run**, and the trace is textbook: test edit
+  recorded → `RED observed (exit 1)` → `OK production write (red observed since last
+  test edit)` → `GREEN observed` → `stop: clean`.
+- **B5 answered, favourably: `--continue` PRESERVES the `sessionId`.** The resumed
+  session logged no "new session" line and cleared nothing. **Session-scoping as shipped
+  in 0.16.0 is sound** — it does not false-deny after a resume, and no 0.16.1 is needed.
+  This was the one unknown the batch shipped with, and it came back the right way.
+
+Two things the run added beyond its criteria. **Both path forms appeared in a single
+session** — absolute-Windows on one write and repo-relative on another — which is the
+31.9.1 finding reproduced against the rewritten classifier, and the reason it normalises
+before matching. And **the guard has now been proven live at the layer that matters**:
+per §31.16's decision rule, B1–B4 green with B5 not-cleared means the deny ramp is
+available to any adopter who wants it, on evidence rather than on the offline suite's
+say-so.
+
+**One process note, honestly recorded.** The first B4 reading said "2 violations" and was
+wrong: the count swept the whole log, including the earlier sessions' lines, because the
+archive step copied the log rather than truncating it. Scoped to the B4 session the count
+is zero. That is the second time this session a harness asserted over the wrong range —
+the first was the exempt-file case in the offline suite — and both times the artifact was
+correct and the measurement was not. Worth remembering that a check reporting a failure
+is as capable of being wrong as one reporting a pass.
+
+**Bench state:** the shipped guards are installed and live in **logging mode** (no deny
+flag), the trial script is archived rather than deleted, and the reversal list plus both
+logs are recorded in the fixture's `ENF_PROBE_NOTES.md`.

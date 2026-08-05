@@ -577,6 +577,16 @@ instead arrives as `postToolUse` with `resultType: "success"` and a
 the fail-open-on-timeout and fail-closed-on-error behaviours observed live; and
 per-agent `model:` being honoured while skill `model:` is ignored.
 
+**Re-verified live 2026-08-05 on Copilot CLI 1.0.78** (the version moved during the
+batch; everything measured on 1.0.77 held). A real session exercised the shipped
+TDD-ordering guards end to end: the tool-name matcher fired, `apply_patch` delivered
+patch text, the shell tool's exit code arrived as the documented text trailer, and the
+`agentStop` hook ran at session close. Two facts this run added: **`--continue`
+preserves a session's `sessionId`**, so guard state scoped to a session survives a
+resume rather than being cleared under the user; and a single session emits write paths
+in **both** forms — absolute-Windows and repo-relative — which is why the guard
+normalises before classifying.
+
 Upstream issues tracked, open as of 2026-08-03: `github/copilot-cli#618` (markdown
 prompt files), `github/copilot-cli#3820` (matcher / tool-name documentation).
 
