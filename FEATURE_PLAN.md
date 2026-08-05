@@ -620,7 +620,7 @@ let a future field arc argue for deny.
 
 **Owner ruling, 2026-08-05: Option A — the re-run is accepted.** The failure did its
 job (a state-corruption defect caught and fixed pre-ship). Deny mode is
-trial-proven; **the next session may open on ENF's build phase** — template-izing
+trial-proven; **the next session opened on ENF's build phase, recorded in §31.12** — template-izing
 the guards (`{{HOOK_*}}` discipline, inv 1 placeholders taught to setup in the same
 batch), ENF.4's Claude-Code-dialect decision, the `apply_patch` gate-hook path-parse
 fix (31.7.3), the `.\`-prefix and command-pattern work, and the jq / WSL-bash
@@ -629,3 +629,287 @@ anything enters the installed set, per 31.5's standing rule. Bench state: guards
 live in **logging mode** (deny flag removed by D6; recreate `.git/enf/deny-enabled`
 to re-arm), fixture drift and reversal steps recorded in `ENF_PROBE_NOTES.md`.
 
+
+### 31.12 ENF build phase — built 2026-08-05, awaiting the owner's read before release
+
+Everything §31.11 listed is built and proven offline. **Nothing is released**: `VERSION`
+still reads 0.15.0 and `MANIFEST.sha256` is deliberately not regenerated, because the
+manifest must be regenerated in the release commit (inv 10) and the release is the
+owner's call. The shipped files below are the halt §31.5 pre-registered.
+
+**The guards, template-ized.** `templates/tdd-guard.template.sh` +
+`tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.{sh,json}`, offered (never
+imposed) at `sdlc-setup.md` New-mode step 6, logging-mode-only at install. Named for the
+adopter, not for us: "ENF" and `.git/enf/` were kit-batch vocabulary and are gone —
+state now lives in `.git/sdlc-tdd/`. Four changes the bench version could not have
+survived shipping:
+
+1. **The hook JSON carries no absolute path.** The bench hardcoded
+   `/mnt/d/AICourse/copilot-ci-test`, which is correct for one machine and broken for
+   every teammate who clones the repo. A committed hook file must work for all of them,
+   so the JSON now derives the repo root from the payload's own `cwd` and translates
+   path flavour (`D:\…` → `/mnt/d/…` → `/d/…`, first one that exists). Pure `sed`/`tr`,
+   no interpreter, so it survives a hook shell with no python. This also removed a
+   placeholder rather than adding one.
+2. **`jq` is gone**; the guard parses with `python`, matching the gate hook's existing
+   and deliberate choice (`GATE_RECIPES.md`: python is the likelier of the two, and this
+   development machine has python and no jq — confirmed again this session). 31.9.3's
+   ship-time dependency question is closed in the direction the kit had already chosen.
+3. **The test-command pattern keys on the runner, not on a filename.** The bench matched
+   `node test…` as adjacent words and was blind to `node .\test-x.js`; `*pytest*`-shaped
+   patterns spanning runner and `test` match every invocation form. That is the
+   `.\`-prefix item, fixed generically rather than by special-casing a prefix.
+4. **Observations are session-scoped** (new, and unproven live): a `sessionId` change
+   clears them, so yesterday's red cannot license today's write. 31.8 listed repo-scoped
+   state as an accepted limit "if it bites"; it was cheap to close, and it is flagged
+   here precisely because the bench never exercised it.
+5. **A path containing a space is one path.** Both the bench guard and this rewrite's
+   first draft iterated the patch paths with `for p in $PATHS`, which word-splits, so
+   `src/my module.py` became two files and matched neither pattern — a production write
+   that classified as exempt and passed the guard silently. Now a `while IFS= read -r`
+   loop over a heredoc (not a pipe, which would put the accumulator in a subshell). Found
+   by the same reading pass that found the inv-5 defect below, not by the tests, which is
+   the honest provenance: the case was written after the fix, and the mutation that
+   restores `for p in $PATHS` is what makes the case worth having.
+
+**The `apply_patch` gate-hook defect (31.7.3) is fixed, and it was worse than recorded.**
+The old body JSON-parsed `toolArgs` unconditionally; on `apply_patch` — the only write
+tool that actually fires on 1.0.77 — the parse throws, so **every edit** fell to the
+loud no-path branch and the gate never ran once. Demonstrated both directions against
+the captured bench payload: shipped template says "gate did NOT run", fixed template
+lints and reports the error. The fix parses the patch text, handles multi-file patches
+(previously one path only), and skips `Delete` headers. It keeps the loud branch for
+genuinely unrecognisable payloads — that honesty was the one thing the old body had.
+
+**ENF.4 decided: the guards ship Copilot-only, and the Claude Code port is deferred, not
+declined.** Claude Code has the matching events, which is what makes the port look like
+translation. It is not. Checked against the Claude Code hooks reference 2026-08-05: the
+`PreToolUse` deny shape and `Stop` block shape are documented, but **the two facts the
+guard mechanism actually turns on are not** — what `PostToolUse` receives for a Bash
+call (no input example; no statement of whether an exit code is available or in what
+form) and which `tool_input` field holds the path for `Edit`/`Write` (no schema
+documented for either). Also unstated: whether Claude Code's Stop input carries
+`stop_hook_active`, whether a block cap exists, and whether a timed-out `PreToolUse`
+fails open or closed. That is precisely the position Copilot was in before §31.7, and
+§31.7 is the reason the Copilot guards work — the exit code turned out to arrive as a
+*text trailer*, which nobody would have predicted from documentation. Writing the port
+from those gaps ships a guard whose failure mode is silence into the CLI where the kit's
+users would trust it most. The port is a future batch that opens with its probe run.
+Two Claude-side facts banked for it: hooks get `$CLAUDE_PROJECT_DIR`, and the Windows
+shell is stated (Git Bash, per-hook `"shell"` key) rather than inherited from `PATH` —
+so the port needs no self-locating prelude, and the WSL hazard is Copilot-specific.
+
+**The WSL hazard (31.7.5) became a setup step, not a note.** A hook runs in the shell the
+CLI resolves, not the one you type in, and on Windows-with-WSL that has been measured to
+be WSL bash — where the project's paths and its whole toolchain are absent. `GATE_RECIPES.md`
+gains *The hook environment — measure it, do not assume it*: a one-line probe run **from
+the CLI's own session**, read for which shell answered, whether `python` resolves there,
+and whether the project's own lint command runs there, resolving a new
+`{{HOOK_ENVIRONMENT}}` in `spec/SDLC.md`. This is inv 15 turned on the kit itself — the
+process specified checks and was silent about the environment the checks would run in.
+
+**Proof, because a rewrite that was never run is the defect this kit exists to find.**
+Both artifacts got a re-runnable check at the root (`tools/`, inv 12 — never inside the
+bundle), and both are green:
+
+- `tools/gate-hook-check.py` — 13 cases over the real payload shapes, every silent case
+  also run dirty so silence means something.
+- `tools/tdd-guard-check.py` — 24 cases driving every state transition, **then six
+  mutations of the guard, each of which the suite must catch.** All six caught: drop the
+  compound-command check, drop the session reset, deny on the guard's own failure,
+  classify by source glob before test pattern, never stand down on `stop_hook_active`,
+  and word-split the path list. The mutation pass is the load-bearing half; the unit
+  pass alone would have proved only that the guard agrees with itself. Neither count is
+  written in prose — both are derived at run time, because a hardcoded "22 cases" header
+  had already gone stale against 24 within this session (inv 14, in miniature).
+
+**One invariant-5 defect caught in this batch's own output, by reading rather than by
+running.** The guard script's header comment pointed at `reference/GATE_RECIPES.md` for
+the hook-environment probe — and the guard is an *installed* file, while the kit folder
+is explicitly optional after setup. Exactly the defect inv 5 exists for, introduced by
+the same session that was writing the probe. Fixed: the header now points at
+`spec/SDLC.md`, which setup does install, and carries the one-line re-measure command
+inline. Worth recording because it is the second time a pointer written from inside the
+kit repo assumed the kit repo would still be there.
+
+**Two things an update cannot deliver, both now stated at the halt** in `sdlc-update.md`
+and the root README (inv 8, kept in step): the instantiated gate hook is project-owned,
+so the `apply_patch` fix reaches an adopted Copilot project only as a changelog entry the
+owner re-applies by hand — until they do, their edit-time gate has never run — and the
+guards are offered by an update, never installed unasked, with the logging ramp and the
+proof step non-skippable just because it is an update.
+
+**Owner decisions owed before release:** (a) ship the guards as an *offer* in setup, as
+built, or hold them out of the installed set for another arc; (b) whether the
+session-scoping change (unproven live) ships now or waits for a bench re-run; (c) the
+release itself — `VERSION` → 0.16.0, `CHANGELOG`, and the manifest regenerated in that
+same commit, with `/kit-check`'s full pass before the tag.
+*(a) and (b) were both ruled on the same day — see §31.14; (c) is still open.)*
+
+### 31.13 The dependency audit — owner question 2026-08-05, and what it turned up
+
+**The question:** does the kit impose requirements beyond Copilot CLI's own? Asked
+before the release decision, and the honest answer was yes, in a place nobody had
+written down.
+
+**The finding, and it predates ENF.** The edit-time hook parses its JSON payload with
+`python -c` — **in both dialects**, `settings.template.json` as well as the Copilot one,
+since the hook shipped. `GATE_RECIPES.md` mentioned it in a note offering a hand-edited
+`jq` substitute; the Prerequisites section never listed it; and the root README's FAQ
+answered **"Does this require Python? No."** That answer is true of the *gate commands*
+(language-agnostic, per-project) and false of the *hook implementation*, which is what
+an adopter reads it as. A claim true about one thing, stated as though it covered
+everything — the same defect shape the field reports keep finding, this time in the
+kit's own front door. ENF's guards then added a third `python` call site with no
+fallback at all, making it worse.
+
+**`node` is not a free substitute, which is the interesting part.** The intuition is
+that Copilot CLI is a Node application, so `node` must be present. Checked against
+GitHub's install docs: Copilot CLI's stated prerequisites are a Copilot subscription and
+PowerShell 6+ on Windows, and **four of its five install methods** (WinGet, Homebrew,
+curl script, direct download) are standalone binaries. The bench machine's own install
+is a single 159 MB `copilot.exe` with no `node` beside it. Only `npm install -g` implies
+Node. So swapping python for node trades one absent interpreter for another.
+
+**Owner decision 2026-08-05: ship both dialects with run-time detection**, plus three
+fixes. Detection rather than an interview question, for an inv-15 reason worth keeping:
+asked which interpreter to use, an owner answers for *the shell they type in*, while the
+hook runs in a different one. A configured parser is a claim about the wrong
+environment; a run-time probe asks the only shell whose answer counts. Order is
+`python`, `python3`, then `node`; with none, every hook says so on each edit rather than
+passing quietly.
+
+**A latent Windows defect found while testing the two against each other.** Python's
+`print()` emits CRLF on Windows; node emits LF. The hooks split the parser's output with
+`sed` and compare fields to literals, so a stray `\r` makes `[ "$st" = "ok" ]` false and
+sends the hook down its "could not run" branch on **every edit**. It has never bitten
+because Git Bash's MSYS `sed` silently strips CR — but GNU sed under WSL bash does not,
+and WSL exposes Windows `python.exe` through PATH interop, which is exactly the
+environment 31.7.5 flagged. Both hook bodies and the guard now pipe through
+`tr -d '\r'`. Demonstrated mechanism, not a confirmed field failure: no WSL bench exists
+here to close it, and the record says so rather than claiming a fix for something never
+seen to fail.
+
+**The third fix is the most serious thing in this section.** The **Claude Code** hook
+exited 0 whenever it could not find the edited file's path — no message, no signal, gate
+not run. A silently green gate, in the kit's own file, on the CLI its users trust most.
+`COPILOT.md` had framed loud-reporting as a Copilot concern; it never was, that dialect
+was just the only one that had it. Claude Code's hook now reports on stderr and exits 2
+for every case it cannot handle: no parser, no path, file missing, unusable
+`CLAUDE_PROJECT_DIR`. This outranks the `apply_patch` bug — that one at least shouted.
+
+**Proof.** `tools/gate-hook-check.py` was rewritten to cover **both hook dialects under
+both parsers** — 44 cases, all green, each silent case also run dirty.
+`tools/tdd-guard-check.py` runs its 25 cases under each parser (50 runs) plus the six
+mutations. The suites pin `PATH` to one interpreter at a time, because a dialect that is
+never exercised is a dialect that is not proven.
+
+**The mutation harness caught its own decay, which is the point of it.** Rewriting the
+guard's error branch made the D5 mutation stop applying; the tool printed `STALE
+mutation no longer applies` and failed the run rather than reporting five passes and
+quietly testing nothing. A mutation that silently stops mutating is indistinguishable
+from a suite that catches it — that is invariant 13 pointed at the checking apparatus
+itself.
+
+**Also corrected:** README Prerequisites now lists the interpreter; the FAQ is split
+into "must my project be Python" (no) and "does the kit need it" (one of python or node,
+for the hook only, and it says the old answer was wrong); `jq` is dropped as a suggested
+substitute, since it was never a shipped path and never tested, and two proven dialects
+replace it; `sdlc-update.md` and the root README both carry the both-CLI hook-recipe
+change, which — being project-owned — no update can deliver.
+
+### 31.14 Owner rulings, 2026-08-05 — guards ship as an offer; session-scoping ships
+
+**(a) The guards ship as a setup offer, not held back.** Built that way already
+(`sdlc-setup.md` step 6: offered with its trade-off stated, default to offering rather
+than installing, logging mode only, proof step required).
+
+**And an update must offer them to a project that missed them — which exposed a defect
+in the build.** Setup had been told to *delete* the `{{TDD_GUARD_NOTE}}` line when the
+owner declined. That erases the difference between "considered and declined" and "never
+asked", and those are the two cases an update has to tell apart: absent guards look
+identical on disk either way. Fixed in three places: setup now records a decline **with
+its date** and never deletes the line; `SDLC.template.md`'s comment says why; and
+`sdlc-update.md` gains an explicit two-step check — is this a Copilot project
+(`{{TARGET_CLI}}`), and are the guard files present? Absent plus a recorded decline is a
+settled decision that gets one sentence; absent plus **no line at all** is a project that
+never had the choice, and gets the full offer. That last case is the whole point of the
+instruction, and it is invisible unless something looks for it. Inv 14 in its usual
+shape: the state had to name the artifact that evidences it, or the next step could not
+act on it.
+
+**(b) Session-scoped observations ship now.** A `sessionId` change clears the recorded
+red/green, so yesterday's failing run cannot license today's production write. Proven
+offline (case 16) and mutation-covered (removing the reset is caught), under both parser
+dialects.
+
+**The one thing to watch when deny is armed, stated because it is unmeasured:** the
+scoping assumes a session keeps its `sessionId` for its lifetime. If **resuming** a
+Copilot session issues a *new* id, the guard clears its observations mid-work, and the
+next production write is denied even though the red was genuinely observed minutes
+earlier — a false denial, the failure class D3 was written against. Harmless in logging
+mode (a spurious VIOLATION line), which is exactly what the ramp is for: the bench
+transcripts show sessions are resumable (§31.11 names a resumable one), but whether
+resume preserves the id was never measured. Watch the log across a resume before arming
+deny; if it clears, the fix is to key on session start rather than id equality. Recorded
+here so the ramp has something specific to look for rather than a general instruction to
+be careful.
+
+**A second self-inflicted invariant defect, caught the same way as the first.** The new
+update step was first written as "read `{{TARGET_CLI}}` in `spec/PROJECT_INDEX.md`" —
+which puts a `{{` into `sdlc-update.md`, an **installed** file, breaking inv 4 (only the
+installed `sdlc-setup.md` may carry placeholder syntax), and was wrong on its own terms
+besides: in an adopted project that placeholder is long since resolved, so the file the
+updater opens contains `**Agent CLI:** Copilot CLI`, not the placeholder name. Fixed to
+name the *Agent CLI:* line, which is what step 1 of the same command already reads.
+Both this and §31.13's inv-5 defect were written by a session fluent in the kit repo and
+caught only by running the invariant checks against its own output — which is the
+argument for running them on every batch rather than before releases only.
+
+### 31.15 0.16.0 released — 2026-08-05, after a fifteen-finding `/kit-check`
+
+Full pass: four mechanical checks inline, five parallel readers over the twelve semantic
+invariants. **Fifteen findings, every one fixed before the tag**, and the pass earned its
+place — six would have shipped, and three of those would have broken adoptions:
+
+- **`{{TDD_GUARD_NOTE}}` had no resolver on a Claude-Code-only project.** The placeholder
+  sits in `SDLC.template.md`, instantiated on both CLIs; its only resolver was inside the
+  Copilot-only guard offer. Setup's own close-out `{{` check would have fired on the
+  commonest adoption shape with no instruction for what to write — the prime directive's
+  exact failure mode, introduced by the batch that added the placeholder.
+- **`spec/SDLC.md` asserted an edit-time hook exists and runs**, while the new step 6
+  sanctions declining one when the probe shows it cannot work. The template wins by its
+  own first paragraph, so the command was the bug; the template now carries the negative
+  case and setup resolves `{{HOOK_CONFIG_PATH}}` to name no file in that branch.
+- **The guard's recorded mode named no enforcing artifact and went stale by design.** The
+  note is written at the one moment it can only say "logging", and the ramp then tells the
+  owner to change the flag file with no step updating the record — inv 14's specimen one
+  abstraction up. Worse, `/sdlc-update` held the record and the artifact in the same step
+  and never compared them, leaving two of four states unhandled. The note now names
+  `.git/sdlc-tdd/deny-enabled` (and that `.git/` is per-clone, so the line describes one
+  machine), and the update gained both reconcile branches.
+- **"Never denies on its own failure" was false one layer up.** True of the script, which
+  exits 0 on any parse failure — but if the *hook* fails before the script runs, the CLI
+  decides, and this same file had measured `preToolUse` failing **closed** under WSL. The
+  promise is now scoped to the script, with the hook layer named as the case the ramp
+  exists to catch.
+- **The recipe's dated proof certified a body that no longer existed** — "verified
+  2026-08-03, six cases" against a hook rewritten two days later, and never naming which
+  interpreter ran it, over a body whose failure modes are interpreter-specific. Replaced
+  with the real one: 44 cases, both dialects, both parsers.
+- **Kit-development vocabulary had leaked into shipped files** — a `FEATURE_PLAN.md §31.7`
+  pointer and bare invariant numbers in files an adopter receives and can never resolve,
+  plus a project-fact assertion in `sdlc-update.md` ("its edit-time gate has been
+  reporting that it did not run") that the command has no evidence for.
+
+**And invariant 13's own enumeration was stale**, listing six checks while this release
+added four more — so the check that verifies every check states its negative case would
+not have led anyone to the new ones. Both homes now carry the extended list plus a note
+that the denominator is the part that goes stale silently. That is the fourth time this
+lineage has caught a check whose denominator was assumed rather than enumerated, and the
+first time it was caught inside the invariant that exists to catch it.
+
+**Released:** `VERSION` 0.16.0, CHANGELOG entry, `MANIFEST.sha256` regenerated in the
+release commit from **staged** content in text mode (no `*` prefix — the trap that has
+broken two previous tags), discrimination proven, and all four release-workflow gates
+simulated green locally before the tag.

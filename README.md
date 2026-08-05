@@ -52,6 +52,13 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
   and lands each phase as a PR.
 - A **POSIX shell with `sha256sum`** for the verify and update scripts — standard on
   Linux, `shasum -a 256` on macOS, Git Bash on Windows (it ships with Git for Windows).
+- **Either `python` or `node`**, for the edit-time hook only — it parses a JSON payload
+  to find the file that was just edited, and ships both dialects so whichever you have
+  is enough. This is the kit's one dependency beyond the agent CLI itself, it is
+  unrelated to your project's language, and the hook reports loudly rather than passing
+  quietly if it finds neither. What matters is that the interpreter is on the `PATH` of
+  the shell **your CLI runs hooks in**, which is not always the shell you type in —
+  setup measures that rather than assuming it.
 
 ### Both modes
 
@@ -184,6 +191,9 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
 │   ├── settings.template.json       → .claude/settings.json (edit-time gate hook)
 │   ├── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (the same hook, Copilot dialect)
+│   ├── tdd-guard.template.sh        → .github/hooks/sdlc-tdd-guard.sh (Copilot only, optional:
+│   │                                   the observed-RED write guard and the premature-stop guard)
+│   ├── tdd-guard.template.json      → .github/hooks/sdlc-tdd-guard.json (their hook config; no values)
 │   └── explore.agent.template.md    → .github/agents/explore.agent.md (Copilot only: read-only sweeps)
 ├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
@@ -197,6 +207,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 .github/ISSUE_TEMPLATE/bug-report.md   ← issue template: one quick finding
 .github/ISSUE_TEMPLATE/field-report.md ← issue template: adoption findings, retro-shaped
 .claude/commands/kit-check.md        ← /kit-check: kit self-check (development-only, never installed)
+tools/gate-hook-check.py             ← proves the Copilot gate hook against measured payloads
+tools/tdd-guard-check.py             ← proves the TDD guards, then mutates them to prove the proof
 .gitattributes                       ← pins LF — the manifest hashes depend on it
 .gitignore
 README.md                            ← you are here
@@ -250,7 +262,7 @@ The whole procedure rests on this split:
 | `.claude/skills/*/SKILL.md` (from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, owner decisions, backlog, and gotchas. |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-tdd-guard.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
 Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names
@@ -413,9 +425,38 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    unpinned checkout can make two dozen files report modified when four differ. The
    short list is the one to read closely; the long one is the noise deletions hide in.
 
+   **A project-owned file can still hold a kit defect, and 0.16.0 is the first release
+   where that bites.** On Copilot CLI the write tool is `apply_patch`, whose `toolArgs`
+   is raw patch text rather than the JSON every other tool sends; the hook body through
+   0.15.0 parsed it as JSON, so it fell to its "could not find the file" branch on every
+   single edit and never ran lint or typecheck at all. 0.16.0 fixes the template — but
+   your instantiated `.github/hooks/sdlc-gate.json` holds *your* gate commands, so no
+   update may overwrite it. You re-apply this one by hand, from the diff between the two
+   template versions. Until you do, a Copilot project's edit-time gate stays broken.
+   **0.16.0 changes both hook recipes for every project, on either CLI**, and the same
+   project-ownership rule means you re-apply these by hand too. The hooks now ship two
+   JSON-parser dialects and detect `python` or `node` at run time, instead of hard-coding
+   an undocumented dependency on `python`; they strip carriage returns from the parser's
+   output, because Windows `python` writes CRLF and a stray `\r` silently falsifies the
+   hook's own comparisons (Git Bash masks this, WSL bash does not); and on **Claude
+   Code** the hook now reports on stderr and exits 2 when it cannot find the edited
+   file's path, where it used to exit 0 and check nothing — a silently green gate.
+   **0.16.0 also adds the optional TDD-ordering guards (Copilot CLI only), and every
+   update from here on checks whether your project was ever offered them.** They are
+   project-owned and optional, so nothing is installed unasked. If the guard files are
+   already there, an update leaves them alone. If they are not, the update reads the
+   TDD-guard line `/sdlc-setup` writes in `spec/SDLC.md`: a recorded decline is a
+   settled decision and gets a sentence, not a fresh sales pitch, while **no line at
+   all** means your project never had the choice — typically because it was set up
+   before 0.16.0 — and the guards are offered properly. Absent guards look identical on
+   disk either way, which is why the decision lives in prose. Taking them up runs
+   `sdlc-setup.md` step 6 in full, logging-mode ramp and proof step included; neither is
+   optional just because this is an update.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
-   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`, or
-   `.github/hooks/*.json`. They hold your recorded baseline, your gate commands, and
+   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,
+   `.github/hooks/*.json`, or `.github/hooks/sdlc-tdd-guard.sh`. They hold your recorded
+   baseline, your gate commands, your TDD-guard patterns, and
    your decisions; the kit cannot regenerate them. The two exceptions are named in step
    6, and they are single lines.
    And claim only what was checked: "nothing project-owned touched" may be said once
@@ -429,8 +470,11 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    is what proves the classifier discriminates — an all-clear it could not fail to
    produce proves nothing. Then re-record the version in `spec/SDLC.md`
    (*Kit version: X.Y.Z*, dated), and — only if it was missing — write the *Agent CLI:*
-   line into `spec/PROJECT_INDEX.md`. Those two lines are the only project-owned content
-   an update writes, and the second never overwrites an answer already there. From here
+   line into `spec/PROJECT_INDEX.md`. Those lines are the only project-owned content
+   an update writes, and the second never overwrites an answer already there. A third
+   joins them **only when this update actually put the TDD-guard offer to you** — then
+   your answer goes into `spec/SDLC.md`, a decline included, so no later update re-asks
+   it. An update that did not ask does not record an answer. From here
    every later update is mechanical.
 
 7. **Land it as a normal PR** (`chore/update-sdlc-kit-X.Y.Z`) — the same way the adoption
@@ -493,10 +537,19 @@ them.
 
 ## FAQ
 
-**Does this require Python?** No. The process is language-agnostic. The gate commands
-are configured per project — `reference/GATE_RECIPES.md` has recipes for Python,
-TypeScript/JavaScript, C#/.NET, Go, Java, and Rust, and the pattern extends to anything
-with a linter and a test runner.
+**Does my project have to be a Python project?** No. The process is language-agnostic.
+The gate commands are configured per project — `reference/GATE_RECIPES.md` has recipes
+for Python, TypeScript/JavaScript, C#/.NET, Go, Java, and Rust, and the pattern extends
+to anything with a linter and a test runner.
+
+**Does the kit itself need Python installed?** It needs **either `python` or `node`** —
+one of them, on the machine, for the edit-time hook only. The hook is handed its payload
+as JSON and has to read a file path out of it, which needs a real parser; it ships both
+dialects and picks whichever it finds at run time. Nearly every developer machine
+already has one, and if yours has neither, the hook says so on every edit instead of
+passing quietly. Nothing else in the kit needs either one, and this is independent of
+what your project is written in. (Until 0.16.0 this answer read "No", which was wrong:
+the hook has always shelled out to `python`.)
 
 **What if my language has no type checker?** The gate's typecheck step is optional —
 setup drops it (or substitutes a compile step) where it doesn't apply.

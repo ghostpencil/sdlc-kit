@@ -14,7 +14,10 @@ the kit's home repository: <https://github.com/ghostpencil/sdlc-kit>
 Prerequisites: an agent CLI — Claude Code (CLI, desktop app, or IDE extension) or GitHub
 Copilot CLI 1.0.63 or newer — plus `git`, and — for the verify and update scripts — a
 POSIX shell with `sha256sum` (standard on Linux, `shasum -a 256` on macOS, Git Bash on
-Windows).
+Windows). The edit-time hook additionally needs **either `python` or `node`** to read
+its JSON payload; it ships both dialects and picks whichever it finds, and reports
+loudly rather than passing quietly if it finds neither. That is unrelated to what your
+project is written in.
 
 1. Make sure this folder sits at the root of your project and is named `sdlc-kit` —
    `/sdlc-setup` looks for it by name.
@@ -51,8 +54,9 @@ skills/                  ← TDD skill set + the three kit-written passes
                            (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup (the explore
-                           agent template is the exception: copied verbatim, Copilot only)
+templates/               ← instantiated into the project by /sdlc-setup; two are copied
+                           verbatim instead (the explore agent profile and the TDD
+                           guards' hook JSON, both Copilot only)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
 LICENSE                  ← MIT
 THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (all MIT)
@@ -61,10 +65,12 @@ THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (all MIT)
 `commands/`, `skills/`, and the installed `reference/REVIEW_LENSES.md` are
 **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything `/sdlc-setup` writes into your project
-(`CLAUDE.md`, `spec/*.md`, and the gate hook — `.claude/settings.json` on Claude Code,
-`.github/hooks/sdlc-gate.json` on Copilot CLI) is **project-owned** and is never
+(`CLAUDE.md`, `spec/*.md`, the gate hook — `.claude/settings.json` on Claude Code,
+`.github/hooks/sdlc-gate.json` on Copilot CLI — and the optional TDD-ordering guards,
+`.github/hooks/sdlc-tdd-guard.*`) is **project-owned** and is never
 overwritten by an update — it holds your recorded gate baseline, owner decisions, and
-gotchas.
+gotchas. The trade-off is worth knowing: a fix to a *recipe* in a later release reaches
+those files only as a changelog entry you apply by hand.
 
 ## Verifying this bundle
 

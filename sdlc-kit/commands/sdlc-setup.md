@@ -189,6 +189,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    (layer strategy, mandatory-mock table, and the integration-vs-unit boundary —
    where integration tests live and what they may touch — for THIS stack; leave
    `{{ISOLATION_HARNESS}}` for step 4, which authors what it describes).
+   `{{HOOK_ENVIRONMENT}}` and `{{TDD_GUARD_NOTE}}` are both left for step 6, which
+   measures the one and decides the other.
    `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
    <date> on the walking skeleton)`, which step 2 just proved. Never write a baseline
    you have not measured.
@@ -261,6 +263,29 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `CLAUDE.md` and `spec/SDLC.md`, so take both from that table when step 3 instantiates
    those files. On Copilot, `{{HOOK_FEEDBACK_NOTE}}` must not claim the feedback blocks,
    and must carry the warning that a timed-out hook is reported as a pass.
+
+   **Measure the hook's environment first** — *The hook environment* in
+   `reference/GATE_RECIPES.md` carries the one-line probe and how to read it. A hook runs
+   in the shell the CLI resolves, not the one you type in; on a Windows machine with WSL
+   that has been measured to be WSL bash, where neither the project's paths nor its
+   toolchain exist. Run the probe from the CLI's own session, because that is the only
+   environment the answer is about. What it reports resolves `{{HOOK_ENVIRONMENT}}` in
+   `spec/SDLC.md` — which shell answered, **which JSON parser it offers (`python` or
+   `node`; the hook needs one and picks it at run time)**, and whether the project's own
+   lint command runs there. Record what that shell offered, not what the machine has
+   installed: they are different questions, and only the first one governs the hook. Do
+   not ask the owner which interpreter to use — a preference cannot answer a question
+   about an environment neither of you is standing in. If the parser or the toolchain is
+   unreachable there, say so plainly and do not leave a hook installed that reads as
+   enforcement and checks nothing — that decision is the owner's to make knowingly, and
+   `{{HOOK_ENVIRONMENT}}` is where they will read it back.
+   **If no hook ends up installed, say so in `spec/SDLC.md` rather than leaving its
+   sentence standing:** replace the edit-time-hook paragraph with that fact and its
+   date, and resolve `{{HOOK_CONFIG_PATH}}` to name no file — the template's comment
+   there says the same. The canonical process file must never describe a check this
+   project does not have; the gate then carries the whole load, and every slice close
+   should know it.
+
    Then verify: edit a scratch source file with a deliberate lint error and confirm the
    hook reports it — blocking on Claude Code, as injected feedback on Copilot. On
    Copilot, **time that run** and raise `timeoutSec` to at least 3× the measurement,
@@ -268,6 +293,62 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    a gate that goes quiet on the first cold typecheck. If nothing is reported at all,
    the matcher is the first suspect — `reference/COPILOT.md` has the discovery
    procedure.
+
+   **Resolve `{{TDD_GUARD_NOTE}}` on every adoption, including Claude-Code-only ones.**
+   The placeholder lives in `spec/SDLC.md`, which is instantiated on both CLIs, so a
+   path that never reaches the offer below still has to fill it or the close-out `{{`
+   check fires with nothing to write. On a **Claude-Code-only** project resolve it to
+   the plain fact — the guards are Copilot-CLI-only and this project does not run that
+   CLI — and skip the rest of this sub-step. That is a statement about the CLI, not a
+   decision the owner made, and `/sdlc-update` reads it that way: a project that later
+   adds Copilot gets the offer then.
+
+   **Then offer the TDD-ordering guards — Copilot CLI only, and optional.** *The
+   TDD-ordering guards* in `reference/GATE_RECIPES.md` is the recipe; `COPILOT.md`
+   records why they exist on that CLI and not the other. Put the choice to the owner
+   with its trade-off stated: the guards make TDD ordering mechanical rather than
+   advisory (deny a production write with no failing test observed; block a stop while
+   red), at the cost of two more hook files and a guard that can be wrong about which
+   commands are test runs. Default to offering, not to installing. If accepted:
+   - `tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh` and
+     `tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.json`. The JSON takes no
+     values — do not edit it.
+   - The script takes `{{TEST_PATH_PATTERN}}`, `{{TEST_CMD_PATTERN}}` and
+     `{{SOURCE_GLOB}}`. **Do not ask for these cold and do not invent them from the
+     language.** You already know the answers: the test framework came from Round 2, and
+     the test layout is the one you are writing into `spec/TESTING.md` at step 3. Derive
+     both patterns from those, show the owner the two literal patterns you resolved, and
+     have them confirm — the recipe's per-language table is the starting point, the
+     project's actual layout wins. A project whose layout no case-pattern can express is
+     a finding to report, not a pattern to approximate.
+   - They install in **logging mode** and stay there. Never create the
+     `.git/sdlc-tdd/deny-enabled` flag during setup: deny is armed by the owner after
+     reading a few sessions of `.git/sdlc-tdd/guard.log` and confirming the guard
+     recognises the project's own test runs. A guard armed before that blocks every
+     production write in the repo.
+   - Prove them the way every other check is proven — by making them fail. In a scratch
+     session, write a production file with no failing test first and confirm the log
+     names it; then end a session with no green run and confirm the stop guard logs a
+     would-block. An unproven guard is a file that reads as enforcement. If neither
+     line appears, the guard is not firing: re-check the matcher and the hook
+     environment above before adjusting anything else.
+   - Record the outcome as `{{TDD_GUARD_NOTE}}` in `spec/SDLC.md`: installed or not,
+     which CLI they run on, logging or deny mode, and the proof you just ran. **Name the
+     artifact that decides the mode** — the flag file `.git/sdlc-tdd/deny-enabled`,
+     present means deny — and say in the same breath that arming or disarming deny means
+     updating this line, because nothing else will. The note is written at the one moment
+     it can only say "logging", and the ramp exists to change that later; a mode recorded
+     without its flag file is a number in prose drifting from the thing that enforces it.
+     State the other half too: `.git/` is **not** committed, so the flag, the state and
+     the log live in one clone only. This line is repo-wide and is therefore a claim
+     about the machine setup ran on — say whose, and let a teammate check their own. **A
+     decline is recorded too, with the date — never delete the line.** `/sdlc-update`
+     re-offers the guards to a project that never had the choice, and reads this to tell
+     that apart from an owner who considered them and said no; deleting the record
+     erases the difference and turns a decision into a recurring question. Never
+     describe guards the project does not have. On a project answering **both** CLIs,
+     the note must say the backstop covers the Copilot side only — an unqualified "TDD
+     ordering is enforced" is false in half the sessions the team will run.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
@@ -385,7 +466,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 ### 3. Close-out (both modes)
 
 1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
-   plus `.github/hooks/sdlc-gate.json` when the target CLI is Copilot. The scope is
+   plus `.github/hooks/sdlc-gate.json` when the target CLI is Copilot, and
+   `.github/hooks/sdlc-tdd-guard.sh` when step 6's guards were accepted (the guard's
+   `.json` takes no values, so it is not in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,
    and on Copilot the same is true of `.github/skills/sdlc-setup/SKILL.md`. Name the

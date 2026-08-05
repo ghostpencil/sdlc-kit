@@ -182,9 +182,13 @@ installed a kit-development command into every adopting project (plan, B6 hand-o
 ## 13. Every check states its negative case
 
 Any check this kit specifies or ships — the isolation harness, the edit-time hook, the
-exit checks, the update classifier, the release workflow's manifest verification,
-`/kit-check` itself — must state how it is proven to **fail**, and is trusted only once
-it has been made to disagree. A check that cannot fail visibly is indistinguishable from
+hook-environment probe, the TDD-ordering guards' proof step and their logging-to-deny
+ramp, the exit checks, the update classifier, the release workflow's manifest
+verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is
+proven to **fail**, and is trusted only once it has been made to disagree.
+**This list is the check's denominator and goes stale silently**: a check added without
+being added here is one the pass will not think to look for. Adding a check means
+extending this sentence in the same batch. A check that cannot fail visibly is indistinguishable from
 one that passes.
 
 **Check:** reading pass over every specified check. **Specimen:** three checks written

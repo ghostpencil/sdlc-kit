@@ -72,13 +72,21 @@ For each, read the named files in full — do not sample — and cite evidence p
   finding.
 - **8 — update procedure agrees:** `sdlc-update.md` beside the root README's *Updating
   an adopted project*: same classification rules, same ownership table, same traps.
-- **11 — vendored provenance:** each `skills/` file matches `reference/SKILLS.md`'s
-  verification claims, or its divergence is documented there.
+- **11 — provenance, two regimes, not conflated:** the five *vendored* `skills/` files
+  match `reference/SKILLS.md`'s verification claims or have their divergence documented
+  there; the three *kit-written* ones (`diff-review`, `change-simplify`,
+  `change-verify`) have no upstream to verify against, and the check is the opposite —
+  they must not be described as vendored, and `THIRD_PARTY_NOTICES.md` must say the
+  notices do not cover them.
 - **12 — bundle purity:** scan `git ls-files sdlc-kit` for anything an adopter should
   not receive.
-- **13 — negative cases:** every check the kit specifies (isolation harness spec, hook
-  verification, exit checks, update classifier, release workflow, this command) states
-  how it is proven to fail.
+- **13 — negative cases:** every check the kit specifies states how it is proven to
+  fail. Take the enumeration from the ledger's own list rather than from here, and treat
+  a check that appears in neither as the finding it is — the denominator is the part of
+  this invariant that goes stale silently. As of 0.16.0 that list is: the isolation
+  harness spec, the edit-time hook verification, the hook-environment probe, the
+  TDD-guard proof step and its logging-to-deny ramp, the setup exit checks, the update
+  classifier, the release workflow, the `tools/` proof suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that

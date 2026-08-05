@@ -18,7 +18,7 @@ the project owns.**
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` | project | never overwritten — they hold the gate baseline, the project's own gate commands, owner decisions, backlog, gotchas |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-tdd-guard.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
 
 **Which of those rows apply here is recorded, not guessed:** `spec/PROJECT_INDEX.md`
@@ -140,7 +140,7 @@ result rather than an error:
   would report a modified command as untouched — so if every packaged skill classifies
   `DRIFTED` at once, suspect the strip before suspecting seven simultaneous edits.
 
-### 4. Present the plan — the ONE owner halt
+### 4. Present the plan — the main owner halt
 
 Before writing anything, show the owner the full classification plus the changelog
 entries marked *[installable]* for every version being skipped. Open with a
@@ -244,8 +244,89 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   the owner the diff of the three templates between the two versions; do not edit
   project-owned files. Step-number citations in project notes go stale again — flag,
   do not fix.
+- **0.16.0 changes BOTH edit-time hook recipes, and both are project-owned — so this
+  update delivers neither.** Two changes affect every adopted project on either CLI.
+  (a) The hooks now carry **two JSON-parser dialects, python and node, and detect which
+  is available at run time**; previously they hard-coded `python`, which was an
+  undocumented dependency and simply failed on a machine without it. (b) They pipe the
+  parser's output through `tr -d '\r'`, because Windows python writes CRLF and a stray
+  carriage return falsifies the hook's own string comparisons — invisible under Git Bash,
+  which strips it, and fatal under WSL bash, which does not. On the **Claude Code** side
+  there is a third: the hook used to `exit 0` silently whenever it could not find the
+  edited file's path, so a broken hook was indistinguishable from a clean edit; it now
+  reports on stderr and exits 2, matching the Copilot dialect. Hand the owner the diff of
+  `templates/settings.template.json` and/or `templates/copilot-hook.template.json` against
+  the values their instantiated hook carries, and let them re-apply. Do not rewrite either
+  file. **Re-run the hook-environment probe while you are here** (`reference/GATE_RECIPES.md`,
+  *The hook environment*) and compare it against what `spec/SDLC.md` recorded at setup: a
+  machine that has gained WSL, or lost the JSON parser the hook picks at run time, moves
+  that answer, and nothing else in the process ever looks again. Where it has moved, that
+  is a finding for the halt — not a line to update silently.
+- **0.16.0 fixes a defect in the Copilot gate hook that this update cannot deliver.**
+  On Copilot CLI the write tool is `apply_patch`, and its `toolArgs` is raw patch text
+  rather than the JSON every other tool sends. The hook body through 0.15.0 JSON-parsed
+  it unconditionally, so on the only write tool that actually fires it fell to its
+  "could not find the file" branch **on every edit** and never once ran lint or
+  typecheck. On a Copilot project, `.github/hooks/sdlc-gate.json` is where to look: the
+  symptom is the hook reporting on every edit that it did not run. Read it with the
+  owner rather than assuming its state — it is project-owned, this command never
+  classified it, and it may have been hand-patched, replaced, or never installed.
+  0.16.0's `templates/copilot-hook.template.json` is the fix to compare against.
+  The instantiated `.github/hooks/sdlc-gate.json` is **project-owned** — it holds this
+  project's own lint and typecheck commands — so an update must not rewrite it. Hand the
+  owner the diff between the two template versions and the values their current hook
+  carries, and let them re-instantiate. State the consequence plainly at the halt: until
+  they do, the hook stays broken, and this is one of the few defects an update cannot
+  fix for them. Claude Code projects are unaffected.
+- **0.16.0 adds the optional TDD-ordering guards, Copilot CLI only — and every update
+  from here on checks whether this project was ever offered them.** Two hook files
+  (`.github/hooks/sdlc-tdd-guard.sh` and `.json`) that deny a production write when no
+  failing test has been observed, and block a stop while the suite is red. They are
+  **not** part of the automatic new-files clause: they are project-owned, optional, and
+  carry this project's own test patterns, so nothing is installed without the owner's
+  word. Decide from two pieces of evidence, in this order:
+  1. **Does this project run Copilot CLI?** The *Agent CLI:* line in
+     `spec/PROJECT_INDEX.md` says so (`Copilot CLI` or `both`) — the same line step 1
+     already reads. A Claude-Code-only project gets
+     no offer and no mention — the guards do not exist for it, and saying otherwise
+     describes a backstop it cannot have.
+  2. **Is `.github/hooks/sdlc-tdd-guard.sh` present?** If yes, nothing to do: it is
+     project-owned and this update leaves it alone. If no, read the TDD-guard line in
+     `spec/SDLC.md` — the one `/sdlc-setup` writes whether the guards were taken *or*
+     declined:
+     - **It records a decline** → the owner already decided. One sentence in the report,
+       then move on; do not re-open a settled question at every update.
+     - **There is no such line at all** → this project predates the offer, or setup
+       never made it. **Offer the guards now, as a first setup would.** This is the case
+       the re-offer exists for, and it is invisible unless you look: the guards being
+       absent looks identical either way from the filesystem, which is why the decision
+       is recorded in prose rather than inferred from the tree.
+     - **The line says "installed" but the files are gone** → do not re-offer as though
+       nothing happened. Report the contradiction: the record and the repository
+       disagree, and only the owner knows which is right (a removal on purpose, or a
+       file lost in a merge). This is the reconcile step — you are holding the record
+       and its artifact at the same instant, and comparing them is the whole point of
+       having both.
+  **Reconcile the other direction too, in the "nothing to do" case above**: when the
+  guard files *are* present, still read the line. Present-but-recorded-as-declined is
+  the same contradiction pointing the other way, and the branch that skips reading the
+  record is exactly the branch that can never notice. Where the line claims **deny mode**,
+  say plainly that the flag file deciding it (`.git/sdlc-tdd/deny-enabled`) is inside
+  `.git` and therefore per-clone — the line describes the machine that wrote it, not
+  this checkout.
+  Taking them up means following `sdlc-setup.md` step 6 in full — test patterns derived
+  and confirmed, the logging-mode ramp, and the proof step — none of it skippable
+  because this is an update rather than a first setup. A guard armed before the log
+  shows it recognising the project's own test runs blocks every production write in the
+  repo. Record the outcome, **including a decline**, in `spec/SDLC.md` the way setup
+  does, so the next update can still tell the two apart. Say which CLI they cover, too:
+  a project running both CLIs gets the backstop on the Copilot side only.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
+- **Two further owner decisions can arise inside this step**, and both are real halts
+  even though step 4 carries the main one: an un-manifested file in a kept `sdlc-kit/`
+  folder (below), and the TDD-guard re-offer above. Neither is decided on the owner's
+  behalf.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target
   version's bundle — but **enumerate the actual directory contents first** and compare
   them against the old version's manifest. Anything present that the manifest does not
@@ -285,10 +366,17 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   not fail to produce proves nothing.
 - Re-stamp `spec/SDLC.md` (*Kit version: X.Y.Z (updated <date>)*). On a project adopted
   before 0.14.0, also write the *Agent CLI:* line into `spec/PROJECT_INDEX.md` with the
-  value the owner confirmed at step 1. **These two lines are the only project-owned
-  content an update may write**, and the second only when it is absent — never to
-  overwrite an answer already recorded. Do both last, so an aborted update never claims
-  a version it does not hold.
+  value the owner confirmed at step 1. **These lines are the only project-owned content
+  an update may write**, and the second only when it is absent — never to overwrite an
+  answer already recorded. Do both last, so an aborted update never claims a version it
+  does not hold.
+  **A third line joins them only when this update actually put the TDD-guard offer to
+  the owner** (step 5's re-offer clause) — then their answer is recorded in
+  `spec/SDLC.md` the way setup records it, decline included. It is written only when an
+  offer was made and answered in this session, never inferred and never rewritten: an
+  update that did not ask does not get to record an answer. Without it a decline leaves
+  no trace and every later update re-asks a settled question, which is the whole reason
+  the line exists.
 - Land as a normal PR (`chore/update-sdlc-kit-X.Y.Z`), the same way the adoption landed.
   Report to the owner what changed *behaviorally* (from the changelog), not just which
   files moved.

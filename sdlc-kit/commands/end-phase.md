@@ -72,9 +72,9 @@ types into are different environments (different `PATH`, different interpreter, 
 profile the agent never loads), and only the owner's is authoritative for anything the
 owner executes. Fix the command in **both its homes** — `CLAUDE.md` (*Commands*) and
 `spec/SDLC.md` (halt 4) — and record the resolved interpreter or
-toolchain path in PROJECT_INDEX's Environment gotchas — this step is the only one in the
-whole process that exercises that environment, so what it finds has been wrong since
-setup.
+toolchain path in PROJECT_INDEX's Environment gotchas — in the slice and phase loop this
+step is the only one that exercises that environment, so what it finds has been wrong
+since setup (which has its own owner-shell asks, for the same reason).
 
 If the checklist includes failure paths, prefer breaking the connection over corrupting
 the data: stopping the server (or the backing service) leaves the product up while its

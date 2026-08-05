@@ -20,13 +20,16 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Kit skills (8: 5 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.json`, `postToolUse` |
+| TDD-ordering guards | **not installed** — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` (optional) |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |
 
 A repo that answers **both** at the interview gets both columns. Nothing is written
-twice: the seven commands exist once per CLI in different formats, the eight skill
-directories exist once in a shared directory, and every other row is already shared.
+twice: the seven commands exist once per CLI in different formats, and the eight skill
+directories exist once in a shared directory. Three rows are Copilot-only by nature —
+the guards, the sweep agent, and the model pin — and the table says so in place rather
+than letting a dual-CLI project assume symmetry.
 
 ### Why `CLAUDE.md` is not translated — and why `AGENTS.md` is prohibited
 
@@ -106,14 +109,29 @@ hazards belong to this file, because they change what the *process* can claim:
    whole tool name, so the Claude-side `Edit|Write` does not port as a substring match
    — and the tool vocabulary differs anyway (below).
 4. **`preToolUse` is the stronger event** — it *can* deny, is fail-closed on error and
-   on exit 2, and takes `permissionDecision: allow|deny|ask`. The kit does not use it:
-   its gate is a post-edit check, not a pre-approval. Recorded so a later batch does not
-   rediscover it and assume it was overlooked.
+   on exit 2, and takes `permissionDecision: allow|deny|ask`. The **gate hook** does not
+   use it: the gate is a post-edit check, not a pre-approval, and that is deliberate.
+   The optional TDD-ordering guards below are the one thing in the kit that does, which
+   is exactly why they are optional, ramped, and proven before they are trusted.
 
-### Hook capabilities on record — the kit builds nothing on these yet
+### Hook capabilities on record — and the two the guards now build on
 
 Verified against the hooks reference 2026-08-05, recorded so a later batch starts from
-dated facts instead of re-research:
+dated facts instead of re-research. The first two stopped being reference material that
+day: the TDD-ordering guards below are built on them, and their **output schemas were
+measured on the bench** rather than taken from the docs, which do not state them —
+
+- **`preToolUse` denies with**
+  `{"permissionDecision":"deny","permissionDecisionReason":"…"}` on stdout. Observed:
+  the write did not happen and the session was shown the reason verbatim.
+- **`agentStop` blocks with** `{"decision":"block","reason":"…"}`. Observed: the session
+  continued under a forced continuation, and the next stop arrived carrying
+  `stop_hook_active: true` (snake_case, as sent).
+
+A denial that does not deny is the failure mode worth naming here, because nothing
+reports it: the hook exits 0, the CLI ignores an unrecognised payload, and the guard's
+log says it denied while the write went through. Both schemas above were confirmed by
+reading the transcript for the *effect*, not by the hook's own claim.
 
 - **`preToolUse`'s fail behavior is asymmetric: closed on a command error, open on a
   timeout.** The reference is explicit that a timed-out hook lets the tool call
@@ -131,21 +149,47 @@ dated facts instead of re-research:
 ### Tool names — what is documented, and how to find the rest
 
 The hook matcher tests against `toolName`, and Copilot CLI's tool vocabulary is
-under-documented (`github/copilot-cli#3820` asks for exactly this). Provenance of each
-name the recipe ships with:
+under-documented (`github/copilot-cli#3820` asks for exactly this). **Measured on the
+bench 2026-08-05 against 1.0.77 on Windows 11**, by the discovery procedure below —
+these observations supersede the documentation and the third-party sources for every
+name they cover:
 
 | Name | Evidence | Confidence |
 |---|---|---|
-| `bash` | the hooks reference's own matcher example, `"bash\|edit"` | documented |
-| `edit` | same example | documented |
-| `create` | third-party cookbook and an SDK example filtering on it | plausible, unofficial |
-| `apply_patch` | same cookbook's post-edit hook | plausible, unofficial |
+| `apply_patch` | **measured** — fires for both the create and the edit flow | observed 2026-08-05 |
+| `powershell` | **measured** — the shell tool on Windows | observed 2026-08-05 |
+| `view` | **measured** — the read tool | observed 2026-08-05 |
+| `bash` | the hooks reference's own matcher example, `"bash\|edit"` | documented, **not observed** |
+| `edit` | same example | documented, **did not fire** on the tested flows |
+| `create` | third-party cookbook and an SDK example filtering on it | plausible, **did not fire** |
 
-The recipe ships `edit|create|apply_patch` as a **starting** matcher and proves it the
-way the kit proves every other check — it is trusted only once it has been made to
-fail: a deliberate lint error must
-produce hook feedback before the hook is trusted. A wrong matcher therefore fails
-loudly at setup time instead of becoming a gate that never fires.
+Three traps this measurement exposed, each of which would have shipped silently:
+
+1. **The UI label is not the tool name.** Copilot displays "Edit" while the hook name is
+   `apply_patch`. A matcher written from what the session shows you never fires.
+2. **The documented names are the ones that did not fire.** `edit` and `create` come
+   from GitHub's own example; on 1.0.77 neither appeared for any file write. The recipe's
+   `edit|create|apply_patch` worked by its third alternative only — it would have looked
+   deliberate and been accidental.
+3. **`apply_patch` does not deliver JSON.** Its `toolArgs` is raw patch text
+   (`*** Begin Patch` / `*** Add File: <path>`), not the JSON-encoded string every other
+   tool sends. The 0.15.0 hook body JSON-parsed `toolArgs` unconditionally, so on the
+   only write tool that actually fires it fell to its no-path branch and **never ran the
+   gate on any edit**. Fixed in 0.16.0 by parsing the patch text for its touched paths;
+   the instantiated hook is project-owned, so adopted projects need the changelog fix
+   applied by hand.
+
+A fourth thing this section used to get wrong by omission: **the loud-when-it-cannot-run
+behaviour was never a Copilot property**, it was just the only dialect that had it. The
+Claude Code hook exited 0 and checked nothing whenever it could not find a path — a
+silently green gate in the kit's own file. 0.16.0 gives that dialect the same loudness
+(stderr + exit 2). Both are now proven by the same suite, and neither can go quiet
+without saying so.
+
+The recipe still proves the matcher the way the kit proves every other check — trusted
+only once made to fail: a deliberate lint error must produce hook feedback. That proof
+is what caught trap 3, and it is why a wrong matcher fails loudly at setup time instead
+of becoming a gate that never fires.
 
 **Discovery procedure, for when the proof fails.** Register a matcher-less
 `postToolUse` hook that appends its input to a file, edit one source file, then read
@@ -172,6 +216,54 @@ third-party source, uncorroborated by GitHub's docs, and the only version claim 
 file. Setup reads `copilot --version` and says plainly if the installed CLI is older,
 rather than installing a gate that cannot fire. Same treatment as any other
 environment-dependent claim: state where it was checked, or do not make it.
+
+## The TDD-ordering guards, and why they are Copilot-only
+
+The field finding that motivated them is a Copilot property: **on Copilot CLI a skill is
+a prompt, so presence is not process.** The kit's highest-risk steps — write the test
+first, do not stop while red — were specified in files the model may or may not honour.
+The guards give those two steps a deterministic backstop. The recipe, the placeholders,
+the ramp and the proof step are in `GATE_RECIPES.md`; what belongs here is the dialect
+decision and its evidence.
+
+**They ship for Copilot CLI only, and the Claude Code port is deferred, not declined.**
+Claude Code has the matching events — a `PreToolUse` hook can deny, a `Stop` hook can
+block — so the port looks like a translation exercise. It is not, and the reason is the
+same one that made the Copilot guards take a bench run: **the guard's whole mechanism
+rests on two payload facts, and Claude Code's documentation settles neither** (checked
+against the hooks reference, 2026-08-05):
+
+1. **Whether a shell command's exit code is available to `PostToolUse`, and in what
+   form.** The docs give no `PostToolUse` input example and do not state what
+   `tool_response` carries for the Bash tool. G1 and G2 both turn on observing a test
+   run's exit status; on Copilot this resolved into a *text trailer* parse, which no one
+   predicted from the docs.
+2. **Which field of a file-write's `tool_input` holds the path.** The docs document no
+   input schema for `Edit` or `Write`. On Copilot the equivalent assumption — that the
+   write tool sends JSON — is exactly what broke the gate hook for a whole release.
+
+Two more are unstated: whether Claude Code's Stop input carries a `stop_hook_active`
+flag (the guard's stand-down depends on it) and whether a consecutive-block cap exists.
+And the timeout semantics are ambiguous in the one direction that matters — the docs do
+not say whether a timed-out `PreToolUse` fails open or closed.
+
+Writing the port from those gaps would mean shipping a guard whose failure mode is
+silence, into the CLI where the kit's users would trust it most. The kit's own rule
+applies unchanged: **only a bench answers this.** A Claude Code port is a future batch
+whose first step is a probe run, pre-registered before any code is written: log a real
+`PostToolUse` payload for a deliberately failing test command, and a real `PreToolUse`
+payload for an `Edit` and a `Write`, and design the state machine from what they
+actually contain rather than from what the documentation implies.
+
+Two Claude-side facts *are* documented and worth carrying into that batch: hooks get
+`$CLAUDE_PROJECT_DIR` for portable path resolution, and the Windows shell is stated
+(Git Bash, with a per-hook `"shell"` key) rather than left to `PATH` — so the WSL hazard
+in `GATE_RECIPES.md` is a Copilot-side problem specifically, and the Claude port would
+not need the self-locating prelude.
+
+The generated `spec/SDLC.md` says which CLI the guards run on — a verification step has
+to name the environment it verifies against, and a dual-CLI project must not read a
+Copilot-only backstop as covering both.
 
 ## Models and tiers
 
@@ -206,13 +298,20 @@ IDEs. This corrects an earlier reading of the CLI's how-to page, which lists onl
 `name`, `description`, and `tools`: the how-to is a subset of the reference, not a
 narrower contract. The kit still ships no pinned model in any file it installs — a model
 name is a project fact, so if the owner wants the sweep agent pinned to their Low tier,
-setup adds `model:` from the recorded policy. **Unverified as of 2026-08-05, pending a
-bench run:** whether `model:` naming a *Copilot* model (the docs document the field for
-agents; hazard 2's measurement covered only a Claude name being downgraded) is honoured
-in practice on the CLI. Until the bench answers, setup offers no per-file pins — the
-operator levers above are the load-bearing mechanism, and on a dual-CLI project
-per-file pins are off the table regardless, since one CLI's model name is the other's
-downgrade warning.
+setup adds `model:` from the recorded policy. **Measured on the bench 2026-08-05, and
+the two halves differ:** an agent pinned `model: claude-sonnet-4.5` **executed on that
+model** while the session default was `gpt-5.3-codex` (the CLI's own transcript labelled
+the turn `Pin-probe(claude-sonnet-4.5)`) — so per-agent pinning is honoured in practice,
+not merely documented. A skill carrying `model:` **loads and fires normally but the turn
+stays on the session model**: the undocumented field is silently ignored rather than
+rejected, which is the worst of the three possible behaviours, because the file looks
+like it is routing and is not.
+
+So a Copilot-only project may pin `.github/agents/explore.agent.md` to the owner's Low
+tier if they ask. Skills remain off the table because the field does nothing there, and
+dual-CLI projects remain off the table regardless, since one CLI's model name is the
+other's downgrade warning. The operator levers above are still the load-bearing
+mechanism for everything else.
 
 ## Subagents and sweeps
 
@@ -372,7 +471,15 @@ handling — it copies its template verbatim, placeholders being absent.
 The gate hook is **project-owned**, like `.claude/settings.json`: it holds the project's
 own lint and typecheck commands, so an update never rewrites it. A release that changes
 the hook recipe reaches an adopted project as a changelog entry the owner applies, not
-as a silent overwrite.
+as a silent overwrite. The two TDD-guard files are project-owned for the same reason and
+on the same terms — `sdlc-tdd-guard.sh` carries the project's test patterns, and its
+`.json` is left alone with it.
+
+That ownership has a cost worth stating plainly, because 0.16.0 is the first release to
+pay it: the `apply_patch` fix to the gate-hook recipe is a **real defect fix that no
+adopted project receives by updating**. `/sdlc-update` reports the recipe changed and
+the owner re-applies it by hand; until they do, a Copilot project's gate hook has never
+run on a single edit.
 
 One more way a skill file can mutate outside `/sdlc-update`: the `gh skill` extension
 injects provenance frontmatter into `SKILL.md` on install, and its `update` compares
@@ -456,6 +563,19 @@ Re-verified **2026-08-05**, same sources unless named: the hooks reference (the
 skills page (SKILL.md frontmatter documents no `model` field — *Models and tiers*);
 GitHub's changelog, 2026-04-16 entry (`gh skill install`/`update` frontmatter
 injection — repository, ref, tree SHA).
+
+**Measured on the bench 2026-08-05** — Copilot CLI 1.0.77, Windows 11, fixture repo
+`copilot-ci-test`, captured payloads retained. These are first-hand observations, and
+where they disagree with a documented or third-party claim above, they win and the row
+says so: the tool-name vocabulary (`apply_patch` / `powershell` / `view`, and the
+non-firing of `edit` and `create`); `apply_patch`'s `toolArgs` being raw patch text;
+`postToolUseFailure` **never firing** for a shell command that exits non-zero, which
+instead arrives as `postToolUse` with `resultType: "success"` and a
+`<shellId: N completed with exit code M>` text trailer; the `preToolUse` deny and
+`agentStop` block output schemas; `agentStop` firing in `-p` mode with snake_case
+`stop_hook_active`; hook `bash` resolving to WSL bash on a Windows machine, with both
+the fail-open-on-timeout and fail-closed-on-error behaviours observed live; and
+per-agent `model:` being honoured while skill `model:` is ignored.
 
 Upstream issues tracked, open as of 2026-08-03: `github/copilot-cli#618` (markdown
 prompt files), `github/copilot-cli#3820` (matcher / tool-name documentation).

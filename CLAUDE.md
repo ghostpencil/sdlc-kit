@@ -20,7 +20,9 @@ The repo root is **not** the kit. `sdlc-kit/` is the shippable product — the o
 that is copied into an adopting project, and the unit that gets packaged as a release
 artifact. Everything at the root (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`,
 `FIELD_REPORT_2026-07-20.md`, `FIELD_REPORT_2026-07-22.md`, `IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`,
-`FEATURE_PLAN_HISTORY.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`)
+`FEATURE_PLAN_HISTORY.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`,
+the root `tools/` — re-runnable proofs for the two shipped hook artifacts, which are
+kit-development checks and not part of the process the kit installs)
 is documentation *about* the kit and must never end up in an adopter's repo.
 `FEATURE_PLAN.md` carries only the standing decisions, running clocks, and active work;
 its retired sections (§1–§30) live in `FEATURE_PLAN_HISTORY.md` with numbering

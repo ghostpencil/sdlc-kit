@@ -168,6 +168,28 @@ away.
 An edit-time hook ({{HOOK_CONFIG_PATH}}) runs the lint/typecheck steps on every edited
 source file, so most gate failures surface at edit time rather than at slice end.
 {{HOOK_FEEDBACK_NOTE}}
+<!-- If setup found the hook could not work in this project's hook shell and the owner
+     chose not to install one, the two lines above are replaced with that fact and its
+     date, and {{HOOK_CONFIG_PATH}} names no file. A process file claiming a hook that
+     does not exist is worse than one admitting there is none: the gate is then the only
+     check, and every slice close has to carry that weight knowingly. -->
+
+A hook runs in the shell the agent CLI resolves, which is not necessarily the one you
+type in — if it cannot reach this project's toolchain it cannot check anything, and a
+hook that checks nothing still reads as a gate. What the hook environment measured at
+setup: {{HOOK_ENVIRONMENT}}
+
+{{TDD_GUARD_NOTE}}
+<!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
+     are installed, which CLI they run on, and whether they are in logging or deny mode.
+     If they were declined, it says so WITH THE DATE — it does not delete this line. A
+     missing line and a declined offer are different facts: /sdlc-update re-offers the
+     guards when this project never had the choice, and must not badger an owner who
+     already made it. Deleting the record erases the difference.
+     They are Copilot-CLI-only: on a project that also runs Claude Code, the backstop
+     covers only the Copilot side, and saying so is the point. Never describe a guard
+     this project does not have. -->
+
 
 ## Model policy
 
@@ -329,12 +351,15 @@ Run `/end-phase` when the last slice is done:
    halt 4's credibility on a check that never ran.
 2. **Owner acceptance review** *(halt 4)* — owner runs `{{RUN_COMMAND}}` and verifies the
    phase's visible behavior against the spec's checklist. Findings become fix commits
-   (back to the slice loop if large). This is the one step in the whole process that
-   runs in the **owner's** shell rather than an agent's, and the two are different
-   environments — different `PATH`, an unloaded profile, sometimes a different
+   (back to the slice loop if large). This is the one step in the *slice and phase loop*
+   that runs in the **owner's** shell rather than an agent's — setup has its own
+   owner-shell asks, for the same reason — and the two are different
+   environments: different `PATH`, an unloaded profile, sometimes a different
    interpreter of the same name. A command that fails here is a defect in the
    instructions: fix `{{RUN_COMMAND}}` against the owner's result and record the
-   resolved toolchain path in Environment gotchas.
+   resolved toolchain path in Environment gotchas. The run command has **two homes** —
+   here and `CLAUDE.md` (*Commands*) — so fix both in the same pass; fixing one and
+   leaving the other is exactly how the two drift.
 3. Push and open the PR (`gh`), body summarizing the phase against its exit criteria.
 4. Whole-arc review: the `diff-review` skill on the arc range (`<main>...HEAD`),
    checked against the **phase's** exit criteria rather than a slice's — spawned only

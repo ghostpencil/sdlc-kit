@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "edit|create|apply_patch",
+        "timeoutSec": 30,
+        "bash": "i=$(cat); c=$(printf '%s' \"$i\" | sed -n 's/.*\"cwd\":\"\\([^\"]*\\)\".*/\\1/p' | tr '\\\\\\\\' '/' | tr -s '/'); r=\"\"; if [ -n \"$c\" ] && [ -d \"$c\" ]; then r=\"$c\"; else dl=$(printf '%s' \"$c\" | sed -n 's|^\\([A-Za-z]\\):/.*|\\1|p' | tr 'A-Z' 'a-z'); rest=$(printf '%s' \"$c\" | sed -n 's|^[A-Za-z]:/\\(.*\\)|\\1|p'); if [ -n \"$dl\" ]; then for cand in \"/mnt/$dl/$rest\" \"/$dl/$rest\"; do if [ -d \"$cand\" ]; then r=\"$cand\"; break; fi; done; fi; fi; [ -n \"$r\" ] || exit 0; g=\"$r/.github/hooks/sdlc-tdd-guard.sh\"; [ -f \"$g\" ] || exit 0; printf '%s' \"$i\" | SDLC_REPO_ROOT=\"$r\" sh \"$g\" pre-write"
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "matcher": "powershell|bash|shell",
+        "timeoutSec": 30,
+        "bash": "i=$(cat); c=$(printf '%s' \"$i\" | sed -n 's/.*\"cwd\":\"\\([^\"]*\\)\".*/\\1/p' | tr '\\\\\\\\' '/' | tr -s '/'); r=\"\"; if [ -n \"$c\" ] && [ -d \"$c\" ]; then r=\"$c\"; else dl=$(printf '%s' \"$c\" | sed -n 's|^\\([A-Za-z]\\):/.*|\\1|p' | tr 'A-Z' 'a-z'); rest=$(printf '%s' \"$c\" | sed -n 's|^[A-Za-z]:/\\(.*\\)|\\1|p'); if [ -n \"$dl\" ]; then for cand in \"/mnt/$dl/$rest\" \"/$dl/$rest\"; do if [ -d \"$cand\" ]; then r=\"$cand\"; break; fi; done; fi; fi; [ -n \"$r\" ] || exit 0; g=\"$r/.github/hooks/sdlc-tdd-guard.sh\"; [ -f \"$g\" ] || exit 0; printf '%s' \"$i\" | SDLC_REPO_ROOT=\"$r\" sh \"$g\" observe-test"
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "timeoutSec": 30,
+        "bash": "i=$(cat); c=$(printf '%s' \"$i\" | sed -n 's/.*\"cwd\":\"\\([^\"]*\\)\".*/\\1/p' | tr '\\\\\\\\' '/' | tr -s '/'); r=\"\"; if [ -n \"$c\" ] && [ -d \"$c\" ]; then r=\"$c\"; else dl=$(printf '%s' \"$c\" | sed -n 's|^\\([A-Za-z]\\):/.*|\\1|p' | tr 'A-Z' 'a-z'); rest=$(printf '%s' \"$c\" | sed -n 's|^[A-Za-z]:/\\(.*\\)|\\1|p'); if [ -n \"$dl\" ]; then for cand in \"/mnt/$dl/$rest\" \"/$dl/$rest\"; do if [ -d \"$cand\" ]; then r=\"$cand\"; break; fi; done; fi; fi; [ -n \"$r\" ] || exit 0; g=\"$r/.github/hooks/sdlc-tdd-guard.sh\"; [ -f \"$g\" ] || exit 0; printf '%s' \"$i\" | SDLC_REPO_ROOT=\"$r\" sh \"$g\" stop-check"
+      }
+    ]
+  }
+}
