@@ -63,7 +63,12 @@ getting its first field exercise. Four findings. The owner additionally supplied
 deep-research report (`deep-research-report.md`, 2026-08-05, on enforcing a TDD skill in
 Copilot CLI without forking the markdown), processed below as a triage input — its
 capability claims are dated research with citations and are **re-verified against the
-docs at build time**, per §21's standing rule for anything Copilot.
+docs at build time**, per §21's standing rule for anything Copilot. **A first
+verification pass ran 2026-08-05, same day as this triage, against GitHub's live docs:
+every capability claim §31 relies on held** — no claim from the research report was
+hallucinated — and the build-relevant findings are folded inline below with that date.
+§21's build-time re-check still applies to anything checked earlier than the build
+session.
 
 Bookkeeping this section also carries: **0.14.1 shipped 2026-08-05** (Copilot bootstrap
 documented in both READMEs; three `/kit-check` findings fixed — the CHANGELOG is the
@@ -122,20 +127,30 @@ No state machine, no hook (see 31.3).
 as a guidance gap.** Verified: `COPILOT.md` already covers the machinery — setup asks
 the owner to map tiers against `/model`, hazard 2 explains why kit files pin no
 `model:`, per-agent pinning is documented, `COPILOT_MODEL` exists. What the field run
-shows is the interview's failure mode: the adopter's `spec/SDLC.md` records all three
-tiers as `auto` — the mapping question answered with the default, which is exactly what
-the gate-recipes principle warns a proposal-shaped question invites. **Remedy (R5.3),
-expanded at the 31.4 halt (owner: the routing pain was real, not cosmetic):** the kit
-cannot pin models in the files it ships (hazard 2, plus dual-CLI portability), so the
-levers are the recorded mapping, the operator, and — pending verification — per-file
-pins written at setup time. Four parts:
+shows is sharper than the triage first recorded (**corrected 2026-08-05 against the
+generated tree**): the adopter's `spec/SDLC.md` records the three `auto` tiers as
+"(owner decision, 2026-08-03)" — in the adoption commit itself (`2a006a7`), not a later
+edit. The dated-ratification record the remedy first prescribed already existed in the
+field, and the routing pain happened anyway (the adopter's friction log, still open:
+"owner had to manually override model selection"). A record cannot distinguish an
+informed ratification from a rubber-stamped default; the setup-time lever is what the
+question *says*, and the operative gap is that no installed file names the moment a
+tier choice is executed. **Remedy (R5.3), expanded at the 31.4 halt (owner: the
+routing pain was real, not cosmetic):** the kit cannot pin models in the files it
+ships (hazard 2, plus dual-CLI portability), so the levers are the
+consequence-stating question, the operator, and — pending verification — per-file
+pins written at setup time. Four parts, (b) and (c) load-bearing:
 
-- **(a) Setup's Copilot tier question requires an explicit mapping.** Each tier maps to
-  a named model from the `/model` listing, **or** the owner explicitly ratifies `auto`
-  for that tier — recorded as "owner chose auto" with the date. Three `auto`s arrived
-  at by accepting a default is neither, and setup says so at the question. The
-  gate-recipes rule, applied to models: the mapping must match a decision, or the
-  mapping lies.
+- **(a) Setup's Copilot tier question states the consequence, not just the choice.**
+  Each tier maps to a named model from the `/model` listing, **or** the owner ratifies
+  `auto` for that tier — and the question itself must state what `auto` forfeits:
+  process-heavy commands (`/plan-phase`, `/end-phase`, `/end-slice`'s review) may
+  route below the work's tier, and the field run shows what that costs. The dated
+  record alone is not the fix — the adopter's file already carried "(owner decision,
+  2026-08-03)" and the pain happened anyway; a record cannot show whether the
+  consequence was understood, so the question must carry it. The gate-recipes rule,
+  applied to models: the mapping must match an *informed* decision, or the mapping
+  lies.
 - **(b) `SDLC.template.md`'s model policy gains the Copilot dialect: routing is
   operator-performed.** On Copilot no installed file routes for you, so the generated
   `SDLC.md` names which commands run at which tier from the recorded mapping and
@@ -150,6 +165,10 @@ pins written at setup time. Four parts:
 - **(d) Build-time verification: does frontmatter honor a *Copilot* model name?**
   Hazard 2's bench run only proved a **Claude** model name is downgraded — it says
   nothing about `model: <copilot-model>` in a skill or agent file. Verify on the bench.
+  Doc datum, 2026-08-05: the CLI skills page documents SKILL.md frontmatter as `name`,
+  `description`, `license`, `allowed-tools` — **no `model` field**; only the
+  custom-agents reference documents `model`. Expect the bench answer to be agents-only,
+  which is why (b) and (c) are the load-bearing parts, not this.
   If honored, setup on a **Copilot-only** project may offer to pin the process-heavy
   skills to the mapped tier models — owner-decided at setup, written into the
   *instantiated* copies (a model name is a project fact; the kit's shipped files stay
@@ -162,26 +181,37 @@ addressed by R5.1/R5.2 and ENF, not by new prose.
 **Finding 4 — friction-log status markers unnormalized — STANDS, small.** Verified:
 the absorbed-marker convention lives in an HTML comment in `PROJECT_INDEX.template.md`
 and in `sdlc-retro.md`'s sweep; no entry *format* is prescribed, so entries are written
-without a status and the sweep infers. **Remedy (R5.4):** the template comment
+without a status and the sweep infers. (The adopter's log carries markers *now* only
+because the 2026-08-05 retro added them — its finding 4 states neither entry had one
+before the retro; the premise stands.) **Remedy (R5.4):** the template comment
 prescribes the one-line shape — `- <date> — <friction> — open` flipping to `absorbed by
-retro <date>` — and `/end-slice`'s friction bullet writes that shape. No new rule; a
-format for one that exists.
+retro <date>` — and `/end-slice`'s friction bullet writes that shape. The prescribed
+shape must match what the retro sweep already writes when it flips an entry (the
+adopter's normalized log is the reference), so prescription and sweep produce one
+format, not two. No new rule; a format for one that exists.
 
 ### 31.3 The research report — what the kit takes, and what it declines
 
 **Taken (inside R5):** the mechanism and vocabulary of 31.1; the evidence-contract
 remedies R5.1/R5.2 are the report's "guidance" layer done in kit house style.
 
-**Taken (as recorded hazards, verify against docs at build time):** (a) `gh skill
-install`/`gh skill update` **inject provenance fields into `SKILL.md` frontmatter** — an
-adopter who "updates" a kit-installed skill that way mutates files `/sdlc-update`'s
-enumeration and the provenance regime expect byte-stable; worth one note in `SKILLS.md`
-(the file that already tells adopters how skills arrive) and a line in `COPILOT.md`.
-(b) Copilot hook facts beyond the kit's current `postToolUse` recipe: `preToolUse` can
-deny and **fails closed on command errors but open on timeouts**; `agentStop` can block
-with an eight-consecutive-block cap; `userPromptTransformed` can rewrite the
-model-facing prompt. Recorded in `COPILOT.md`'s hook section as dated capabilities —
-the kit builds nothing on them yet.
+**Taken (as recorded hazards — doc-verified 2026-08-05):** (a) `gh skill
+install`/`gh skill update` **inject provenance fields into `SKILL.md` frontmatter** —
+confirmed against GitHub's changelog (2026-04-16): the fields are repository, ref, and
+git tree SHA, and `update` compares tree SHAs against upstream. An adopter who
+"updates" a kit-installed skill that way mutates files `/sdlc-update`'s enumeration and
+the provenance regime expect byte-stable; worth one note in `SKILLS.md` (the file that
+already tells adopters how skills arrive) and a line in `COPILOT.md`. One sharpening
+from the verification: `gh skill` targets six agents **including Claude Code**, so the
+`SKILLS.md` note is written CLI-neutral, not as a Copilot hazard. (b) Copilot hook
+facts beyond the kit's current `postToolUse` recipe, all confirmed against the hooks
+reference: `preToolUse` can deny and **fails closed on command errors but open on
+timeouts** (timeouts fail open even for `preToolUse` — the reference is explicit);
+`agentStop` can block with an eight-consecutive-block cap, and its input carries a
+`stop_hook_active` flag telling a hook it is already in a forced continuation;
+`userPromptTransformed` can rewrite the model-facing prompt (mutation-only — it cannot
+block). Recorded in `COPILOT.md`'s hook section as dated capabilities — the kit builds
+nothing on them yet.
 
 **The enforcement machinery — owner decision, 2026-08-05: address it; do not
 decline.** The report's recommended architecture (a wrapper capturing approved seams, a
@@ -210,7 +240,25 @@ adopted as the trial's ramp.
 | R5.2 | Observed-RED evidence: template RED step, record-as-it-happens, hand-back line | `TESTING.template.md`, `next-slice.md`, `end-slice.md`, `SDLC.template.md` | M |
 | R5.3 | Copilot model routing: explicit tier mapping at setup, operator-performed routing in `SDLC.md`, operator levers in `COPILOT.md`, Copilot-model pin verification | `sdlc-setup.md`, `SDLC.template.md`, `COPILOT.md` | M |
 | R5.4 | Friction-log entry format | `PROJECT_INDEX.template.md`, `end-slice.md` | S |
-| R5.5 | `gh skill` frontmatter-injection hazard + hook facts, doc-verified | `SKILLS.md`, `COPILOT.md` | S |
+| R5.5 | `gh skill` frontmatter-injection hazard + hook facts (doc-verified 2026-08-05, CLI-neutral note) | `SKILLS.md`, `COPILOT.md` | S |
+| R5.6 | Retro step-evidence enumeration sweep: named process steps → evidence in window; feeds the deletion clocks | `sdlc-retro.md` | S |
+
+**R5.6, added at the 2026-08-05 pre-build scrutiny (owner-approved same day):** no
+retro sweep enumerates the steps the process names and asks which left evidence in the
+window — finding 1 was caught by damage (the ingestion break surviving to phase end),
+not by enumeration, and on Copilot, where presence is not activation (31.1),
+catch-by-damage is the only detector the retro currently has. The sweep reads
+`spec/SDLC.md`'s named steps and reports each skill/lens/check as ran / caught /
+skipped-with-stated-reason / no evidence: silent non-activation surfaces by
+enumeration instead of luck, and the §22 / §30.4 deletion clocks get their
+catch-or-no-catch record produced at the source, rather than re-read kit-side off
+field reports. Scope: one sweep bullet in step 2 and one line in the report skeleton,
+`sdlc-retro.md` only. Binding on R5.2's build: this sweep reads the records R5.1/R5.2
+create, so the observed-RED evidence must persist somewhere durable on disk (the
+retro's own prime directive is evidence on disk), not only in the conversational
+hand-back — where it lands is R5.2's build decision, to be made explicitly, not by
+omission. Lineage: FR2's assumed-denominator theme and FR3's prose-vs-enforced theme,
+applied to the retro itself.
 
 Release note for whoever builds this: **the next release is 0.15.0, which is STD's
 audit deadline** (§22 — the three lenses and the runtime-standards recipe section each
@@ -223,9 +271,11 @@ exists precisely to give `change-verify` a slice-level path to a field catch.
 
 **Owner decisions at the 31.4 halt, all dated 2026-08-05 — do not re-litigate:**
 R5.1 wired (recommended form); R5.2 evidence-required (recommended form); R5.3, R5.4,
-R5.5 all approved; the enforcement machinery **addressed, not declined** — reshaped
-into ENF below, queued behind R5 (batches are sized for one session, and R5 already
-holds five items).
+R5.5 all approved; R5.6 added and approved at the same-day pre-build scrutiny; the
+enforcement machinery **addressed, not declined** — reshaped into ENF below, queued
+behind R5 (batches are sized for one session, and R5 now holds six items — if the
+session runs long, R5.6 is the item to split out, since nothing else in R5 depends
+on it landing in the same release).
 
 ### 31.5 ENF — the Copilot enforcement batch *(queued behind R5; trial-first)*
 
@@ -239,16 +289,33 @@ installed set.**
   until a test run has been seen to fail since the last test edit (`preToolUse` on
   `create`/`edit`/`apply_patch` + `postToolUseFailure` observing the test command);
   (b) **premature completion** — `agentStop` blocks while the cycle is red or the gate
-  has not run, within the documented eight-block cap. Nothing else from the report's
+  has not run, within the documented eight-block cap; the hook input's
+  `stop_hook_active` flag says the guard is already in a forced continuation — read
+  it rather than fight the cap. Nothing else from the report's
   architecture: no wrapper interview, no seam capture, no CI check, no CODEOWNERS
   apparatus. Kit-owned sidecar: one hook JSON (`.github/hooks/`) + one small guard
   script + state under `.git/`, template-ized with the same `{{HOOK_*}}` discipline as
-  the existing gate hook (inv 1: placeholders taught to setup in the same batch).
-- **ENF.2 — path policy reuses what setup already knows.** The guard's
-  implementation/test classification comes from the interview answers the kit already
-  collects — `{{SOURCE_GLOB}}` (gate hook) and `{{TEST_LAYOUT}}` (TESTING) — not a new
-  `policy.json` interview. If those two cannot classify a repo, that is a trial
-  finding, not a reason to grow the interview pre-emptively.
+  the existing gate hook (inv 1: placeholders taught to setup in the same batch). The
+  guard script stays cheap — state reads and writes only, never running the suite
+  inline: the field's gate hook runs on a 30 s budget and a hook that times out fails
+  open, so a guard that ran the tests would time out, and silently stop guarding, on
+  every invocation.
+- **ENF.2 — path policy reuses what setup already knows, via one new placeholder.**
+  *Corrected 2026-08-05 against the generated tree.* The original claim — the guard's
+  implementation/test classification comes from `{{SOURCE_GLOB}}` and `{{TEST_LAYOUT}}`,
+  and "cannot classify" is a trial finding — is contradicted before any trial: the
+  adopter's instantiated hook classifies with `*.java`, which matches `src/test/java`
+  as readily as `src/main/java`, and every `GATE_RECIPES.md` recipe defines
+  `SOURCE_GLOB` the same extension-only way. The placeholder answers "should the
+  edit-hook fire," where matching tests is harmless; the guard repurposes it for the
+  one question it cannot answer. And `{{TEST_LAYOUT}}` is free prose no script can
+  consume. The fix keeps ENF.2's instinct — still no new interview: setup already
+  *learns* the layout (the adopter's `TESTING.md` states `src/test/java/...` mirroring
+  `src/main/java/...`); it just never records it machine-readably. ENF adds a
+  test-path case-pattern placeholder to the guard hook, instantiated from the
+  `{{TEST_LAYOUT}}` answer setup already collects (inv 1: taught to setup in the same
+  batch). A repo whose layout genuinely resists a case-pattern remains a trial
+  finding.
 - **ENF.3 — the trial, pre-registered before it runs (§13 shape).** Bench:
   `copilot-ci-test` (§29.3, still standing). Criteria must include a **value
   criterion**, not safety only — FR5 finding 8 is the precedent (a trial with four
@@ -259,7 +326,24 @@ installed set.**
   logging-only first, deny second. Verify every hook fact against the docs first —
   R5.5 does this inside R5, so ENF opens with the facts already dated and checked
   (fail-closed on command error, fail-open on timeout, the tool-name trap in
-  `COPILOT.md`: hook matchers use `bash`, not `execute`).
+  `COPILOT.md`: hook matchers use `bash`, not `execute`). One fact is named here
+  because the whole observed-red mechanism turns on it: does a test command that exits
+  non-zero via the shell tool surface as `postToolUseFailure`, or as a *successful*
+  tool call whose command failed? **Checked 2026-08-05: the docs do not settle it** —
+  the hooks reference defines the events only as "after a tool completes successfully"
+  / "with a failure," and two readings of that page support opposite answers. The
+  payload shapes constrain the guard either way: `postToolUse` delivers
+  `toolResult.textResultForLlm`, `postToolUseFailure` an `error` string — neither a
+  structured exit code — so observed-red detection **parses text whichever event
+  fires**. Only the bench answers this: the probe run logs *both* events on a
+  deliberately failing test command before the state machine is designed, not after.
+  A second trial-scope fact, same date: a write matcher on `create|edit|apply_patch`
+  does not cover file writes made *through the shell tool*, and the shell tool's hook
+  name is itself platform-uncertain (`bash` in the reference's matcher example;
+  `powershell` is the builtin observed on 1.0.77). The guard is a cooperative backstop,
+  not a security boundary — the trial report says so in those words, and the bench
+  discovers the real matcher vocabulary per `COPILOT.md`'s procedure rather than
+  trusting either name.
 - **ENF.4 — dialect honesty.** The guard is Copilot-dialect (`.github/hooks/`). The
   Claude Code side gets the equivalent decision made explicitly at build time —
   settings.json hooks exist there too — but nothing is assumed portable; a guard that
