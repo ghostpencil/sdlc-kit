@@ -448,3 +448,54 @@ shell-tool writes as out of scope honestly (cooperative backstop, not a boundary
 guard scripts must be WSL-bash-safe (or the hook recipe grows a bash-flavor detection
 note). Trial criteria pre-registration (ENF.3) is still owed before the guards run.
 
+### 31.8 ENF trial protocol — pre-registered 2026-08-05, before any guard ran
+
+**Written before the guard code existed**, per §5's trial-protocol rule and §13's
+shape. Bench: `copilot-ci-test`, Copilot CLI 1.0.77, hooks under WSL bash (31.7.5).
+The trial runs **logging-only**; deny is a separate later ramp step, taken only if the
+criteria below hold, and nothing enters the kit's installed set until the owner reads
+the trial report (§4, the F3 step).
+
+**The two guards under trial (ENF.1's scope, revised by 31.7):**
+- **G1 observed-RED write guard** — `preToolUse` on `apply_patch`: parse the touched
+  paths out of the patch text; a production-source write is a violation unless a
+  failing test run has been observed since the last test-file edit (`postToolUse` on
+  `powershell` watches test commands and records red/green off the
+  `<shellId … exit code N>` trailer). State: marker files under `.git/enf/`, mtime
+  ordering. Bench path policy (ENF.2's case-pattern, bench values): `test*.js` = test,
+  other `*.js` = production, everything else exempt.
+- **G2 premature-stop guard** — `agentStop`: would-block when no green test run has
+  been observed, or the latest observed run is red; stands down unconditionally when
+  `stop_hook_active` is true.
+
+**Value criteria (FR5 finding 8: a trial without one cannot fail on value):**
+1. **V1 — catch:** a scripted implementation-before-red run (session told to add a
+   production function without tests) produces a logged G1 violation naming the file.
+2. **V2 — stop-catch:** that same run ends with G2 logging would-block (no green
+   observed).
+3. **V3 — silence on clean TDD:** a scripted strict-TDD run (failing test written and
+   observed red, then implementation, then green) produces **zero** G1 violations and
+   a clean G2 at stop.
+
+**Safety criteria:**
+4. **S1 — false-block rate: zero** on the bench fixture. Any G1 violation logged in
+   the clean run is a false positive and fails the trial (the owner-tolerated rate for
+   a fixture this small is zero; a real repo's tolerance is a ship-time decision).
+5. **S2 — cheap enough to not fail open:** every guard invocation completes well
+   inside `timeoutSec` (30 s) on warm runs; the guard never runs the suite inline.
+   Measured from hook-log timestamps.
+6. **S3 — logging mode is inert:** guards always exit 0 in logging mode; no tool call
+   is denied and no stop is blocked during the trial (the WSL fail-closed incident in
+   31.7.5 is the specimen this guards against).
+7. **S4 — reversible:** deleting the guard hook file and `.git/enf/` restores the
+   bench; verified by a post-trial session with no guard artifacts in its transcript.
+
+**Decision rule, fixed now:** all seven → the deny-ramp may be proposed to the owner,
+with the trial report. Any V-criterion fails → the guard design is wrong, back to
+31.5. Any S-criterion fails → logging mode itself is not safe enough to ship in any
+form; ENF halts on that evidence. Known accepted limits, stated up front: shell-tool
+writes are invisible to G1 (cooperative backstop, not a boundary); state is
+repo-scoped, not session-scoped (a trial finding if it bites); G2's "green observed"
+accepts any green test run, not specifically the full gate (bench fixture has one
+suite; the distinction is a ship-time design point).
+
