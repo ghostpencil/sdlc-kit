@@ -38,10 +38,13 @@ second source of truth, which is its own recurring hazard
 
 ## Standing clocks and inputs
 
-- **0.15.0 — the next release — is STD's audit deadline** (§22): the three lenses and
-  the runtime-standards recipe section each need a confirmed catch or become deletion
-  candidates. The only field evidence since STD shipped (§31's report) records no lens
-  catch.
+- **0.16.0 — STD's audit clock, extended once** (§22, §31.6): the audit ran at its
+  0.15.0 deadline (2026-08-05) — no lens catch, and no evidence the lenses *activated*
+  in the one arc of exposure, which the pre-R5.6 records could not distinguish from
+  "ran and caught nothing". Owner decision 2026-08-05: **extended to 0.16.0, once** —
+  R5.6's step-evidence sweep now produces the per-step catch record at source, so
+  0.16.0 is a deadline with real evidence behind it. No further extension on
+  no-evidence grounds: after R5.6, "no evidence" means "did not run".
 - **0.16.0 — `change-simplify` and `change-verify`** (§30.4): a confirmed field catch
   each, or deletion candidates. R5.1 exists partly to give `change-verify` a
   slice-level path to one.
@@ -73,8 +76,8 @@ session.
 Bookkeeping this section also carries: **0.14.1 shipped 2026-08-05** (Copilot bootstrap
 documented in both READMEs; three `/kit-check` findings fixed — the CHANGELOG is the
 record; no plan section existed for it until this note). And `sdlc-kit#2` (the fifth
-report) is still open on the tracker despite shipping as SIMP (0.10.0) + R4 (0.11.0) —
-close it with a pointer to §16/§17 when convenient.
+report), open on the tracker despite shipping as SIMP (0.10.0) + R4 (0.11.0), was
+closed 2026-08-05 with a pointer to §16/§17.
 
 ### 31.1 The report's theme is the kit's own rule, arrived at independently
 
@@ -351,4 +354,45 @@ installed set.**
 - **The owner reads the trial report before anything ships** (§4, the slice-runner
   precedent — this is the step F3 failed, and skipping it because the owner asked for
   the batch would invert the lesson).
+
+### 31.6 R5 built and shipped — 2026-08-05, release 0.15.0
+
+All six items, one session, commit `39dda84`. Build decisions and deltas against 31.4:
+
+- **R5.2's durable-home decision (the one 31.4 required be made explicitly): the
+  slice commit body.** The `RED:` lines (one per behavior batch — command, failing
+  line, exit code, `not observed — <reason>` never omitted) live in the slice commit;
+  `/next-slice` §4 keeps the running record as each red is observed; `/sdlc-retro`'s
+  sweep reads them off `git log`. Mode-independent (STABILIZATION has no phase spec,
+  which ruled that home out).
+- **The commit body grew into the full close-out evidence record** — `quality:`,
+  `mutation:`, and `verify:` one-liners beside `RED:` — forced by the pre-release
+  `/kit-check`: R5.6's sweep enumerated the quality pass and mutation check with
+  nowhere durable to read them, so they would have classified "no evidence" forever.
+  Inv-14-shaped extension, applied template-first.
+- **R5.3(d) did not run: the Copilot CLI is not reachable from the kit session's
+  shell** (owner-shell install, §29.3). Recorded in `COPILOT.md` as
+  unverified-pending-bench, dated; no per-file pins ship, the operator levers are the
+  mechanism — the outcome 31.4 predicted. The probe joins ENF's bench session.
+- **Renumber sweep**: nothing in shipped files referenced the old step numbers except
+  one already-stale pointer this batch caught and fixed (`REVIEW_LENSES.md` header
+  still said `/end-slice` §3, stale since 0.14.0). `sdlc-update.md` gained the 0.15.0
+  transition note — a ripple the 31.4 file list missed and the mechanical sweep found
+  (§4a's rule, vindicated again): template changes never reach adopted projects, so
+  the note tells the updater the project's `spec/SDLC.md` now disagrees with the
+  commands *in the direction that disables the new steps*, until the owner folds the
+  template diff in.
+- **`/kit-check`**: full 15-invariant pass (five parallel readers + mechanical
+  checks); 14 findings, all fixed in the release commit — CHANGELOG 0.15.0 carries
+  the headline ones. All four release-workflow gates simulated green before the tag;
+  manifest discrimination proven (exactly the 17 edited bundle files changed hash).
+- **STD audit at its deadline — owner decision 2026-08-05: extended once to 0.16.0**
+  (see *Standing clocks*; the honest finding was "no evidence of activation", which
+  pre-R5.6 records cannot distinguish from "ran, caught nothing").
+- Bookkeeping: `sdlc-kit#2` closed 2026-08-05 with the §16/§17 pointer.
+
+**Next session opens on ENF** (31.5, unchanged): the bench probe first — log both
+`postToolUse`/`postToolUseFailure` on a deliberately failing test command, plus the
+R5.3(d) model-pin probe while the bench is warm — then the two guards, logging-only
+ramp, pre-registered criteria before anything runs.
 
