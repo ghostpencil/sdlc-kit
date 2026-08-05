@@ -539,4 +539,37 @@ behavior and the 8-block cap), (b) skip to template-izing for the kit with deny
 unproven, or (c) stop at logging. Recommendation: (a) — the report's own rollout
 ordering, and deny is exactly the half the field problem needs (31.3: skills treated
 as prompts). Nothing enters the installed set before the ramp's own results are read.
+**Owner decision 2026-08-05: (a), ramp to deny.**
+
+### 31.10 Deny-ramp protocol — pre-registered 2026-08-05, before any deny code ran
+
+Deny is a flag file (`.git/enf/deny-enabled`); absent = logging mode, unchanged. Two
+schema discoveries come first, each its own scripted run: the `preToolUse` deny
+output as the CLI actually honors it, and the `agentStop` block output ditto —
+neither is fully documented, so the probe tries the documented/plausible shape and
+reads the transcript for whether it took effect (a denial that does not deny is the
+failure mode being hunted).
+
+**Criteria:**
+- **D1 — deny catches:** the implementation-before-red run has its production write
+  **actually denied** (transcript shows the denial with the guard's reason), and the
+  session visibly reacts to the feedback rather than silently ending.
+- **D2 — stop blocks:** with no green observed, session close is blocked at least
+  once with the guard's reason; on a forced continuation (`stop_hook_active` true)
+  the guard stands down — the 8-block cap is never hit by the guard's own doing.
+- **D3 — zero false denials:** the clean strict-TDD run completes with no denial and
+  no stop block.
+- **D4 — no lockup:** every denied session ends (possibly after reacting); no
+  unbounded deny loop. Watched live; the runs are `-p` scripted, so a hang is a
+  timeout, which fails this criterion.
+- **D5 — no error-denials:** no "hook errored" denial appears in any ramp run (the
+  31.7.5 specimen); the guard script's own failure must not become a spurious deny.
+- **D6 — reversible:** deleting the flag file returns the bench to logging mode,
+  verified by re-running the violation prompt and seeing log-only behavior.
+
+Decision rule: all six → ENF's build phase (template-izing, the `{{HOOK_*}}`
+discipline, ENF.4's dialect decision, the apply_patch gate-hook fix) may be proposed;
+the owner reads this ramp's report first. Any failure → recorded, and the guard
+ships logging-only or not at all — a deny that cannot be trusted is worse than a log
+line, because it reads as enforcement.
 
