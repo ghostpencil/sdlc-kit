@@ -618,3 +618,14 @@ as met is not the builder's call. Option A: accept the re-run, proceed to propos
 ENF's build phase. Option B: hold the guards at logging per the rule as written and
 let a future field arc argue for deny.
 
+**Owner ruling, 2026-08-05: Option A — the re-run is accepted.** The failure did its
+job (a state-corruption defect caught and fixed pre-ship). Deny mode is
+trial-proven; **the next session may open on ENF's build phase** — template-izing
+the guards (`{{HOOK_*}}` discipline, inv 1 placeholders taught to setup in the same
+batch), ENF.4's Claude-Code-dialect decision, the `apply_patch` gate-hook path-parse
+fix (31.7.3), the `.\`-prefix and command-pattern work, and the jq / WSL-bash
+dependency questions (31.7.5, 31.9.3) — all of it returning to the owner before
+anything enters the installed set, per 31.5's standing rule. Bench state: guards
+live in **logging mode** (deny flag removed by D6; recreate `.git/enf/deny-enabled`
+to re-arm), fixture drift and reversal steps recorded in `ENF_PROBE_NOTES.md`.
+
