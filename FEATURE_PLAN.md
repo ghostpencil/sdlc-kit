@@ -573,3 +573,48 @@ the owner reads this ramp's report first. Any failure → recorded, and the guar
 ships logging-only or not at all — a deny that cannot be trusted is worse than a log
 line, because it reads as enforcement.
 
+### 31.11 Deny-ramp report — run 2026-08-05: five of six clean; D3 failed once,
+### fixed, and passed on re-run — the disposition is the owner's
+
+**Schemas, both confirmed on the bench:** `preToolUse` deny is
+`{"permissionDecision":"deny","permissionDecisionReason":…}` — the transcript shows
+the guard's message verbatim and the write did not happen. `agentStop` block is
+`{"decision":"block","reason":…}` — the session continued under forced continuation
+and the next stop arrived with `stop_hook_active: true`, on which the guard stood
+down; the 8-block cap was never approached.
+
+- **D1 met, and the thesis demonstrated:** told "do not write tests", the session was
+  denied, wrote a test, was denied *again* for implementing before running it (the
+  guard enforced ordering, not presence), ran the test, observed red, and got the
+  write through. Enforcement converted an anti-TDD instruction into a red→green
+  cycle. (Evidence: transcript of session `4c2201d8`, quoted in-session; its guard
+  log was consumed by the next run's reset — a bench-hygiene lesson, noted.)
+- **D2 met** — one block, one forced continuation, stand-down on the flag.
+- **D3 FAILED on its first run, as pre-registered:** the session ran
+  `node test-negate.js; Write-Output "EXIT_CODE=$LASTEXITCODE"` — the exit-code
+  trailer reflects the *compound*, so a red run recorded a false **GREEN** (which
+  could also silently un-block G2), and the next clean write was denied. Detector
+  fixed: only bare single-command test invocations count as observations; compounds
+  log loudly and are not counted; the deny message teaches the bare-command remedy.
+  Fix unit-tested against the captured defect payload, then **the D3 re-run passed
+  clean** — zero denials, zero blocks (`.git/enf-runD3-retry.log`).
+- **D4, D5 met** — every session terminated (the deny session took 1m36s and ~4×
+  a clean run's credits, the price of introspection); no hook-error denials.
+- **D6 met** — flag removed, same violation prompt: log-only, write proceeded
+  (`.git/enf-runD6.log`).
+
+Ship-relevant observations beyond the criteria: the session **read the guard's own
+source** to learn the recognized test-command format — it complied, but it could as
+easily have touched the state files; "cooperative backstop, not a boundary" is now
+observed fact, not caveat. It also deleted its guard-satisfying test afterwards as
+"temporary" — enforcement produces the red, not the conviction; the kit's R5.2
+commit-body evidence is what makes that deletion visible. And `node .\test-x.js`
+is invisible to the command pattern (the `.\` prefix) — ship-time pattern work.
+
+**Owner decision owed (the rule's letter vs its intent):** §31.10's decision rule
+says any failure → logging-only. D3's failure was real, its cause identified, the
+fix unit-tested and clean on re-run — whether a fixed-and-repassed criterion counts
+as met is not the builder's call. Option A: accept the re-run, proceed to proposing
+ENF's build phase. Option B: hold the guards at logging per the rule as written and
+let a future field arc argue for deny.
+
