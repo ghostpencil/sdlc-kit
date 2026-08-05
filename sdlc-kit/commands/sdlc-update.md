@@ -172,7 +172,7 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   destinations: `sdlc-kit/commands/` and `sdlc-kit/reference/REVIEW_LENSES.md` into
   `.claude/commands/`; each `sdlc-kit/skills/<name>/` directory into
   `.claude/skills/<name>/`, copied whole so `tdd/tdd-references/` travels with it. The
-  six `SKILL.md` files share a basename — copy directories, not files. On a Copilot
+  eight `SKILL.md` files share a basename — copy directories, not files. On a Copilot
   project, additionally re-package each command into `.github/skills/<name>/SKILL.md`
   by the rule in `sdlc-setup.md` New mode step 5 — **keeping the existing frontmatter
   block**, since the owner may have edited its `description`, and replacing only the

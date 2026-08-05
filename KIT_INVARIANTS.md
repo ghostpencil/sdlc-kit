@@ -27,6 +27,13 @@ files rarely offend). **Specimen:** `v0.1.0`'s `end-slice.md` asserted *"the typ
 green"* — false at every slice close of every red-baseline adoption, shipped and
 unnoticed for three slices (field report #1).
 
+**One sanctioned exception: the kit is GitHub-focused, owner-decided 2026-08-05.**
+`gh pr create` / `gh pr merge` in `end-phase.md` and `SDLC.template.md`'s phase-end
+steps are a tool fact that a GitLab or Bitbucket project would find false. It is a
+deliberate scope choice, not drift — the arc-to-PR shape, the release workflow, the
+issue templates, and `/sdlc-retro`'s submit-upstream offer are all built on GitHub.
+`/kit-check` reports it as a note, not a finding, until the owner widens the scope.
+
 ## 2. `SDLC.template.md` is canonical; no command contradicts it
 
 The template's own first paragraph says so: if a command and the SDLC file disagree, the

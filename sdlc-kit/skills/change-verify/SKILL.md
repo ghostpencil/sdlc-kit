@@ -120,7 +120,7 @@ environment variable, config file, or service the run depended on.
 This is the step that pays at phase end. When halt 4 fails in the owner's shell after
 passing here, the difference between the two environments is the defect, and it is only
 findable if this run wrote down what its own was. Anything resolved that way belongs in
-`CLAUDE.md` *Environment gotchas*.
+`spec/PROJECT_INDEX.md` *Environment gotchas*.
 
 ## Report
 

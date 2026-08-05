@@ -162,7 +162,7 @@ The citation is **read off the file at writing time, never from memory of the
 process** — and the file to read is the copy **this project actually holds**, since
 the kit folder is optional after setup: for a command, the installed
 `.claude/commands/<name>.md` (byte-identical to upstream `commands/<name>.md`, which
-stays the citation path); for a vendored skill, the installed
+stays the citation path); for a skill, vendored or kit-written, the installed
 `.claude/skills/<name>/SKILL.md`, cited as `skills/<name>/SKILL.md`; for a template,
 the instantiated file (`spec/SDLC.md`,
 `spec/TESTING.md`, `spec/PROJECT_INDEX.md`, `CLAUDE.md`), cited as its
