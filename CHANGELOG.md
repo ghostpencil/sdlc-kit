@@ -10,6 +10,45 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.14.1 — 2026-08-05
+
+A patch release: the Copilot bootstrap becomes documented, plus three findings from a
+full `/kit-check` over the 15 invariants. No process change and no new rule — nothing
+here alters what a slice or a phase must do.
+
+### Fixed
+- **[installable]** `skills/change-verify/SKILL.md` — step 5 told the operator to record
+  a resolved toolchain path in `CLAUDE.md` *Environment gotchas*. That section lives in
+  `spec/PROJECT_INDEX.md`; the instantiated `CLAUDE.md` has no such section, so the
+  pointer resolved nowhere in an adopted project (invariant 5).
+- **[installable]** `commands/sdlc-update.md` — said "the six `SKILL.md` files share a
+  basename" where the kit ships **eight**. Written when six was correct and not updated
+  when `change-simplify` and `change-verify` arrived in 0.14.0 (invariant 7).
+- **[installable]** `commands/sdlc-retro.md` — the citation rule covered "a vendored
+  skill", silently excluding the three kit-written ones from the rule about which copy
+  of a file a report quotes (invariant 11).
+
+### Changed
+- **[adoption-only]** **Both READMEs now document how to bootstrap `/sdlc-setup` on
+  Copilot CLI**, which neither did. Both said to copy `commands/sdlc-setup.md` into
+  `.claude/commands/` and open Claude Code — on Copilot that does nothing: it reads no
+  `.claude/commands/` and has no markdown slash commands (`github/copilot-cli#618`).
+  The mapping existed in `reference/COPILOT.md` and in setup's own install list, but
+  never as an install instruction, and setup cannot install its own entry point — so a
+  Copilot adopter had no way in. Both READMEs now carry the packaging step, and say to
+  confirm `/skills` lists it before running, since a frontmatter parse failure is
+  silent.
+- **[adoption-only]** `reference/COPILOT.md` — records why `sdlc-setup` is the one
+  hand-packaged command, and quotes the description in its example frontmatter, since an
+  unquoted example is what later grows a `: ` and drops the file silently.
+- **[adoption-only]** `reference/SKILLS.md` — the kit-commands row named only
+  `.claude/commands/`; it now carries both CLIs' destinations and the bootstrap
+  exception.
+- **[adoption-only]** `sdlc-kit/README.md` — dropped two claims 0.14.0 falsified
+  elsewhere but left standing here: "delivered as Claude Code prompt files", and that
+  setup installs "the vendored TDD skill set" (it installs eight skills, five vendored
+  and three kit-written).
+
 ## 0.14.0 — 2026-08-03
 
 The PORT batch: the kit runs on **GitHub Copilot CLI** as well as Claude Code
