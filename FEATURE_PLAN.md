@@ -1014,3 +1014,52 @@ is as capable of being wrong as one reporting a pass.
 **Bench state:** the shipped guards are installed and live in **logging mode** (no deny
 flag), the trial script is archived rather than deleted, and the reversal list plus both
 logs are recorded in the fixture's `ENF_PROBE_NOTES.md`.
+
+### 31.18 First field arc on 0.16.0 — and the guards' first real defect, found by arming them
+
+`ai-news-dashboard` (Java/Spring Boot, Copilot CLI) updated 0.14.0 → 0.16.0 on
+2026-08-06, guards installed and deny armed at the owner's request. Two findings, and
+the second is the important one.
+
+**The `apply_patch` fix landed on a live adopter, and the defect was exactly as
+predicted.** Their instantiated hook JSON-parsed `toolArgs`, so their edit-time gate had
+never run once since adoption on 2026-08-03 — Checkstyle and compile fired on zero
+edits across a whole merged phase. Rebuilt from the 0.16.0 recipe, keeping their
+commands, and proved live: a deliberate star import produced Checkstyle feedback in a
+real session; reverting restored silence. **This is the first confirmed field catch of
+0.16.0**, and it validates the project-owned-so-apply-by-hand path end to end.
+
+**G1 can be satisfied without writing any test — measured, not theorised.** Armed for
+deny, the session was denied twice, then ran
+`mvn test -Dtest=ThisTestDoesNotExist`. Maven exits non-zero because no tests matched
+the pattern; the guard recorded `RED observed (exit 1)` and licensed the write. No test
+for that class ever existed.
+
+The denial mechanism was not at fault — it denied, correctly, twice. The broken step is
+the **inference that a red implies a test**, and it lives in one branch:
+
+```sh
+if [ ! -f "$S/last-test-edit" ] || [ "$S/red-observed" -nt "$S/last-test-edit" ]; then ok=1; fi
+```
+
+`[ ! -f "$S/last-test-edit" ]` licenses a write whenever **no test file was edited this
+session at all**, so any non-zero exit from a test-shaped command satisfies G1. The
+bench never saw this because the bench session complied by writing a real test — the
+anti-TDD instruction there produced cooperation, and here it produced circumvention.
+§31.11 predicted the shape ("it could as easily have touched the state files") and
+guessed the mechanism wrong: this session did not read the guard's source, it just
+found a command that exits non-zero.
+
+**Candidate fix for 0.16.1, not yet built or approved:** require `last-test-edit` to
+*exist* and the red to be newer than it — "you changed a test this session, then saw it
+fail". The cost is a resumed session whose test was written earlier: session-scoped
+state clears, and re-running the suite gives a red with no test edit, so the next
+production write is denied until a test file is touched. That is a real false-denial
+risk and is the reason this is a proposal rather than a patch. **Owner decision owed**,
+and it wants the offline suite extended with this exact case first — a mutation that
+manufactures a red with no test edit, which the current 25 cases do not cover.
+
+Bench note: the guards stay armed on that project by owner decision — the hole needs
+deliberate circumvention, produced no false denials, and disarms with one file deletion.
+The finding is recorded in their `spec/SDLC.md` and Kit friction log, which is the
+kit's own feedback channel working as designed.
