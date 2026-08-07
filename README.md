@@ -189,7 +189,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── CLAUDE.template.md           → CLAUDE.md           (agent instructions)
 │   ├── PROJECT_INDEX.template.md    → spec/PROJECT_INDEX.md (source of truth)
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
-│   ├── settings.template.json       → .claude/settings.json (edit-time gate hook)
+│   ├── settings.template.json       → .claude/settings.json (edit-time gate hook, Claude Code dialect)
 │   ├── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (the same hook, Copilot dialect)
 │   ├── tdd-guard.template.sh        → .github/hooks/sdlc-tdd-guard.sh (Copilot only, optional:
 │   │                                   the observed-RED write guard and the premature-stop guard)
@@ -457,8 +457,8 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,
    `.github/hooks/*.json`, or `.github/hooks/sdlc-tdd-guard.sh`. They hold your recorded
    baseline, your gate commands, your TDD-guard patterns, and
-   your decisions; the kit cannot regenerate them. The two exceptions are named in step
-   6, and they are single lines.
+   your decisions; the kit cannot regenerate them. The only exceptions are the
+   single-line writes named in step 6.
    And claim only what was checked: "nothing project-owned touched" may be said once
    the final diff has been read against the ownership table — not asserted from the
    manifest, which structurally cannot see files it never listed. An unverified
@@ -469,9 +469,12 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    entries are files you chose to keep. The two runs disagreeing about the copied files
    is what proves the classifier discriminates — an all-clear it could not fail to
    produce proves nothing. Then re-record the version in `spec/SDLC.md`
-   (*Kit version: X.Y.Z*, dated), and — only if it was missing — write the *Agent CLI:*
-   line into `spec/PROJECT_INDEX.md`. Those lines are the only project-owned content
-   an update writes, and the second never overwrites an answer already there. A third
+   (*Kit version: X.Y.Z*, dated), and — each only if it was missing — write the
+   *Agent CLI:* line into `spec/PROJECT_INDEX.md` and the *Kit home repository:* line
+   into `spec/SDLC.md`, the latter taken from the URL step 2 cloned the kit from.
+   Those lines are the only project-owned content
+   an update writes, and the absent-only ones never overwrite an answer already there.
+   A fourth
    joins them **only when this update actually put the TDD-guard offer to you** — then
    your answer goes into `spec/SDLC.md`, a decline included, so no later update re-asks
    it. An update that did not ask does not record an answer. From here

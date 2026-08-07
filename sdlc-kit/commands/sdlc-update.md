@@ -169,15 +169,17 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
 - Copy the target version's files over the `UNCHANGED` set and whatever `DRIFTED` files
   the owner released — plus any files **new in the target's install set**, which
   classification never saw because the project does not hold them yet. Sources and
-  destinations: `sdlc-kit/commands/` and `sdlc-kit/reference/REVIEW_LENSES.md` into
-  `.claude/commands/`; each `sdlc-kit/skills/<name>/` directory into
-  `.claude/skills/<name>/`, copied whole so `tdd/tdd-references/` travels with it. The
-  eight `SKILL.md` files share a basename — copy directories, not files. On a Copilot
-  project, additionally re-package each command into `.github/skills/<name>/SKILL.md`
-  by the rule in `sdlc-setup.md` New mode step 5 — **keeping the existing frontmatter
-  block**, since the owner may have edited its `description`, and replacing only the
-  body below it — and copy `templates/explore.agent.template.md` over
-  `.github/agents/explore.agent.md`. The gate hook is project-owned and is not touched;
+  destinations follow the per-CLI table in `sdlc-setup.md` New mode step 5 — the
+  *Agent CLI:* line says which column applies, and "both" gets both columns. Claude
+  Code column: `sdlc-kit/commands/` into `.claude/commands/`. Copilot column: each
+  command re-packaged into `.github/skills/<name>/SKILL.md` by that step's packaging
+  rule — **keeping the existing frontmatter block**, since the owner may have edited
+  its `description`, and replacing only the body below it — and
+  `templates/explore.agent.template.md` copied over `.github/agents/explore.agent.md`.
+  On either CLI: `sdlc-kit/reference/REVIEW_LENSES.md` into `.claude/commands/`, and
+  each `sdlc-kit/skills/<name>/` directory into `.claude/skills/<name>/`, copied whole
+  so `tdd/tdd-references/` travels with it — the eight `SKILL.md` files share a
+  basename, so copy directories, not files. The gate hook is project-owned and is not touched;
   if the target changes the hook recipe, that is a changelog entry for the owner to
   apply by hand, exactly as on the Claude side.
 - The symmetric case: files **removed from the target's install set** — listed in the
@@ -369,10 +371,14 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   value the owner confirmed at step 1. On a project whose `spec/SDLC.md` has no *Kit
   home repository:* line (adopted before the placeholder existed), write it with the
   URL this update cloned the target kit from at step 2 — the same fact, observed in
-  this session. **These lines are the only project-owned content an update may write**,
+  this session. When the line **is** present, compare it against step 2's clone URL:
+  this is the one moment the record and its artifact are held at the same instant, and
+  a mismatch goes to the owner as a finding — never a silent rewrite — because the
+  recorded URL is where `/sdlc-retro` will submit.
+  **These lines are the only project-owned content an update may write**,
   and the latter two only when absent — never to overwrite an answer already recorded.
   Do them last, so an aborted update never claims a version it does not hold.
-  **A third line joins them only when this update actually put the TDD-guard offer to
+  **A fourth line joins them only when this update actually put the TDD-guard offer to
   the owner** (step 5's re-offer clause) — then their answer is recorded in
   `spec/SDLC.md` the way setup records it, decline included. It is written only when an
   offer was made and answered in this session, never inferred and never rewritten: an

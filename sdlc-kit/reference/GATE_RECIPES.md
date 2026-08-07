@@ -227,8 +227,12 @@ The edit-time hook checks *what* was written. These two guards check **when**, a
 are the only mechanism in the kit that can refuse an action rather than comment on it:
 
 - **G1, the observed-RED write guard** (`preToolUse`) — a write to a production source
-  file is a violation unless a **failing** test run has been observed in this session
-  since the last test-file edit.
+  file is a violation unless a test file has been edited **in this session** and a
+  **failing** test run has been observed since that edit. Both halves are required: a
+  red alone proves nothing, since any test-shaped command that exits non-zero (a
+  pattern matching no tests) manufactures one — found in the field on the first armed
+  arc. The corollary: a **resumed** session must touch a test file before its first
+  production write, because guard state is session-scoped.
 - **G2, the premature-stop guard** (`agentStop`) — stopping is a violation while no
   green test run has been observed, or the latest observed run is red.
 

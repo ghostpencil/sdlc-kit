@@ -35,7 +35,9 @@ change), then re-run. Do not proceed on red.
 Green means green **against the gate baseline recorded in `spec/SDLC.md`** — zero for a
 clean adoption, the recorded counts for a project adopted with a red baseline. Any
 increase is a regression and is fixed in this slice. Read the baseline from `spec/SDLC.md`;
-never assume it is zero.
+never assume it is zero. And green here is green **in this session's shell** — where
+local and CI disagree about a measurement, CI is authoritative and the disagreement is
+itself a finding (`spec/SDLC.md` states the rule).
 
 ### 3. Quality pass — optional, and never silent
 
@@ -162,8 +164,12 @@ applies (a transcript block per run — a pass not observed is not a pass).
 Same contract as step 3: **skipping is legitimate; skipping silently is not.** On a
 small or mechanical slice — docs, config, a change the gate fully pins — state the skip
 and its reason in the hand-back (step 9). Either way the one-line outcome goes into the
-slice commit body (step 7): `verify: ran — <verdict per behavior>` or
-`verify: skipped — <reason>`, so the record outlives the session.
+slice commit body (step 7): `verify: ran — <verdict per behavior, naming the shell it
+ran in>` or `verify: skipped — <reason>`, so the record outlives the session. The
+shell matters because this step runs in the **agent's** shell: a pass here does not
+stand in for halt 4's owner acceptance, which is the same exercise in the owner's —
+and a documented run command once died at import for the owner while passing cleanly
+for every agent.
 
 If it observed a break, fixes go through the loop the review's fixes do: apply, re-run
 the gate, and any new guard joins step 5's mutation obligation.

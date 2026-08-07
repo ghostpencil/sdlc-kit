@@ -5,7 +5,7 @@ Two passes, and the second is the point:
 
   1. a unit pass driving every state transition of both guards, using payload shapes
      measured on the bench (FEATURE_PLAN.md 31.7) rather than invented ones;
-  2. a mutation pass that breaks the guard five ways and requires the unit pass to
+  2. a mutation pass that breaks the guard seven ways and requires the unit pass to
      notice each one. A suite that survives its own mutations is not testing the thing
      it claims to (invariant 13).
 
@@ -205,8 +205,13 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         out = b.run("stop-check", stop(R, active=True))
         check("15 deny mode still stands down on stop_hook_active", out == "", repr(out))
 
-        # Observations are session-scoped.
+        # Observations are session-scoped. The first session's state must be FULLY
+        # licensing (test edit, then a newer red) or this case cannot tell the reset
+        # from G1's own test-edit requirement - the fixed G1 refuses a bare leaked red
+        # anyway, which is how the reset mutation went invisible on the first re-run.
         b.reset_state()
+        b.run("pre-write", write(R, [("Add", "tests/test_payments.py")]))
+        time.sleep(1.1)
         b.run("observe-test", shell(R, "python -m pytest", 1))
         b.run("pre-write", write(R, [("Update", "payments.py")], sid="session-two"))
         check("16 a new session clears the earlier red -> VIOLATION",
@@ -239,6 +244,16 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         check("19b spaced test path classifies as a test edit",
               "test edit recorded" in b.tail(), b.tail())
 
+        # The field circumvention (FEATURE_PLAN.md 31.18): a red manufactured with no
+        # test edit this session - a test-shaped command that exits non-zero because
+        # nothing matched - must license nothing. "You changed a test, then watched it
+        # fail" needs both halves.
+        b.reset_state()
+        b.run("observe-test", shell(R, "python -m pytest tests/test_nope.py", 1))
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("20 a red with no test edit this session licenses nothing",
+              "VIOLATION" in b.tail(), b.tail())
+
         return failed
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -265,6 +280,11 @@ MUTATIONS = [
     ("word-split the path list (a path with a space becomes two paths)",
      lambda s: s.replace("while IFS= read -r p; do", "for p in $PATHS; do")
                 .replace("    done <<PATHLIST\n$PATHS\nPATHLIST", "    done")),
+    ("drop the test-edit requirement (reintroduces the G1 hole 31.18 found in the field)",
+     lambda s: s.replace(
+         '[ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && '
+         '[ "$S/red-observed" -nt "$S/last-test-edit" ]',
+         '[ -f "$S/red-observed" ]')),
 ]
 
 

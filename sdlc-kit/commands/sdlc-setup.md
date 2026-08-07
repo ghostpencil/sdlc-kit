@@ -189,8 +189,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md` (the
    spec-loading table's `{{EXTRA_SPEC_ROWS}}` resolves empty for a new project —
    delete the placeholder line), `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status:
-   PRE-PHASE-1), `spec/TESTING.md`
-   (layer strategy, mandatory-mock table, and the integration-vs-unit boundary —
+   PRE-PHASE-1; START HERE points at `/plan-phase` for the first phase; Phase History
+   has no rows yet and Notes starts `- (none)` — empty is a resolved value, stated,
+   never a placeholder left behind), `spec/TESTING.md`
+   (test layout — step 6's guard patterns derive from it — layer strategy,
+   mandatory-mock table, and the integration-vs-unit boundary —
    where integration tests live and what they may touch — for THIS stack; leave
    `{{ISOLATION_HARNESS}}` for step 4, which authors what it describes).
    `{{HOOK_ENVIRONMENT}}` and `{{TDD_GUARD_NOTE}}` are both left for step 6, which
@@ -212,8 +215,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the definition, and `reference/COPILOT.md` carries the evidence and the reasoning
    behind the Copilot column.
 
-   The seven kit commands are user-typed workflow entry points; the vendored skills are
-   model-invocable capabilities. They install to different places for that reason:
+   The seven kit commands are user-typed workflow entry points; the eight kit skills
+   (five vendored, three kit-written) are model-invocable capabilities. They install
+   to different places for that reason:
 
    | | Claude Code | Copilot CLI |
    |---|---|---|
@@ -262,7 +266,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    in `reference/GATE_RECIPES.md` names the template, the destination, and what differs.
    Claude Code: `settings.template.json` → `.claude/settings.json`. Copilot CLI:
    `copilot-hook.template.json` → `.github/hooks/sdlc-gate.json`. The same
-   `{{HOOK_*}}` values fill either one, and two of them — `{{HOOK_CONFIG_PATH}}` and
+   `{{HOOK_*}}` values (plus `{{SOURCE_GLOB}}`) fill either one, and two of them — `{{HOOK_CONFIG_PATH}}` and
    `{{HOOK_FEEDBACK_NOTE}}` — are the dialect's own facts restated in the prose of
    `CLAUDE.md` and `spec/SDLC.md`, so take both from that table when step 3 instantiates
    those files. On Copilot, `{{HOOK_FEEDBACK_NOTE}}` must not claim the feedback blocks,
@@ -444,7 +448,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - `spec/PROJECT_INDEX.md` — seeded with reality: current status, a few Phase
      History rows from git history (pre-SDLC is fine), in-flight work in START HERE,
      known issues in the backlog.
-   - Commands, the vendored TDD skill set, and `reference/REVIEW_LENSES.md` installed
+   - Commands, the eight kit skills (five vendored, three kit-written), and
+     `reference/REVIEW_LENSES.md` installed
      per New mode step 5 — the destinations depend on the confirmed target CLI; hook
      installed and verified per New mode step 6, merged with any existing hooks rather
      than replacing them (Copilot's live in `.github/hooks/*.json` or inline in
@@ -483,7 +488,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 2. Ask the owner: commit the setup? If yes — New mode: initial commit; Existing mode:
    a `chore/adopt-sdlc` branch and a normal PR (the team should see this land like any
    change). Never commit without asking.
-3. Report: what was generated, skill/plugin verification results, gate baseline, and
+3. Report: what was generated, skill/plugin verification results — **file-level only:
+   source and installed copies checked; listing availability needs a fresh session,
+   so say it is still owed** (`reference/SKILLS.md` *How to verify*) — gate baseline, and
    the handoff — **`/clear`, then `/plan-phase`** (New, or Existing with a green gate)
    or **`/clear`, then `/next-slice`** on the STABILIZATION backlog (Existing, red
    gate). Point the team at the onboarding checklist in `sdlc-kit/reference/SKILLS.md`,

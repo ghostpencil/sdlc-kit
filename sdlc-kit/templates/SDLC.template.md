@@ -333,8 +333,10 @@ Run `/end-slice` when the slice's exit criteria are met:
    slice-level evidence about the behavior, and without it nothing runs the change
    outside the harness before phase end. Skipping it is a legitimate choice on a small
    or mechanical slice; skipping it silently is not — the skip and its reason are
-   stated in the hand-back, and the one-line outcome (`verify: ran — <verdicts>` /
-   `verify: skipped — <reason>`) is recorded in the slice commit body either way.
+   stated in the hand-back, and the one-line outcome (`verify: ran — <verdicts,
+   naming the shell they ran in>` / `verify: skipped — <reason>`) is recorded in the
+   slice commit body either way. The step runs in the agent's shell, and a pass there
+   does not stand in for halt 4's owner acceptance.
    A break it observes is fixed through the same loop as a review fix: apply, re-run
    the gate, and any new guard joins step 8's mutation obligation.
 10. Commit (heredoc for multi-line messages, via the Bash tool). The commit body

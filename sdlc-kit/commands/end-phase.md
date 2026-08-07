@@ -28,6 +28,9 @@ Run the gate exactly as defined in `spec/SDLC.md` (lint → typecheck → full t
 Green means green **against the gate baseline recorded in `spec/SDLC.md`** — zero for a
 clean adoption, the recorded counts for a project adopted with a red baseline. Any
 increase is a regression. Read the baseline from `spec/SDLC.md`; never assume it is zero.
+Green here is green **in this session's shell**; where local and CI disagree about a
+measurement, CI is authoritative and the disagreement is itself a finding
+(`spec/SDLC.md` states the rule) — step 6's merge halt reads CI's own checks.
 
 Also run whatever phase-level verification the phase spec calls for: the
 `change-verify` skill on the arc, plus any smoke test, end-to-end run, or manual script
@@ -198,7 +201,8 @@ one at a time buried in the bullet that raised it.
   pile; this is the presentation point.
 - **Coverage floor — bump the enforcement, then reconcile:** if CI's printed coverage
   for the merged branch rose this arc, set the floor in the CI workflow file (the
-  `--cov-fail-under` value or its equivalent) to just under CI's printed number, in the
+  workflow's coverage-threshold value, whatever the stack's tool calls it) to just
+  under CI's printed number, in the
   same docs commit as the bookkeeping below. Then **assert the two homes agree**: the
   floor recorded in `spec/PROJECT_INDEX.md` (and `spec/SDLC.md`) and the value in the
   workflow file must be identical — the bullet is not done until they are. The

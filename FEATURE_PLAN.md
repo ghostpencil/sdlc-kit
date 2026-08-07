@@ -1176,9 +1176,12 @@ already hand-applied the project half (`spec/SDLC.md` line 16 now names the repo
    five-count prose everywhere stands unchanged.
 2. **Finding 3 accepted as scoped in §32.2** — `{{KIT_HOME_REPO}}` placeholder, retro
    resolution order, update backfill.
-3. **Release batching still open**: rides with the §31.18 guard fix as 0.16.1 or ships
-   separately — decided when §31.18's own decision lands. `VERSION` and `CHANGELOG`
-   untouched until then; `/kit-check` owed before whichever release carries this.
+3. **Release batching ruled 2026-08-06, second sitting: one release.** The owner
+   approved §31.18's candidate fix — it ships as **0.16.1** together with this
+   section's two fixes. §31.18's own condition holds: the offline suite is extended
+   with the circumvention case *first*, the case is watched to fail against the
+   shipped guard, and only then does the fix land (§32.6). `/kit-check` before
+   release.
 
 ### 32.5 Build record — 2026-08-06
 
@@ -1209,3 +1212,70 @@ owner-typed sequence, which is what made (b) the template's own framing):
 - `commands/sdlc-update.md` step 6 **[installable]** — backfills the *Kit home
   repository* line when absent, with the URL step 2 cloned the target kit from — the
   same fact, observed in-session; joins the absent-only writes, never overwrites.
+
+### 32.6 The §31.18 guard fix — suite-first, red observed, and the suite caught its
+### own regression — 2026-08-06
+
+Built in §31.18's pre-registered order, which is the kit's own discipline applied to
+the kit:
+
+1. **The case first.** `tools/tdd-guard-check.py` gained unit case 20 — a red
+   manufactured by a test-shaped command matching nothing, no test edit in session,
+   then a production write — plus a mutation that reverts the fix, so the suite
+   enforces it permanently.
+2. **Red observed, not assumed.** Against the shipped 0.16.0 guard, case 20 failed
+   exactly as the field did: `OK production write (red observed since last test
+   edit): payments.py` — with no test edit ever made. The new mutation reported
+   STALE, as it must: its target string is the fixed source.
+3. **The fix.** G1's licensing branch now requires all three of: red observed, a
+   test-file edit existing this session, red newer than the edit. The deny message
+   says "write **or edit** one test" — the way out of the known false-denial (a
+   resumed session's cleared state), which the owner accepted in ruling the fix
+   shipped. Header comment, `reference/GATE_RECIPES.md`'s G1 statement, and the deny
+   text all restate the same rule.
+4. **The re-run caught a regression the fix itself created.** All 26 cases green on
+   both parser dialects and the new mutation caught (by cases 9 and 20) — but the
+   session-reset mutation, caught before the fix, **SURVIVED** it: case 16 had leaked
+   only a bare red across sessions, and the fixed G1 refuses a bare red anyway, so
+   the case could no longer tell the reset from the fix. Case 16 now carries a fully
+   licensing state (test edit, then newer red) across the boundary, which is the only
+   shape that distinguishes them. A suite whose mutation pass is re-run after every
+   guard change is the reason this was found the same hour it was created.
+5. **Final run, 2026-08-06: 26 cases green on both dialects, all 7 mutations caught**
+   — including the strengthened session-reset case and the fix-reverting one. Exit 0.
+
+### 32.7 The 0.16.1 `/kit-check` — fifteen findings, ten fixed in-session, five
+### deferred with a record
+
+Run 2026-08-06 pre-release: mechanical checks in-session, the reading passes fanned to
+four read-only agents, every agent finding re-verified against the tree before any
+edit. The census (inv 4), README tree (inv 9, by no-adds-since-0.16.0 plus the 0.16.0
+pass), step references (inv 6), bundle purity (inv 12), pointers (inv 5), and the
+boundary itself (inv 2A — template, all seven commands, both READMEs, zero residual
+chaining text) all pass clean.
+
+Fixed in-session, ten: the two mislabels calling all eight skills vendored
+(`sdlc-setup.md`, both modes — invariant 11's own defect definition); the root
+README's now-false "two exceptions" / "only content an update writes" claims and
+`sdlc-update.md`'s stale "third line" ordinal (both fallout from §32.5's backfill —
+caught the same session they were created); `sdlc-update.md`'s copy rule naming
+`.claude/commands/` as universal for commands (per-CLI now, "both gets both");
+the README tree's unqualified `settings.template.json` row (Claude Code dialect);
+`end-phase.md`'s `--cov-fail-under` as primary referent (stack-neutral now); the
+`{{KIT_HOME_REPO}}` reconcile gap (inv 14 — update now compares the recorded line
+against the URL it actually cloned when present, mismatch is an owner finding); the
+false "setup checks the skill listing" claim (`SKILLS.md` — setup verifies files and
+copies, the listing needs a fresh session, and setup's close-out now says which it
+reports); "green" naming its shell in `end-slice` §2 and `end-phase` §2 (CI
+authoritative on disagreement, per the template's existing rule); the `verify:` line
+naming the shell it ran in, in the template first and the command with it, with the
+explicit sentence that an agent-shell pass does not stand in for halt 4. Three
+placeholder-mapping minors from inv 3 (TEST_LAYOUT unnamed in New mode;
+START_HERE/PHASE_HISTORY_ROWS/NOTES resolved only generically; the `{{HOOK_*}}`
+wildcard not covering `{{SOURCE_GLOB}}`) were fixed the same hour.
+
+Deferred, five, recorded in `IMPROVEMENT_PLAN.md` §9 with sizes: the two live
+step-numbering bases (command-local vs template-canonical — real, wide, sized like
+the 0.15.0 renumber); `{{ADOPTION_DATE}}` claim-only unmarked; the `Agent CLI:`
+line's missing staleness reconcile; the guard proof step naming no session/shell;
+root `CLAUDE.md`'s Claude-Code-first command-path wording.

@@ -2,7 +2,10 @@
 # SDLC TDD-ordering guards G1 + G2 (Copilot CLI dialect).
 #
 # G1 - observed-RED write guard: a production-source write is a violation unless a
-#      failing test run has been observed since the last test-file edit.
+#      test file has been edited this session AND a failing test run has been observed
+#      since that edit. Both halves are required: a red alone proves nothing, because
+#      any test-shaped command that exits non-zero (a pattern matching no tests)
+#      manufactures one - found in the field on the first armed arc.
 # G2 - premature-stop guard: stopping is a violation while no green test run has been
 #      observed, or the latest observed run is red.
 #
@@ -178,14 +181,16 @@ $PATHS
 PATHLIST
     if [ -n "$prod" ]; then
       ok=""
-      if [ -f "$S/red-observed" ]; then
-        if [ ! -f "$S/last-test-edit" ] || [ "$S/red-observed" -nt "$S/last-test-edit" ]; then ok=1; fi
-      fi
+      # "You changed a test this session, then watched it fail" - the red must have a
+      # test edit before it, or it licenses nothing. The known cost: a resumed session
+      # starts with cleared state, so its first production write is denied until a test
+      # file is touched; the deny message names the way out.
+      if [ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && [ "$S/red-observed" -nt "$S/last-test-edit" ]; then ok=1; fi
       if [ -n "$ok" ]; then
         log "OK production write (red observed since last test edit): $prod"
       elif [ -f "$S/deny-enabled" ]; then
         log "DENY production write without observed red: $prod"
-        emit_deny "TDD ordering: the write to $prod was denied because no failing test run has been observed in this session since the last test edit. Write one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&&', '||' or pipes - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit."
+        emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. Write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&&', '||' or pipes - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit."
       else
         log "VIOLATION production write without observed red: $prod"
       fi

@@ -19,8 +19,10 @@ which is which matters — only one of them travels with a `git clone`:
 
 In a session in the target project, available skills appear in the session's skill
 listing (a user can type `/` to browse) — on either CLI. A skill is "available" if it
-appears there. `/sdlc-setup` checks this; after setup, `tdd` must appear or the
-install failed.
+appears there. `/sdlc-setup` verifies the **source files and the installed copies** —
+it cannot verify the listing, which is fixed for the session that just wrote the
+files. Availability is confirmed in a **fresh** session (checklist item 5 below):
+`tdd` must appear there or the install failed.
 
 ## How kit skills must NOT be updated: `gh skill`
 

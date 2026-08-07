@@ -808,3 +808,39 @@ must state any process rule a command enforces.
     14-row classification. §7.1's trap class, recurring in verification code written
     *while following a procedure that warns about exactly this*. Rerun properly;
     the lesson stays here as another specimen for ledger invariant 13.
+
+## 9. Deferred findings from the 0.16.1 kit-check — recorded 2026-08-06, not scheduled
+
+The 0.16.1 pre-release `/kit-check` (FEATURE_PLAN.md §32) fixed ten findings in-session
+and deferred five as larger or lower-severity. None blocks a release; each is recorded
+here so the next relevant batch can take it knowingly.
+
+1. **Two live step-numbering bases (invariant 2/6 hazard).** Command files number
+   their own workflows (`end-slice` 1–9, `end-phase` 1–7) while `SDLC.template.md` —
+   canonical by its own rule — numbers the slice loop 1–12 continuously across
+   `/next-slice` + `/end-slice`. Cross-citations in `sdlc-setup.md` (skill install
+   rationale), `sdlc-update.md` (0.14.0/0.15.0 renumber notes), `reference/SKILLS.md`,
+   and `reference/COPILOT.md` cite the command-local numbers, which resolve to the
+   wrong step read against `spec/SDLC.md` (template "step 6" = quality pass;
+   end-slice "step 6" = verification). Order agrees everywhere — the base does not.
+   Fix wants one sweep choosing a single convention (likely: qualify every cross-file
+   citation as "`/end-slice`'s own step N") and a `/kit-check` mechanical check to
+   hold it. Too wide for a point release; sized like the 0.15.0 renumber.
+2. **`{{ADOPTION_DATE}}` is claim-only and unmarked (invariant 14).** No artifact
+   evidences it; the adoption commit is the natural one, and
+   `PROJECT_INDEX.template.md`'s seeded Phase-History row can disagree with it
+   silently. One-line fix: mark it claim-only in the template, or point it at the
+   adoption commit.
+3. **`Agent CLI:` line has no staleness reconcile (invariant 14).** `sdlc-update`
+   infers it only when absent; a project that gained a second CLI without re-running
+   setup carries a stale record and step 5's re-packaging silently doesn't run.
+   Wants a designed reconcile (which repo artifacts prove CLI use?) — same shape as
+   the TDD-guard record's, which exists.
+4. **The guard proof step names no session/shell (invariant 15, low).**
+   `sdlc-setup.md`'s "prove each guard in a scratch session" doesn't say the session
+   must be the Copilot CLI's, nor that the guard runs in the hook's shell that step
+   6's probe measured. `GATE_RECIPES.md` partly covers it on the failure path.
+5. **Root `CLAUDE.md` states the command install path Claude-Code-first (invariant
+   7, wording).** "The seven commands … go to `.claude/commands/`" is unqualified;
+   the Copilot mapping is nearby (diagram + COPILOT.md pointer), so this is a
+   kit-dev-doc wording cleanup, not a mapping error.

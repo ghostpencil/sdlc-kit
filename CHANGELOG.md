@@ -10,6 +10,67 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.16.1 — 2026-08-06
+
+One field arc on 0.16.0 produced all three fixes (`FEATURE_PLAN.md` §31.18 and §32; the
+seventh field report, filed as `sdlc-kit#4`): the guards' first real defect — found by
+arming them — and the two findings of the report. The theme is the arc's own: the
+process executed faithfully, and the vulnerabilities were in the seams — a red accepted
+without asking what produced it, a hand-back delivered in the same breath as the commit
+it described.
+
+### Fixed
+- **[adoption-only]** **G1 could be satisfied without writing any test.** Armed for
+  deny, a session was denied twice, then ran `mvn test -Dtest=ThisTestDoesNotExist` —
+  non-zero because nothing matched — and the guard recorded `RED observed (exit 1)` and
+  licensed the write. The denial mechanism was not at fault; the broken step was the
+  inference that a red implies a test. G1 now requires both halves of "you changed a
+  test this session, then watched it fail": the test-file edit must exist and the red
+  must be newer than it. The offline suite gained this exact case first and the case
+  was **watched to fail against the 0.16.0 guard before the fix landed**, plus a
+  mutation that reverts the fix so the suite keeps enforcing it. The known cost: a
+  **resumed** session's first production write is denied until a test file is touched
+  (state is session-scoped, so the old branch's leniency for that case was the hole);
+  the deny message names the way out. **Installed guards are project-owned — apply by
+  hand**: replace the G1 licensing line in `.github/hooks/sdlc-tdd-guard.sh` with the
+  0.16.1 template's (one `if` line), or re-instantiate keeping your three patterns.
+- **[installable]** **`/next-slice` chained into `/end-slice`, committing and pushing
+  with no inspection moment.** §5 said "tell the owner the slice is ready … and run
+  `/end-slice`" — one instruction, and close-out runs without asking, so the summary
+  and the commit it described arrived in the same turn. The fix is a **command
+  boundary, not a sixth halt**: `/next-slice` now stops at the slice-ready hand-back
+  and the owner runs `/end-slice`; `/end-slice` carries the mirror guard (owner-typed
+  only — reached without the owner asking, it stops); `SDLC.template.md` states the
+  rule — autonomy runs *within* a command, never across the boundary between commands
+  — in the slice loop and in the halt-points preamble. The five halt points stand
+  unchanged.
+- **[installable]** **`/sdlc-retro` offered to submit upstream with no path to the
+  kit's repository URL.** The retro had to ask the owner for the URL before it could
+  act on an approved submission. `spec/SDLC.md` now records it at adoption
+  (`{{KIT_HOME_REPO}}` in the template; setup resolves it from the kit README's opening
+  — a step, not a new question), retro §6 resolves it *before* presenting the submit
+  decision (fallback: the clone URL in the installed `sdlc-update`, written into
+  `spec/SDLC.md` when used), and `/sdlc-update` backfills the line on update from the
+  URL it actually cloned — never overwriting one already recorded.
+
+### Changed
+- **[installable]** **Ten pre-release `/kit-check` findings fixed** (the pass is
+  recorded in the kit repo's planning docs). The ones an adopter can observe:
+  `/sdlc-setup` no longer describes the three kit-written skills as vendored (both
+  modes); `/sdlc-update`'s copy rule states sources and destinations per-CLI instead
+  of naming `.claude/commands/` as universal, and — new — when the *Kit home
+  repository:* line is already present it is **compared against the URL the update
+  actually cloned from**, a mismatch going to the owner as a finding; the gate steps
+  in `/end-slice` and `/end-phase` name the shell "green" was observed in, CI
+  authoritative on disagreement; the slice `verify:` record names the shell it ran
+  in, template and command in step, with the explicit rule that an agent-shell pass
+  does not stand in for the owner's acceptance halt; `reference/SKILLS.md` no longer
+  claims setup checks the session skill listing (setup verifies files and installed
+  copies; the listing is confirmed in a fresh session); `/end-phase`'s coverage-floor
+  bullet is stack-neutral; three placeholder-mapping gaps in `/sdlc-setup` closed
+  (New-mode test layout, the empty-but-stated PROJECT_INDEX values, `{{SOURCE_GLOB}}`
+  named beside the `{{HOOK_*}}` set).
+
 ## 0.16.0 — 2026-08-05
 
 The ENF batch (`FEATURE_PLAN.md` §31.5–§31.14): Copilot CLI gets a deterministic
