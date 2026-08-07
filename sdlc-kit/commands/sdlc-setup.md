@@ -265,10 +265,15 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      copy and user copy will both be listed; recommend the owner keep the project copy
      authoritative (it is versioned with the repo).
 6. Install the edit-time hook, in the dialect the target CLI speaks — *Hook dialects*
-   in `reference/GATE_RECIPES.md` names the template, the destination, and what differs.
-   Claude Code: `settings.template.json` → `.claude/settings.json`. Copilot CLI:
-   `copilot-hook.template.json` → `.github/hooks/sdlc-gate.json`. The same
-   `{{HOOK_*}}` values (plus `{{SOURCE_GLOB}}`) fill either one, and four of them are
+   in `reference/GATE_RECIPES.md` names the templates, the destinations, and what
+   differs.
+   Claude Code: `settings.template.json` → `.claude/settings.json`. Copilot CLI, a
+   pair: `copilot-hook.template.sh` → `.github/hooks/sdlc-gate.sh` (instantiated —
+   every placeholder lives here) and `copilot-hook.template.json` →
+   `.github/hooks/sdlc-gate.json` (the bare launcher — it takes no values; copy it
+   verbatim and edit nothing but, later in this step, its `timeoutSec` number). The
+   same
+   `{{HOOK_*}}` values (plus `{{SOURCE_GLOB}}`) fill either dialect, and four of them are
    the dialect's own facts restated in prose — `{{HOOK_CONFIG_PATH}}` and
    `{{HOOK_FEEDBACK_NOTE}}` in `CLAUDE.md` and `spec/SDLC.md`, `{{HOOK_TOOLS}}` and
    `{{SOURCE_EXT}}` in `CLAUDE.md`'s hook sentence — so take all four from that table
@@ -512,9 +517,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 ### 3. Close-out (both modes)
 
 1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
-   plus `.github/hooks/sdlc-gate.json` when the target CLI is Copilot, and
-   `.github/hooks/sdlc-tdd-guard.sh` when step 6's guards were accepted (the guard's
-   `.json` takes no values, so it is not in scope). The scope is
+   plus `.github/hooks/sdlc-gate.sh` when the target CLI is Copilot, and
+   `.github/hooks/sdlc-tdd-guard.sh` when step 6's guards were accepted (the gate's
+   and the guard's `.json` launchers take no values, so neither is in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,
    and on Copilot the same is true of `.github/skills/sdlc-setup/SKILL.md`. Name the

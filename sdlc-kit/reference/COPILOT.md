@@ -19,7 +19,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Kit commands (7) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
 | Kit skills (8: 5 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
-| Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.json`, `postToolUse` |
+| Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
 | TDD-ordering guards | **not installed** — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` (optional) |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
@@ -102,9 +102,12 @@ here. Both READMEs carry the procedure; this file is why the two CLIs differ at 
 ## The gate hook
 
 The recipe — matcher, payload parsing, timeout, and the proof step — is in
-`GATE_RECIPES.md` beside the Claude Code one, and the template it instantiates is
-`templates/copilot-hook.template.json`. It is stated there, not here. Four Copilot-only
-hazards belong to this file, because they change what the *process* can claim:
+`GATE_RECIPES.md` beside the Claude Code one, and the templates it instantiates are
+the pair `templates/copilot-hook.template.sh` (the logic and every placeholder) plus
+`copilot-hook.template.json` (its bare launcher, no values — split 2026-08-07 so
+nothing rich crosses the WSL launcher boundary). It is stated there, not here. Four
+Copilot-only hazards belong to this file, because they change what the *process* can
+claim:
 
 1. **`postToolUse` cannot block.** Its only outputs are `modifiedResult` and
    `additionalContext`; the latter is injected as a prepended user message. The kit's
@@ -719,11 +722,11 @@ Git Bash launch — and the WSL launcher route **re-parses the hook command line
 corrupting backslash-carrying bodies and returning empty for `$(cat)` while a bare
 `cat` still received the payload. That last fact is why the skill-ledger hook body is
 backslash-free and pipes stdin directly; the TDD-guard JSON was restructured the same
-way **the same day** and re-proven live on both launcher routes. The **gate hook**
-remains the exposed artifact: its logic is embedded in the JSON body, the boundary
-breaks it with a *false* "no JSON parser" diagnostic, and the structural fix is a
-recorded pending decision — `GATE_RECIPES.md` carries the known-limit note beside the
-recipe.
+way **the same day** and re-proven live on both launcher routes; and the **gate hook**
+— whose single-JSON body the boundary broke with a *false* "no JSON parser"
+diagnostic — was split the same day into the script-plus-launcher pair above and
+proven live on both routes with real lint output, including path-flavour resolution
+for the absolute-Windows patch headers that arrive even when the hook runs in WSL.
 
 Upstream issues, state as of **2026-08-07** (both moved since the 2026-08-03 record):
 `github/copilot-cli#618` (markdown prompt files) **closed 2026-03-05** — declined by a

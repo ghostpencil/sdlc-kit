@@ -190,7 +190,9 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── PROJECT_INDEX.template.md    → spec/PROJECT_INDEX.md (source of truth)
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
 │   ├── settings.template.json       → .claude/settings.json (edit-time gate hook, Claude Code dialect)
-│   ├── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (the same hook, Copilot dialect)
+│   ├── copilot-hook.template.sh     → .github/hooks/sdlc-gate.sh (the same hook, Copilot dialect:
+│   │                                   the logic, holding every placeholder)
+│   ├── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (its bare launcher; no values)
 │   ├── tdd-guard.template.sh        → .github/hooks/sdlc-tdd-guard.sh (Copilot only, optional:
 │   │                                   the observed-RED write guard and the premature-stop guard)
 │   ├── tdd-guard.template.json      → .github/hooks/sdlc-tdd-guard.json (their hook config; no values)
@@ -264,7 +266,7 @@ The whole procedure rests on this split:
 | `.claude/skills/*/SKILL.md` (from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-tdd-guard.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
 Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names
@@ -481,6 +483,14 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    the `.json` is a verbatim template copy you replace outright (it inherits the
    offline proof), and the `.sh` takes a small template diff at its top. Until both
    land, guards that look healthy from one launch environment may be inert in another.
+   **The Copilot gate hook gets the same restructure in 0.18.0, for the same
+   boundary**: `.github/hooks/sdlc-gate.json` becomes a bare launcher you replace
+   verbatim (only `timeoutSec` is ever edited), and the logic moves to a new
+   project-owned `.github/hooks/sdlc-gate.sh` you instantiate with the `{{HOOK_*}}`
+   values read out of your current hook before replacing it. On affected machines the
+   old hook reported a **false** "no JSON parser" on every edit — if you have seen
+   that message with python installed, this is why. Re-run the proof step after: a
+   deliberate lint error must produce hook feedback.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,

@@ -18,7 +18,7 @@ the project owns.**
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-tdd-guard.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
 
 **Which of those rows apply here is recorded, not guessed:** `spec/PROJECT_INDEX.md`
@@ -273,7 +273,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   symptom is the hook reporting on every edit that it did not run. Read it with the
   owner rather than assuming its state — it is project-owned, this command never
   classified it, and it may have been hand-patched, replaced, or never installed.
-  0.16.0's `templates/copilot-hook.template.json` is the fix to compare against.
+  0.16.0's `templates/copilot-hook.template.json` is the fix to compare against —
+  though a project crossing 0.18.0 in the same update should skip straight to that
+  release's restructured pair (its note below) rather than re-applying 0.16.0's
+  single-JSON body only to replace it again.
   The instantiated `.github/hooks/sdlc-gate.json` is **project-owned** — it holds this
   project's own lint and typecheck commands — so an update must not rewrite it. Hand the
   owner the diff between the two template versions and the values their current hook
@@ -370,6 +373,17 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   template diff, the way the G1 fix was in 0.16.1. State the consequence at the halt:
   until both land, the guards may be silently inert in some launch environments even
   though the log looked healthy from others.
+  **And 0.18.0 restructures the Copilot gate hook the same way, for the same
+  boundary** — `.github/hooks/sdlc-gate.json` becomes a bare launcher (verbatim
+  template copy, no values, only `timeoutSec` ever edited) and the logic moves to a
+  new project-owned `.github/hooks/sdlc-gate.sh`, instantiated from
+  `templates/copilot-hook.template.sh` with the project's existing `{{HOOK_*}}`
+  values — read them out of the current `sdlc-gate.json` before replacing it, per the
+  changelog. On the affected machines the old single-JSON hook reported a **false**
+  "no JSON parser" on every edit; a project that has been seeing that message gets
+  its explanation and its fix in the same motion. Hand-apply both files, then re-run
+  the proof step (a deliberate lint error must produce hook feedback) — it is the
+  only evidence the rebuilt pair works in this project's hook shell.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

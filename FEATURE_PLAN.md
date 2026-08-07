@@ -1814,11 +1814,8 @@ reversal list in the fixture's `ENF_PROBE_NOTES.md`.
    every edit with python present, because the corruption breaks the body before
    parser detection runs. A structural fix (split the body into a script file, guards-
    style, leaving only a bare launcher line in the JSON) touches the template pair,
-   setup, update classification, and `tools/gate-hook-check.py` — a real batch, not a
-   patch, so it is recorded in `GATE_RECIPES.md` as a dated known limit with the
-   false-symptom named, and queued for the owner's call. Mitigation today is the
-   environment probe's existing rule: launch from a shell whose `bash` is not the WSL
-   launcher, or record that the edit-time hook does not run on this machine.
+   setup, update classification, and `tools/gate-hook-check.py`.
+   *Executed same day at the owner's direction — §38.7.*
 
 ### 38.6 The guard-prelude fix — built, proven offline and on both launcher routes,
 ### 2026-08-07 (same session, owner-directed)
@@ -1856,4 +1853,52 @@ The ledger's shape applied to the guards, template-first:
 
 What deliberately did **not** ship: the gate-hook fix (38.5.4 — structural, its own
 batch) and any change to the Claude-side dialect, which has a stated per-hook shell
-and no launcher boundary to survive.
+and no launcher boundary to survive. *(The former was then executed the same day at
+the owner's direction — §38.7; the Claude-side non-change stands.)*
+
+### 38.7 The gate-hook split — built, proven offline and on both launcher routes,
+### 2026-08-07 (same session, owner-directed)
+
+§38.5.4 executed: the Copilot gate hook is now the same shape as the guards — logic
+in a script file that never crosses the launcher boundary, a bare launcher in the
+JSON.
+
+- **`templates/copilot-hook.template.sh`** (new): the old JSON body's logic verbatim,
+  unescaped into a readable script — parser detection, `emit`, the patch-text/JSON
+  payload parse, the loud did-NOT-run branches, the 8000-char cap — plus every
+  placeholder (`{{SOURCE_GLOB}}`, `{{HOOK_LINT_CMD}}`, `{{HOOK_TYPECHECK_BLOCK}}`),
+  and one behavior the live proof forced: **`resolve_path`**, the guard-proven
+  drive-letter translation applied to each touched file and to the payload cwd. The
+  first WSL-route live run failed honestly without it — the patch header carried an
+  absolute-Windows path that does not exist as written under WSL bash (31.9.1's
+  both-forms fact reaching the gate's existence check; the old body never got far
+  enough on that route to meet it).
+- **`copilot-hook.template.json`**: now the bare launcher
+  (`if [ -d .git ] && [ -f .github/hooks/sdlc-gate.sh ]; then cat | sh …; fi`) —
+  no backslash, no `$`, no quotes, no placeholders; verbatim copy, only `timeoutSec`
+  ever edited.
+- **Proof.** `tools/gate-hook-check.py` reads the Copilot body from the script
+  template; all previous cases pass unchanged (the split is behavior-preserving),
+  plus the launcher boundary-property case (pinning the no-backslash/no-`$`/no-quote
+  shape), launcher wiring at a repo root, launcher silence elsewhere, and a
+  backslashed-path normalization case — green under both parser dialects. Boundary
+  repro: the launcher through `wsl.exe bash -c` — the exact call that produced the
+  false no-parser message from the old body — runs the gate and returns real lint
+  output. **Live, both routes**, with the session quoting the injected feedback and
+  the transcript confirming it verbatim: WSL route (session `bc5413ff`) —
+  `lint/typecheck failed … /mnt/d/…/lintprobe.js` (the `/mnt` form: resolve_path
+  working); Git Bash route (session `a17ec507`) — same failure in `D:/` form. Bench
+  gate artifacts removed after proof; record and reversal in `ENF_PROBE_NOTES.md`.
+- **Ripples, derived by grep (§4a):** setup step 6 (instantiate the `.sh`, copy the
+  `.json` verbatim) and its close-out `{{` scope (now `sdlc-gate.sh`; neither `.json`
+  launcher in scope); `sdlc-update` ownership row + a 0.18.0 gate-restructure
+  transition note (hand-apply: read the `{{HOOK_*}}` values out of the current JSON
+  before replacing it) + a forward pointer from the 0.16.0 note so nobody re-applies
+  the superseded single-JSON body; both READMEs (tree, ownership, update section);
+  `GATE_RECIPES.md` (intro, dialects table, the known-limit note replaced by the
+  fixed design); `COPILOT.md` (mapping table, gate-hook section, provenance).
+
+With this, every Copilot-dialect hook the kit ships — gate, guards, ledger — is
+launcher-boundary-proof by construction, and each shape is pinned by its proof
+suite. The Claude-side dialect keeps its single-file form: its shell is stated
+per-hook, so there is no boundary to survive.

@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 """Re-runnable proof for both edit-time gate hooks.
 
-Covers `templates/copilot-hook.template.json` and `templates/settings.template.json`,
-each under **both** JSON parser dialects the hooks detect at run time (python and node).
-A dialect that is never exercised is a dialect that is not proven, so the suite pins
-PATH to one parser at a time and requires identical behaviour from each.
+Covers the Copilot pair (`templates/copilot-hook.template.sh` holding the logic, with
+`copilot-hook.template.json` as its bare launcher - split 2026-08-07 because the WSL
+launcher boundary corrupts any rich command line, FEATURE_PLAN.md 38) and the Claude
+Code dialect in `templates/settings.template.json`, each under **both** JSON parser
+dialects the hooks detect at run time (python and node). A dialect that is never
+exercised is a dialect that is not proven, so the suite pins PATH to one parser at a
+time and requires identical behaviour from each.
 
-The hook bodies are one-line shell strings inside JSON, which is exactly the shape that
-hides an escaping bug, so every case drives the instantiated template rather than a
-hand-copied approximation. Payload shapes come from the bench captures (FEATURE_PLAN.md
-31.7) - including `apply_patch`'s raw-patch-text form, whose mis-parse meant the Copilot
-gate never ran on a single edit through 0.15.0.
+Every case drives the instantiated template rather than a hand-copied approximation.
+Payload shapes come from the bench captures (FEATURE_PLAN.md 31.7) - including
+`apply_patch`'s raw-patch-text form, whose mis-parse meant the Copilot gate never ran
+on a single edit through 0.15.0. The launcher JSON gets the boundary-property case
+(no backslash, no $, no quotes) plus wiring cases, mirroring the TDD-guard suite.
 
 Every silent case is also run dirty: silence only proves something once the same case
 has been made to speak (invariant 13).
@@ -22,6 +25,7 @@ import io, json, os, shutil, stat, subprocess, sys, tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPILOT_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.json")
+COPILOT_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.sh")
 CLAUDE_TPL = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json")
 
 LINTER = ("#!/bin/sh\nif grep -q BAD \"$1\" 2>/dev/null; then\n"
@@ -88,8 +92,7 @@ class Project:
 
 def copilot_suite(parser, check):
     """Copilot dialect: feedback arrives as JSON additionalContext on stdout."""
-    body = instantiate(json.load(io.open(COPILOT_TPL, encoding="utf-8"))
-                       ["hooks"]["postToolUse"][0]["bash"])
+    body = instantiate(io.open(COPILOT_SH_TPL, encoding="utf-8").read())
     base = tempfile.mkdtemp(prefix="gatehook-cop-")
     try:
         pj = Project(base, body)
@@ -131,6 +134,9 @@ def copilot_suite(parser, check):
         pj.put("src/d.py", True)
         check("absolute path in the patch header",
               "E001" in ctx(ap(("Update", os.path.join(pj.root, "src", "d.py")))))
+        pj.put("src/f.py", True)
+        check("backslashed relative path in the patch header (normalized before lookup)",
+              "E001" in ctx(ap(("Update", "src\\f.py"))))
         pj.put("src/my file.py", True)
         check("path containing a space",
               "E001" in ctx(ap(("Update", "src/my file.py"))))
@@ -158,6 +164,40 @@ def copilot_suite(parser, check):
         r = ctx(ap(("Update", "src/b.py")), prs=None)
         check("no parser on PATH -> names the missing dependency",
               "no JSON parser" in r and "python or node" in r, r)
+
+        # The launcher JSON (FEATURE_PLAN.md 38.5.4): the WSL launcher boundary
+        # corrupts backslashes, $-expansions and quoting, so the config body must
+        # contain none of them - and must still hand the payload to the script from
+        # a repo-root cwd, and do nothing anywhere else.
+        launcher = json.load(io.open(COPILOT_TPL, encoding="utf-8"))
+        lbodies = [h["bash"] for hs in launcher["hooks"].values() for h in hs]
+        check("launcher body survives the WSL launcher boundary (no backslash/$/quotes)",
+              bool(lbodies) and all(not any(ch in bd for ch in "\\$'\"") for bd in lbodies),
+              " | ".join(lbodies))
+
+        gate_installed = os.path.join(pj.root, ".github", "hooks", "sdlc-gate.sh")
+        os.makedirs(os.path.dirname(gate_installed))
+        os.makedirs(os.path.join(pj.root, ".git"))
+        shutil.copy(pj.script, gate_installed)
+        lenv = dict(os.environ)
+        lenv["PATH"] = os.pathsep.join([pj.root, parser_path(parser)])
+        pj.put("src/e.py", True)
+        p = subprocess.run(["sh", "-c", lbodies[0]],
+                           input=json.dumps(ap(("Update", "src/e.py"))).encode(),
+                           capture_output=True, env=lenv, cwd=pj.root)
+        out = p.stdout.decode("utf-8", "replace")
+        check("launcher at repo root pipes the payload into the gate script",
+              "E001" in out, repr(out[:120]))
+        elsewhere = tempfile.mkdtemp(prefix="gatehook-elsewhere-")
+        try:
+            p = subprocess.run(["sh", "-c", lbodies[0]],
+                               input=json.dumps(ap(("Update", "src/e.py"))).encode(),
+                               capture_output=True, env=lenv, cwd=elsewhere)
+            check("launcher away from a repo root: silent, exit 0",
+                  p.returncode == 0 and p.stdout.decode().strip() == "",
+                  repr(p.stdout.decode()[:120]))
+        finally:
+            shutil.rmtree(elsewhere, ignore_errors=True)
     finally:
         shutil.rmtree(base, ignore_errors=True)
 

@@ -7,7 +7,10 @@ Per-language commands for the two places tooling is configured during `/sdlc-set
 2. **The edit-time hook** — the same lint/typecheck run on the single file just edited,
    so failures surface immediately. Two dialects, one per target CLI: Claude Code's
    (`.claude/settings.json`, from `templates/settings.template.json`) and Copilot CLI's
-   (`.github/hooks/sdlc-gate.json`, from `templates/copilot-hook.template.json`). The
+   pair (`.github/hooks/sdlc-gate.sh` holding the logic, from
+   `templates/copilot-hook.template.sh`, plus `sdlc-gate.json` as its bare launcher,
+   from `templates/copilot-hook.template.json` — split so nothing rich crosses the
+   launcher boundary, *the hook environment* below). The
    owner confirms the target CLI at setup; *Hook dialects* below states what differs.
 
 A third section, *Runtime-standards rules*, lists per-linter rule sets for the
@@ -179,8 +182,8 @@ wrapper differs. Resolve the same `{{HOOK_*}}` placeholders either way.
 
 | | Claude Code | Copilot CLI |
 |---|---|---|
-| Template | `templates/settings.template.json` | `templates/copilot-hook.template.json` |
-| Instantiates to | `.claude/settings.json` | `.github/hooks/sdlc-gate.json` |
+| Template | `templates/settings.template.json` | `templates/copilot-hook.template.sh` (logic) + `.json` (launcher, takes no values) |
+| Instantiates to | `.claude/settings.json` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` |
 | Event | `PostToolUse` | `postToolUse` |
 | Matcher | `Edit\|Write` (substring) | `edit\|create\|apply_patch` (anchored `^(?:…)$`) |
 | Failure channel | stderr + `exit 2` | JSON `additionalContext` on stdout |
@@ -216,22 +219,23 @@ wrapper differs. Resolve the same `{{HOOK_*}}` placeholders either way.
   mangles any non-ASCII in lint output on the way through. For the same reason the
   hook's own messages are ASCII only.
 
-> **Known limit, measured 2026-08-07 and not yet fixed — the Copilot gate-hook body
-> does not survive the WSL launcher route** (*the hook environment* above). Unlike the
-> TDD guards, its logic lives *inside* the JSON body — embedded python/node sources
-> dense with backslashes — so the boundary's corruption breaks the body itself, and
-> the observable symptom is worse than silence: it reports **"no JSON parser (python
-> or node) on the PATH"** on every edit even when python is present, because the
-> corruption broke the body before parser detection ran. A machine showing that
-> message with a working python should suspect this limit first, and the honest
-> mitigation today is the one the environment probe already prescribes: launch the
-> CLI from a shell whose `bash` is not the WSL launcher, or accept that the edit-time
-> hook does not run here and record that in `spec/SDLC.md`. The structural fix —
-> moving the body into a script file the way the guards are shaped, so only a bare
-> launcher line crosses the boundary — is a recorded, pending decision
-> (`FEATURE_PLAN.md` §38): it splits the template into two files and touches setup,
-> update classification, and the proof suite, so it does not ride along in a hook
-> patch.
+**Why the Copilot dialect is a script-plus-launcher pair, not one JSON (restructured
+2026-08-07).** The hook config's command line crosses the CLI-to-shell boundary, and
+when the hook shell is the WSL launcher that boundary re-parses the line (*the hook
+environment* above) — the previous single-JSON body, whose logic was embedded as
+backslash-dense parser sources, arrived corrupted there and reported a **false** "no
+JSON parser (python or node) on the PATH" on every edit with python present. Now
+`sdlc-gate.json` carries only the bare launcher
+(`if [ -d .git ] && [ -f .github/hooks/sdlc-gate.sh ]; then cat | sh … ; fi` — no
+backslash, no `$`, no quotes, pinned by the proof suite so it cannot be silently
+re-cleverified) and everything with teeth lives in `sdlc-gate.sh`, which is read from
+disk by the executing shell and never crosses the boundary. The script also resolves
+each touched path across path flavours (absolute-Windows headers arrive even when the
+hook runs in WSL — the same both-forms fact the guards normalise for), so the gate
+lints the real file on either route. Proven live on both launcher routes with real
+lint output, and offline by the suite. One consequence for setup: the `.json` takes
+**no values** and is copied verbatim (only its `timeoutSec` number is ever edited);
+every placeholder now lives in the `.sh`.
 
 **Verified 2026-08-05** against the instantiated body of both dialects, 44 cases —
 every case run once under `python` and once under `node`, with `PATH` pinned to one at a
