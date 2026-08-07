@@ -1279,3 +1279,22 @@ step-numbering bases (command-local vs template-canonical — real, wide, sized 
 the 0.15.0 renumber); `{{ADOPTION_DATE}}` claim-only unmarked; the `Agent CLI:`
 line's missing staleness reconcile; the guard proof step naming no session/shell;
 root `CLAUDE.md`'s Claude-Code-first command-path wording.
+
+### 32.8 0.16.1 released — 2026-08-06
+
+Tag `v0.16.1`, release workflow green on the first run (all three checks — version
+match, manifest current, manifest coverage — were replicated locally before the tag;
+the text-mode MANIFEST regeneration held, no recurrence of the `*`-prefix failure).
+Assets published: `sdlc-kit.tar.gz`, `sdlc-kit.zip`, `sdlc-kit.CHECKSUMS.txt`.
+`sdlc-kit#4` closed with the shipping pointer and the apply-by-hand note for the
+project-owned guard.
+
+Open threads leaving this section: `ai-news-dashboard` runs 0.16.0 with the G1 hole
+and the chaining `next-slice` — its next `/sdlc-update` picks up the commands, and
+the guard's one-line G1 change is the owner's hand-apply (changelog states it).
+The §30.4 clock: `change-verify` satisfied; `change-simplify` one arc left. STD's
+audit clock: arc one of two banked. The five deferred kit-check findings sit in
+`IMPROVEMENT_PLAN.md` §9. And the boundary fix itself is prose on the CLI that
+produced the finding — whether it holds is exactly what the next field arc's
+friction log will say (§32.1's enforcement caveat pre-registers the escalation
+shape: an owner-created confirmation marker, ENF-style, if it bends).
