@@ -6,7 +6,11 @@ questions. Process reference: `spec/SDLC.md`.
 
 ## How to use
 
-`/end-slice` — after the slice's exit criteria are met, before `/clear`.
+`/end-slice` — after the slice's exit criteria are met, before `/clear`. **Owner-typed
+only**: `/next-slice` ends at the slice-ready hand-back and never chains into this
+command — close-out commits and pushes without asking, and the hand-back is the owner's
+moment to inspect the work first. If this command was reached without the owner asking
+for it, stop.
 
 The review (step 4) is the analysis-heavy part; check the model policy recorded in
 `spec/SDLC.md` (`/model` to switch — on a CLI where routing is operator-performed, the

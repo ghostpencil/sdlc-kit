@@ -16,7 +16,9 @@ of this process — is recorded below and read from here.
 
 **Kit version:** {{KIT_VERSION}} (adopted {{ADOPTION_DATE}}). Update procedure:
 `/sdlc-update` (installed with the commands; the kit's home repository README states the
-same procedure).
+same procedure). **Kit home repository:** {{KIT_HOME_REPO}} — the URL `/sdlc-retro`
+submits upstream reports to, recorded here so acting on a submit decision never needs
+a second question.
 
 ---
 
@@ -61,7 +63,10 @@ sweep that did not run, and is reported that way — never as a sweep that found
 ## Owner halt points
 
 The process runs autonomously except at these five points. Everything else (gates, reviews,
-fix application, bookkeeping, commits) proceeds without asking.
+fix application, bookkeeping, commits) proceeds without asking. Autonomy runs *within*
+a command, never across the boundary between commands: each command in the daily loop
+is owner-typed, and `/next-slice` in particular ends at the slice-ready hand-back
+rather than chaining into `/end-slice` (see *Slice loop*).
 
 1. **Phase scope** — the owner decides what the next phase (or cleanup slice) covers.
    Recorded as OWNER-DECIDED in `spec/PROJECT_INDEX.md` START HERE.
@@ -270,6 +275,14 @@ Run `/next-slice` in a **fresh session**:
    code — in a running record the session keeps for `/end-slice`, which writes it into
    the slice commit body. An observed red cannot be reconstructed at close-out; a red
    never recorded reads later as a red never run. Design questions halt *(halt 3)*.
+
+`/next-slice` ends at the slice-ready hand-back — the executive summary per the
+hand-back standard — and **the owner runs `/end-slice`**. Close-out is never chained
+from the work session's own momentum: it commits and pushes without asking, so the
+hand-back is the owner's one moment to inspect the work before it lands on the arc
+branch, and a summary delivered in the same turn as the commit it describes is a
+summary no one could act on. This stop is a command boundary like every other in the
+daily loop, not a sixth halt.
 
 Run `/end-slice` when the slice's exit criteria are met:
 

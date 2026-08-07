@@ -112,8 +112,11 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
 
 When the slice's exit criteria are met, tell the owner the slice is ready for close-out
 — an executive summary per the hand-back standard: what the slice now does, in plain
-English — and run `/end-slice` (gate, quality pass, review, mutation check,
-verification, commit, PROJECT_INDEX, then `/clear`).
+English — **and stop there. Do not run `/end-slice`; the owner runs it** (gate, quality
+pass, review, mutation check, verification, commit, PROJECT_INDEX, then `/clear`).
+Close-out commits and pushes without asking, so this hand-back is the owner's one
+moment to look at the work before it lands on the arc branch — a summary delivered in
+the same turn as the commit it describes is a summary no one could act on.
 
 ## Notes
 

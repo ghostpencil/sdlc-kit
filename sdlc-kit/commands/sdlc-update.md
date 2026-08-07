@@ -366,10 +366,12 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   not fail to produce proves nothing.
 - Re-stamp `spec/SDLC.md` (*Kit version: X.Y.Z (updated <date>)*). On a project adopted
   before 0.14.0, also write the *Agent CLI:* line into `spec/PROJECT_INDEX.md` with the
-  value the owner confirmed at step 1. **These lines are the only project-owned content
-  an update may write**, and the second only when it is absent — never to overwrite an
-  answer already recorded. Do both last, so an aborted update never claims a version it
-  does not hold.
+  value the owner confirmed at step 1. On a project whose `spec/SDLC.md` has no *Kit
+  home repository:* line (adopted before the placeholder existed), write it with the
+  URL this update cloned the target kit from at step 2 — the same fact, observed in
+  this session. **These lines are the only project-owned content an update may write**,
+  and the latter two only when absent — never to overwrite an answer already recorded.
+  Do them last, so an aborted update never claims a version it does not hold.
   **A third line joins them only when this update actually put the TDD-guard offer to
   the owner** (step 5's re-offer clause) — then their answer is recorded in
   `spec/SDLC.md` the way setup records it, decline included. It is written only when an

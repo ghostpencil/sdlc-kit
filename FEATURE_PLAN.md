@@ -56,11 +56,13 @@ it wants the same re-denomination whenever it is next opened.**
   nothing". R5.6's step-evidence sweep now produces the per-step catch record at source,
   so the next two arcs are a deadline with real evidence behind it. No further extension
   on no-evidence grounds once those arcs have run: after R5.6, "no evidence" means "did
-  not run".
+  not run". **Arc one banked 2026-08-06 with the evidence table present (§32.3).**
 - **`change-simplify` and `change-verify` — two field arcs from 2026-08-05** (§30.4): a
   confirmed field catch each, or deletion candidates. R5.1 (shipped 0.15.0) exists partly
   to give `change-verify` a slice-level path to one, and had no arc of exposure before
-  this clock was re-denominated.
+  this clock was re-denominated. **`change-verify`'s catch landed in arc one, at slice
+  level, 2026-08-06 (§32.3) — its clock is satisfied; `change-simplify` has one arc
+  left.**
 - **R3.8's aging rule** — §16 contingent keep, waiting on R4.6's writer producing
   friction entries to age.
 - **Standing input:** a TFit field report (Phase 07), whenever it arrives.
@@ -1063,3 +1065,147 @@ Bench note: the guards stay armed on that project by owner decision — the hole
 deliberate circumvention, produced no false denials, and disarms with one file deletion.
 The finding is recorded in their `spec/SDLC.md` and Kit friction log, which is the
 kit's own feedback channel working as designed.
+
+---
+
+## 32. Seventh field report — triaged 2026-08-06
+
+Filed as `sdlc-kit#4`. Second arc from `ai-news-dashboard` (Phase 02, four slices,
+PR #4, merged 2026-08-06), and the first report produced *under* 0.16.0 — the arc
+§31.18 already mined for the guard hole; the retro's carried-friction entry 3 is
+§31.18's finding, already tracked, no double-count. The local retro
+(`spec/SDLC_RETRO_2026-08-06.md` in their tree) carries **three** findings; the owner
+submitted 1 and 3 and kept 2 (a per-session execution log of which steps ran, Low)
+local — the issue's numbering gap is a decision, not a loss, and finding 2 is noted
+here only because its kit half (`end-slice` §7/§9, the template's Bookkeeping rules)
+may return in a later report.
+
+The retro itself is worth a line: all four slice commits carried complete evidence
+records (`RED:`/`quality:`/`mutation:`/`verify:` lines), the step-evidence table
+(R5.6's sweep) is present with per-step outcomes including two stated-reason skips,
+and the report reads directly off `git log`. The bookkeeping machinery R4/R5 shipped
+is doing in the field what it was built to do.
+
+### 32.1 Finding 1 — the chain is exactly as filed, and it is the design
+
+**Verified, every quote:** `commands/next-slice.md` §5 (lines 113–116) is one
+instruction — "tell the owner the slice is ready for close-out … and run `/end-slice`" —
+with no seam between the telling and the running; `end-slice.md` line 4 runs without
+asking; `end-slice`'s Notes (line 257) push the branch. The session that ran §5 to
+commit-and-push was *complying*, not drifting — this is not a Copilot activation
+defect, and no halt was skipped, because no halt exists there:
+`SDLC.template.md` lines 63–64 designate it — "The process runs autonomously except at
+these five points. Everything else (gates, reviews, fix application, bookkeeping,
+commits) proceeds without asking."
+
+So the finding's damage claim is bounded — the commit lands on the arc branch, and
+halts 4 and 5 still stand between the work and `{{MAIN_BRANCH}}` — but its sharpest
+form is an internal contradiction the filed text circles without naming: **the
+hand-back standard (template line 91) promises that every owner-facing moment opens
+with an executive summary the owner can act on, and at this boundary the summary and
+the close-out arrive in the same turn, so there is nothing left to act on.** The
+"tell the owner" clause writes a cheque the five-halt design does not cash.
+
+Three dispositions, verified against the tree before asking:
+
+- **(a) The filed fix — a sixth halt.** `AskUserQuestion` between summary and
+  `/end-slice`, named in the halt list. Cost is real and enumerable: the five-count is
+  load-bearing prose in `SDLC.template.md` (lines 63, 91), root `README.md` (lines 19,
+  36–37, 570), `reference/COPILOT.md` line 4, root `CLAUDE.md` line 63, plus the halt
+  renumber ripple (derive mechanically at build time per §4a). And it adds one
+  ceremony question to every slice — the coin the halt-2 skip rule exists to conserve.
+- **(b) A command boundary, not a halt.** `next-slice` §5 ends at the hand-back
+  summary; the owner runs `/end-slice`. The template's own slice loop (line 274)
+  already reads this way — "Run `\end-slice` when the slice's exit criteria are met"
+  is addressed to whoever runs commands, and §5's "and run" clause is the chaining
+  text. The five-halt architecture is untouched (owner-typed command boundaries —
+  `/plan-phase`, `/next-slice` — have never counted as halts), the inspection moment
+  the hand-back standard promises becomes real, and the diff is two files
+  (`next-slice.md` §5; a template sentence making the boundary explicit).
+- **(c) Decline** — keep autonomy, rely on halts 4/5 plus branch recoverability, and
+  record the ruling as standing. Honest but leaves the hand-back-standard
+  contradiction in the template.
+
+**Enforcement caveat, either way (a) or (b):** on Copilot both are prose — the CLI
+that produced this finding is the CLI where instructions demonstrably bend (§31.1).
+An evidence-shaped version (a commit guard requiring an owner-created confirmation
+marker, ENF-style) exists but is 0.17.0-scale machinery; the prose fix ships first
+and the friction log will say whether the boundary holds.
+
+### 32.2 Finding 3 — stands as a hardening; its central claim did not survive
+
+The lineage holds (§12 had three such): **"there is nowhere in the project to read the
+URL from" is false against the filer's own tree.** The URL ships in the installed
+update skill — their `.github/skills/sdlc-update/SKILL.md` line 65, the clone line of
+the update procedure — and in `sdlc-setup`'s installed copy (line 491), and this
+adopter additionally kept a full `sdlc-kit/` source copy in-tree (`sdlc-kit/README.md`
+line 8, where the owner eventually pointed). The retro searched `spec/` and "the
+project tree" and missed all three — the second report's theme, a denominator assumed
+rather than enumerated, this time inside the retro's own search.
+
+What survives is the architecture point: a URL embedded as an *example* inside an
+installed command is incidental, not recorded — the gate-baseline pattern is that
+facts commands need are written into `spec/SDLC.md` at adoption and read from there.
+Remedy shape if accepted: `{{KIT_HOME_REPO}}` in `SDLC.template.md` (invariant 1 —
+setup must be taught to resolve it; the exit-check grep is already scoped right),
+`sdlc-retro.md` §6 resolves the URL from `spec/SDLC.md` **with the installed
+`sdlc-update` clone line as the stated fallback** for pre-placeholder adoptions, and
+`sdlc-update.md` backfills the line on update. Small batch; `ai-news-dashboard`
+already hand-applied the project half (`spec/SDLC.md` line 16 now names the repo).
+
+### 32.3 Clock effects — the first of the two field arcs has run
+
+- **§30.4 clock (`change-simplify` / `change-verify`): `change-verify` has its
+  confirmed field catch.** TagBackfillRunner re-processing zero-match items on every
+  boot, caught at S3 — slice level, before phase end — owner-confirmed in the retro.
+  That is R5.1's slice-level trigger doing precisely what it shipped for, one arc
+  after shipping. `change-simplify` ran on all four slices ("moves applied or
+  nothing-to-do" quality lines) but the retro confirms no catch — one arc remains on
+  its clock.
+- **STD's audit clock:** arc one of two banked, and this time with R5.6's per-step
+  evidence table in the retro — `diff-review` shows catches at both altitudes (arc:
+  SpotBugs `EI_EXPOSE_REP` + N+1; slice: tagged backlog entries). The next arc's
+  retro closes the clock with evidence of the same grade.
+- **§31.18's 0.16.1 decision** (guard-hole fix) is unchanged by this report — still
+  owed, still wants the offline suite extended first.
+
+### 32.4 Owner rulings, 2026-08-06 — both recommendations accepted; built same day
+
+1. **Finding 1 ships as (b), the command boundary.** `/next-slice` ends at the
+   slice-ready hand-back; `/end-slice` is owner-typed. Not a sixth halt — the
+   five-count prose everywhere stands unchanged.
+2. **Finding 3 accepted as scoped in §32.2** — `{{KIT_HOME_REPO}}` placeholder, retro
+   resolution order, update backfill.
+3. **Release batching still open**: rides with the §31.18 guard fix as 0.16.1 or ships
+   separately — decided when §31.18's own decision lands. `VERSION` and `CHANGELOG`
+   untouched until then; `/kit-check` owed before whichever release carries this.
+
+### 32.5 Build record — 2026-08-06
+
+Edits, derived at build time per §4a (the chain turned out to be stated in exactly one
+place — `next-slice.md` §5; every daily-loop description elsewhere already read as an
+owner-typed sequence, which is what made (b) the template's own framing):
+
+- `templates/SDLC.template.md` **[adoption-only]**, three edits: the *Kit home
+  repository* line in the header ({{KIT_HOME_REPO}}); the boundary paragraph above the
+  slice loop's `/end-slice` steps; a halt-preamble sentence — autonomy runs *within* a
+  command, never across the boundary between them — placed where the finding looked
+  for protection and found silence.
+- `commands/next-slice.md` §5 **[installable]** — "stop there; do not run
+  `/end-slice`; the owner runs it", with the why (a summary delivered in the same turn
+  as the commit it describes is a summary no one could act on).
+- `commands/end-slice.md` *How to use* **[installable]** — the mirror guard:
+  owner-typed only; reached without the owner asking → stop. On Copilot commands
+  install as model-invocable skills, so the boundary is stated on both of its sides.
+- `commands/sdlc-setup.md` preflight 1 **[installable]** — resolves
+  `{{KIT_HOME_REPO}}` from the kit README's opening, falls back to the clone URL in
+  `commands/sdlc-update.md`, asks only when both are missing (invariant 3 satisfied by
+  a step, not a question; no new interview round).
+- `commands/sdlc-retro.md` §6 **[installable]** — resolve the URL *before* presenting
+  Decision 1: `spec/SDLC.md` first, installed `sdlc-update`'s clone line as the stated
+  fallback for pre-placeholder adoptions — and a fallback-resolved URL is written into
+  `spec/SDLC.md` in the report's docs commit, so the next retro reads it from where it
+  belongs.
+- `commands/sdlc-update.md` step 6 **[installable]** — backfills the *Kit home
+  repository* line when absent, with the URL step 2 cloned the target kit from — the
+  same fact, observed in-session; joins the absent-only writes, never overwrites.

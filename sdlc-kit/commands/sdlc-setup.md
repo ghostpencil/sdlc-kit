@@ -24,6 +24,10 @@ existing file becomes a shown merge plan, not a silent clobber.
    `reference/` are missing. Read `sdlc-kit/VERSION` — this resolves `{{KIT_VERSION}}`, and today's date
    resolves `{{ADOPTION_DATE}}`. If `VERSION` is absent the kit predates version
    stamping: record `{{KIT_VERSION}}` as `unknown (pre-0.2.0)` rather than guessing.
+   The kit README's opening names the kit's home repository URL — this resolves
+   `{{KIT_HOME_REPO}}`; if that line is absent, the clone URL in the kit's
+   `commands/sdlc-update.md` procedure states the same fact. Only when both are missing
+   does this become a question for the owner — never guess a URL.
 2. **Detect the target CLI** — which agent CLI this project's team will run the process
    in. It decides where commands, skills, and the gate hook are installed, and nothing
    downstream can be written until it is settled. `reference/COPILOT.md` holds the

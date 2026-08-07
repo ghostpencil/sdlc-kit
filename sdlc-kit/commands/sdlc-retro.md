@@ -213,6 +213,13 @@ legitimate outcome and worth recording; a manufactured finding is not.
   comment prescribes and step 2's sweep reads; flipping in any other wording forks the
   format the next sweep parses.
 - Commit the report and the index together as a docs commit.
+- Before presenting the submit decision, resolve the kit repository URL so a yes can be
+  acted on without a second question: `spec/SDLC.md`'s *Kit home repository* line names
+  it. On a project adopted before that line existed, the clone URL in the installed
+  `sdlc-update` command states the same fact — and when the URL resolves only by that
+  fallback, add the *Kit home repository* line to `spec/SDLC.md` in this report's docs
+  commit, so the next retro reads it from where it belongs. Ask the owner only when
+  both are missing.
 - Tell the owner what the report contains — per the hand-back standard: a plain-English
   executive summary of the findings in damage order, with the submit-upstream call as
   an explicitly marked decision (`Decision 1: submit as a GitHub issue on the kit's
