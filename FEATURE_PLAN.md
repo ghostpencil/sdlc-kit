@@ -1510,3 +1510,38 @@ designed evidence source), §10.1 (R6.4's CI-only-activation residual — rule-c
 call), §10.4 (inv 13 scope clause — ledger edit, owner's call), §10.5
 (hypothesis-tests frontmatter — needs the upstream), §10.6 (interview asymmetries —
 notes, resolve semantically today).
+
+---
+
+## 36. Second adopter on 0.17.0 — audit filed, update landed, 2026-08-07
+
+Adopter-side session (`ai-news-dashboard`), closing §34's open thread. Three commits,
+all merged to their `main` (PR #5, merge `28c137e`):
+
+- **The 2026-08-06 audit's adopter half is finally filed** (`979d52e`, direct to
+  main): eight backlog entries with `(external audit, 2026-08-06)` provenance, every
+  claim re-verified against the tree first — including sharpening the mock-policy
+  finding to its real offenders (`RefreshOrchestrationServiceTest`,
+  `RefreshSchedulerTest`; the `@WebMvcTest` mocks are sanctioned by their own
+  protocol). The dashboard-N+1 entry now names its Phase 02 D5 spec conflict (R6.2's
+  founding shape, pre-classified for their next `/plan-phase`), and the index's
+  "Enforced in pom.xml" coverage claim is marked disputed rather than silently
+  rewritten.
+- **`/sdlc-update` 0.16.0 → 0.17.0 ran clean end to end**: 17/17 installed files
+  `UNCHANGED` both directions (denominator proven, discrimination proven), kept-bundle
+  enumeration found one file ahead of 0.16.0 (`COPILOT.md` — replaced wholesale,
+  moot), nothing project-owned touched but the re-stamp. First field execution of the
+  no-structural-moves update path.
+- **Both update-owed hand-applies landed in the same PR** (`5c3b26e`): the G1 guard
+  fix applied by template diff — their guard was provably placeholder-only-divergent
+  from the 0.16.0 template, so the fixed file inherits the offline proof (26 cases,
+  7 mutations) rather than being a bespoke edit — and the full 0.16.1+0.17.0
+  `SDLC.template.md` fold-in, so their spec no longer disables the updated commands.
+  Their guard record updated with the artifact (the stale "absent, as now" clause was
+  the §31.15 inv-14 specimen recurring in the field; now corrected).
+
+**Phase 03 is the next arc, and it runs on current machinery.** It is the arc that
+closes `change-simplify`'s clock (§30.4), banks STD's second arc (§32.3), and gives
+all six R6 rules their first exposure (§34) — with R6.2's specimen (the D5 conflict)
+already sitting classified in their backlog, so the rule fires on its founding case
+the first time `/plan-phase` reads it.
