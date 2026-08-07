@@ -196,8 +196,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    mandatory-mock table, and the integration-vs-unit boundary —
    where integration tests live and what they may touch — for THIS stack; leave
    `{{ISOLATION_HARNESS}}` for step 4, which authors what it describes).
-   `{{HOOK_ENVIRONMENT}}` and `{{TDD_GUARD_NOTE}}` are both left for step 6, which
-   measures the one and decides the other.
+   `{{HOOK_ENVIRONMENT}}`, `{{TDD_GUARD_NOTE}}`, and `{{SKILL_LEDGER_NOTE}}` are all
+   left for step 6, which measures the first and decides the other two.
    `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
    <date> on the walking skeleton, <this session's shell>)`, which step 2 just proved.
    The record names where it was measured, because a later session comparing against
@@ -364,6 +364,28 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      describe guards the project does not have. On a project answering **both** CLIs,
      the note must say the backstop covers the Copilot side only — an unqualified "TDD
      ordering is enforced" is false in half the sessions the team will run.
+
+   **Then offer the skill-activation ledger — both CLIs, optional, logging-only.** *The
+   skill-activation ledger* in `reference/GATE_RECIPES.md` is the recipe and carries the
+   measured facts. Put the choice plainly: one hook appending one line per skill
+   activation to `.git/sdlc-skill-ledger.jsonl`, so `/sdlc-retro`'s step-evidence sweep
+   reads which skills actually ran instead of trusting that presence meant activation;
+   the cost is one more hook and a per-clone log file. It never blocks anything.
+   Default to offering, not to installing. If accepted:
+   - Copilot side: `skill-ledger.template.json` → `.github/hooks/sdlc-skill-ledger.json`,
+     copied verbatim — it takes no values; do not edit it.
+   - Claude Code side: the `"Skill"`-matcher block already in the instantiated
+     `.claude/settings.json` stays. **If the ledger is declined, remove that block from
+     the settings file you write** — the record of the decline lives in the note below,
+     never as dead config.
+   - Prove it per the recipe: invoke any installed skill in a session of each installed
+     CLI and read the ledger's last line back. No line → the hook is not firing; check
+     the matcher spelling and the hook environment before trusting it.
+   - Resolve `{{SKILL_LEDGER_NOTE}}` in `spec/SDLC.md` on **every** adoption: installed
+     (which CLIs, the ledger path, and that `.git/` is per-clone so the ledger describes
+     one machine) or declined **with the date — never delete the line**. `/sdlc-update`
+     reads it exactly as it reads the TDD-guard note: a recorded decline is settled; a
+     missing line is a project that never had the choice.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
@@ -504,8 +526,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    a `chore/adopt-sdlc` branch and a normal PR (the team should see this land like any
    change). Never commit without asking.
 3. Report: what was generated, skill/plugin verification results — **file-level only:
-   source and installed copies checked; listing availability needs a fresh session,
-   so say it is still owed** (`reference/SKILLS.md` *How to verify*) — gate baseline, and
+   source and installed copies checked; the listing check is still owed, and the report
+   says how per CLI: on Copilot the owner types `/skills reload` and checks it now, on
+   Claude Code it needs a fresh session** (`reference/SKILLS.md` *How to verify*) — gate
+   baseline, and
    the handoff — **`/clear`, then `/plan-phase`** (New, or Existing with a green gate)
    or **`/clear`, then `/next-slice`** on the STABILIZATION backlog (Existing, red
    gate). Point the team at the onboarding checklist in `sdlc-kit/reference/SKILLS.md`,

@@ -20,9 +20,13 @@ which is which matters — only one of them travels with a `git clone`:
 In a session in the target project, available skills appear in the session's skill
 listing (a user can type `/` to browse) — on either CLI. A skill is "available" if it
 appears there. `/sdlc-setup` verifies the **source files and the installed copies** —
-it cannot verify the listing, which is fixed for the session that just wrote the
-files. Availability is confirmed in a **fresh** session (checklist item 5 below):
-`tdd` must appear there or the install failed.
+it cannot verify the listing itself. On Copilot CLI the owner can confirm it without
+leaving the session: type `/skills reload`, then check the listing (`/skills info
+<name>` prints a skill's resolved location — the fastest check that the right copy is
+the one listed; both subcommands documented, verified 2026-08-07). On Claude Code the
+listing is fixed for the session that wrote the files, so availability is confirmed in
+a **fresh** session (checklist item 5 below). Either way: `tdd` must appear or the
+install failed.
 
 ## How kit skills must NOT be updated: `gh skill`
 

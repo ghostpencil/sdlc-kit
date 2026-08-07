@@ -16,6 +16,7 @@ import io, json, os, shutil, subprocess, sys, tempfile, time
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.sh")
+JTPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.json")
 
 
 def _dir_of(exe):
@@ -254,6 +255,58 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         check("20 a red with no test edit this session licenses nothing",
               "VIOLATION" in b.tail(), b.tail())
 
+        # The hook-config prelude (FEATURE_PLAN.md 38.3): the WSL launcher route
+        # re-parses the hook command line, corrupting backslashes and returning empty
+        # for $(cat), so the JSON bodies must contain nothing that boundary can eat -
+        # and must still deliver the payload into the script from a repo-root cwd.
+        jtpl = json.load(io.open(JTPL, encoding="utf-8"))
+        bodies = [h["bash"] for hs in jtpl["hooks"].values() for h in hs]
+        check("21 every hook-config body survives the WSL launcher boundary "
+              "(no backslash, no $, no quotes)",
+              bool(bodies) and all(not any(ch in bd for ch in "\\$'\"") for bd in bodies),
+              " | ".join(bodies))
+
+        pre_body = jtpl["hooks"]["preToolUse"][0]["bash"]
+        e = dict(os.environ)
+        e.pop("SDLC_REPO_ROOT", None)
+        if b.path:
+            e["PATH"] = b.path
+        b.reset_state()
+        subprocess.run(["sh", "-c", pre_body],
+                       input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
+                       capture_output=True, env=e, cwd=R)
+        check("22 prelude at repo root pipes the payload into the guard",
+              "VIOLATION" in b.tail(), b.tail())
+
+        elsewhere = tempfile.mkdtemp(prefix="tddguard-elsewhere-")
+        try:
+            before = len(b.loglines())
+            p = subprocess.run(["sh", "-c", pre_body],
+                               input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
+                               capture_output=True, env=e, cwd=elsewhere)
+            check("23 prelude away from a repo root: silent, no deny, no state",
+                  p.stdout.decode().strip() == "" and len(b.loglines()) == before
+                  and not os.path.exists(os.path.join(elsewhere, ".git")),
+                  repr(p.stdout.decode()))
+
+            # The script's own half of the same contract, without the prelude.
+            b.reset_state()
+            subprocess.run(["sh", b.guard, "pre-write"],
+                           input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
+                           capture_output=True, env=e, cwd=R)
+            check("24 script with no SDLC_REPO_ROOT trusts a repo-root cwd",
+                  "VIOLATION" in b.tail(), b.tail())
+
+            p = subprocess.run(["sh", b.guard, "pre-write"],
+                               input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
+                               capture_output=True, env=e, cwd=elsewhere)
+            check("25 script with no root and no .git at cwd is a no-op",
+                  p.stdout.decode().strip() == ""
+                  and not os.path.exists(os.path.join(elsewhere, ".git")),
+                  repr(p.stdout.decode()))
+        finally:
+            shutil.rmtree(elsewhere, ignore_errors=True)
+
         return failed
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -285,6 +338,8 @@ MUTATIONS = [
          '[ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && '
          '[ "$S/red-observed" -nt "$S/last-test-edit" ]',
          '[ -f "$S/red-observed" ]')),
+    ("trust any cwd when SDLC_REPO_ROOT is unset (state written to unrelated dirs)",
+     lambda s: s.replace('  [ -d .git ] || exit 0\n', '')),
 ]
 
 

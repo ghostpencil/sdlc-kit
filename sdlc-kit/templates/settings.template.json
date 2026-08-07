@@ -13,6 +13,18 @@
             "statusMessage": "{{HOOK_STATUS_MESSAGE}}"
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "i=$(cat); if [ -z \"$CLAUDE_PROJECT_DIR\" ] || [ ! -d \"$CLAUDE_PROJECT_DIR/.git\" ]; then echo \"SDLC skill ledger did NOT record this activation: CLAUDE_PROJECT_DIR is unset or is not the repo root.\" >&2; exit 2; fi; printf '%s %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$i\" >> \"$CLAUDE_PROJECT_DIR/.git/sdlc-skill-ledger.jsonl\"",
+            "timeout": 10,
+            "statusMessage": "Recording skill activation"
+          }
+        ]
       }
     ]
   }

@@ -1697,3 +1697,163 @@ project-owned, offered never imposed, with the §31.14 decline-record rule.
 `/kit-check` before each release; release timing the owner's call. All new rules
 enter the §16 audit clock — counted in field arcs, per the standing re-denomination
 note at the top of this file.
+
+---
+
+## 38. OBS built — 2026-08-07, probes answered, and a launcher-route discovery that
+## outranks the batch
+
+All three OBS items built in one session, §37's discipline held: the §21 build-time
+re-verification ran before any edit, the P1/P2 probes ran before any ledger design,
+and two of the ledger's three designs died on the bench before the third proved out
+live in all three environments. Nothing is released: `VERSION` reads 0.17.0, the
+manifest is deliberately stale (inv 10 — regenerated in the release commit), and
+`/kit-check` is owed before the tag.
+
+### 38.1 OBS.1/OBS.2 — the re-verification moved more than expected
+
+Every §37.1 capability fact was rechecked against live sources; `COPILOT.md` §-dated
+throughout. Confirmed as recorded: `/fleet` (with the no-locking hazard verbatim from
+the blog), `/rubber-duck` (GA, cross-family, conversation-only), `/orchestrate` as an
+app command, the fourteen-event hooks reference (exit-2 deny channel, fail-open
+timeouts even for policy hooks, `policy.d`, the cloud agent's `bash`-only subset).
+Two claims **did not survive**: `#618` is not open — closed 2026-03-05, prompt files
+*declined* in favour of skills, so the SKILL.md packaging is now permanent by
+upstream decision rather than provisional; and `#3820` closed completed 2026-06-17 —
+the hooks reference now carries a *Tool names for hook matching* section plus a
+Claude-name mapping table, which corroborates the bench vocabulary (its own Edit row
+maps to `apply_patch`) without displacing it. New small facts recorded: `/skills
+reload` and `/skills info` exist (the "listing needs a fresh session" claim in
+`SKILLS.md`/setup was stale on Copilot and is now per-CLI); `disable-model-invocation`
+on skills is community-claimed only, documented nowhere official, and per the
+hazard-1 precedent presumed silently ignored — bench probe first if ever wanted.
+OBS.2's two operator-lever paragraphs are in `COPILOT.md`: `/rubber-duck` (a lever,
+not a step — conversation-only output cannot satisfy an evidence-shaped step) and
+plan mode (session-folder artifact, press-sourced hard-block, and the MCP-connected
+exception that makes its read-only guarantee conditional).
+
+### 38.2 The probes — both answered favourably, in one run each plus one design probe
+
+- **P1 (Copilot 1.0.78):** skill invocation fires `preToolUse` **and** `postToolUse`,
+  `toolName: "skill"` — absent from the docs' new tool-name list — with `toolArgs` a
+  normal JSON-encoded string. **Relevance-based activation logs identically to
+  explicit invocation** (measured, one run each), which is the case the field defect
+  (§31.1) is actually about. Payload carries its own `timestamp`; no trailing newline.
+- **P2 (Claude Code):** `PostToolUse` fires under `tool_name: "Skill"`,
+  `tool_input.skill` structured; snake_case payload with `session_id` but **no
+  timestamp** — the hook stamps its own.
+- **Design probe:** the hook process's cwd is the session's cwd, in the executing
+  shell's own path flavour — which became the ledger's root-finding mechanism.
+
+### 38.3 The discovery — the hook shell is per-launcher, and the WSL route corrupts
+### hook bodies
+
+Found because the ledger's first live proof failed (§31.16's lesson paying out
+again): **the hook shell follows the launching shell's `PATH`.** PowerShell launch →
+WSL bash; Git Bash launch → Git Bash — same repo, same day. And the WSL launcher
+**re-parses the hook command line**: backslash-carrying bodies arrive corrupted and
+`$(cat)` returns empty while a bare `cat` receives the payload (reproduced offline:
+`wsl.exe bash -c <body>` fails where `bash body.sh` inside WSL succeeds,
+byte-identical). Second observed consequence: a `/mnt/…` path that works from a
+PowerShell launch makes the same `preToolUse` hook **error and fail closed** — a
+denied tool call — from a Git Bash launch.
+
+**This resolves the §31.7.5/§31.17 tension** (how could hook-bash-is-WSL and the
+guards' live proof both be true: different launchers) — and it means **the shipped
+TDD-guard JSON prelude silently no-ops on the WSL launcher route**: `$(cat)` +
+backslashed `sed`/`tr` is exactly the corrupted shape, and the prelude exits 0
+quietly by design. The bench ran the natural experiment inside one day: of the day's
+sessions, guard-log lines came from exactly the one launched from Git Bash and from
+none launched from PowerShell. Recorded in `GATE_RECIPES.md` and `COPILOT.md`'s
+provenance; the *hook environment* section now states the per-launcher rule and
+requires the probe be run from the CLI launched the way the operator actually
+launches it. The fix was built same-session at the owner's direction — §38.6.
+
+### 38.4 OBS.3 — the ledger as built and proven
+
+One line per activation — ISO-8601 UTC stamp + raw payload + hook-added newline
+(the payloads' missing trailing newline would otherwise concatenate the file into
+one unparseable line) — appended to `.git/sdlc-skill-ledger.jsonl`. Copilot dialect
+`templates/skill-ledger.template.json` → `.github/hooks/sdlc-skill-ledger.json`,
+verbatim, no values: the body is backslash-free, parses nothing, pipes `cat`
+straight into the file, and keys on the measured cwd fact with a loud not-at-root
+branch — primitive by *necessity*, per 38.3 (two cleverer designs measurably died:
+the guard-style prelude, then a `$(cat)`-based body that logged an empty payload).
+Claude dialect: a `"Skill"`-matcher block in `settings.template.json` (stated shell,
+no boundary — `$(cat)` legal there), removed by setup on decline. Both loud when
+they cannot write. Wiring: offered (never imposed) at setup step 6 with
+`{{SKILL_LEDGER_NOTE}}` under the §31.14 two-state rule (inv 1: setup taught in the
+same batch, including the step-2 enumeration); `/sdlc-retro`'s step-evidence sweep
+reads it as machine evidence with the per-clone caveat stated; `/sdlc-update` gains
+the 0.18.0 offer-when-absent branch; recipe in `GATE_RECIPES.md`; both READMEs and
+the update command's absent-only-writes list extended (inv 8/9).
+
+**Proof:** `tools/skill-ledger-check.py` — cases derived at run time, both dialects,
+loud branches run dirty, plus a case pinning the body's no-backslash property so the
+boundary hazard cannot be silently reintroduced. All green. **Live:** three
+environments, one full line each — Copilot/WSL route (session `371731bd`),
+Copilot/Git-Bash route (`920504fc`), Claude Code (`54999703`). Bench-side record and
+reversal list in the fixture's `ENF_PROBE_NOTES.md`.
+
+### 38.5 Owner decisions owed *(item 1 executed same day at the owner's direction — §38.6)*
+
+1. **The guard-prelude fix** (38.3) — ~~its own small batch~~ **built and proven,
+   §38.6.** What remains of it is the field half: the apply-by-hand notes are written
+   into `sdlc-update.md` and the root README, and `ai-news-dashboard` runs the old
+   config until their next update's halt delivers it.
+2. **Release 0.18.0** — this batch is release-shaped (new template, new placeholder,
+   setup/update/retro wiring, the guard fix). `/kit-check` before the tag; manifest
+   regenerated in the release commit; the `sdlc-update` transition notes are already
+   written.
+3. **VER remains next** per §37.7 — unchanged, except VER.2's Claude-side probe can
+   reuse the P2 bench, and 38.3's boundary rule now binds every VER hook body.
+4. **New, found while fixing the guards: the Copilot gate hook is exposed to the same
+   boundary, and its symptom lies.** Its logic is embedded in the JSON body (the two
+   parser sources, backslash-dense), and the measured failure on the WSL route is a
+   *false diagnostic* — "no JSON parser (python or node) on the PATH" emitted on
+   every edit with python present, because the corruption breaks the body before
+   parser detection runs. A structural fix (split the body into a script file, guards-
+   style, leaving only a bare launcher line in the JSON) touches the template pair,
+   setup, update classification, and `tools/gate-hook-check.py` — a real batch, not a
+   patch, so it is recorded in `GATE_RECIPES.md` as a dated known limit with the
+   false-symptom named, and queued for the owner's call. Mitigation today is the
+   environment probe's existing rule: launch from a shell whose `bash` is not the WSL
+   launcher, or record that the edit-time hook does not run on this machine.
+
+### 38.6 The guard-prelude fix — built, proven offline and on both launcher routes,
+### 2026-08-07 (same session, owner-directed)
+
+The ledger's shape applied to the guards, template-first:
+
+- **`tdd-guard.template.json`**: each of the three hook bodies is now the bare
+  `if [ -d .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh … <mode>; fi`
+  — zero backslashes, zero `$`, zero quote characters, nothing for the boundary to
+  eat. The JSON passes no `SDLC_REPO_ROOT` (any expansion is boundary-exposed);
+  root-finding moved into the script.
+- **`tdd-guard.template.sh`**: when `SDLC_REPO_ROOT` is unset it now trusts the
+  working directory **only if `.git` sits there** (the measured cwd fact), else
+  no-ops; an explicit `SDLC_REPO_ROOT` still wins, which is what the offline harness
+  uses. The header comment states the boundary reason so the shape reads as a
+  constraint, not a style choice.
+- **Suite** (`tools/tdd-guard-check.py`): five new cases — the boundary-property
+  case pinning the no-backslash/no-`$`/no-quote shape of every hook body (so the
+  prelude cannot be silently re-cleverified), prelude-at-root piping the payload
+  end-to-end into the script, prelude-away-from-root silent with no deny and no
+  state, and the script's two no-env cwd branches — plus an eighth mutation (drop
+  the `.git` check when defaulting → caught by the no-op case). **31 cases green
+  under both parser dialects; all 8 mutations caught.**
+- **Bench, both routes, all three events**: PowerShell/WSL route (session
+  `961a8634`) — `RED observed (exit 1)` and a stop-check would-block, the lines this
+  route never produced under the old config; Git Bash route (session `e74b8062`) —
+  a pre-write `VIOLATION` and the stop-check. The bench's installed pair is updated
+  (JSON replaced verbatim; the script's root-defaulting block hand-applied — the
+  same two motions the field will make).
+- **Docs**: `GATE_RECIPES.md`'s known-limit note replaced by the fixed design with
+  the natural-experiment evidence; `COPILOT.md` provenance updated (guard fixed
+  same-day; gate hook named as the remaining exposed artifact); the 0.18.0
+  transition note in `sdlc-update.md` and the root README's update section both
+  carry the two hand-apply motions and the consequence of skipping them.
+
+What deliberately did **not** ship: the gate-hook fix (38.5.4 — structural, its own
+batch) and any change to the Claude-side dialect, which has a stated per-hook shell
+and no launcher boundary to survive.

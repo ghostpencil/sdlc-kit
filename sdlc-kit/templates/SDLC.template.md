@@ -211,6 +211,20 @@ setup: {{HOOK_ENVIRONMENT}}
      covers only the Copilot side, and saying so is the point. Never describe a guard
      this project does not have. -->
 
+{{SKILL_LEDGER_NOTE}}
+<!-- Setup resolves {{SKILL_LEDGER_NOTE}} to a statement of whether the skill-activation
+     ledger is installed — a logging-only hook that appends one line per skill
+     activation to `.git/sdlc-skill-ledger.jsonl`, so the retro's step-evidence sweep
+     can read which named skills actually ran instead of trusting that presence meant
+     activation. It runs on both CLIs (the hook fires on the skill tool: `skill` on
+     Copilot, `Skill` on Claude Code — measured 2026-08-07). The note names the ledger
+     file and says in the same breath that `.git/` is per-clone: the ledger records
+     this machine's sessions only, and a retro citing it must say whose clone it read.
+     If the ledger was declined, the note says so WITH THE DATE — it does not delete
+     this line. A missing line and a declined offer are different facts: /sdlc-update
+     offers the ledger when this project never had the choice, and must not badger an
+     owner who already made it. -->
+
 
 ## Model policy
 

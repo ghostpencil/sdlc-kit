@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "matcher": "skill",
+        "timeoutSec": 10,
+        "bash": "if [ ! -d .git ]; then echo 'SDLC skill ledger did NOT record this activation: the hook shell did not start at the repo root.' >&2; exit 1; fi; { printf '%s ' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"; cat; echo; } >> .git/sdlc-skill-ledger.jsonl"
+      }
+    ]
+  }
+}

@@ -77,7 +77,14 @@ none of them writes anything.
   commit bodies (the `RED:`, `quality:`, `mutation:`, and `verify:` evidence lines —
   `git log` carries them), the deferred
   backlog's provenance tags (a `(slice review, <date>)` tag is evidence the review
-  ran), the friction log. This sweep exists because a step can silently never run —
+  ran), the friction log — and, where `spec/SDLC.md`'s skill-ledger note says one is
+  installed, `.git/sdlc-skill-ledger.jsonl`: one timestamped line per skill
+  activation, machine evidence that a named skill *ran* (not that it was diligent —
+  the commit-body lines still carry that). Filter it to the window by timestamp, and
+  say whose clone it was read from: `.git/` is per-clone, so the ledger records this
+  machine's sessions only, and an activation on another machine leaves no line here.
+  A named skill with no ledger line in the window, on the clone the arc ran on, is
+  the sharpest "no evidence" this sweep can produce. This sweep exists because a step can silently never run —
   on a CLI where skill activation is relevance-based, *presence is not activation* —
   and every other sweep here detects that only by the damage it eventually causes; a
   real adoption's slice-close verification was skipped silently for a whole arc and

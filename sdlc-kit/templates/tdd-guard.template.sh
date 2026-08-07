@@ -30,10 +30,17 @@
 # failure. What that shell reported at setup is recorded in spec/SDLC.md beside the gate.
 
 MODE=$1
-# Set by the hook config's prelude, which derives it from the payload's own cwd. Unset
-# means this script was invoked some other way; do nothing rather than write state to an
-# unrelated directory.
-[ -n "$SDLC_REPO_ROOT" ] || exit 0
+# The hook config invokes this script from the repository root: the hook process's
+# working directory is the session's cwd, in the executing shell's own path flavour
+# (measured 2026-08-07 - and the reason the config passes nothing: anything richer
+# than a bare command is corrupted when the CLI's hook shell is the WSL launcher,
+# which re-parses the command line). An explicit SDLC_REPO_ROOT still wins so a
+# harness can pin it. With no root given and no .git here, do nothing rather than
+# write state to an unrelated directory.
+if [ -z "$SDLC_REPO_ROOT" ]; then
+  [ -d .git ] || exit 0
+  SDLC_REPO_ROOT=$(pwd)
+fi
 S="$SDLC_REPO_ROOT/.git/sdlc-tdd"
 mkdir -p "$S" 2>/dev/null
 LOG="$S/guard.log"

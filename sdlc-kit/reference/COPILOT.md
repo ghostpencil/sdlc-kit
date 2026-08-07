@@ -76,9 +76,23 @@ description: "Close a slice — gate, code review, mutation check, commit, PROJE
 `name` and `description` are required; `license` and `allowed-tools` are optional. The
 description is quoted here deliberately — see authoring hazard 1 below; an unquoted
 value that later grows a `: ` drops the whole file with no error.
-Markdown custom slash commands do not exist on Copilot CLI — the near-miss is real and
-tracked upstream (`github/copilot-cli#1113`, closed as a duplicate of `#618`, which is
-open), so this packaging step is what a future release deletes if `#618` ships.
+Markdown custom slash commands do not exist on Copilot CLI — and as of 2026-03-05 that
+is a decision, not a gap: `github/copilot-cli#618` (the issue `#1113` was closed as a
+duplicate of) was closed by a maintainer with "convert these into skills … we do not
+plan on supporting prompt files given that they have been superseded by skills", and the
+customization cheat sheet lists prompt files as unsupported on the CLI (both re-checked
+2026-08-07). This packaging step is therefore the permanent mechanism, not a stopgap a
+future release deletes. One suggestion from that issue's thread is deliberately **not**
+adopted: `disable-model-invocation` on a SKILL.md, offered there as the way to make a
+skill user-typed-only, appears on no official page for skills (CLI skills how-to,
+create-skills, SDK skills, cheat sheet — all checked 2026-08-07), and the measured fate
+of undocumented skill frontmatter is silent ignoring (see *Models and tiers*: skill
+`model:`). If it ever tempts a batch, it is a bench probe first.
+
+Two `/skills` subcommands matter at install time (documented, verified 2026-08-07):
+`/skills reload` refreshes the skill listing mid-session — a just-installed skill can be
+checked in the listing without a fresh session — and `/skills info <name>` prints a
+skill's resolved location, the fastest check that the right copy won a name collision.
 
 **One command is packaged by hand: `sdlc-setup` itself.** Setup packages the other six
 at install time, but it cannot install its own entry point, so the adopter does that one
@@ -146,31 +160,71 @@ reading the transcript for the *effect*, not by the hook's own claim.
 - **`userPromptTransformed` can rewrite the model-facing prompt** — mutation only; it
   cannot block.
 
+**The event surface grew — re-verified 2026-08-07 against the hooks reference.** The
+documented set is now fourteen events. New since the 2026-08-05 record:
+`permissionRequest` (blocking-capable — allow/deny, optionally interrupting) and
+`subagentStop` (blocking-capable) join `preToolUse` and `agentStop` as the four events
+that can stop something; `preCompact`, `errorOccurred`, and `notification` are
+non-blocking additions. Facts that change what a guard may claim, each dated 2026-08-07:
+
+- **Exit 2 is a documented deny channel for `preToolUse` and `permissionRequest`**:
+  stderr is surfaced and exit 2 denies *even if stdout's JSON says allow*. Any other
+  non-zero exit from `preToolUse` also denies, with the CLI's own message ("Denied by
+  preToolUse hook (hook errored)") — the fail-closed behaviour the bench observed live
+  in 2026-08-05's WSL incident, now stated in the reference.
+- **Timeouts still fail open on every event, including admin policy hooks** — the
+  reference is explicit that a slow hook must not block tool calls. Hazard 2's
+  arithmetic stands unchanged, and it now provably cannot be configured away.
+- **Org policy hooks exist**: `policy.d` JSON under `/etc/github-copilot/` (POSIX,
+  root-owned) or `C:\ProgramData\GitHub\Copilot\` (Windows, plus a registry channel
+  under `HKLM\Software\Policies\GitHub\Copilot`), loaded before all other hooks and
+  immune to `disableAllHooks`. Enterprise machinery the kit does not use — recorded so
+  a policy hook's behaviour on a managed machine is not mistaken for the kit's.
+- **The Copilot cloud agent honours a subset**: repository `.github/hooks/*.json` only
+  (no user-level or settings hooks), the `bash` command field only (`powershell` is
+  ignored; a cross-platform `command` field is the documented fallback), and neither
+  `notification` nor `permissionRequest` fires there. The kit's hooks are CLI-targeted;
+  a project also running the cloud agent must not assume they fire in it.
+- A PascalCase "VS Code compatible" payload variant of the events exists
+  (`PostToolUse`, `tool_name`, `tool_result` — snake_case fields). A naming trap of
+  exactly the display-name shape: the CLI's own camelCase names are the ones the kit's
+  matchers and parsers are written against.
+
 ### Tool names — what is documented, and how to find the rest
 
-The hook matcher tests against `toolName`, and Copilot CLI's tool vocabulary is
-under-documented (`github/copilot-cli#3820` asks for exactly this). **Measured on the
+The hook matcher tests against `toolName`. The vocabulary is no longer undocumented:
+`github/copilot-cli#3820` closed completed 2026-06-17, and the hooks reference now
+carries a *Tool names for hook matching* section (verified 2026-08-07) listing
+`ask_user`, `bash`, `create`, `edit`, `glob`, `grep`, `powershell`, `task`, `view`,
+`web_fetch`, plus a Claude-name mapping table (`apply_patch` → Edit,
+`str_replace_editor` → Edit, `rg` → Grep, `web_search` → WebSearch, `update_todo` →
+TodoWrite) — which corroborates the bench rather than replacing it: the mapping table's
+own rows say the wire names differ from the documented aliases. Note what the list does
+**not** contain: no `skill` entry, so whether a skill invocation fires hooks at all is
+still unmeasured (the activation-ledger probe exists to answer it). **Measured on the
 bench 2026-08-05 against 1.0.77 on Windows 11**, by the discovery procedure below —
-these observations supersede the documentation and the third-party sources for every
-name they cover:
+where an observation and a documented name disagree, the observation still wins for the
+flows it covered:
 
 | Name | Evidence | Confidence |
 |---|---|---|
 | `apply_patch` | **measured** — fires for both the create and the edit flow | observed 2026-08-05 |
 | `powershell` | **measured** — the shell tool on Windows | observed 2026-08-05 |
 | `view` | **measured** — the read tool | observed 2026-08-05 |
-| `bash` | the hooks reference's own matcher example, `"bash\|edit"` | documented, **not observed** |
-| `edit` | same example | documented, **did not fire** on the tested flows |
-| `create` | third-party cookbook and an SDK example filtering on it | plausible, **did not fire** |
+| `skill` | **measured** — skill invocation, explicit `/name` and relevance-based alike; fires `preToolUse` and `postToolUse`; absent from the reference's own tool-name list | observed 2026-08-07 |
+| `bash` | the hooks reference's tool-name list and matcher example | documented, **not observed** (Windows shell is `powershell`) |
+| `edit` | the same list — yet its mapping table routes Edit to `apply_patch` | documented, **did not fire** on the tested flows |
+| `create` | the same list (was third-party-only before 2026-06-17) | documented, **did not fire** |
 
 Three traps this measurement exposed, each of which would have shipped silently:
 
 1. **The UI label is not the tool name.** Copilot displays "Edit" while the hook name is
    `apply_patch`. A matcher written from what the session shows you never fires.
-2. **The documented names are the ones that did not fire.** `edit` and `create` come
-   from GitHub's own example; on 1.0.77 neither appeared for any file write. The recipe's
-   `edit|create|apply_patch` worked by its third alternative only — it would have looked
-   deliberate and been accidental.
+2. **The documented names are the ones that did not fire.** `edit` and `create` sit in
+   GitHub's own tool-name list; on 1.0.77 neither appeared for any file write. The
+   recipe's `edit|create|apply_patch` worked by its third alternative only — it would
+   have looked deliberate and been accidental. The reference's mapping table now says
+   the same thing from the other side: the row for Edit maps to `apply_patch`.
 3. **`apply_patch` does not deliver JSON.** Its `toolArgs` is raw patch text
    (`*** Begin Patch` / `*** Add File: <path>`), not the JSON-encoded string every other
    tool sends. The 0.15.0 hook body JSON-parsed `toolArgs` unconditionally, so on the
@@ -339,14 +393,24 @@ reference calls the shell tool `execute`; the hooks reference's matcher example 
 derive a hook matcher from this list — use the provenance table and discovery procedure
 above.
 
-**Parallel fan-out is still undocumented.** Where the kit's sweeps would fan out, they
-run serially on Copilot. The generated `spec/SDLC.md` says so — a sweep that quietly
-became serial is a sweep whose coverage nobody re-checked. Measured against 1.0.77, the
-raw capability *is* present — `task`, `list_agents`, `read_agent` and `write_agent` are
-builtin tools, and delegation to a named custom agent succeeds — but no *subagent type*
-equivalent to Claude Code's `general-purpose` exists; only agents defined in
-`.github/agents/` or supplied by a plugin can be named. A skill that spawns
-`general-purpose` by name does nothing here.
+**Parallel fan-out is now a shipped feature — `/fleet` — and the kit still does not use
+it.** Documented on github.blog 2026-04-01 (re-verified 2026-08-07): an orchestrator
+decomposes an objective into dependency-ordered work items and dispatches the
+independent ones to sub-agents simultaneously; each sub-agent gets its own context
+window on a **shared filesystem with no file locking** — two sub-agents writing one
+file is a silent last-write-wins, the blog's own warning — and `.github/agents/`
+definitions can serve as the sub-agents. The kit's sweeps keep running serially, for
+two reasons stated rather than implied: the sweeps' value is a complete read, not a
+fast one, and whether the kit's hooks fire inside `/fleet` sub-agents at all
+(`preToolUse` in a sub-agent? `subagentStop` versus `agentStop`?) is unmeasured — a
+sweep whose guards silently stopped firing is worse than a slow sweep. That is a bench
+question before any use, and the generated `spec/SDLC.md` continues to say the sweeps
+are serial. The older measurement stands for what a *skill* can do: `task`,
+`list_agents`, `read_agent` and `write_agent` are builtin tools, delegation to a named
+custom agent succeeds, but no subagent type equivalent to Claude Code's
+`general-purpose` exists — only agents defined in `.github/agents/` or supplied by a
+plugin can be named, so a skill that spawns `general-purpose` by name does nothing
+here.
 
 ### Four authoring hazards, measured on 1.0.77
 
@@ -386,6 +450,41 @@ These bind anything the kit writes that must run on both CLIs, and all four fail
    for kit skills: **an instruction to do something is unenforceable; an instruction to
    produce evidence that could only exist if it was done is enforceable.** Prefer the
    second wherever a skill's value depends on it actually running something.
+
+## Two operator levers the kit names but does not wire
+
+Both verified 2026-08-07. Both are levers in the R5.3 sense — things an operator may
+pull, which no kit command names as process — and each carries the reason it stays a
+lever, so a later batch does not promote it to a step without meeting that reason.
+
+**`/rubber-duck` — an optional deepening, the `pr-review-toolkit` shape.** A built-in
+reviewer agent, GA since 2026-06-02 (changelog; the command is hyphenated), that
+critiques the session's current plan, design, implementation, or tests — **not a diff
+or PR reviewer**. Its critic deliberately runs on a model from a *different family*
+than the session orchestrator (changelog 2026-05-07: Claude critic for GPT sessions
+and the reverse), it is read-only, and it fires both automatically at moments the CLI
+chooses and on demand via `/rubber-duck`. Availability is constrained to Claude/GPT
+session models (concept page). Why it is not a step: the kit owns its reviewer
+(`diff-review`, both CLIs), and a feature the kit can neither configure nor verify
+cannot carry a process obligation. Sharper than that: its critique is
+**conversation-only** — nothing lands on disk — so it can never satisfy an
+evidence-shaped step; a hand-back citing a rubber-duck verdict with no artifact is
+exactly the characterization-instead-of-evidence tell of authoring hazard 4. An owner
+may invoke it freely; before approving a phase plan is the natural moment.
+
+**Plan mode — a read-only wrapper for survey work, with a conditional guarantee.**
+Entered by Shift+Tab or `/plan` (changelog 2026-01-21; the command reference lists
+`/plan` as a builtin); the CLI drafts a plan and awaits approval before implementing.
+Since ~2026-07-14 it hard-blocks workspace-mutating tool calls at runtime —
+**press-sourced, not in GitHub's own docs; re-verify before relying on it** — with a
+press-reported exception that matters: a session connected to MCP servers can still
+mutate the workspace through an MCP tool, so the read-only guarantee is conditional,
+not absolute. And the plan artifact lands in the CLI's session folder
+(community-sourced path: `~/.copilot/session-state/<id>/plan.md`), not the repo —
+against the kit's evidence-on-disk rule. So it can wrap the *reading* half of survey
+or gap-analysis work as a belt-and-braces guard, and an operator is welcome to; it
+cannot wrap `/plan-phase`, whose product is files under `spec/`, and no kit file
+assumes it.
 
 ## What the kit loses on Copilot today
 
@@ -587,8 +686,50 @@ resume rather than being cleared under the user; and a single session emits writ
 in **both** forms — absolute-Windows and repo-relative — which is why the guard
 normalises before classifying.
 
-Upstream issues tracked, open as of 2026-08-03: `github/copilot-cli#618` (markdown
-prompt files), `github/copilot-cli#3820` (matcher / tool-name documentation).
+Re-verified **2026-08-07** (the OBS batch's build-time pass; every claim §37 of the
+kit's feature plan rested on was rechecked against the named source): the hooks
+reference — fourteen events, `permissionRequest` and `subagentStop` blocking-capable,
+the exit-2 deny channel for `preToolUse`/`permissionRequest`, fail-open timeouts on
+every event including policy hooks, `policy.d` org hooks, the cloud agent's
+`bash`-field-only subset, and the new *Tool names for hook matching* section with its
+Claude-name mapping table; the CLI command reference (`/plan` is a builtin); the CLI
+skills how-to and create-skills pages (frontmatter still `name` / `description` /
+`license` / `allowed-tools`; the `/skills` subcommand set including `reload` and
+`info`); the customization cheat sheet (prompt files unsupported on the CLI; the
+skills-directory set unchanged); GitHub changelogs 2026-01-21 (plan mode), 2026-05-07
+and 2026-06-02 (`/rubber-duck` cross-family pairing, then GA); github.blog 2026-04-01
+(`/fleet`) and the Copilot-app slash-command guide (`/orchestrate` is an app command,
+not a CLI one — `/fleet` is the CLI's analog).
+
+Press-sourced as of 2026-08-07, uncorroborated by GitHub's docs: plan mode's runtime
+hard-block (~2026-07-14) and its MCP-connected exception. Community-sourced: the plan
+artifact's session-folder path; `disable-model-invocation` on skills (a `#618`-thread
+suggestion absent from every official page checked).
+
+**Measured on the bench 2026-08-07** — Copilot CLI 1.0.78, Windows 11, fixture repo
+`copilot-ci-test`, captured payloads retained: skill invocation fires `preToolUse` and
+`postToolUse` under `toolName: "skill"` (absent from the reference's tool-name list),
+with `toolArgs` as an ordinary JSON-encoded string (`{"skill":"<name>"}`) and
+relevance-based activation logging identically to explicit `/name` invocation; hook
+payloads arrive **without a trailing newline**; the hook process's working directory is
+the session's cwd, in the executing shell's own path flavour. And the environment
+hazard sharpened: **the hook shell follows the launching shell's `PATH`** — the same
+repo ran its hooks under WSL bash from a PowerShell launch and under Git Bash from a
+Git Bash launch — and the WSL launcher route **re-parses the hook command line**,
+corrupting backslash-carrying bodies and returning empty for `$(cat)` while a bare
+`cat` still received the payload. That last fact is why the skill-ledger hook body is
+backslash-free and pipes stdin directly; the TDD-guard JSON was restructured the same
+way **the same day** and re-proven live on both launcher routes. The **gate hook**
+remains the exposed artifact: its logic is embedded in the JSON body, the boundary
+breaks it with a *false* "no JSON parser" diagnostic, and the structural fix is a
+recorded pending decision — `GATE_RECIPES.md` carries the known-limit note beside the
+recipe.
+
+Upstream issues, state as of **2026-08-07** (both moved since the 2026-08-03 record):
+`github/copilot-cli#618` (markdown prompt files) **closed 2026-03-05** — declined by a
+maintainer in favour of skills, which settles the packaging question permanently;
+`github/copilot-cli#3820` (matcher / tool-name documentation) **closed completed
+2026-06-17** — the tool-name section above is what shipped.
 
 When any of this is re-verified, update the date and say what moved. A capability table
 whose date never changes is a table nobody rechecked.

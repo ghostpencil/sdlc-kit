@@ -194,6 +194,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── tdd-guard.template.sh        → .github/hooks/sdlc-tdd-guard.sh (Copilot only, optional:
 │   │                                   the observed-RED write guard and the premature-stop guard)
 │   ├── tdd-guard.template.json      → .github/hooks/sdlc-tdd-guard.json (their hook config; no values)
+│   ├── skill-ledger.template.json   → .github/hooks/sdlc-skill-ledger.json (optional, logging-only:
+│   │                                   the skill-activation ledger, Copilot dialect; no values)
 │   └── explore.agent.template.md    → .github/agents/explore.agent.md (Copilot only: read-only sweeps)
 ├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
@@ -465,6 +467,20 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    disk either way, which is why the decision lives in prose. Taking them up runs
    `sdlc-setup.md` step 6 in full, logging-mode ramp and proof step included; neither is
    optional just because this is an update.
+   **0.18.0 adds the optional skill-activation ledger (both CLIs, logging-only), and
+   updates check for it the same two-state way.** One hook appending a line per skill
+   activation to `.git/sdlc-skill-ledger.jsonl`, so a retro can read which skills
+   actually ran; per-clone, never blocking anything. Ledger artifact present → left
+   alone. Absent → the update reads the skill-ledger line in `spec/SDLC.md`: a recorded
+   decline is settled, no line at all gets the offer with its proof step (invoke a
+   skill, read the last ledger line back). The same two contradictions are reported,
+   never silently resolved.
+   **0.18.0 also fixes the TDD-guard hook config for machines whose hook shell is the
+   WSL launcher** — the old config was silently corrupted on that route and the guards
+   never ran there. Both guard files are project-owned, so the fix arrives by hand:
+   the `.json` is a verbatim template copy you replace outright (it inherits the
+   offline proof), and the `.sh` takes a small template diff at its top. Until both
+   land, guards that look healthy from one launch environment may be inert in another.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,
@@ -490,9 +506,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    overwrite.
    Those lines are the only project-owned content
    an update writes, and the absent-only ones never overwrite an answer already there.
-   A fourth
-   joins them **only when this update actually put the TDD-guard offer to you** — then
-   your answer goes into `spec/SDLC.md`, a decline included, so no later update re-asks
+   Two more
+   join them **only when this update actually put an offer to you** — the TDD-guard
+   offer and the skill-ledger offer each record your answer in `spec/SDLC.md`, a
+   decline included, so no later update re-asks
    it. An update that did not ask does not record an answer. From here
    every later update is mechanical.
 

@@ -342,6 +342,34 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   slice-review lens triggers and requires a backlog entry's cause to be reproduced
   **in the environment it was observed in** — those arrive with the commands and need
   no spec change.
+- **0.18.0 adds the optional skill-activation ledger, both CLIs — and every update from
+  here on checks whether this project was ever offered it.** A logging-only hook
+  appending one line per skill activation to `.git/sdlc-skill-ledger.jsonl`, read by
+  `/sdlc-retro`'s step-evidence sweep (*The skill-activation ledger* in
+  `reference/GATE_RECIPES.md` is the recipe). It is **not** part of the automatic
+  new-files clause: hooks are project-owned and nothing is installed without the
+  owner's word. Same two-state check as the TDD guards, but with no CLI gate — the
+  ledger exists for both: is the ledger artifact present (`.github/hooks/
+  sdlc-skill-ledger.json` on Copilot, the `"Skill"`-matcher block in
+  `.claude/settings.json` on Claude Code — check the artifact for the CLI the *Agent
+  CLI:* line records)? If yes, leave it alone. If no, read the skill-ledger line in
+  `spec/SDLC.md`: a recorded decline is a settled decision that gets one sentence; no
+  line at all is a project that never had the choice — offer it now, as a first setup
+  would, with the proof step (invoke a skill, read the last ledger line back)
+  non-skippable because this is an update. Record the outcome, including a decline
+  with its date, the way setup does. Present-but-recorded-as-declined, or a line
+  claiming installed with the artifact gone, is a contradiction to report, not to
+  silently fix.
+  **0.18.0 also fixes the TDD-guard hook config for machines where the CLI's hook
+  shell is the WSL launcher** — the old config's prelude was silently corrupted on
+  that route and the guards never ran there. Both guard files are project-owned, so
+  a project that has them gets this only by hand: `.github/hooks/sdlc-tdd-guard.json`
+  is a verbatim template copy — replacing it with the 0.18.0 template inherits the
+  offline proof — and `sdlc-tdd-guard.sh` carries the project's patterns, so its
+  change (the root-defaulting block at the top, per the changelog) is applied as a
+  template diff, the way the G1 fix was in 0.16.1. State the consequence at the halt:
+  until both land, the guards may be silently inert in some launch environments even
+  though the log looked healthy from others.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts
@@ -397,13 +425,14 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   **These lines are the only project-owned content an update may write**,
   and the latter two only when absent — never to overwrite an answer already recorded.
   Do them last, so an aborted update never claims a version it does not hold.
-  **A fourth line joins them only when this update actually put the TDD-guard offer to
-  the owner** (step 5's re-offer clause) — then their answer is recorded in
-  `spec/SDLC.md` the way setup records it, decline included. It is written only when an
-  offer was made and answered in this session, never inferred and never rewritten: an
-  update that did not ask does not get to record an answer. Without it a decline leaves
-  no trace and every later update re-asks a settled question, which is the whole reason
-  the line exists.
+  **Two more lines join them only when this update actually put an offer to the
+  owner** — the TDD-guard offer and the skill-ledger offer (step 5's re-offer clauses)
+  — then their answer is recorded in
+  `spec/SDLC.md` the way setup records it, decline included. Each is written only when
+  its offer was made and answered in this session, never inferred and never rewritten:
+  an update that did not ask does not get to record an answer. Without it a decline
+  leaves no trace and every later update re-asks a settled question, which is the whole
+  reason the lines exist.
 - Land as a normal PR (`chore/update-sdlc-kit-X.Y.Z`), the same way the adoption landed.
   Report to the owner what changed *behaviorally* (from the changelog), not just which
   files moved.
