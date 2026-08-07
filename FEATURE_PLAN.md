@@ -1486,3 +1486,27 @@ clock has arc one of two banked (§32.3); `ai-news-dashboard`'s next `/sdlc-upda
 crosses 0.16.1 **and** 0.17.0 — the G1 one-line hand-apply and the R6 template diff
 land together at that halt. Deferred records: `IMPROVEMENT_PLAN.md` §9 (five, from
 0.16.1) and §10 (seven, from this pass).
+
+---
+
+## 35. Post-0.17.0 cleanup — six recorded deferrals actioned, 2026-08-07
+
+The six §9/§10 items whose records already stated a fix direction and needed no owner
+ruling, built template-first, each marked actioned at its record: **§9.2**
+(`{{ADOPTION_DATE}}` now names the adoption commit as its evidencing artifact — inv
+14's claim-only rule); **§9.4** (the guard proof step names the Copilot CLI's own
+session and the measured hook shell — inv 15); **§9.5** (root `CLAUDE.md`'s command
+install path stated per-CLI); **§10.2** (phase-level `change-verify` names the
+agent's shell in both homes, symmetric with its slice-level twin); **§10.3** (the
+unconsumed-artifact lens cross-references *verify the denominator*, with the
+framework-wiring caveat); **§10.7** (the template's phase-spec content list gained
+trust boundaries, aligning it with `plan-phase`'s skeleton). Manifest regenerated in
+the same commit (inv 10). **Unreleased** — 0.17.1-or-later content; it rides along
+with whatever ships next.
+
+**What remains deferred, with the reason it stayed:** §9.1 (step-numbering sweep —
+its own batch, needs a convention chosen), §9.3 (`Agent CLI:` reconcile — needs a
+designed evidence source), §10.1 (R6.4's CI-only-activation residual — rule-cost
+call), §10.4 (inv 13 scope clause — ledger edit, owner's call), §10.5
+(hypothesis-tests frontmatter — needs the upstream), §10.6 (interview asymmetries —
+notes, resolve semantically today).

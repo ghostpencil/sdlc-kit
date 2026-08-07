@@ -339,7 +339,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      recognises the project's own test runs. A guard armed before that blocks every
      production write in the repo.
    - Prove them the way every other check is proven — by making them fail. In a scratch
-     session, write a production file with no failing test first and confirm the log
+     session **of the Copilot CLI itself** — the guards fire only from its hooks, and
+     they execute in the hook shell the environment probe above measured, so a proof
+     run anywhere else proves nothing about them —
+     write a production file with no failing test first and confirm the log
      names it; then end a session with no green run and confirm the stop guard logs a
      would-block. An unproven guard is a file that reads as enforcement. If neither
      line appears, the guard is not firing: re-check the matcher and the hook

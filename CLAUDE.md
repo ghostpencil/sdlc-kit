@@ -67,7 +67,9 @@ the canonical statement of that process; the four daily commands (`plan-phase`,
 load-bearing piece that lets a fresh session orient in seconds.
 
 **The install split is by how a file is invoked, not by what it contains.** The seven
-commands are user-typed entry points and go to `.claude/commands/`; the eight skills —
+commands are user-typed entry points and go to `.claude/commands/` (on Copilot CLI,
+packaged as `.github/skills/<name>/SKILL.md` — the flow diagram above shows both); the
+eight skills —
 five vendored, three kit-written since 0.14.0 — are model-invocable and go to
 `.claude/skills/<name>/SKILL.md`. Both are
 project-scoped, so both travel with a `git clone` — that was always the point, and until

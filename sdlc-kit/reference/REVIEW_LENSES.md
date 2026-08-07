@@ -182,6 +182,11 @@ review (`/end-phase`), where everything the arc built is finally visible at once
    factory variant whose sole callers are tests manufactures states production cannot
    reach — the test double drifts from reality through the door it opened.
 
+"No consumer" is a search-absence claim, so the *verify the denominator* lens applies
+to the search that establishes it: say how consumers were enumerated, and remember
+that on stacks wiring consumers by annotation, reflection, or configuration, a
+caller-grep undercounts — a framework-wired reader is a consumer the grep never sees.
+
 Provenance: a whole-tree audit of one adoption (2026-08-06, two merged phases) found
 three in a ~55-class codebase — a status entity+repository with no production writer,
 a seeded endpoint-URL column whose accessor did not exist, and result-factory

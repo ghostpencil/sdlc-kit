@@ -42,7 +42,8 @@ rather than through the harness, which is the gap the gate cannot cover — a su
 reaches the code through the test process, and the failures that survive a green suite
 live in startup, wiring, and configuration. Its discipline is that **a pass not
 observed is not a pass**: anything it could not exercise is reported as unverified, not
-assumed.
+assumed. Same caveat as its slice-level twin: this runs in the agent's shell and does
+not stand in for halt 4, the one step in this loop that runs in the owner's.
 
 This is what step 3 draws on. An arc that reaches the acceptance halt with nothing
 observed puts the owner in front of a system no one has run, and the halt passes

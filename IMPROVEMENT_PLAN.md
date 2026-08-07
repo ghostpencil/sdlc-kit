@@ -830,7 +830,8 @@ here so the next relevant batch can take it knowingly.
    evidences it; the adoption commit is the natural one, and
    `PROJECT_INDEX.template.md`'s seeded Phase-History row can disagree with it
    silently. One-line fix: mark it claim-only in the template, or point it at the
-   adoption commit.
+   adoption commit. — **Actioned 2026-08-07** (FEATURE_PLAN.md §35): the template now
+   names the adoption commit as the date's evidencing artifact.
 3. **`Agent CLI:` line has no staleness reconcile (invariant 14).** `sdlc-update`
    infers it only when absent; a project that gained a second CLI without re-running
    setup carries a stale record and step 5's re-packaging silently doesn't run.
@@ -839,11 +840,13 @@ here so the next relevant batch can take it knowingly.
 4. **The guard proof step names no session/shell (invariant 15, low).**
    `sdlc-setup.md`'s "prove each guard in a scratch session" doesn't say the session
    must be the Copilot CLI's, nor that the guard runs in the hook's shell that step
-   6's probe measured. `GATE_RECIPES.md` partly covers it on the failure path.
+   6's probe measured. `GATE_RECIPES.md` partly covers it on the failure path. — **Actioned 2026-08-07**
+   (§35): the proof step names the Copilot CLI's own session and the measured hook
+   shell.
 5. **Root `CLAUDE.md` states the command install path Claude-Code-first (invariant
    7, wording).** "The seven commands … go to `.claude/commands/`" is unqualified;
    the Copilot mapping is nearby (diagram + COPILOT.md pointer), so this is a
-   kit-dev-doc wording cleanup, not a mapping error.
+   kit-dev-doc wording cleanup, not a mapping error. — **Actioned 2026-08-07** (§35).
 
 ## 10. Deferred observations from the 0.17.0 kit-check — recorded 2026-08-06, not scheduled
 
@@ -860,11 +863,12 @@ recording time. None blocks a release.
 2. **Phase-level `change-verify` names no shell (invariant 15, low).** Its
    slice-level twin says "runs in the agent's shell … does not stand in for halt 4";
    the phase-level step (`end-phase.md` §2, template phase-end step) relies on the
-   halt-4 contrast to imply it. One clause would make them symmetric.
+   halt-4 contrast to imply it. One clause would make them symmetric. — **Actioned 2026-08-07** (§35), both homes.
 3. **R6.6's "no consumer" is a search-absence claim with no denominator rule.** The
    unconsumed-artifact lens doesn't cross-reference *verify the denominator*; on
    stacks where consumers are wired by annotation/reflection (the founding adopter is
-   Spring Boot), a caller-grep undercounts. One pointer sentence in the lens.
+   Spring Boot), a caller-grep undercounts. One pointer sentence in the lens. — **Actioned 2026-08-07** (§35): the lens
+   cross-references *verify the denominator* with the framework-wiring caveat.
 4. **Invariant 13's opening clause over-promises its scope.** "Any check this kit
    specifies or ships" read literally covers the retro sweeps and the mutation check,
    which the list has never enumerated; the list's operative scope is meta-checks and
@@ -879,4 +883,5 @@ recording time. None blocks a release.
    `{{NOTES}}` rests on the generic blanket alone. Both resolve semantically today.
 7. **`plan-phase`'s spec skeleton lists a `## Trust Boundaries` section the
    template's phase-start content list omits (invariant 2, note).** An addition, not
-   a contradiction; align the two lists whenever either is next touched.
+   a contradiction; align the two lists whenever either is next touched. —
+   **Actioned 2026-08-07** (§35): the template's content list gained trust boundaries.

@@ -14,7 +14,8 @@ Commands state nothing project-specific; every project fact lives in this file. 
 here that a command would need to know — the gate commands, the gate baseline, the scope
 of this process — is recorded below and read from here.
 
-**Kit version:** {{KIT_VERSION}} (adopted {{ADOPTION_DATE}}). Update procedure:
+**Kit version:** {{KIT_VERSION}} (adopted {{ADOPTION_DATE}} — a claim whose evidencing
+artifact is the adoption commit; on disagreement the commit wins). Update procedure:
 `/sdlc-update` (installed with the commands; the kit's home repository README states the
 same procedure). **Kit home repository:** {{KIT_HOME_REPO}} — the URL `/sdlc-retro`
 submits upstream reports to, recorded here so acting on a submit decision never needs
@@ -254,7 +255,8 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    that disables it **alone**, since a control sharing its only off switch with an
    unrelated system has no rollback.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
-   numbered owner decisions, behaviors, non-goals, data/migration impact, user-visible
+   numbered owner decisions, behaviors, non-goals, data/migration impact, trust
+   boundaries (what the consequence sweep found, recorded), user-visible
    surface + acceptance-review checklist, slices with exit criteria that name **what
    observes them and when** (a criterion naming an observer that does not run at that
    point — CI on an arc branch, typically — is a planning defect), risks. Any decision
@@ -386,7 +388,9 @@ Run `/end-phase` when the last slice is done:
    suite exercises code through the harness rather than through the path a caller
    takes. **A pass not observed is not a pass** — anything that could not be exercised
    here is reported as unverified rather than assumed, because the alternative spends
-   halt 4's credibility on a check that never ran.
+   halt 4's credibility on a check that never ran. Like its slice-level twin, this
+   step runs in the agent's shell and does not stand in for halt 4 — the owner's run
+   is the next step, and it is the one that runs in the owner's shell.
 2. **Owner acceptance review** *(halt 4)* — owner runs `{{RUN_COMMAND}}` and verifies the
    phase's visible behavior against the spec's checklist. Findings become fix commits
    (back to the slice loop if large). This is the one step in the *slice and phase loop*
