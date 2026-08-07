@@ -1469,7 +1469,20 @@ Seven below-threshold observations recorded in `IMPROVEMENT_PLAN.md` §10 with s
 notably R6.4's CI-only-activation residual and R6.6's missing denominator cross-ref.
 The five 0.16.1 deferrals (§9 there) stand unchanged.
 
-**Release state:** the tree is 0.17.0-ready pending the release commit — `VERSION`,
-`CHANGELOG`, `MANIFEST.sha256` regenerated from staged content in text mode (the
-`*`-prefix trap), the four workflow gates simulated locally, then the tag. Release
-timing remains the owner's call (§33.3).
+**0.17.0 released — 2026-08-06, same day, owner's call.** Commit `473f1b4`, tag
+`v0.17.0`, workflow green on the first run; assets `sdlc-kit.tar.gz`, `sdlc-kit.zip`,
+`sdlc-kit.CHECKSUMS.txt` published. The manifest was regenerated from **staged**
+content (`git cat-file` on the index) in text mode — no `*`-prefix recurrence, third
+consecutive tag the trap has held. Discrimination proven: exactly the 12 edited bundle
+files changed hash. The release commit also carries the two release-owed edits the
+kit-check table did not: the 0.17.0 transition note in `sdlc-update.md` step 5 (the
+0.15.0-shaped hazard — updated commands pointing at spec sections an un-re-instantiated
+`spec/SDLC.md` does not carry, and the spec wins) and the CHANGELOG entry, whose
+update-path paragraph states the same thing.
+
+Open threads leaving §34: all six R6 rules are now on the §16 audit clock (two arcs,
+founding catches recorded); `change-simplify` has one arc left (§30.4); STD's audit
+clock has arc one of two banked (§32.3); `ai-news-dashboard`'s next `/sdlc-update`
+crosses 0.16.1 **and** 0.17.0 — the G1 one-line hand-apply and the R6 template diff
+land together at that halt. Deferred records: `IMPROVEMENT_PLAN.md` §9 (five, from
+0.16.1) and §10 (seven, from this pass).
