@@ -1545,3 +1545,155 @@ closes `change-simplify`'s clock (§30.4), banks STD's second arc (§32.3), and 
 all six R6 rules their first exposure (§34) — with R6.2's specimen (the D5 conflict)
 already sitting classified in their backlog, so the rule fires on its founding case
 the first time `/plan-phase` reads it.
+
+---
+
+## 37. Deterministic verification of guidance — brainstorm 2026-08-07, two batches
+## approved
+
+Owner session, 2026-08-07. The prompt: the kit's guidance should be verifiable in a
+deterministic manner on both CLIs — LLM help allowed where a script cannot reach —
+and the new Copilot CLI surface (`/plan`, rubber duck, orchestration) examined for
+what it offers. A cited research sweep ran the same day against GitHub's official
+docs and changelogs; the capability facts below carry that date, and **every one
+re-verifies at build time per §21's standing rule** — the sweep is triage input, not
+build authority.
+
+### 37.1 Capability facts the plan rests on (verified 2026-08-07, official sources
+### unless marked)
+
+- **`/plan` (plan mode) is real** — changelog 2026-01-21, CLI best-practices page.
+  The plan is checkbox-structured Markdown saved to the **session folder**
+  (`~/.copilot/session-state/<id>/plan.md` — community-sourced path), not the repo;
+  approval is awaited before implementation. Press-sourced only, re-check at build:
+  since ~2026-07-14 plan mode **hard-blocks workspace-mutating tool calls at
+  runtime**.
+- **`/rubber-duck` is real** (hyphenated) — GA per changelog 2026-06-02. A built-in
+  reviewer agent over the session's current plan/design/implementation — **not a
+  diff or PR reviewer** — whose critic runs on a model from a *different family*
+  than the session orchestrator (changelog 2026-05-07). Fires automatically and via
+  `/rubber-duck`.
+- **`/orchestrate` is a Copilot desktop-app command, not a CLI one** (github.blog
+  slash-command guide, 2026-08-06). The CLI analog is **`/fleet`** (github.blog,
+  2026-04-01): orchestrator decomposes an objective into dependency-ordered work
+  items dispatched to sub-agents with **isolated contexts on a shared filesystem,
+  no file locking** — last write wins, silently. `.github/agents/` definitions can
+  serve as the sub-agents.
+- **The hooks reference has grown past `COPILOT.md`'s record**: events now include
+  `permissionRequest`, `preCompact`, `errorOccurred`, `notification`, and
+  `subagentStop` — the last **blocking-capable**, alongside `preToolUse`,
+  `permissionRequest`, and `agentStop`. A documented **exit-2-equals-deny** path
+  exists for `preToolUse`/`permissionRequest` (stderr shown to the model; exit 2
+  denies even if stdout says allow). Timeouts still always fail open. Org policy
+  hooks (`policy.d`, cannot be disabled) exist; cloud agent honors only the `bash`
+  field.
+- **Skills discovery and frontmatter**: unchanged from `COPILOT.md`'s record
+  (`.github/skills`, `.claude/skills`, `.agents/skills`; `name`/`description`
+  required). `/skills reload` and `/skills info <NAME>` exist. Custom slash
+  commands from prompt files remain unsupported (`#618` still open).
+- **`COPILOT.md` is stale in named places**: "parallel fan-out is still
+  undocumented" (it is `/fleet`, April 2026); the events list; the deny channel.
+  Its own closing rule applies — a capability table whose date never changes is a
+  table nobody rechecked.
+
+### 37.2 The framing the batches serve
+
+The parity worry runs the opposite direction from the obvious reading: **Copilot is
+currently the more-enforced CLI** (gate hook + both TDD guards, deny-proven);
+Claude Code has the gate hook only, with the guard port deferred on two
+undocumented payload facts (§31.12). And §33's field evidence stands: every
+mechanized rule held, every prose-only rule bent. So the plan's through-line is not
+"protect Copilot" but **convert existing prose promises into machine records or
+machine refusals, on both CLIs** — and extend verification to the one thing no
+current check sees, whether guidance *activated* at all (§31.1: presence is not
+process; R5.6's sweep still reads self-reported evidence).
+
+### 37.3 OBS — the observability batch (first)
+
+| # | Item | Files | Effort |
+|---|---|---|---|
+| OBS.1 | `COPILOT.md` re-verification: `/fleet` supersedes the fan-out claim; events list extended (incl. `subagentStop` blocking); exit-2 deny channel; plan-mode facts; provenance dated | `COPILOT.md` | S |
+| OBS.2 | Operator-lever paragraphs: `/rubber-duck` as an optional deepening (analogous to `pr-review-toolkit` on Claude Code — the kit owns its reviewer, per PORT; a feature the kit can neither configure nor verify is a lever, not a step) and plan mode's hard-block as a read-only wrapper for survey/gap-analysis work | `COPILOT.md` | S |
+| OBS.3 | **Skill-activation ledger** — a logging-only hook on the skill-invocation tool, both CLIs, writing one line per activation (skill name, session, timestamp); the retro's step-evidence sweep (R5.6) gains it as a machine evidence source | hook templates, `sdlc-setup.md`, `sdlc-retro.md`, `GATE_RECIPES.md`, `sdlc-update.md` | M |
+
+**OBS.3's pre-registered probes, before any design** (§5's rule; the display-name
+trap of §31.7 is the precedent — the UI label is never the hook name):
+
+- **P1 (Copilot):** does invoking a skill fire `postToolUse`, and under what
+  `toolName`? The builtin tool list names a `skill` tool; measured, not assumed.
+  Bench: `copilot-ci-test` (§29.3, standing).
+- **P2 (Claude Code):** does invoking a skill fire `PostToolUse`, and under what
+  tool name (`Skill`?) — and what does its `tool_input` carry? This probe is cheap
+  and independent of the guard-port probe, but the two can share a bench session.
+- Either probe failing to fire is itself the finding: the ledger ships only for the
+  CLI where activation is observable, and `SDLC.md` says which (inv 15 — a
+  verification step names the environment it verifies against).
+
+**OBS.3 build decisions to make explicitly, not by omission** (R5.2's durable-home
+decision is the precedent): where the ledger lives (`.git/` is per-clone and
+machine-local — acceptable for a retro that runs on the working clone, but the
+retro must say so when citing it); whether the ledger hook joins the existing gate
+hook's config file or ships as its own; and the update path (project-owned like
+every hook — offered by `/sdlc-update` to projects that missed it, never installed
+unasked, per §31.14's two-state rule: a decline is recorded with its date).
+
+Why OBS is first: pure logging — no deny, no timeout hazard, no false-block risk —
+and it gives every deletion clock (§16 regime) and R5.6's table ground-truth
+denominators before the enforcement batch adds new rules to audit.
+
+### 37.4 VER — the verification batch (second)
+
+| # | Item | Files | Effort |
+|---|---|---|---|
+| VER.1 | **Close-out evidence checker** — a script that parses the slice commit body for the R5-mandated record (`RED:` / `quality:` / `mutation:` / `verify:` lines, each present or carrying its stated-skip form) and fails loudly on silent absence; `/end-slice` runs it as its own step and quotes its output (both CLIs, evidence-producing) | checker script template, `end-slice.md`, `SDLC.template.md`, `sdlc-setup.md` | M |
+| VER.2 | **Claude Code guard port** — opens with the §31.12 pre-registered probe run: log a real `PostToolUse` payload for a deliberately failing Bash command, and real `PreToolUse` payloads for an `Edit` and a `Write`; the state machine is designed from what they contain. Banked facts: `$CLAUDE_PROJECT_DIR`, stated Git Bash shell — no self-locating prelude, no WSL hazard. Unknowns the probe must answer: exit-code availability and form, write-path field, `stop_hook_active` equivalent, block cap, `PreToolUse` timeout direction | probe first; then guard templates, `sdlc-setup.md`, `GATE_RECIPES.md`, `settings.template.json`, `sdlc-update.md` | L |
+| VER.3 | VER.1's enforcement wiring, ramped: an `agentStop` hook that would-block when the session's slice commit lacks the record — Copilot first (schema proven, §31.11), Claude Code only after VER.2's port proves the `Stop` dialect | guard/hook templates | M |
+
+VER.1 before VER.3, and logging/step-form before any block — the ENF ramp
+discipline (§31.8→§31.10) applies unchanged: pre-registered criteria including a
+value criterion, the owner reads each report before the next step, nothing enters
+the installed set unproven. VER.2's port, if its probe surprises (as Copilot's
+did — the exit code arrived as a text trailer nobody predicted), redesigns rather
+than approximates.
+
+### 37.5 JUDGE — queued behind VER, not scheduled
+
+The LLM-assisted layer, for the contracts a script can verify *structurally* but
+not *semantically* — the canonical case: is a `change-verify` transcript block real
+output or a characterization wearing a result's clothes (COPILOT.md hazard 4's
+tell, currently detected by prose instruction only). Design constraints recorded
+now so the batch inherits them:
+
+- **Never inside a timeout-bound tool hook** — hook timeouts fail open on both
+  dialects, so an LLM call there is a check that silently stops checking under
+  load. A judge runs as a command step with its own evidence contract (verdict
+  quoted, rubric named), or at most at `agentStop`, where slowness degrades to
+  not-blocking rather than to a fake pass.
+- **Headless invocation exists on both CLIs** (`copilot -p`, `claude -p`); the
+  cross-model-family pattern is the one GitHub itself shipped as rubber duck.
+- Fixed rubric, forced verdict-plus-quotation output, logging ramp first, §16
+  deletion clock attached from day one. Waits until VER.1 exists: judge what the
+  script cannot parse, not what it can.
+
+### 37.6 Considered and held (recorded so it is not rediscovered as a proposal)
+
+- **`/fleet` for the kit's sweeps**: would obsolete the serial-sweep caveat, but
+  the no-locking shared-filesystem model is a silent last-write-wins hazard, and
+  whether the TDD guards even fire inside sub-agents (`preToolUse` in a sub-agent?
+  `subagentStop` vs `agentStop`?) is unmeasured. A bench question before any use;
+  OBS.1 records the capability, nothing builds on it.
+- **Plan mode wrapping `/plan-phase`**: the plan artifact lands in the session
+  folder, not the repo — against the evidence-on-disk directive — and the
+  hard-block would prevent writing `spec/`. At most it wraps the reading half;
+  recorded as an operator note in OBS.2, not process.
+
+### 37.7 Order, halts, and regime
+
+OBS then VER, each sized for one session; JUDGE queued. Every bench probe is
+pre-registered before code (§5, §13 shape); the owner reads every probe and trial
+report before anything enters the installed set (§4 — the F3 step, unskipped).
+New placeholders are taught to setup in the same batch (inv 1). New hooks are
+project-owned, offered never imposed, with the §31.14 decline-record rule.
+`/kit-check` before each release; release timing the owner's call. All new rules
+enter the §16 audit clock — counted in field arcs, per the standing re-denomination
+note at the top of this file.
