@@ -199,7 +199,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `{{HOOK_ENVIRONMENT}}` and `{{TDD_GUARD_NOTE}}` are both left for step 6, which
    measures the one and decides the other.
    `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
-   <date> on the walking skeleton)`, which step 2 just proved. Never write a baseline
+   <date> on the walking skeleton, <this session's shell>)`, which step 2 just proved.
+   The record names where it was measured, because a later session comparing against
+   it needs to know whether it is comparing like with like. Never write a baseline
    you have not measured.
 4. **Author and prove the test-isolation harness.** `spec/TESTING.md` §Test Isolation
    specifies the checks; implement them for this stack in the test harness: outbound
@@ -266,10 +268,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    in `reference/GATE_RECIPES.md` names the template, the destination, and what differs.
    Claude Code: `settings.template.json` → `.claude/settings.json`. Copilot CLI:
    `copilot-hook.template.json` → `.github/hooks/sdlc-gate.json`. The same
-   `{{HOOK_*}}` values (plus `{{SOURCE_GLOB}}`) fill either one, and two of them — `{{HOOK_CONFIG_PATH}}` and
-   `{{HOOK_FEEDBACK_NOTE}}` — are the dialect's own facts restated in the prose of
-   `CLAUDE.md` and `spec/SDLC.md`, so take both from that table when step 3 instantiates
-   those files. On Copilot, `{{HOOK_FEEDBACK_NOTE}}` must not claim the feedback blocks,
+   `{{HOOK_*}}` values (plus `{{SOURCE_GLOB}}`) fill either one, and four of them are
+   the dialect's own facts restated in prose — `{{HOOK_CONFIG_PATH}}` and
+   `{{HOOK_FEEDBACK_NOTE}}` in `CLAUDE.md` and `spec/SDLC.md`, `{{HOOK_TOOLS}}` and
+   `{{SOURCE_EXT}}` in `CLAUDE.md`'s hook sentence — so take all four from that table
+   when step 3 instantiates
+   those files, never invented at instantiation time. On Copilot, `{{HOOK_FEEDBACK_NOTE}}` must not claim the feedback blocks,
    and must carry the warning that a timed-out hook is reported as a pass.
 
    **Measure the hook's environment first** — *The hook environment* in
@@ -429,7 +433,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `{{DEFAULT_MODEL}}` in `.claude/settings.json` or the line deleted; never into a
    command file). If CI already enforces a coverage floor,
    resolve `{{COVERAGE_FLOOR}}` (gate section of `spec/SDLC.md`) with the existing
-   number as-is; if it does not, resolve it as `TBD from first CI run` and do not
+   number as-is — **after proving the claim**: confirm the enforcing step actually
+   runs in the commands CI executes (a threshold bound to a build phase CI never
+   reaches enforces nothing — `spec/SDLC.md`, *Coverage floor*, states the
+   prove-it-fires rule). A floor that turns out to be recorded but not wired is an
+   owner finding at setup, not a number to copy. If CI enforces none, resolve it as
+   `TBD from first CI run` and do not
    propose one.
 3. **Generate** (same placeholder-resolution rules as New mode):
    - `CLAUDE.md` — merge, never replace; existing instructions win on conflict and
@@ -460,10 +469,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `spec/SDLC.md` with what you measured — this is the placeholder step 3 could not fill,
    because the measurement did not exist yet. Leave it unresolved until now rather than
    guessing; the close-out `{{` check in step 3.1 is what catches you forgetting.
-   - Green → `green — 0 lint / 0 type / 0 test failures (measured <date>)`.
+   - Green → `green — 0 lint / 0 type / 0 test failures (measured <date>, <this
+     session's shell>)`.
    - Red → do NOT block setup and do NOT fix code now. Record the exact counts
-     (`N lint / N type / N test failures (measured <date>)`) as the baseline in
-     `spec/SDLC.md`, mirror them in PROJECT_INDEX, and set status STABILIZATION. The
+     (`N lint / N type / N test failures (measured <date>, <this session's shell>)`)
+     as the baseline in
+     `spec/SDLC.md` — its single home; PROJECT_INDEX's phase block points there rather
+     than restating the counts — and set status STABILIZATION. The
      surrounding template text already says an increase is a regression — do not restate
      it, and do not edit any command file to match these numbers. Commands read the
      baseline from `spec/SDLC.md`; that is the whole point of recording it there.

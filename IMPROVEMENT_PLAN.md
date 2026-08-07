@@ -844,3 +844,39 @@ here so the next relevant batch can take it knowingly.
    7, wording).** "The seven commands … go to `.claude/commands/`" is unqualified;
    the Copilot mapping is nearby (diagram + COPILOT.md pointer), so this is a
    kit-dev-doc wording cleanup, not a mapping error.
+
+## 10. Deferred observations from the 0.17.0 kit-check — recorded 2026-08-06, not scheduled
+
+The pre-0.17.0 `/kit-check` (FEATURE_PLAN.md §34) fixed eighteen findings in-session
+and left these below-threshold observations, each verified against the tree at
+recording time. None blocks a release.
+
+1. **R6.4's fire-proof cannot see CI-only activation (invariant 15, residual).**
+   "Run the gate's own commands (and CI's, if they differ)" runs CI's command *list*
+   locally; an enforcing step activated only inside CI (an env-gated build profile, a
+   workflow-level flag) still escapes the proof. A fix would state that such a floor
+   counts as unproven until a CI run has been seen to fail — two-home edit
+   (`SDLC.template.md` *Coverage floor* + `end-phase.md`), weigh against rule cost.
+2. **Phase-level `change-verify` names no shell (invariant 15, low).** Its
+   slice-level twin says "runs in the agent's shell … does not stand in for halt 4";
+   the phase-level step (`end-phase.md` §2, template phase-end step) relies on the
+   halt-4 contrast to imply it. One clause would make them symmetric.
+3. **R6.6's "no consumer" is a search-absence claim with no denominator rule.** The
+   unconsumed-artifact lens doesn't cross-reference *verify the denominator*; on
+   stacks where consumers are wired by annotation/reflection (the founding adopter is
+   Spring Boot), a caller-grep undercounts. One pointer sentence in the lens.
+4. **Invariant 13's opening clause over-promises its scope.** "Any check this kit
+   specifies or ships" read literally covers the retro sweeps and the mutation check,
+   which the list has never enumerated; the list's operative scope is meta-checks and
+   enforcement proofs. A one-clause scope statement in the ledger would close the
+   ambiguity — ledger edit, owner's call.
+5. **`hypothesis-tests` frontmatter provenance (invariant 11, note).**
+   `disable-model-invocation: true` sits in a file `SKILLS.md` records as "verbatim
+   (one-word diff)"; whether the upstream `.md.txt` carried it cannot be established
+   from the tree. Next upstream refresh should re-verify the frontmatter specifically.
+6. **Setup interview asymmetries (invariant 3, notes).** `{{ACCEPTANCE_SURFACE}}` is
+   asked as its own answer only in Existing mode (New mode derives it); Existing-mode
+   `{{NOTES}}` rests on the generic blanket alone. Both resolve semantically today.
+7. **`plan-phase`'s spec skeleton lists a `## Trust Boundaries` section the
+   template's phase-start content list omits (invariant 2, note).** An addition, not
+   a contradiction; align the two lists whenever either is next touched.

@@ -183,7 +183,8 @@ installed a kit-development command into every adopting project (plan, B6 hand-o
 
 Any check this kit specifies or ships — the isolation harness, the edit-time hook, the
 hook-environment probe, the TDD-ordering guards' proof step and their logging-to-deny
-ramp, the exit checks, the update classifier, the release workflow's manifest
+ramp, the exit checks, the coverage-floor establishment proof, the update classifier,
+the release workflow's manifest
 verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without

@@ -105,10 +105,12 @@ Two lenses the diff-shaped review structurally lacks — apply them explicitly:
   error surface of what it replaces? A double one field simpler than reality makes the
   defect it hides structurally unreachable in tests (`spec/TESTING.md`, mock policy).
 
-If the slice changed error propagation or added a catch or failure path, swept the
-codebase for a pattern, touched an object that outlives a request or is reachable
+If the slice changed error propagation, added a catch or failure path or logging
+around one, swept the codebase for a pattern or wrote a script or check whose output
+will be trusted, touched an object that outlives a request or is reachable
 from more than one, took in outside data or passed it to an interpreter, or touched
-credentials or an externally reachable surface, also apply the matching lens from
+credentials or an externally reachable surface or added logging or error output near
+either, also apply the matching lens from
 `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
 
 Triage findings — **verify each one against the source before it enters any pile.** A
@@ -127,6 +129,12 @@ that did, never dropped silently.
 - **Owner question:** anything that is a design decision, not a defect — HALT and ask,
   per the hand-back standard (`spec/SDLC.md`, *Owner halt points*): plain English, the
   decision numbered and marked, options with a recommendation.
+
+One finding class overrides the buckets: a finding that contradicts a **ratified spec
+decision** (`diff-review` names these as spec conflicts, CRITICAL). It is neither
+fixed silently under Fix-now nor deferred — it takes halt 3 (`spec/SDLC.md`): fix the
+code now, or amend the decision it contradicts, and which one yields is the owner's
+call, not the review's.
 
 If fixes were applied, re-run the gate.
 

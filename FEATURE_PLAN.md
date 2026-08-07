@@ -1420,3 +1420,56 @@ canonically and once at its acting step:
 
 Not released: this batch is 0.17.0-shaped (new process rules), `/kit-check` owed
 before it ships, release timing the owner's call.
+
+---
+
+## 34. The pre-0.17.0 `/kit-check` — run 2026-08-06, eighteen findings, all fixed in-session
+
+Full 15-invariant pass on the R6 batch: four mechanical checks in-session, the twelve
+semantic invariants fanned to five read-only agents, every agent finding re-verified
+against the tree before any edit. Invariants 1, 3, 6, 9, 11 pass clean (inv 1 with the
+sanctioned GitHub note; inv 6 with all ~80 step references verified, zero stale;
+inv 10 expected-stale — exactly the five R6-edited files mismatch, discrimination
+proven, regeneration belongs to the release commit).
+
+The headline finding is invariant 13 catching itself again: **R6.4's coverage-floor
+fire-proof was a check added without joining the denominator** in `KIT_INVARIANTS.md`
+or `kit-check.md` — the exact staleness the ledger's own rule names, caught pre-release
+this time. Both lists extended; and the fire-proof's own gap closed with it (the
+Existing-mode adoption path recorded an inherited CI floor as-is, unproven — the R6.4
+founding specimen *is* an adoption-time claim; setup and `GATE_RECIPES.md` *Coverage*
+now both carry the prove-it-fires discipline).
+
+The rest, grouped: **inv 2** — `end-slice`'s triage lacked the R6.2 spec-conflict
+carve-out (its Fix-now bucket silently forecloses "amend the decision", the choice
+halt 3 reserves for the owner); the lens-routing summary in both homes omitted three
+trigger clauses the lens file states (trusted-check scripts, logging around a failure
+path, logging near credentials), so those triggers could never fire. **Inv 15** — the
+retro's gate-trajectory run named no shell; the backlog reproduce-or-disprove could
+falsely disprove an owner-shell/CI-observed cause from the agent's shell and then
+"correct" the entry (both homes now require reproducing where the cause was observed,
+with a different-environment failure downgrading to "could not reproduce here"); the
+gate-baseline record format gains the shell it was measured in. **Inv 14** — the gate
+baseline had a second prose home in PROJECT_INDEX's phase block that nothing
+reconciled while `SDLC.template.md` claimed to be its single home (mirror replaced
+with a pointer, keeping the claim true); the Claude-side model pin is now marked
+claim-only. **Inv 5/7** — `sdlc-retro`'s citation read named `.claude/commands/` as
+universal, false on Copilot-only adoptions (per-CLI now). **Inv 12** — "the bench"
+anchored at first use in `GATE_RECIPES.md`. **Inv 3** — `{{HOOK_TOOLS}}`/
+`{{SOURCE_EXT}}` were the last two placeholders resolved only generically (setup step
+6 now names all four prose-restated hook facts). **Inv 8** — four one-sided
+asymmetries closed (README gains the `{{KIT_HOME_REPO}}` mismatch-compare, the two
+guard-contradiction branches, and the read-the-transition-notes-first warning whose
+absence would strand a ≤0.13.0 hand-updater with a spec that disables the new steps;
+`sdlc-update`'s Notes now name `explore.agent.template.md` as installable-on-Copilot).
+Plus the root FAQ's skills-provenance answer, stale since PORT (vendored-only wording;
+now states both regimes — inv 11's shape in a kit-dev doc).
+
+Seven below-threshold observations recorded in `IMPROVEMENT_PLAN.md` §10 with sizes —
+notably R6.4's CI-only-activation residual and R6.6's missing denominator cross-ref.
+The five 0.16.1 deferrals (§9 there) stand unchanged.
+
+**Release state:** the tree is 0.17.0-ready pending the release commit — `VERSION`,
+`CHANGELOG`, `MANIFEST.sha256` regenerated from staged content in text mode (the
+`*`-prefix trap), the four workflow gates simulated locally, then the tag. Release
+timing remains the owner's call (§33.3).

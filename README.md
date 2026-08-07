@@ -404,6 +404,14 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    it is done, check that no skill is left at both paths — two copies of `tdd` with
    different content is the one outcome to avoid.
 
+   Before copying anything, read the per-version *[installable]* transition notes in
+   the update command itself (`commands/sdlc-update.md`, step 5) for every version you
+   are crossing — they carry what no classification can infer. The one with teeth: if
+   your `spec/SDLC.md` predates the target's template, it still describes the old
+   slice loop, and by its own first paragraph it **wins** over the updated commands —
+   until you fold the template diff in, the file that outranks the new steps is the
+   file disabling them.
+
    If you kept a `sdlc-kit/` folder from adoption, replace it with the new version's
    bundle — but **list its actual contents against the old version's manifest first**,
    and note both counts (N files on disk, M in the manifest), so an empty listing reads
@@ -444,7 +452,12 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    **0.16.0 also adds the optional TDD-ordering guards (Copilot CLI only), and every
    update from here on checks whether your project was ever offered them.** They are
    project-owned and optional, so nothing is installed unasked. If the guard files are
-   already there, an update leaves them alone. If they are not, the update reads the
+   already there, an update leaves them alone. Two contradictions are reported to you
+   rather than resolved: the recorded line says installed but the files are gone, or
+   the files are present while the line records a decline — either is a finding, not
+   something an update settles itself. And the deny flag lives under `.git/`, so
+   whatever mode the line describes is a fact about the machine that wrote it, not
+   about this checkout. If they are not, the update reads the
    TDD-guard line `/sdlc-setup` writes in `spec/SDLC.md`: a recorded decline is a
    settled decision and gets a sentence, not a fresh sales pitch, while **no line at
    all** means your project never had the choice — typically because it was set up
@@ -472,6 +485,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    (*Kit version: X.Y.Z*, dated), and — each only if it was missing — write the
    *Agent CLI:* line into `spec/PROJECT_INDEX.md` and the *Kit home repository:* line
    into `spec/SDLC.md`, the latter taken from the URL step 2 cloned the kit from.
+   When the *Kit home repository* line is already present, compare it against the URL
+   this update actually cloned — a mismatch goes to you as a finding, never a silent
+   overwrite.
    Those lines are the only project-owned content
    an update writes, and the absent-only ones never overwrite an answer already there.
    A fourth
@@ -561,11 +577,14 @@ setup drops it (or substitutes a compile step) where it doesn't apply.
 mode is for. It documents reality (including a red gate) rather than pretending, and
 starts you in STABILIZATION until the gate is green.
 
-**Where do the skills come from?** Three places. The TDD skill set is **vendored in
-this kit** (`skills/` — originally from a public community repo; it is NOT part of
-Claude Code) and installed project-scoped so it travels with the repo. Skills like
-code-review, verify, and simplify are built into Claude Code itself. `pr-review-toolkit`
-is an official plugin installed once per machine with one command. Details in
+**Where do the skills come from?** Two provenances inside the kit, plus one optional
+plugin. Five `skills/` files are **vendored** (third-party MIT — the TDD skill set,
+mutation-testing, python-pro, hypothesis-tests; NOT part of either CLI); three are
+**kit-written** (`diff-review`, `change-simplify`, `change-verify` — the review,
+quality, and verification passes the close-out commands name). All eight install
+project-scoped so they travel with the repo. `pr-review-toolkit`
+is an official plugin installed once per machine with one command, optional and
+Claude Code only. Details in
 `reference/SKILLS.md` — `/sdlc-setup` handles all of this.
 
 **Do I have to use every part?** The load-bearing parts are: the gate, TDD-first

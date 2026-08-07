@@ -323,6 +323,25 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   repo. Record the outcome, **including a decline**, in `spec/SDLC.md` the way setup
   does, so the next update can still tell the two apart. Say which CLI they cover, too:
   a project running both CLIs gets the backstop on the Copilot side only.
+- **0.17.0 adds six process rules whose canonical statements live in the templates —
+  so this update delivers the commands that point at them, not the rules themselves.**
+  Halt 4's acceptance surface now includes the run's log, read against the recorded
+  logging conventions; a review finding that contradicts a **ratified spec decision**
+  is CRITICAL, named a spec conflict, and takes halt 3 instead of the backlog; a
+  coverage floor is **proven to fire** when first established or inherited; the
+  whole-arc review gains *the unconsumed artifact* lens (that file updates by
+  classification, so the lens itself arrives); the retro cites catches only with
+  their disposition attached and sweeps every artifact the spec files name against
+  the tree. The catch to state at the halt, same shape as 0.15.0's: the updated
+  commands point at sections of `spec/SDLC.md` — halt 3's spec-conflict sentence,
+  *Coverage floor*'s prove-it-fires rule, halt 4's log sentence — **that the
+  project's un-re-instantiated copy does not yet carry**, and `spec/SDLC.md` wins
+  over the commands by its own first paragraph. Hand the owner the template diff of
+  `SDLC.template.md` (and `PROJECT_INDEX.template.md`'s phase-block comment) between
+  the two versions; do not edit project-owned files. 0.17.0 also widens the
+  slice-review lens triggers and requires a backlog entry's cause to be reproduced
+  **in the environment it was observed in** — those arrive with the commands and need
+  no spec change.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts
@@ -397,7 +416,9 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
 
 - Changelog entries marked *[adoption-only]* changed templates or the non-installed
   reference docs, read only at `/sdlc-setup` time; they affect new adoptions, not this
-  project (`reference/REVIEW_LENSES.md` is installed and its changes are *[installable]*). If one fixes
+  project (`reference/REVIEW_LENSES.md` is installed and its changes are
+  *[installable]*, and on a Copilot project so is `templates/explore.agent.template.md`,
+  copied verbatim to `.github/agents/`). If one fixes
   something the project cares about, raise it with the owner as a manual follow-up —
   never apply it automatically.
 - Skipping several versions is fine: classify against the version the project is on,

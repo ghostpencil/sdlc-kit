@@ -57,8 +57,10 @@ none of them writes anything.
   sitting unaddressed longest. Repetition is the signal — the same finding three times
   is a process gap, not three mistakes.
 - **Gate-baseline trajectory.** Compare the baseline recorded in `spec/SDLC.md` against
-  what the gate reports today. The direction and rate of that burn-down is evidence
-  about whether the process is actually moving the number.
+  what the gate reports today — run in this session's shell, with CI authoritative on
+  disagreement, same as the close-out commands. The direction and rate of that
+  burn-down is evidence about whether the process is actually moving the number; a
+  local/CI split is its own finding for the report, not a trajectory data point.
 - **Phase History.** Slice counts per phase, PR sizes, anything that took more slices
   than it was planned for.
 - **Environment gotchas and Notes.** Which were learned the hard way — i.e. appear in
@@ -193,9 +195,11 @@ a question.
 
 The citation is **read off the file at writing time, never from memory of the
 process** — and the file to read is the copy **this project actually holds**, since
-the kit folder is optional after setup: for a command, the installed
-`.claude/commands/<name>.md` (normally byte-identical to upstream
-`commands/<name>.md`, which stays the citation path — but not once it has drifted, and
+the kit folder is optional after setup: for a command, the installed copy on this
+project's CLI — `.claude/commands/<name>.md` on Claude Code, or
+`.github/skills/<name>/SKILL.md` on Copilot CLI, read with its frontmatter block
+ignored (normally byte-identical to upstream
+`commands/<name>.md`, which stays the citation path either way — but not once it has drifted, and
 `spec/SDLC.md` invites fixing a command that disagrees with it, so quote what the
 project holds); for a skill, vendored or kit-written, the installed
 `.claude/skills/<name>/SKILL.md`, cited as `skills/<name>/SKILL.md`; for a template,

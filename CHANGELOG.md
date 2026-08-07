@@ -10,6 +10,86 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.17.0 — 2026-08-06
+
+Six process rules extracted from a whole-tree audit of the second adopter after two
+merged phases (`FEATURE_PLAN.md` §33, the R6 batch), plus eighteen findings from the
+pre-release `/kit-check` (§34). The audit's meta-result restates the enforcement
+lineage's thesis on fresh evidence — every mechanized rule held, every prose-only rule
+bent — but the six rules answer a narrower gap: the checks that existed were
+diff-shaped or claim-shaped, and none could see absence. An artifact nothing consumes,
+a promised log line never written, a floor that never fires, a spec claim the tree
+does not back, a finding that contradicts a ratified decision, a catch cited as if it
+were a fix — each shipped through every existing check, and each now has the one step
+positioned to notice it.
+
+**Updating an adopted project:** the canonical statements live in `SDLC.template.md`,
+which an update never re-instantiates — the updated commands point at spec sections
+your project's copy does not yet carry, and `spec/SDLC.md` wins over the commands by
+its own first paragraph. `/sdlc-update` step 5 carries the 0.17.0 transition note;
+fold the template diff into your spec files with your owner.
+
+### Added
+- **[installable]** **Halt 4 reads the log.** The acceptance run's log output is part
+  of the acceptance surface, read against the recorded logging conventions
+  (`CLAUDE.md`, *Runtime Conventions*); silence at a boundary the conventions promise
+  is a finding. Absence appears in no diff, so no review-shaped step could catch it —
+  the founding case promised INFO at run boundaries and ERROR on failure and had
+  neither after two merged phases, with no logging config at all.
+  (`SDLC.template.md` halt 4; `/end-phase` §3.)
+- **[installable]** **A finding that contradicts a ratified spec decision is a spec
+  conflict, not a backlog line.** `diff-review` names it as such at CRITICAL — the one
+  finding class the close-outs may not defer *or fix* by default: it takes halt 3, and
+  whether the code or the decision yields is the owner's call. Founding case: an N+1
+  merged into a backlog directly against the phase spec's own "single JOIN FETCH to
+  avoid N+1" decision. (`SDLC.template.md` halt 3; `diff-review/SKILL.md`;
+  `/end-phase` backlog presentation; `/end-slice` triage carries the carve-out.)
+- **[installable]** **A coverage floor is proven to fire when established.** Set it
+  above the observed number, run the commands the gate and CI actually execute, watch
+  the failure, then set the real value — once, at establishment or inheritance, and
+  now also at Existing-mode setup when CI already claims a floor. Two homes agreeing
+  on a number proves nothing about whether the enforcing step ever runs: the founding
+  case recorded "enforced in pom.xml" while `jacoco:check` bound to a phase neither
+  the gate nor CI ever reached. (`SDLC.template.md` *Coverage floor*; `/end-phase`;
+  `/sdlc-setup` Existing mode; `GATE_RECIPES.md` *Coverage*.)
+- **[installable]** **The unconsumed-artifact lens, at arc review.** Every artifact
+  the arc introduced — entity, table/column, endpoint, config key, public API — names
+  its production consumer; "next phase will use it" is acceptable only said out loud,
+  as a deferred-backlog entry. Slice reviews see changed paths; none of the three
+  founding catches (an entity with no production writer, a seeded column with no
+  accessor, factory overloads only tests called) ever appeared as a changed path.
+  (`REVIEW_LENSES.md`; `/end-phase` §5; `SDLC.template.md` phase-end review.)
+- **[installable]** **The retro attaches dispositions and sweeps spec claims against
+  the tree.** A catch may be cited as evidence a practice worked only with its
+  disposition attached — fixed in `<commit>`, or open in the backlog — and an open one
+  lists under damage, never wins alone (the founding retro cited two still-open
+  defects as wins). And every concrete artifact the spec files name — paths,
+  harnesses, configs, floors — is stat-checked, absences reported with their age (a
+  named isolation config had never existed across two phases and two retros).
+  (`/sdlc-retro` §2 and the interview.)
+
+### Changed
+- **[installable]** **Eighteen pre-release `/kit-check` findings fixed.** The ones an
+  adopter can observe: `/end-slice`'s lens-routing (and the template's) now carries
+  the three trigger clauses the lens file always stated — a trusted check script,
+  logging added around a failure path, logging near credentials — which could
+  previously never fire through the routing; a backlog entry's cause is reproduced in
+  the environment it was observed in, and a failed reproduction elsewhere downgrades
+  to "could not reproduce here" instead of rewriting the entry; the retro's
+  gate-trajectory comparison names its shell with CI authoritative; the retro's
+  citation read is per-CLI (it named `.claude/commands/` as universal, false on a
+  Copilot-only adoption); the gate-baseline record names the shell it was measured
+  in, and lives in `spec/SDLC.md` only — `PROJECT_INDEX`'s phase block now points
+  there instead of restating counts that went stale silently; the model-policy pin is
+  marked claim-only between edits; `/sdlc-setup` names all four hook facts restated
+  in prose (`{{HOOK_TOOLS}}`/`{{SOURCE_EXT}}` were resolved only generically);
+  `/sdlc-update`'s Notes name `explore.agent.template.md` as installable-on-Copilot.
+- **[adoption-only]** `GATE_RECIPES.md` anchors "the bench" at first use and its
+  *Coverage* procedure gains the prove-it-fires step; the kit-development invariant
+  ledger and `/kit-check` extend invariant 13's denominator with the coverage-floor
+  establishment proof — the second consecutive release where that list went stale,
+  and the first where it was caught before the tag.
+
 ## 0.16.1 — 2026-08-06
 
 One field arc on 0.16.0 produced all three fixes (`FEATURE_PLAN.md` §31.18 and §32; the

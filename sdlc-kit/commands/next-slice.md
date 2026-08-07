@@ -51,8 +51,13 @@ evidence the entry already carries; read it and scale the work to it:
 - A `measured` entry whose anchors have drifted, or whose spot-check surprises you in
   any way, falls back to full re-derivation — and is re-tagged with what you find.
 
-Either way, when the cause does not hold, correct the entry in place and re-scope the
-slice against what is actually true.
+The reproduction runs where the cause was observed — the entry's provenance names the
+stage. An owner-shell or CI-observed cause cannot be disproved from this session's
+shell; a failed reproduction from a different environment downgrades the entry to
+"could not reproduce here", never to a corrected cause.
+
+Either way, when the cause does not hold where it was claimed to hold, correct the
+entry in place and re-scope the slice against what is actually true.
 
 **The same rule covers an `estimated` number this slice implements.** If the slice
 builds to a decision in the phase spec whose number is tagged **estimated**, derive it

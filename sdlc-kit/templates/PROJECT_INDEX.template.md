@@ -28,7 +28,8 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      Coverage floor: TBD from first CI run."
      Existing Project mode: either
      "STABILIZATION. SDLC adopted <date> via /sdlc-setup on an existing codebase.
-      Gate baseline: <green | N lint / N type / N test failures — see backlog>.
+      Gate baseline: recorded in spec/SDLC.md (its single home — do not restate the
+      counts here, they would go stale silently when the baseline moves).
       Coverage floor: <TBD from first CI run | the CI-enforced figure>."
      or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature.
      In every mode this block carries the coverage-floor line: /end-phase's post-merge

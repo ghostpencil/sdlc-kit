@@ -222,7 +222,10 @@ setup: {{HOOK_ENVIRONMENT}}
      same and the models are that CLI's own, mapped with the owner at setup.
      Switch any session with /model; the pinned session default, if one was chosen,
      lives in .claude/settings.json ("model") on Claude Code, or in COPILOT_MODEL on
-     Copilot CLI, and this section says which.
+     Copilot CLI, and this section says which. The pin statement here is claim-only
+     between edits: nothing reconciles it against the settings file, so whoever
+     changes the pin owns updating this line — a policy section describing a pin that
+     no longer exists is exactly the drift it looks like.
      Copilot CLI dialect — routing is OPERATOR-PERFORMED: no file the kit installs can
      set the model, so the policy text above must name which commands run at which
      tier (/plan-phase, /end-phase, and /end-slice's review are High at minimum) and
@@ -274,8 +277,12 @@ Run `/next-slice` in a **fresh session**:
    before writing any fix, proportionally to its marker** — a `measured` cause gets a
    spot-check that its cited anchors and behavior still hold; a `suspected` cause, or a
    `measured` one whose anchors drifted or whose spot-check surprises, gets the full
-   reproduce-or-disprove (and is re-tagged). A backlog entry is a hypothesis with a
-   timestamp, not a finding; when the cause does not hold, correct the entry in place
+   reproduce-or-disprove (and is re-tagged). The reproduction runs where the cause was
+   observed: an owner-shell or CI-observed cause cannot be disproved from the agent's
+   shell, and a failed reproduction from a different environment downgrades the entry
+   to "could not reproduce here", never to a corrected cause. A backlog entry is a
+   hypothesis with a timestamp, not a finding; when the cause does not hold **where it
+   was claimed to hold**, correct the entry in place
    and re-scope. The same rule covers an **estimated** number the slice implements:
    derive it before starting, take a differing result back to the owner as a question,
    and re-tag the decision measured with what you ran. The re-derivation is done when
@@ -319,10 +326,11 @@ Run `/end-slice` when the slice's exit criteria are met:
 7. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
    reported side by side, never merged; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
-   propagation or added a catch or failure path, swept for a pattern, touched an
+   propagation, added a catch or failure path or logging around one, swept for a
+   pattern or wrote a script or check whose output will be trusted, touched an
    object that outlives a request or is reachable from more than one, took in outside
    data or passed it to an interpreter, or touched credentials or an externally
-   reachable surface). The review is **read-only in the shared tree** —
+   reachable surface or added logging or error output near either). The review is **read-only in the shared tree** —
    the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
    fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that
@@ -396,7 +404,7 @@ Run `/end-phase` when the last slice is done:
    from a clean tree with every fix committed, since any fan-out shares the tree with
    the session; and a commit message may not claim a fix that has no test pinning it,
    because an untested fix can silently leave. The arc-triggered lens applies here:
-   *the unconsumed artifact* (`REVIEW_LENSES.md`) — every artifact the arc
+   *the unconsumed artifact* (`.claude/commands/REVIEW_LENSES.md`) — every artifact the arc
    introduced names its production consumer, a question no slice-shaped review is
    positioned to ask. Verify each finding against the source
    before it enters a fix batch, and report the ones that did not survive alongside

@@ -268,7 +268,8 @@ hook layer and re-read *The hook environment* above.
 | Java | `src/test/*\|*Test.java\|*Tests.java` | `*mvn*test*\|*gradlew*test*` |
 | Rust | `tests/*\|*_test.rs` | `*cargo*test*` |
 
-**Key the command pattern on the test runner, never on a filename.** The bench version
+**Key the command pattern on the test runner, never on a filename.** The bench (the
+kit's pre-release test rig — `reference/COPILOT.md`, *Provenance*) version
 matched `node test…` as adjacent words and was blind to `node .\test-x.js`, because the
 `.\` prefix sat between them. Wildcards spanning the runner and the word `test`
 (`*node*test*`) match every invocation form; a pattern anchored on a path does not.
@@ -432,6 +433,11 @@ The procedure:
    run would have been meaningless.
 3. It only ever raises. Lowering the floor to make a build pass defeats its only purpose;
    if a change drops coverage, that is the finding.
+4. When the floor is first set — or inherited from a project that already claims one —
+   prove it fires: set it above the observed number, run the commands CI actually
+   executes, and watch the failure, then set the real value (`spec/SDLC.md`,
+   *Coverage floor*, states the rule). A threshold bound to a build phase those
+   commands never reach passes every reconcile and enforces nothing.
 
 Existing coverage debt is a backlog item, not a merge blocker. Adopting a project at 34%
 means the floor starts near 34%.
