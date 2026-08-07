@@ -78,14 +78,21 @@ rather than chaining into `/end-slice` (see *Slice loop*).
    — because what was decided is no longer what is true.
 3. **Design questions** — any spec conflict or owner-facing design decision surfaced
    during the work, mid-slice or by a review, halts with a question; it is never
-   resolved silently.
+   resolved silently. A review finding that contradicts a **ratified spec decision**
+   is a spec conflict and takes this halt — fix the code now, or amend the decision
+   it contradicts — never a backlog line by default: a decision the owner ratified
+   does not get un-decided by deferral.
 4. **Acceptance review** — the owner personally exercises the phase's visible behavior at
    phase end ({{ACCEPTANCE_SURFACE}}). The agent does not perform this review on the
    owner's behalf. When no slice's exit criteria required running the application — an
    arc behavior-neutral by construction — `/end-phase` first runs the composed system
    locally against real data before the PR: the halt otherwise passes vacuously on a
    phase with no visible behavior yet, which is exactly when nothing has ever run
-   outside the test suite.
+   outside the test suite. **The run's log output is part of the acceptance
+   surface**: read it against the logging conventions recorded in `CLAUDE.md` —
+   silence at a boundary the conventions promise (a run that starts, finishes, or
+   fails without the log saying so) is a finding, because absence never appears in
+   any diff and this halt is the only step that watches the system speak.
 5. **Merge approval** — the owner approves the PR merge. A team that routes merge
    approval through a human PR reviewer instead of the owner-in-session records that
    routing here; the reviewer's approval then satisfies this halt, and the merge still
@@ -163,6 +170,14 @@ commit as the PROJECT_INDEX update), then asserts that the floor recorded here a
 bookkeeping is not done until they are. The recorded
 number is a claim; the workflow value is the enforcement — a mismatch means the ratchet
 is not ratcheting, which is the only regression the floor exists to prevent.
+
+**When the floor is first established, prove it fires — once.** Set it above the
+observed number, run the gate's own commands (and CI's, if they differ), and watch
+the failure; then set the real value. Two homes agreeing on a number proves nothing
+about whether the enforcing step ever *runs* in the commands the gate executes — a
+floor bound to a build phase the gate never reaches passes every reconcile and
+enforces nothing. Same discipline as the edit-time hook's install proof: a check
+that has never been seen to fail is not yet a check.
 
 If local and CI disagree about a measurement — a pass/fail, an error count, a coverage
 figure — CI is authoritative. And the disagreement is itself a finding: work out *why*
@@ -380,7 +395,10 @@ Run `/end-phase` when the last slice is done:
    checked against the **phase's** exit criteria rather than a slice's — spawned only
    from a clean tree with every fix committed, since any fan-out shares the tree with
    the session; and a commit message may not claim a fix that has no test pinning it,
-   because an untested fix can silently leave. Verify each finding against the source
+   because an untested fix can silently leave. The arc-triggered lens applies here:
+   *the unconsumed artifact* (`REVIEW_LENSES.md`) — every artifact the arc
+   introduced names its production consumer, a question no slice-shaped review is
+   positioned to ask. Verify each finding against the source
    before it enters a fix batch, and report the ones that did not survive alongside
    the ones that did. The review is done only when **every** reviewer has returned:
    the fix batch is assembled after the last return and goes through the gate as one

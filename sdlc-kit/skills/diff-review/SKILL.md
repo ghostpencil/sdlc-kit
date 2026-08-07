@@ -133,6 +133,13 @@ measured.** Verify each against the source before reporting it. Findings that do
 survive verification are reported as such, never dropped silently — a discarded finding
 with its reason is information; a vanished one is a review that cannot be audited.
 
+One severity rule is fixed: **a finding that contradicts a ratified spec decision —
+a decision the phase spec records the owner approving — is CRITICAL and is named as
+a spec conflict**, whatever its mechanical size. It is the one finding class the
+close-out may not defer by default (`spec/SDLC.md`, halt 3): the code and a ratified
+decision cannot both stand, and which one yields is the owner's call, not the
+review's.
+
 Close with the range reviewed, the file count, and the axis verdicts. If either axis was
 skipped, say which and why.
 

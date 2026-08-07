@@ -1298,3 +1298,125 @@ audit clock: arc one of two banked. The five deferred kit-check findings sit in
 produced the finding — whether it holds is exactly what the next field arc's
 friction log will say (§32.1's enforcement caveat pre-registers the escalation
 shape: an owner-created confirmation marker, ENF-style, if it bends).
+
+---
+
+## 33. R6 candidates — extracted from the ai-news-dashboard standards audit,
+## 2026-08-06
+
+Source: a whole-tree audit of the second adopter after two merged phases (three
+read-only sweeps — every logger call site, every catch block, all 53 tests — plus the
+gate run live and the enforcement chain traced; findings verified, agent claims
+re-checked). The adopter-side findings are damage the owner can fix there; this
+section extracts only what generalizes to the kit. The audit's meta-result repeats
+ENF's thesis on fresh evidence: **every mechanized rule held (Checkstyle catches,
+no-stdout, SpotBugs); every prose-only rule bent (level ladder, mock policy, the
+blind-catch license, a ratified JOIN FETCH decision).** But four gaps are sharper
+than that thesis, and none is covered by existing machinery — each was checked
+against the tree before being written here.
+
+**What already exists and therefore is NOT proposed:** `diff-review` names
+`CLAUDE.md` *Runtime Conventions* as its Standards axis (SKILL.md input 1);
+`end-slice` §4 states the two axes; `end-phase` has the backlog presentation point
+("defer knowingly, or drop"); the coverage floor has a two-homes reconcile. The
+violations shipped *through* this machinery, which is what makes the gaps below
+gaps.
+
+### 33.1 The candidates, each with its confirmed field evidence
+
+**R6.1 — Absence is invisible to every existing check; the acceptance halt gains
+the log.** The adopter's recorded logging ladder promises INFO at run boundaries and
+ERROR for a failed run; after two phases there are zero ERROR sites, no run-boundary
+INFO, and no logging config, so the DEBUG tier is unreachable. No step caught it
+because reviews are diff-shaped (the violation is in what no diff ever contained)
+and halt 4 verifies *visible behavior*, not the log. Fix: `SDLC.template.md` halt 4
+and `end-phase` §3 add one sentence — the run the owner exercises produces a log,
+and reading it against the recorded logging conventions is part of the acceptance
+surface; silence at a promised boundary is a finding. Environment-true by
+construction (the owner's shell, the composed run).
+
+**R6.2 — A finding that contradicts a ratified phase decision is a spec conflict,
+not a backlog line.** The dashboard N+1 violates the phase spec's own decision D5
+("single JPQL JOIN FETCH … to avoid N+1"); the arc review caught it and it was
+backlogged and merged anyway. The kit's halt 3 says spec conflicts are never
+resolved silently — but nothing classifies a review finding *as* a spec conflict
+when it contradicts a decision the owner ratified at halt 1. Fix: one rule in
+`diff-review` (severity: a finding that contradicts a ratified spec decision is
+CRITICAL and named as a spec conflict) and one clause in `end-phase`'s backlog
+presentation (such a finding cannot be deferred by default — it takes halt 3's
+owner ruling: fix now, or amend the decision it contradicts).
+
+**R6.3 — A catch is not a fix, and the retro currently lets one read as the
+other.** The retro's *What worked well* cites "caught the N+1" and the backfill
+catch as wins; both defects are still in the code, open in the backlog. The kit's
+own §32 triage then repeated the claim. Fix: `sdlc-retro` — a catch may be cited as
+evidence a practice worked **only with its disposition attached** (fixed in
+`<commit>` / open in backlog as `<entry>`), and a cited catch whose entry is still
+open is listed under open damage, not only under wins. One rule, retro-side.
+
+**R6.4 — A recorded enforcement claim is proven by its negative case, once, when
+established.** The adopter's PROJECT_INDEX says the 83% floor is "Enforced in
+`pom.xml` coverage-check execution" — false in the machine: `jacoco:check` binds to
+`verify`, the gate runs `mvn test`, CI runs `jacoco:report`. The two-homes
+reconcile passed because both homes record 0.83 — nothing checks the enforcing
+goal ever *runs* in the commands the gate actually executes. This is the third
+report's theme, reproduced in the second adopter, one layer deeper than the
+existing reconcile reaches. Fix: `end-phase`'s coverage bullet (and setup, when a
+floor is first established) gains the kit's own hook discipline: prove the floor
+fires — set it above the observed number, run the gate's commands, watch them
+fail; not failing means the floor is not wired into the gate, and the wiring (not
+the record) is the fix. One-time per establishment, not per phase.
+
+**R6.5 — The retro sweeps commit evidence but never sweeps spec claims against the
+tree.** `spec/TESTING.md` names `TestIsolationConfig.java` and records "outbound
+network is blocked"; the file has never existed, across two phases and two retros.
+Fix: `sdlc-retro`'s sweep gains one enumeration — every concrete artifact the spec
+files name (file paths, harnesses, configs, floors), checked for existence, absent
+ones reported with their age. Mechanizable (grep paths, stat files),
+denominator-true.
+
+**R6.6 — the unconsumed-artifact lens (arc review).** Three dead artifacts shipped
+in one small codebase: an entity+repository with no production writer, a seeded
+column nothing reads (its accessor does not exist), and factory overloads only
+tests call. The consumers lens covers *changed* paths only; nothing asks of a
+**new** artifact "what reads this?" Fix: one lens in `REVIEW_LENSES.md`, applied at
+arc review: every artifact this arc introduced (entity, table/column, endpoint,
+config key, public API) names its consumer; no consumer is a finding. Three
+confirmed catches justify it under the §16 audit regime from day one.
+
+### 33.2 Sizing and the regime
+
+R6.1, R6.3, R6.4 are one-to-two-sentence edits (template + one command each).
+R6.2 is two edits (skill + command). R6.5 is one retro step. R6.6 is one lens.
+All six enter under the §16 audit regime: no confirmed catch in two arcs from
+shipping makes any of them a deletion candidate — and each arrives with the field
+evidence above as its founding catch.
+
+### 33.3 Owner approval and build — 2026-08-06, same day
+
+The owner approved **all six**. Built template-first (inv 2), each rule stated once
+canonically and once at its acting step:
+
+- **R6.1** — `SDLC.template.md` halt 4 + `end-phase.md` §3: the run's log output is
+  part of the acceptance surface, read against the recorded logging conventions;
+  silence at a promised boundary is a finding.
+- **R6.2** — `SDLC.template.md` halt 3 (a finding contradicting a ratified spec
+  decision is a spec conflict and takes the halt), `diff-review/SKILL.md` (the one
+  fixed severity rule: such a finding is CRITICAL, named as a spec conflict — which
+  end-slice's existing no-unfixed-CRITICAL rule then enforces at slice level for
+  free), `end-phase.md` backlog presentation (exempt from default deferral).
+- **R6.3** — `sdlc-retro.md` interview: a catch cited as evidence carries its
+  disposition; open ones list under damage, never wins alone.
+- **R6.4** — `SDLC.template.md` *Coverage floor* + `end-phase.md` coverage bullet:
+  when a floor is first established, prove it fires (set above observed, run the
+  gate's commands, watch the failure) — the hook-install discipline applied to the
+  floor.
+- **R6.5** — `sdlc-retro.md` step 2 gains the spec-claims-against-the-tree sweep
+  (named artifacts stat-checked, absences reported with age).
+- **R6.6** — `REVIEW_LENSES.md` gains *the unconsumed artifact* (arc-scoped, three
+  numbered questions, provenance note with the three founding catches); wired at
+  both ends — the lens file's header now names `/end-phase` as an entry point, and
+  `end-phase.md` step 5 + the template's phase-end step 4 name the lens.
+
+Not released: this batch is 0.17.0-shaped (new process rules), `/kit-check` owed
+before it ships, release timing the owner's call.

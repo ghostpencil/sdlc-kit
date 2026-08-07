@@ -1,7 +1,9 @@
 # Review Lenses
 
-Deep-dive lenses for slice review. This file is **not** part of the per-slice read:
-`/end-slice` §4 points here conditionally, and each lens names its own trigger. If no
+Deep-dive lenses for slice review — plus one arc-scoped lens. This file is **not**
+part of the per-slice read: `/end-slice` §4 points here conditionally, `/end-phase`'s
+whole-arc review names the one arc-triggered lens (*the unconsumed artifact*), and
+each lens names its own trigger. If no
 trigger matches the slice, close this file — reading it "just in case" is the context
 bloat the pointer exists to avoid.
 
@@ -161,3 +163,27 @@ Provenance note: the three lenses above (logging and swallowed errors, untrusted
 input, secrets and exposure) shipped as standards in kit 0.13.0 rather than from a
 measured field catch. The caveat on *error propagation* applies to them doubly:
 lenses to look through, not defect-rate claims.
+
+## Lens: the unconsumed artifact
+
+**Trigger:** the arc introduced a new artifact — an entity or table/column, an
+endpoint, a config key, a public method or factory — and this is the **whole-arc**
+review (`/end-phase`), where everything the arc built is finally visible at once.
+
+1. **Every new artifact names its consumer.** For each one, point at the production
+   code that reads, calls, or renders it. "It will be used next phase" is an
+   acceptable answer only when said out loud — it converts the artifact into a
+   deferred-backlog entry with a phase pointer instead of silent inventory.
+2. **A record-shaped artifact needs a writer AND a reader in production.** An entity
+   persisted by nothing, or a column seeded once and never queried, passes every test
+   that constructs it directly; only this question notices that the running system
+   cannot produce or cannot see it.
+3. **A public API only tests call is not public API.** A constructor overload or
+   factory variant whose sole callers are tests manufactures states production cannot
+   reach — the test double drifts from reality through the door it opened.
+
+Provenance: a whole-tree audit of one adoption (2026-08-06, two merged phases) found
+three in a ~55-class codebase — a status entity+repository with no production writer,
+a seeded endpoint-URL column whose accessor did not exist, and result-factory
+overloads only tests called. Slice reviews see changed paths; none of the three ever
+appeared as a *changed* path.

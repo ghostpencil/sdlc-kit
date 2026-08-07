@@ -104,6 +104,15 @@ none of them writes anything.
   are all blind to tooling noise (stderr warnings produce no backlog entry, no commit,
   no gate movement) and the one record of such noise may sit in prose nothing else here
   reads.
+- **Spec claims against the tree.** Enumerate every concrete artifact the spec files
+  name — a file path, a harness, a config, a floor and the build step said to enforce
+  it — and check each exists where the spec says (a path is a `stat`; an enforcement
+  claim is "the named step appears in the commands the gate runs"). Report every
+  absence with its age in phases. This sweep exists because every other sweep reads
+  what the arc *produced*, and a control the spec names but nobody built produces
+  nothing — one adoption's test-isolation harness was named in `spec/TESTING.md`,
+  backlogged for Phase 1 Slice 1, and still absent after two phases and two retros
+  that swept everything except the claim itself.
 
 Report what the sweeps found as a short evidence summary before interviewing — plain-
 English bullets per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). The
@@ -125,6 +134,11 @@ that friction or noise?" beats an open-ended prompt. Cover, minimum:
 - **What would you delete?** Ceremony that cost time and returned nothing.
 - **What worked?** Not politeness — a practice that carried its weight is worth
   protecting from a future simplification, and the report has a section for it.
+  **A catch may be cited as evidence only with its disposition attached** — fixed in
+  `<commit>`, or open in the backlog as `<entry>` — and a cited catch whose entry is
+  still open is listed under open damage as well, never under wins alone. A catch is
+  not a fix: a retro that reports "the review caught the N+1" while the N+1 ships is
+  how a known defect reads as a resolved one two documents later.
 
 ### 4. Sort every lesson into exactly two piles
 

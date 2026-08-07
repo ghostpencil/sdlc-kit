@@ -67,7 +67,12 @@ summary in bullets — what the phase delivers, what to exercise, the exact comm
 run — with the checklist as detail below it. List what to
 look at: the phase's user-visible behaviors from the spec's acceptance checklist, plus
 any live-data notes from PROJECT_INDEX. The owner exercises the product themselves (run
-command in CLAUDE.md) — do not perform this review on the owner's behalf.
+command in CLAUDE.md) — do not perform this review on the owner's behalf. **The run's
+log output is part of the acceptance surface**: point the owner at it (or read the
+composed run's log yourself, when this step ran one) and check it against the logging
+conventions recorded in `CLAUDE.md` — a run that starts, finishes, or fails without
+the log saying so is a finding. Absence never appears in a diff, so no review before
+this halt can catch a promised log line that was never written.
 
 If that command fails in the owner's shell, treat it as a defect in the instructions,
 not as the owner's problem: the shell an agent runs commands in and the shell the owner
@@ -115,7 +120,10 @@ may not claim one.**
 Run the `diff-review` skill on the arc range (`git diff <main>...HEAD`), checked
 against the **phase's** exit criteria rather than any single slice's — at this scope
 its Spec axis is asking whether the arc delivered the phase it promised, which no
-slice-level review was ever positioned to see.
+slice-level review was ever positioned to see. Apply the arc-triggered lens from
+`.claude/commands/REVIEW_LENSES.md` — *the unconsumed artifact*: every entity,
+column, endpoint, config key, or public API the arc introduced names its production
+consumer, or becomes a finding.
 
 On Claude Code a deeper specialist fan-out is optionally available
 (`pr-review-toolkit:review-pr`); it is not required, and the paragraphs below about
@@ -198,14 +206,23 @@ one at a time buried in the bullet that raised it.
   breakdown, flag the oldest untouched entries, and ask the owner once — convert (a
   cleanup slice or the next phase's scope), defer knowingly, or drop. "A big enough
   pile becomes a cleanup slice" defers indefinitely when nothing ever presents the
-  pile; this is the presentation point.
+  pile; this is the presentation point. One class is exempt from default deferral: an
+  entry that contradicts a **ratified spec decision** is a spec conflict (halt 3),
+  and it takes an explicit owner ruling — fix now, or amend the decision it
+  contradicts — because a decision the owner ratified does not get un-decided by
+  deferral.
 - **Coverage floor — bump the enforcement, then reconcile:** if CI's printed coverage
   for the merged branch rose this arc, set the floor in the CI workflow file (the
   workflow's coverage-threshold value, whatever the stack's tool calls it) to just
   under CI's printed number, in the
   same docs commit as the bookkeeping below. Then **assert the two homes agree**: the
   floor recorded in `spec/PROJECT_INDEX.md` (and `spec/SDLC.md`) and the value in the
-  workflow file must be identical — the bullet is not done until they are. The
+  workflow file must be identical — the bullet is not done until they are. **If this
+  arc established the floor for the first time, prove it fires before recording it:**
+  set it above the observed number, run the gate's own commands (and CI's, if they
+  differ), watch the failure, then set the real value — two homes agreeing proves
+  nothing about whether the enforcing step ever runs in the commands the gate
+  executes (`spec/SDLC.md`, *Coverage floor*, states the rule). The
   recorded number is a claim; the workflow value
   is the enforcement — a mismatch means the ratchet is not actually ratcheting. Read
   the floor off CI's printed figure, never compute it locally; a real arc recorded a
