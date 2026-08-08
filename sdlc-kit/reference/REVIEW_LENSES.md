@@ -164,6 +164,32 @@ input, secrets and exposure) shipped as standards in kit 0.13.0 rather than from
 measured field catch. The caveat on *error propagation* applies to them doubly:
 lenses to look through, not defect-rate claims.
 
+## Lens: the disposal-intent test
+
+**Trigger:** the slice added a test that the slice itself then deleted, skipped, or
+gutted — or it ran under armed TDD-ordering guards and a new test reaches into
+internals the project's mock policy fences off.
+
+1. **A test written to be disposed of is a key, not a test.** Under a mechanical
+   red-first requirement the cheapest red is a disposable one; the production write
+   it licenses then merges having been "tested" by nothing that survives. The
+   added-then-removed test is the finding even when the production change it
+   licensed looks correct.
+2. **Check that the honest path was priced first.** Behavior-preserving close-out
+   edits (refactor moves, simplification, mutation reverts) have a declared license
+   (`spec/SDLC.md`, the guard note); a disposal-intent red where the declaration
+   would have done reads as process evasion, and what it evaded is exactly the
+   review this lens is performing.
+3. **A mock-policy violation inside a red-only test is still a violation.** A double
+   that exists to manufacture a failure inherits every drift risk the mock policy
+   names, plus one of its own: nobody expects it to stay, so nobody reviews it.
+
+Provenance: derived in the field before it was ever executed (2026-08-08) — a
+session under armed guards worked out the full synthetic-red recipe (a spy on an
+internal bean, against the project's mock policy) during close-out, then dropped
+the move on effort, not principle. The guards' refactor license has since removed
+the price advantage that made the recipe attractive; this lens covers the residue.
+
 ## Lens: the unconsumed artifact
 
 **Trigger:** the arc introduced a new artifact — an entity or table/column, an

@@ -19,7 +19,10 @@
 #      production writes too, and G2 below still refuses to stop while the latest
 #      observed run is red.
 # G2 - premature-stop guard: stopping is a violation while no green test run has been
-#      observed, or the latest observed run is red.
+#      observed, or the latest observed run is red. The green is ANY counted green -
+#      a single-test selector run satisfies it. That is division of labor, not a gap
+#      (field, 2026-08-08): full-suite assurance is the end-slice gate's job, and this
+#      backstop never runs tests inline. G2 exists to refuse red and never-ran stops.
 #
 # LOGGING MODE IS THE DEFAULT. The guards only deny/block when the flag file
 # .git/sdlc-tdd/deny-enabled exists; without it they log and always exit 0. Arm deny only
@@ -224,7 +227,7 @@ PATHLIST
         log "OK production write (refactor license: $(head -n 1 "$S/refactor-license" 2>/dev/null | tr -d '\r')): $prod"
       elif [ -f "$S/deny-enabled" ]; then
         log "DENY production write without observed red: $prod"
-        emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&&', '||' or pipes - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING close-out edit (refactor, simplification, mutation testing) on a green slice: declare it instead - write one line naming the step and move to .git/sdlc-tdd/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review."
+        emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&' or '|' separators - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING close-out edit (refactor, simplification, mutation testing) on a green slice: declare it instead - write one line naming the step and move to .git/sdlc-tdd/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review."
       else
         log "VIOLATION production write without observed red: $prod"
       fi
@@ -256,10 +259,14 @@ PATHLIST
     # session whose runs were refused silently learned about it only at the next
     # unexplained deny, then thrashed and probed the guard instead of complying -
     # and misattributed the refusals to rules the guard does not have.
+    # Single-character classes on purpose: *"&"* catches & and &&, *"|"* catches | and
+    # ||. The doubled-only forms were the 0.18.0 shape, and a single & slipped them -
+    # the field's `cmd /c "... & ..."` probe (2026-08-08) was refused only by the `;`
+    # inside its expanded PATH value, luck rather than design.
     case "$CMD" in
-      *";"*|*"&&"*|*"||"*|*"|"*)
+      *";"*|*"&"*|*"|"*)
         log "test run NOT counted (compound command - the exit code would be the compound's, not the test's): $CMD"
-        emit_context "TDD ordering: that test run was NOT counted - the command is compound (contains ';', '&&', '||' or a pipe), so its exit code is not the test's. The run itself is unaffected; it just registers nothing. Flags and single-test selectors are fine - to trim output use the runner's quiet flag, not a pipe. Re-run as one bare command to register the RED or GREEN."
+        emit_context "TDD ordering: that test run was NOT counted - the command is compound (contains ';', '&' or '|'), so its exit code is not the test's. The run itself is unaffected; it just registers nothing. Flags and single-test selectors are fine - to trim output use the runner's quiet flag, not a pipe. Re-run as one bare command to register the RED or GREEN."
         exit 0 ;;
     esac
     if [ -z "$CODE" ]; then

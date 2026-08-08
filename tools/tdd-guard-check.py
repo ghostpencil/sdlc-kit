@@ -5,7 +5,7 @@ Two passes, and the second is the point:
 
   1. a unit pass driving every state transition of both guards, using payload shapes
      measured on the bench (FEATURE_PLAN.md 31.7) rather than invented ones;
-  2. a mutation pass that breaks the guard twelve ways and requires the unit pass to
+  2. a mutation pass that breaks the guard thirteen ways and requires the unit pass to
      notice each one. A suite that survives its own mutations is not testing the thing
      it claims to (invariant 13).
 
@@ -161,6 +161,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
               "NOT counted" in (j.get("additionalContext") or ""), repr(out))
         check("4d and says what IS allowed, not only what is not",
               "selectors are fine" in (j.get("additionalContext") or ""), repr(out))
+        # The 0.18.0 list caught only the doubled forms (&&, ||): a single '&' slipped
+        # it. The field's `cmd /c "... & ..."` probe was refused by the ';' inside its
+        # expanded PATH value - luck, not design (sdlc-kit#5 triage, 2026-08-08).
+        b.run("observe-test", shell(R, "python -m pytest & echo done", 0))
+        check("4e single-'&' compound NOT counted (doubled-only was the 0.18.0 gap)",
+              "NOT counted" in b.tail(), b.tail())
+        check("4f no false GREEN from a single-'&' compound",
+              not os.path.exists(os.path.join(b.state, "green-observed")))
 
         time.sleep(1.1)  # mtime ordering is 1s-granular on some filesystems
         out = b.run("observe-test", shell(R, "python -m pytest", 1))
@@ -387,7 +395,10 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
 
 MUTATIONS = [
     ("drop the compound-command check (reintroduces the D3 false-GREEN defect)",
-     lambda s: s.replace('*";"*|*"&&"*|*"||"*|*"|"*)', '*"@@never@@"*)')),
+     lambda s: s.replace('*";"*|*"&"*|*"|"*)', '*"@@never@@"*)')),
+    ("regress the separator list to the doubled-only 0.18.0 forms (a single '&' "
+     "slips through again)",
+     lambda s: s.replace('*";"*|*"&"*|*"|"*)', '*";"*|*"&&"*|*"||"*|*"|"*)')),
     ("drop the session reset (observations leak across sessions)",
      lambda s: s.replace(
          'if [ -n "$SID" ] && [ "$SID" != "$(cat "$S/session" 2>/dev/null)" ]; then',

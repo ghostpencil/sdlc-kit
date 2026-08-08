@@ -364,7 +364,14 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      line appears, the guard is not firing: re-check the matcher and the hook
      environment above before adjusting anything else.
    - Record the outcome as `{{TDD_GUARD_NOTE}}` in `spec/SDLC.md`: installed or not,
-     which CLI they run on, logging or deny mode, and the proof you just ran. **Name the
+     which CLI they run on, logging or deny mode, and the proof you just ran. **When
+     installed, the note also states the two rules the guards impose on every
+     session** — a test run registers only as a single bare command (no `;`, `&` or
+     `|`; flags and single-test selectors are fine), and the stop guard's green is
+     any counted green, full-suite assurance being the end-slice gate's job — because
+     nowhere else the session reads at slice time says either, and a session that
+     meets them first as an unexplained refusal probes the guard instead of complying
+     (field, 2026-08-08). **Name the
      artifact that decides the mode** — the flag file `.git/sdlc-tdd/deny-enabled`,
      present means deny — and say in the same breath that arming or disarming deny means
      updating this line, because nothing else will. The note is written at the one moment

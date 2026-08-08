@@ -108,9 +108,11 @@ Two lenses the diff-shaped review structurally lacks — apply them explicitly:
 If the slice changed error propagation, added a catch or failure path or logging
 around one, swept the codebase for a pattern or wrote a script or check whose output
 will be trusted, touched an object that outlives a request or is reachable
-from more than one, took in outside data or passed it to an interpreter, or touched
+from more than one, took in outside data or passed it to an interpreter, touched
 credentials or an externally reachable surface or added logging or error output near
-either, also apply the matching lens from
+either, or added a test the slice itself then deleted, skipped, or gutted (or ran
+under armed TDD-ordering guards and a new test reaches into internals the mock
+policy fences off), also apply the matching lens from
 `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
 
 Triage findings — **verify each one against the source before it enters any pile.** A

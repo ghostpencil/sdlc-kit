@@ -920,3 +920,14 @@ the surface explicitly, 2026-08-07).
 7. **`COPILOT.md` uses "the bench" before its Provenance section defines it
    (inv 12, minor)** — first uses at the hook-capabilities section; definition at
    Provenance. An anchoring clause at first use whenever the file is next touched.
+
+## 12. Deferred from the sdlc-kit#5 triage — recorded 2026-08-08, owner-confirmed
+## below threshold
+
+1. **The guard's deny message could carry the last refusal reason** (FEATURE_PLAN.md
+   §40's queued (c)). Largely mooted before it was ever built: since the §40 fix,
+   every refusal to count a test run is spoken in-context at the run itself, so the
+   deny no longer arrives unexplained. Building it would add a log read plus parsing
+   to the pre-write path for a message the session has already seen. Revisit only if
+   a field report shows a session missing the spoken refusal and thrashing at the
+   deny anyway.

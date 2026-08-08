@@ -46,9 +46,37 @@ to an already-adopted project.
   uses; counted runs stay silent. Suite grows to 35 cases and a ninth mutation
   (re-silencing the refusal must be caught). `sdlc-tdd-guard.sh` is project-owned:
   existing projects get this as a hand-apply; the `.json` launcher is unchanged.
-  Remaining triage from the same field day — the pattern-based green satisfying the
-  stop guard from a targeted run, and the `&`-separator gap — is recorded, not yet
-  changed; it arrives with the adopter's retro report.
+- **[adoption-only]** **A single `&` now refuses to count, like every other
+  separator.** Through 0.18.0 the guard's compound-command list caught only the
+  doubled forms (`&&`, `||`) plus `;` and `|`, so a single-`&` compound's exit code
+  could record a false observation; the field's `cmd /c "… & …"` probe (2026-08-08)
+  was refused only by the `;` inside its expanded `PATH` value — luck, not design.
+  The separator classes are now single-character (`;`, `&`, `|`), which covers the
+  doubled forms by containment. Suite grows to 44 cases and a thirteenth mutation
+  (regressing to the doubled-only list must be caught). Hand-apply, same file as
+  above; the `.json` launcher is unchanged.
+- **The stop guard's green is documented as any counted green — division of labor,
+  not a gap** (sdlc-kit#5 finding 4, owner-decided 2026-08-08). A targeted
+  single-test green satisfies G2 by design: full-suite assurance is the end-slice
+  gate's job, and the backstop never runs tests inline. Stated in the guard header
+  and required content for the `spec/SDLC.md` guard note (template comment + setup),
+  so the boundary is written where sessions and owners actually read.
+
+### Changed
+- **The guard note now states the two rules the guards impose on every session**
+  (sdlc-kit#5 finding 5): a test run registers only as a single bare command (flags
+  and single-test selectors are fine), and the stop guard's green is any counted
+  green. Nowhere else a session reads at slice time said either — the vendored TDD
+  skill stays un-diverged (inv 3); the coordination lives in the note that exists
+  exactly when the guards do. Existing guard-running adoptions extend their note by
+  hand.
+- **New review lens: the disposal-intent test** (`REVIEW_LENSES.md`, trigger added
+  to `/end-slice`). A test added and then deleted, skipped, or gutted by the same
+  slice — or a new test reaching into mock-policy-fenced internals under armed
+  guards — is a key, not a test: the write it licensed merged having been "tested"
+  by nothing that survives. Derived in the field before it was ever executed
+  (2026-08-08); the refactor license removed the price advantage, this lens covers
+  the residue.
 
 ## 0.18.0 — 2026-08-07
 

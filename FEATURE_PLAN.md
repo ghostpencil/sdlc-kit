@@ -2072,3 +2072,74 @@ ai-news-dashboard the same day (their `spec/SDLC.md` guard section, second
 same-day patch paragraph). Items (a)–(d) stay queued; (d)'s disposal-intent lens
 now has a smaller surface, since the honest path no longer prices worse than the
 synthetic one.
+
+---
+
+## 41. sdlc-kit#5 triaged against the tree — two shipped, one fixed by its own
+## sibling, two open with verified fix shapes, 2026-08-08
+
+The Phase 03 retro is filed (`sdlc-kit#5`, five findings from the adopter's
+`spec/SDLC_RETRO_2026-08-08.md`, damage-ordered), which is what §40's queue was
+waiting for. Every finding checked against kit main before any fix work:
+
+- **Findings 1–2 — already shipped unreleased** (§40 the spoken refusal, §40.1 the
+  refactor license). The issue's closing line ("they should ship in the kit
+  template") is satisfied on main; both CHANGELOG *Unreleased* entries carry the
+  hand-apply note.
+- **Finding 3 — fixed by §40's own message, ahead of the filing.** The refusal
+  context already says "Flags and single-test selectors are fine — to trim output
+  use the runner's quiet flag, not a pipe." The finding's asked-for
+  `Allowed: mvn test, mvn -q test -Dtest=Class#method` examples are the adopter's
+  instantiation of that sentence, not the template's to state: the template is
+  project-agnostic and cannot name `mvn`. No change.
+- **Finding 4 — confirmed against source, open** (= §40's queued (a)):
+  `observe-test` touches `green-observed` on any counted green, so a `-Dtest=`
+  single-test green satisfies G2's stop check. Two fix shapes, both verified
+  against the tree: **(A)** teach the guard to distinguish full-suite green —
+  needs a per-project selector-marker placeholder, so template + setup interview +
+  suite growth (invariant 1's full cost) for a backstop the end-slice gate already
+  covers; **(B)** state the division of labor where the guards are documented —
+  G2's green is *any* counted green, the full-suite guarantee is the gate's job at
+  end-slice — in the guard header and the `{{TDD_GUARD_NOTE}}` text. (B) matches
+  the guard's own philosophy (cooperative backstop, never runs tests inline) and
+  §40's triage note ("process-covered by the end-slice gate"). Recommended: B.
+- **Finding 5 — confirmed, and the fix belongs in the guard note, not the vendored
+  skill.** The bare-command rule appears nowhere a session reads at slice time:
+  `skills/tdd/SKILL.md` and `SDLC.template.md` never state it (checked — the only
+  mention outside the guard's own messages is a GATE_RECIPES.md aside). Editing the
+  vendored skill would diverge it from upstream (inv 3) and impose a guard-only
+  rule on adopters who declined the guards; the right home is the
+  `{{TDD_GUARD_NOTE}}` text setup resolves into `spec/SDLC.md` exactly when the
+  guards are installed. The disposal-intent-red half (= queued (d)) is a review
+  lens, not guard logic: a `REVIEW_LENSES.md` line naming tests written to be
+  deleted after licensing a write — surface already smaller post-§40.1, still
+  worth the lens since the recipe was derived in-session once.
+- **Kit-found extras the retro does not file**: **(b)** single `&` missing from
+  the separator list stands (line-verified: `*"&&"*` matches only the double form,
+  and the field's `cmd /c "… & …"` probe was refused by the `;` inside its `PATH`
+  value — luck, not design) — one-line pattern fix plus a suite case; **(c)**
+  deny-carries-last-refusal-reason is largely mooted by §40's spoken refusal —
+  proposed below-threshold → `IMPROVEMENT_PLAN.md`.
+
+**Proposed batch, smallest-first**: (b)'s separator fix + suite case; finding 4's
+(B) documentation; finding 5's guard-note sentence + review lens; (c) recorded
+below-threshold. Owner decisions owed: finding 4's shape (B recommended), and
+(c)'s below-threshold call.
+
+**§41.1 — batch executed, both owner decisions taken as recommended (same
+session).** (b): the guard's separator classes are now single-character (`;`, `&`,
+`|` — the doubled forms covered by containment), with the comment naming the
+luck-not-design field fact; suite 44 cases (4e/4f: a single-`&` compound must not
+count and must not record a false green) and a thirteenth mutation (regressing to
+the doubled-only list is caught by exactly those two cases) — mutation pass green,
+13/13 caught. Finding 4 (B): the any-counted-green division of labor is stated in
+the guard header, GATE_RECIPES' G2 bullet (marked owner-decided), and the guard
+note's required content. Finding 5: the two session-facing rules are required
+content of `{{TDD_GUARD_NOTE}}` (SDLC template comment + setup's record-the-outcome
+bullet — inv 2's both-sides rule); the disposal-intent lens added to
+`REVIEW_LENSES.md` with its trigger in `/end-slice`'s conditional list, and
+GATE_RECIPES' delete-the-test-afterwards honest limit now points at it. (c):
+`IMPROVEMENT_PLAN.md` §12, with its revisit condition. CHANGELOG *Unreleased*
+gains two entries (the separator fix adoption-only with the hand-apply note; the
+documentation/lens work under **Changed**). Existing guard-running adoptions owe
+two hand-applies: the separator fix and the guard-note extension.

@@ -287,7 +287,10 @@ are the only mechanism in the kit that can refuse an action rather than comment 
   mutation testing) forced synthetic test-edit/red cycles or suppressed legitimate
   quality moves.
 - **G2, the premature-stop guard** (`agentStop`) — stopping is a violation while no
-  green test run has been observed, or the latest observed run is red.
+  green test run has been observed, or the latest observed run is red. The green is
+  **any** counted green — a single-test selector run satisfies it. Division of
+  labor, not a gap (owner-decided, 2026-08-08): full-suite assurance is the
+  end-slice gate's job, and this backstop never runs tests inline.
 
 Templates: `templates/tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh`, and
 `templates/tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.json`. The JSON
@@ -365,7 +368,9 @@ exactly that — it read the script to learn the recognised command format. It c
 but it could as easily have touched the state files. Two more honest limits: G2 accepts
 any green test run rather than a full gate run, and a session that satisfies the guard
 can still delete the test afterwards — which is why the evidence lines in the slice
-commit body, not the guard, are what make TDD ordering auditable after the fact.
+commit body, not the guard, are what make TDD ordering auditable after the fact, and
+why an added-then-deleted test is a named review lens (`REVIEW_LENSES.md`, *the
+disposal-intent test*) rather than guard territory.
 
 ---
 

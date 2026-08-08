@@ -203,6 +203,13 @@ setup: {{HOOK_ENVIRONMENT}}
 {{TDD_GUARD_NOTE}}
 <!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
      are installed, which CLI they run on, and whether they are in logging or deny mode.
+     When installed, the note also states the two rules the guards impose on every
+     session, because nowhere else the session reads at slice time says either (field,
+     2026-08-08 — a session that met them first as unexplained refusals thrashed and
+     probed the guard instead of complying): a test run registers only as a single bare
+     command — no `;`, `&` or `|`; flags and single-test selectors are fine — and the
+     stop guard's green is ANY counted green, full-suite assurance being the end-slice
+     gate's job, not the backstop's.
      If they were declined, it says so WITH THE DATE — it does not delete this line. A
      missing line and a declined offer are different facts: /sdlc-update re-offers the
      guards when this project never had the choice, and must not badger an owner who
