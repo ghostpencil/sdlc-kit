@@ -1965,3 +1965,51 @@ Seven below-threshold observations recorded in `IMPROVEMENT_PLAN.md` §11. Suite
 re-verified green after the fixes (gate, ledger; guard inputs untouched since their
 green run). **0.18.0 released the same day — the release record is the CHANGELOG
 entry and the tag.**
+
+---
+
+## 39. Second adopter on 0.18.0 — same-day update, every new branch field-executed,
+## 2026-08-07
+
+Adopter-side session (`ai-news-dashboard`), hours after the release. Two commits,
+merged to their `main` (PR #6, merge `09f7403`):
+
+- **`/sdlc-update` 0.17.0 → 0.18.0 ran clean end to end** (`c3a64c0`): 17/17
+  installed files `UNCHANGED` both directions — second consecutive zero-drift update
+  — with the denominator proven and discrimination proven the cheap way this time:
+  six files changed content between releases, so the same all-`UNCHANGED` verdict
+  against both manifests is itself the discrimination evidence. Kept-bundle
+  enumeration was exactly the 0.17.0 manifest (35 on disk = 34 + the manifest
+  itself), replaced by copy-over-in-place and re-verified with `sha256sum -c` against
+  the target. Nothing project-owned touched beyond the halt-approved hooks and the
+  two allowed spec lines, verified by reading the final diff against the ownership
+  table.
+- **All three 0.18.0 hand-applies landed and were proven on the recorded route.**
+  The gate restructure (bare-launcher `sdlc-gate.json` + new `sdlc-gate.sh` carrying
+  their values read out of the old JSON — glob `*.java`, the mvn lint command, empty
+  typecheck per the recipe's stated case) and the guard pair (`.json` verbatim,
+  inheriting the offline proof; the root-defaulting diff atop their 0.16.1-fixed
+  `.sh`). Proofs all ran from a Git Bash launch — the route their spec records as the
+  operator's: the re-probe matched the 2026-08-06 record exactly (no moved answer, no
+  finding), the gate proved both directions (star-import → verbatim Checkstyle
+  feedback; revert → silence), and the proof session's guard log showed the new
+  launcher firing live (two `pre-write` VIOLATIONs + a stop WOULD-BLOCK from the
+  deliberate edit — deny disarmed for the proof run, re-armed after, arming record
+  untouched and still true).
+- **The ledger offer-when-absent branch fired its first field case**: no
+  skill-ledger line in their `spec/SDLC.md` → offered as a first setup would →
+  accepted → installed → proof (an `sdlc-update` activation appended a ledger line
+  carrying that session's ID, read back in the same proof) → recorded in
+  `spec/SDLC.md` with the artifact-names-and-per-clone content the template note
+  prescribes.
+- **The spec fold-in landed in the same PR** (`4d4b8be`, on the owner's word after
+  the update flagged it): the gate-hook paragraphs now carry the launcher + script
+  split with its why, the re-proof, the route-first `{{HOOK_ENVIRONMENT}}` shape, and
+  a `timeoutSec` basis naming its route; `CLAUDE.md`'s one-line hook reference
+  updated to match. So this adopter's spec disagrees with its commands nowhere.
+
+Worth banking: every branch 0.18.0 added to `/sdlc-update` got a real execution on
+release day — the three hand-applies, the route-named proofs, and the ledger offer's
+no-line-at-all state. The offer's other states (recorded decline, both contradiction
+directions) remain field-unexecuted, reachable only on adopters with different
+histories.
