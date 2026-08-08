@@ -10,6 +10,77 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.18.0 — 2026-08-07
+
+The observability release, plus a discovery that reshaped every Copilot-dialect hook
+the kit ships. The OBS batch (`FEATURE_PLAN.md` §38) added the skill-activation
+ledger — machine evidence of which skills actually ran, closing the gap where
+presence is not activation — and re-verified `COPILOT.md` against live sources
+(two tracked upstream issues had moved: prompt files are declined-for-skills, so the
+command packaging is permanent; the hook tool-name vocabulary is now documented).
+Building the ledger surfaced the release's biggest fact: **the hook shell follows the
+launching shell's PATH, and the WSL launcher route re-parses hook command lines**,
+corrupting backslashes and `$(cat)` — which had silently disabled the TDD guards on
+that route and made the gate hook report a *false* "no JSON parser" on every edit.
+All three hooks are now boundary-proof by construction: bare launcher lines in JSON,
+logic in script files that never cross the boundary, each pinned by its proof suite
+and proven live on both launcher routes.
+
+**Updating an adopted project — three hand-applies, all project-owned:**
+(1) the TDD-guard pair: replace `.github/hooks/sdlc-tdd-guard.json` with the 0.18.0
+template verbatim (it inherits the offline proof) and apply the small root-defaulting
+diff at the top of `sdlc-tdd-guard.sh`; (2) the gate hook: `.github/hooks/
+sdlc-gate.json` becomes a bare launcher you replace verbatim, and the logic moves to
+a new `.github/hooks/sdlc-gate.sh` instantiated from `templates/copilot-hook.
+template.sh` with the source glob, lint command, and typecheck block read out of your
+current JSON before replacing it; (3) re-run the hook proof (a deliberate lint error
+must produce feedback) and the hook-environment probe, **launched the way your
+operator actually launches the CLI** — the hook shell is per-launcher, and a proof
+certifies only the route it ran on. `/sdlc-update` step 5 carries the full notes,
+including the offer-when-absent path for the new ledger.
+
+### Added
+- **[adoption-only]** **The skill-activation ledger** — an optional, logging-only
+  hook on both CLIs appending one timestamped line per skill activation to
+  `.git/sdlc-skill-ledger.jsonl` (`templates/skill-ledger.template.json` on Copilot;
+  a `"Skill"`-matcher block in `settings.template.json` on Claude Code). Offered at
+  setup, never imposed; declines recorded with their date under the two-state rule.
+  Probe-proven first: skill invocation fires the post-tool-use event under
+  `toolName: "skill"` / `tool_name: "Skill"`, relevance-based activation logging
+  identically to explicit (`FEATURE_PLAN.md` §38.2).
+- **[installable]** `/sdlc-retro`'s step-evidence sweep reads the ledger as machine
+  evidence, with its negative case stated: a silent ledger reports "hook health
+  unknown", never per-skill no-evidence. `/sdlc-update` gains the ledger
+  offer-when-absent branch with both contradiction directions reachable.
+- **[adoption-only]** `templates/copilot-hook.template.sh` — the gate hook's logic
+  as a script file (all placeholders live here; the JSON is a bare launcher), with
+  `resolve_path` translating absolute-Windows patch-header paths so the gate lints
+  the real file on either launcher route.
+- **[installable]** Operator levers recorded in `COPILOT.md`: `/rubber-duck` (a
+  lever, not a step — conversation-only output cannot satisfy an evidence-shaped
+  step) and plan mode (session-folder artifact; press-sourced hard-block with the
+  MCP-connected exception). Plus the re-verified capability record: `/fleet`, the
+  fourteen-event hooks reference, the exit-2 deny channel, `policy.d`, the
+  documented tool-name list, `/skills reload`.
+
+### Changed
+- **[adoption-only]** **Every Copilot-dialect hook body is launcher-boundary-proof**:
+  `tdd-guard.template.json` and `copilot-hook.template.json` carry bare launchers
+  (no backslash, no `$`, no quotes — pinned by suite cases so they cannot be
+  silently re-cleverified); the guard script trusts a repo-root cwd when
+  `SDLC_REPO_ROOT` is unset.
+- **[installable]** Every hook proof and the hook-environment probe name their
+  launch route; `{{HOOK_ENVIRONMENT}}` records the route first; the `timeoutSec`
+  basis records the route it was timed on.
+- **[installable]** The skills-listing check is per-CLI: `/skills reload` confirms
+  in-session on Copilot; Claude Code still needs a fresh session.
+- Twenty-four findings from the pre-release `/kit-check` fixed in-session
+  (`FEATURE_PLAN.md` §38.8) — headline: invariant 13's denominator extended (the
+  ledger proof step, the skills-listing check, the deploy verification), the
+  `{{SKILL_LEDGER_NOTE}}` resolver made unconditional (the §31.15 no-resolver
+  specimen, recurring), the deploy verification's negative case stated, and
+  python-pro's self-declared-MIT status no longer flattened to "all MIT".
+
 ## 0.17.0 — 2026-08-06
 
 Six process rules extracted from a whole-tree audit of the second adopter after two

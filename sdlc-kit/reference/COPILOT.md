@@ -21,6 +21,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
 | TDD-ordering guards | **not installed** — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` (optional) |
+| Skill-activation ledger (optional, logging-only) | the `"Skill"`-matcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |
@@ -689,8 +690,8 @@ resume rather than being cleared under the user; and a single session emits writ
 in **both** forms — absolute-Windows and repo-relative — which is why the guard
 normalises before classifying.
 
-Re-verified **2026-08-07** (the OBS batch's build-time pass; every claim §37 of the
-kit's feature plan rested on was rechecked against the named source): the hooks
+Re-verified **2026-08-07** (a full build-time pass: every capability claim this file's
+sections rest on was rechecked against the named source): the hooks
 reference — fourteen events, `permissionRequest` and `subagentStop` blocking-capable,
 the exit-2 deny channel for `preToolUse`/`permissionRequest`, fail-open timeouts on
 every event including policy hooks, `policy.d` org hooks, the cloud agent's

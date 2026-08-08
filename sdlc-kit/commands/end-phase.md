@@ -23,7 +23,7 @@ the moment to set it).
 
 ### 2. Run the gate
 
-Run the gate exactly as defined in `spec/SDLC.md` (lint → typecheck → full test suite).
+Run the gate exactly as defined in `spec/SDLC.md` — the steps recorded there, in order.
 
 Green means green **against the gate baseline recorded in `spec/SDLC.md`** — zero for a
 clean adoption, the recorded counts for a project adopted with a red baseline. Any
@@ -150,7 +150,8 @@ still out; that reviewer returned with the arc's worst gap (nine surviving mutat
 100% line coverage), and the interim batch had shipped its own regression. Then apply
 the surviving batch, re-run the gate, push, and update the PR body with what changed.
 If the phase was large or high-risk, suggest `/code-review ultra <PR#>` to the owner as
-an optional deeper pass (owner-triggered, paid).
+an optional deeper pass (owner-triggered, paid, and Claude Code only — like
+`pr-review-toolkit` above, it does not exist on Copilot CLI).
 
 This is not a repeat of the slice reviews: each of those saw one layer, so arc-level bugs
 live in the seams between slices and are invisible to every per-slice review by construction.
@@ -167,7 +168,8 @@ link, review outcome (N fixed / N deferred-to-backlog), final gate results, CI s
 (`Decision 1: merge?`). On approval:
 
 ```
-gh pr merge <PR#> --merge
+gh pr merge <PR#> --merge   # or --squash / --rebase: use the strategy the repo's
+                            # settings allow; if several do, the owner's call at this halt
 git checkout <main> && git pull
 ```
 
@@ -188,7 +190,11 @@ one at a time buried in the bullet that raised it.
   not stop at "yes": **verify the deployed artifact is the merged commit against the
   platform's own record** — the deploy run's SHA, the hosting dashboard's
   deployed-commit field, wherever the deploy note in `spec/SDLC.md` says it is exposed
-  — an artifact this session did not author. Record the outcome in the Phase History
+  — an artifact this session did not author. The check's failure is stated, never
+  smoothed over: the platform's field showing a different SHA, or no such field being
+  found where the deploy note says it is exposed, records as `deploy NOT verified —
+  <what was seen>` — a halt-5 fact for the owner, not a silent downgrade to "probably
+  fine". Record the outcome in the Phase History
   row's Notes cell: `deployed+verified <date>`, `deploy pending — <where tracked>`, or
   `n/a — no deploy`; a pending deploy also stays in START HERE until verified, so a
   merged-but-unshipped phase can never read as complete. Not a new halt — the owner

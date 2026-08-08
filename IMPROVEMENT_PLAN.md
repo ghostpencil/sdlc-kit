@@ -885,3 +885,38 @@ recording time. None blocks a release.
    template's phase-start content list omits (invariant 2, note).** An addition, not
    a contradiction; align the two lists whenever either is next touched. —
    **Actioned 2026-08-07** (§35): the template's content list gained trust boundaries.
+
+## 11. Deferred observations from the 0.18.0 kit-check — recorded 2026-08-07, not scheduled
+
+Below-threshold items from the pre-0.18.0 pass (FEATURE_PLAN.md §38.8); each was
+verified against the tree before being recorded. §9.1/.3 and §10.1/.4/.5/.6 stand
+unchanged; §10.6's `{{ACCEPTANCE_SURFACE}}` half is now actioned (New mode asks for
+the surface explicitly, 2026-08-07).
+
+1. **The update's decision-marking discipline is one-sided by design (inv 8, note).**
+   The command numbers and marks owner decisions (`Decision 1: <file> — …`); the
+   README's human procedure imposes no marking. Deliberate agent-vs-human difference —
+   recorded so the asymmetry reads as chosen, not drifted.
+2. **Transition-note placement policy is undefined (inv 8, structural).** The README
+   delegates per-version notes to `sdlc-update.md` step 5, then re-states 0.16.0 and
+   0.18.0 inline while leaving 0.14.0/0.15.0/0.17.0 delegated — each release decides
+   ad hoc which side to write on, which is the driver of this pass's two
+   README-asymmetry findings. Wants a one-sentence placement rule, owner's call.
+3. **The measured `timeoutSec` basis has no placeholder home (inv 3, note).** Setup
+   requires recording the basis (now with its launch route) "in `spec/SDLC.md`", but
+   no placeholder receives it; it rides in `{{HOOK_ENVIRONMENT}}` or
+   `{{HOOK_FEEDBACK_NOTE}}` without setup saying which.
+4. **Round 3's Phase-1 pre-knowledge names no landing placeholder (inv 3, note)** —
+   "recorded for `/plan-phase`" without saying where (`{{START_HERE}}` or
+   `{{NOTES}}`).
+5. **The close-out `{{` grep names `.claude/settings.json` unconditionally (inv 4,
+   minor)** — on a Copilot-only adoption the file does not exist and the grep errors
+   noisily rather than falsely passing; scope it per-CLI whenever setup's close-out
+   is next touched.
+6. **Commands assert the kit's own skill install paths (inv 1, borderline,
+   accepted).** `end-slice`/`end-phase` name `.claude/skills/<name>/` — a
+   kit-determined fact identical on both CLIs, so it cannot be false for a
+   kit-adopted project; recorded so the next pass does not re-litigate it.
+7. **`COPILOT.md` uses "the bench" before its Provenance section defines it
+   (inv 12, minor)** — first uses at the hook-capabilities section; definition at
+   Provenance. An anchoring clause at first use whenever the file is next touched.

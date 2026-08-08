@@ -89,8 +89,9 @@ questionnaire.
 - **Round 3 — process fit:** does this process govern the whole repo, or a subset — and
   what is explicitly out of scope (default: the whole repo; mixed repos — app + docs,
   app + infra — name the boundary); how the owner will run the app for acceptance
-  review (the run command — and how to stop it, if Ctrl+C or closing the window does
-  not suffice — **verified in the owner's own shell**, see below); how a merged phase
+  review — the run command (and how to stop it, if Ctrl+C or closing the window does
+  not suffice — **verified in the owner's own shell**, see below) and **what they will
+  exercise** when it runs, which resolves `{{ACCEPTANCE_SURFACE}}`; how a merged phase
   reaches users — the deploy procedure, or "none" for
   a library/local tool, and for a deploying project also how a deploy is **verified**:
   where the platform exposes the deployed commit (the deploy run's SHA, a dashboard
@@ -283,11 +284,15 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
    **Measure the hook's environment first** — *The hook environment* in
    `reference/GATE_RECIPES.md` carries the one-line probe and how to read it. A hook runs
-   in the shell the CLI resolves, not the one you type in; on a Windows machine with WSL
-   that has been measured to be WSL bash, where neither the project's paths nor its
-   toolchain exist. Run the probe from the CLI's own session, because that is the only
-   environment the answer is about. What it reports resolves `{{HOOK_ENVIRONMENT}}` in
-   `spec/SDLC.md` — which shell answered, **which JSON parser it offers (`python` or
+   in the shell the CLI resolves, not the one you type in — and the answer is
+   **per-launcher, not per-machine**: the hook shell follows the PATH of the shell the
+   CLI was started from (measured: WSL bash from a PowerShell launch, Git Bash from a
+   Git Bash launch, same repo, same day — and the WSL route additionally corrupts rich
+   hook bodies). Run the probe from the CLI's own session, **launched the way this
+   project's operator actually launches it** — a probe run from another launcher
+   measures the wrong environment, and a team with two launch habits probes both. What it reports resolves `{{HOOK_ENVIRONMENT}}` in
+   `spec/SDLC.md` — **which launcher the probe ran from**, which shell answered,
+   **which JSON parser it offers (`python` or
    `node`; the hook needs one and picks it at run time)**, and whether the project's own
    lint command runs there. Record what that shell offered, not what the machine has
    installed: they are different questions, and only the first one governs the hook. Do
@@ -299,14 +304,20 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    **If no hook ends up installed, say so in `spec/SDLC.md` rather than leaving its
    sentence standing:** replace the edit-time-hook paragraph with that fact and its
    date, and resolve `{{HOOK_CONFIG_PATH}}` to name no file — the template's comment
-   there says the same. The canonical process file must never describe a check this
+   there says the same. `CLAUDE.md`'s hook sentence (the one carrying
+   `{{HOOK_TOOLS}}`, `{{SOURCE_EXT}}`, and `{{HOOK_FEEDBACK_NOTE}}`) is replaced with
+   the same fact — the two files state the hook together and must fall together; a
+   CLAUDE.md describing a hook the project declined is the exact defect this branch
+   exists to prevent, one file over. The canonical process file must never describe a check this
    project does not have; the gate then carries the whole load, and every slice close
    should know it.
 
    Then verify: edit a scratch source file with a deliberate lint error and confirm the
-   hook reports it — blocking on Claude Code, as injected feedback on Copilot. On
+   hook reports it — blocking on Claude Code, as injected feedback on Copilot, and in a
+   session launched the operator's way, since the hook shell is per-launcher. On
    Copilot, **time that run** and raise `timeoutSec` to at least 3× the measurement,
-   recording the basis; a hook whose budget was never measured against a real run is
+   recording the basis **and the launch route it was timed on** (a budget measured on
+   the fast route is a budget for the wrong environment); a hook whose budget was never measured against a real run is
    a gate that goes quiet on the first cold typecheck. If nothing is reported at all,
    the matcher is the first suspect — `reference/COPILOT.md` has the discovery
    procedure.
@@ -380,17 +391,30 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - Copilot side: `skill-ledger.template.json` → `.github/hooks/sdlc-skill-ledger.json`,
      copied verbatim — it takes no values; do not edit it.
    - Claude Code side: the `"Skill"`-matcher block already in the instantiated
-     `.claude/settings.json` stays. **If the ledger is declined, remove that block from
-     the settings file you write** — the record of the decline lives in the note below,
-     never as dead config.
+     `.claude/settings.json` stays (Copilot-only adoptions have no such file and skip
+     this bullet).
    - Prove it per the recipe: invoke any installed skill in a session of each installed
-     CLI and read the ledger's last line back. No line → the hook is not firing; check
+     CLI — launched the way this project's operator actually launches it — and read the
+     ledger's last line back. No line → the hook is not firing; check
      the matcher spelling and the hook environment before trusting it.
-   - Resolve `{{SKILL_LEDGER_NOTE}}` in `spec/SDLC.md` on **every** adoption: installed
-     (which CLIs, the ledger path, and that `.git/` is per-clone so the ledger describes
-     one machine) or declined **with the date — never delete the line**. `/sdlc-update`
-     reads it exactly as it reads the TDD-guard note: a recorded decline is settled; a
-     missing line is a project that never had the choice.
+
+   **On a decline, the artifacts must actually be absent**: do not write the Copilot
+   ledger JSON, and remove the `"Skill"`-matcher block from the settings file you
+   write — the record of the decline lives in the note below, never as dead config; a
+   removed hook with an "installed" note, or the reverse, is exactly the contradiction
+   `/sdlc-update` is told to report.
+
+   **Resolve `{{SKILL_LEDGER_NOTE}}` on every adoption — accepted, declined, either
+   CLI.** The placeholder lives in `spec/SDLC.md`, which is instantiated on every path,
+   so a decline still has to fill it or the close-out `{{` check fires with nothing to
+   write (this sentence sits outside the accepted-only list above for exactly that
+   reason). Installed: which CLIs, **the hook artifact that makes it true** —
+   `.github/hooks/sdlc-skill-ledger.json` on Copilot, the `"Skill"`-matcher block in
+   `.claude/settings.json` on Claude Code — the ledger path, and that `.git/` is
+   per-clone so the ledger describes one machine. Say in the same breath that adding
+   or removing the hook later means updating this line, because nothing else will. Declined: say so **with the date — never delete
+   the line**. `/sdlc-update` reads it exactly as it reads the TDD-guard note: a
+   recorded decline is settled; a missing line is a project that never had the choice.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).

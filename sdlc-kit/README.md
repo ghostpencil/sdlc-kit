@@ -54,12 +54,14 @@ skills/                  ← TDD skill set + the three kit-written passes
                            (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup; two are copied
-                           verbatim instead (the explore agent profile and the TDD
-                           guards' hook JSON, both Copilot only)
+templates/               ← instantiated into the project by /sdlc-setup; four are copied
+                           verbatim instead (the explore agent profile, the TDD guards'
+                           hook JSON, the gate hook's launcher JSON, and the
+                           skill-ledger hook JSON — all Copilot-side; none takes values)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
 LICENSE                  ← MIT
-THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (all MIT)
+THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-pro's
+                           redistribution status unverified — the notices say so)
 ```
 
 `commands/`, `skills/`, and the installed `reference/REVIEW_LENSES.md` are

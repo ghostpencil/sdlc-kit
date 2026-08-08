@@ -217,8 +217,11 @@ setup: {{HOOK_ENVIRONMENT}}
      activation to `.git/sdlc-skill-ledger.jsonl`, so the retro's step-evidence sweep
      can read which named skills actually ran instead of trusting that presence meant
      activation. It runs on both CLIs (the hook fires on the skill tool: `skill` on
-     Copilot, `Skill` on Claude Code — measured 2026-08-07). The note names the ledger
-     file and says in the same breath that `.git/` is per-clone: the ledger records
+     Copilot, `Skill` on Claude Code — measured 2026-08-07). The note names the hook
+     artifact that makes "installed" true (the Copilot hook JSON, the settings-file
+     block on Claude Code — adding or removing either later means updating this line,
+     because nothing else will), names the ledger
+     file, and says in the same breath that `.git/` is per-clone: the ledger records
      this machine's sessions only, and a retro citing it must say whose clone it read.
      If the ledger was declined, the note says so WITH THE DATE — it does not delete
      this line. A missing line and a declined offer are different facts: /sdlc-update
@@ -378,7 +381,9 @@ Run `/end-slice` when the slice's exit criteria are met:
    does not stand in for halt 4's owner acceptance.
    A break it observes is fixed through the same loop as a review fix: apply, re-run
    the gate, and any new guard joins step 8's mutation obligation.
-10. Commit (heredoc for multi-line messages, via the Bash tool). The commit body
+10. Commit (heredoc for multi-line messages, via the Bash tool). Subject line in the
+    project's own convention where one is recorded; the kit's default shape is
+    `<type>(<area>): <summary>` with `docs:` for bookkeeping commits. The commit body
     carries the slice's evidence record: the observed-RED lines from step 4's running
     record (one per behavior batch — command, failing line, exit code, with
     `not observed — <reason>` stated rather than omitted) and the `quality:`,

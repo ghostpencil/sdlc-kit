@@ -1902,3 +1902,66 @@ With this, every Copilot-dialect hook the kit ships — gate, guards, ledger —
 launcher-boundary-proof by construction, and each shape is pinned by its proof
 suite. The Claude-side dialect keeps its single-file form: its shell is stated
 per-hook, so there is no boundary to survive.
+
+### 38.8 The pre-0.18.0 `/kit-check` — run 2026-08-07; twenty-four findings fixed
+### in-session, seven deferred with a record
+
+Full 15-invariant pass: four mechanical checks in-session, the twelve semantic
+invariants fanned to five read-only readers (the inv 5+6+7 reader died on a session
+limit before reporting; that pass's delta since §34's full green was covered
+in-session — its one catch was the missing skill-ledger row in `COPILOT.md`'s mapping
+table). Every reader finding was re-verified against the tree before any edit.
+Invariants 6, 11 (core), 12 (purity of the tree itself) pass clean; inv 10 was
+expected-stale with discrimination proven (exactly the batch's 12 edits plus the two
+new templates), regenerated in the release commit.
+
+The pass earned its keep on the two invariants that keep catching their own
+custodians:
+
+- **Inv 4's census caught this session's own `{{HOOK_*}}` leak into `sdlc-update.md`**
+  (the §31.14-era specimen, recurring), and **inv 13 caught its own stale denominator
+  a second consecutive release** — neither §38 batch had extended the ledger's list;
+  it now carries the skill-ledger proof step, the skills-listing check, and the deploy
+  verification, and `kit-check.md`'s copy is re-stamped 0.18.0.
+- **The §31.15 no-resolver specimen recurred in the ledger offer**: the
+  resolve-`{{SKILL_LEDGER_NOTE}}`-on-every-adoption bullet sat structurally inside
+  "If accepted:", unreachable on a decline — found independently by two readers.
+  Restructured to the guard note's unconditional shape, with the decline-artifact
+  check made explicit.
+- **The update's ledger clause had dropped the guard clause's own correction**: the
+  artifact-present branch never read the record, so present-but-recorded-as-declined
+  — a contradiction the clause itself names — was unreachable. Fixed; and setup's
+  decline path now states the artifacts must actually be absent.
+- **The per-launcher discovery propagated into the paper trail**: `{{HOOK_ENVIRONMENT}}`
+  now records the launch route first; every hook proof (gate, guards, ledger) and the
+  probe itself name "launched the way this project's operator actually launches it";
+  the `timeoutSec` basis records the route it was timed on; the update's re-probe is
+  standing at every hook-touching crossing rather than trapped in the 0.16.0 note;
+  and setup's superseded per-machine framing is rewritten.
+- **Inv 14 parity**: the ledger note now names the hook artifact that makes
+  "installed" true (per CLI) plus the update-this-line-or-nothing-will sentence, the
+  guard note's own discipline.
+- **Negative cases stated for three checks that lacked them**: the deploy
+  verification (`deploy NOT verified — <what was seen>`, a halt-5 fact), the retro's
+  ledger read (a silent ledger reports "hook health unknown", never per-skill
+  no-evidence — the confident-plausible-wrong shape), and the ledger/guard/gate
+  proofs' route qualification above.
+- **Inv 1/2 sweep**: the gate parenthetical asserting a three-leg gate is now "the
+  steps recorded there, in order"; `gh pr merge --merge` no longer asserts the
+  project's merge strategy; `/code-review ultra` carries its Claude-Code-only
+  qualifier at phase end; the commit-subject convention gained its canonical template
+  home; "the same way the adoption landed" dropped (false for New-mode adoptions);
+  the update's no-project-writes rule states its accepted-re-offer exception with the
+  Claude-side merge path; the retro's four-state vocabulary is enumerated as four.
+- **Inv 8/11/12 sweep**: README↔update parity restored (step-5 list gains
+  `sdlc-gate.sh`; the re-probe and the 0.16.0→0.18.0 skip-ahead now exist on both
+  sides; ownership rows match; copy-directories-not-files stated for humans);
+  python-pro's self-declared-MIT status no longer flattened to "all MIT" in three
+  places; the bundle README's verbatim-template count corrected to four; the new
+  gate script template's `FEATURE_PLAN` citation removed (inv 12's exact shape, in
+  an instantiated file) and `COPILOT.md`'s §37 citation made self-contained.
+
+Seven below-threshold observations recorded in `IMPROVEMENT_PLAN.md` §11. Suites
+re-verified green after the fixes (gate, ledger; guard inputs untouched since their
+green run). **0.18.0 released the same day — the release record is the CHANGELOG
+entry and the tag.**

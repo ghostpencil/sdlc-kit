@@ -100,7 +100,7 @@ W=$(printf '%s' "$O" | sed -n 1p)
 ST=$(printf '%s' "$O" | sed -n 2p)
 
 # Paths arrive in BOTH forms in one session - absolute-Windows and repo-relative
-# (measured, FEATURE_PLAN 31.9.1 in the kit's records) - and an absolute Windows
+# (measured 2026-08-07) - and an absolute Windows
 # path does not exist as written when this script runs under WSL bash. resolve_path
 # prints an existing form of its argument or fails: slashes normalized first, then
 # the drive-letter translation (D:/x -> /mnt/d/x -> /d/x) the TDD guard already

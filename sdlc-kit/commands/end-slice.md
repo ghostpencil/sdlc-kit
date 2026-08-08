@@ -27,7 +27,7 @@ policy names the moment to set it).
 
 ### 2. Run the gate
 
-Run the gate exactly as defined in `spec/SDLC.md` (lint → typecheck → full test suite).
+Run the gate exactly as defined in `spec/SDLC.md` — the steps recorded there, in order.
 
 All steps must be green. If not, fix the failures first (TDD skill rules apply if tests
 change), then re-run. Do not proceed on red.

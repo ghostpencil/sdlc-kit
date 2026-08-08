@@ -147,7 +147,10 @@ authoritative:
 bash -c 'echo "shell: $0"; uname -a; pwd; command -v python || command -v python3 || echo NO-PYTHON; command -v node || echo NO-NODE; ls "$PWD" >/dev/null 2>&1 && echo CWD-OK || echo CWD-UNREACHABLE'
 ```
 
-Read three things off it, and record them in `spec/SDLC.md` beside the gate:
+Run it from the CLI **launched the way this project's operator actually launches
+it** (the answer is per-launcher, above; a team with two launch habits probes both).
+Read four things off it, and record them in `spec/SDLC.md`
+beside the gate, the launch route first:
 
 1. **Which shell answered** — `uname` naming WSL/Linux on a Windows project is the
    hazard above, and means the hooks are running somewhere the project does not exist.
@@ -335,7 +338,10 @@ keep — the deny ramp found a defect (a compound test command reporting the wro
 code, recording a **false green**) that logging mode had not surfaced.
 
 **Prove both guards the way the kit proves every check — by making them fail.** In a
-scratch session: write a production source file without a failing test first, and confirm
+scratch session **of the Copilot CLI itself, launched the operator's way** — the
+guards fire only from its hooks, in the per-launcher hook shell the probe above
+measured, so a proof run anywhere else proves nothing about them. Write a production
+source file without a failing test first, and confirm
 the log names it; then finish the session with no green run, and confirm the stop guard
 logs a would-block. If nothing appears, the guard is not firing — check the tool-name
 matcher against `reference/COPILOT.md`'s discovery procedure and the hook environment
@@ -391,7 +397,9 @@ Windows), so no launcher boundary is crossed. Both dialects are **loud when they
 cannot write**: a ledger that silently stopped recording would read as "no skill ever
 activated", which is precisely the false negative it exists to prevent.
 
-**Prove it the way every check is proven.** In a session of each installed CLI, invoke
+**Prove it the way every check is proven.** In a session of each installed CLI —
+launched the way this project's operator actually launches it, since the hook shell
+is per-launcher — invoke
 any installed skill explicitly (`/tdd` will do), then read the last line of
 `.git/sdlc-skill-ledger.jsonl` and confirm it names that skill and this session. No
 line means the hook is not firing — on Copilot check the matcher spelling (`skill`,

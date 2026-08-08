@@ -204,14 +204,16 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── COPILOT.md                   ← the Copilot CLI mapping: install paths, hook, detection
 │   ├── SKILLS.md                    ← required/recommended skills and how to install
 │   └── REVIEW_LENSES.md             → <project>/.claude/commands/ (the one installed reference file)
-├── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (all MIT)
+├── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (MIT; python-pro's
+│                                       redistribution status unverified — the notices say so)
 └── LICENSE                          ← MIT (must travel with the bundle)
 
 .github/workflows/release.yml        ← packages the kit as a release asset on tag push
 .github/ISSUE_TEMPLATE/bug-report.md   ← issue template: one quick finding
 .github/ISSUE_TEMPLATE/field-report.md ← issue template: adoption findings, retro-shaped
 .claude/commands/kit-check.md        ← /kit-check: kit self-check (development-only, never installed)
-tools/gate-hook-check.py             ← proves the Copilot gate hook against measured payloads
+tools/gate-hook-check.py             ← proves the gate hooks (script + launcher) against measured payloads
+tools/skill-ledger-check.py          ← proves the skill-activation ledger, both dialects
 tools/tdd-guard-check.py             ← proves the TDD guards, then mutates them to prove the proof
 .gitattributes                       ← pins LF — the manifest hashes depend on it
 .gitignore
@@ -263,7 +265,7 @@ The whole procedure rests on this split:
 | Path in your project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
-| `.claude/skills/*/SKILL.md` (from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
+| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the eight `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
@@ -445,6 +447,9 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    your instantiated `.github/hooks/sdlc-gate.json` holds *your* gate commands, so no
    update may overwrite it. You re-apply this one by hand, from the diff between the two
    template versions. Until you do, a Copilot project's edit-time gate stays broken.
+   (Crossing 0.18.0 in the same update? Skip straight to that release's restructured
+   script-plus-launcher pair below — do not hand-write the 0.16.0 single-JSON body
+   only to replace it again.)
    **0.16.0 changes both hook recipes for every project, on either CLI**, and the same
    project-ownership rule means you re-apply these by hand too. The hooks now ship two
    JSON-parser dialects and detect `python` or `node` at run time, instead of hard-coding
@@ -453,6 +458,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    hook's own comparisons (Git Bash masks this, WSL bash does not); and on **Claude
    Code** the hook now reports on stderr and exits 2 when it cannot find the edited
    file's path, where it used to exit 0 and check nothing — a silently green gate.
+   While you are here, re-run the hook-environment probe (*The hook environment* in
+   `reference/GATE_RECIPES.md`) and compare against what `spec/SDLC.md` recorded at
+   setup — a machine that gained WSL or lost the hook's JSON parser moves that answer,
+   and nothing else ever looks again; a moved answer is a finding, not a silent edit.
    **0.16.0 also adds the optional TDD-ordering guards (Copilot CLI only), and every
    update from here on checks whether your project was ever offered them.** They are
    project-owned and optional, so nothing is installed unasked. If the guard files are
@@ -494,7 +503,8 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,
-   `.github/hooks/*.json`, or `.github/hooks/sdlc-tdd-guard.sh`. They hold your recorded
+   `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, or
+   `.github/hooks/sdlc-tdd-guard.sh`. They hold your recorded
    baseline, your gate commands, your TDD-guard patterns, and
    your decisions; the kit cannot regenerate them. The only exceptions are the
    single-line writes named in step 6.
@@ -605,8 +615,10 @@ mode is for. It documents reality (including a red gate) rather than pretending,
 starts you in STABILIZATION until the gate is green.
 
 **Where do the skills come from?** Two provenances inside the kit, plus one optional
-plugin. Five `skills/` files are **vendored** (third-party MIT — the TDD skill set,
-mutation-testing, python-pro, hypothesis-tests; NOT part of either CLI); three are
+plugin. Five `skills/` files are **vendored** (third-party, MIT-attributed — the TDD
+skill set, mutation-testing, hypothesis-tests, and python-pro, whose license is
+self-declared with no identified upstream, as `THIRD_PARTY_NOTICES.md` states rather
+than settles; NOT part of either CLI); three are
 **kit-written** (`diff-review`, `change-simplify`, `change-verify` — the review,
 quality, and verification passes the close-out commands name). All eight install
 project-scoped so they travel with the repo. `pr-review-toolkit`

@@ -355,8 +355,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   ledger exists for both: is the ledger artifact present (`.github/hooks/
   sdlc-skill-ledger.json` on Copilot, the `"Skill"`-matcher block in
   `.claude/settings.json` on Claude Code — check the artifact for the CLI the *Agent
-  CLI:* line records)? If yes, leave it alone. If no, read the skill-ledger line in
-  `spec/SDLC.md`: a recorded decline is a settled decision that gets one sentence; no
+  CLI:* line records)? If yes, leave the artifact alone — **but still read the
+  skill-ledger line in `spec/SDLC.md`**: present-but-recorded-as-declined is a
+  contradiction only that read can notice, and the branch that skips reading the
+  record is exactly the branch that can never notice. If no, read the same line: a recorded decline is a settled decision that gets one sentence; no
   line at all is a project that never had the choice — offer it now, as a first setup
   would, with the proof step (invoke a skill, read the last ledger line back)
   non-skippable because this is an update. Record the outcome, including a decline
@@ -377,13 +379,17 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   boundary** — `.github/hooks/sdlc-gate.json` becomes a bare launcher (verbatim
   template copy, no values, only `timeoutSec` ever edited) and the logic moves to a
   new project-owned `.github/hooks/sdlc-gate.sh`, instantiated from
-  `templates/copilot-hook.template.sh` with the project's existing `{{HOOK_*}}`
-  values — read them out of the current `sdlc-gate.json` before replacing it, per the
-  changelog. On the affected machines the old single-JSON hook reported a **false**
+  `templates/copilot-hook.template.sh` with the project's existing hook values — the
+  source glob, the lint command, and the typecheck block, read out of the current
+  `sdlc-gate.json` before replacing it, per the changelog. On the affected machines the old single-JSON hook reported a **false**
   "no JSON parser" on every edit; a project that has been seeing that message gets
   its explanation and its fix in the same motion. Hand-apply both files, then re-run
-  the proof step (a deliberate lint error must produce hook feedback) — it is the
-  only evidence the rebuilt pair works in this project's hook shell.
+  the proof step (a deliberate lint error must produce hook feedback), in a session
+  launched the way this project's operator actually launches the CLI — the hook shell
+  is per-launcher, and the proof certifies only the route it ran on. Re-run the
+  hook-environment probe here too: the 0.16.0 note's probe instruction is standing at
+  every hook-touching crossing, not a one-release step, and this restructure exists
+  because the probe's answer is per-launcher.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts
@@ -436,8 +442,12 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   this is the one moment the record and its artifact are held at the same instant, and
   a mismatch goes to the owner as a finding — never a silent rewrite — because the
   recorded URL is where `/sdlc-retro` will submit.
-  **These lines are the only project-owned content an update may write**,
-  and the latter two only when absent — never to overwrite an answer already recorded.
+  **These lines are the only project-owned content an update may write** —
+  and the latter two only when absent, never to overwrite an answer already recorded —
+  **with one stated exception**: the artifacts an accepted re-offer installs (the
+  TDD-guard pair; the ledger's Copilot JSON, or its `"Skill"` block merged into the
+  existing `.claude/settings.json` the way setup's Existing mode merges hooks), each
+  written only on the owner's word at that halt, following setup's own step.
   Do them last, so an aborted update never claims a version it does not hold.
   **Two more lines join them only when this update actually put an offer to the
   owner** — the TDD-guard offer and the skill-ledger offer (step 5's re-offer clauses)
@@ -447,7 +457,7 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   an update that did not ask does not get to record an answer. Without it a decline
   leaves no trace and every later update re-asks a settled question, which is the whole
   reason the lines exist.
-- Land as a normal PR (`chore/update-sdlc-kit-X.Y.Z`), the same way the adoption landed.
+- Land as a normal PR (`chore/update-sdlc-kit-X.Y.Z`).
   Report to the owner what changed *behaviorally* (from the changelog), not just which
   files moved.
 - Claim only what was checked. "Nothing project-owned touched" may be said when the

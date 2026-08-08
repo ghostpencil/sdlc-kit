@@ -16,7 +16,7 @@ young to have left evidence, say so and stop; that is a real answer, not a failu
 next one. Optional argument to scope the window: `/sdlc-retro phase 3` or
 `/sdlc-retro since v0.2.0`. Default window is the most recent phase.
 
-This command reads and interviews; it writes one new file and proposes edits to the
+This command reads and interviews; it writes one new file and applies recorded edits to the
 project's own. It never opens an issue, never pushes, and never sends anything anywhere.
 
 ## Workflow
@@ -72,8 +72,8 @@ none of them writes anything.
 - **Step-evidence enumeration.** Read the named steps out of `spec/SDLC.md` — every
   skill, lens, and check the slice loop and phase end name (the quality pass, the
   reviewer and its lenses, the mutation check, the verification pass, observed-RED) —
-  and report each one's evidence in the window: **ran** (and what it caught, if
-  anything), **skipped with a stated reason**, or **no evidence**. Where to look: slice
+  and report each one's evidence in the window: **ran**, **caught** (ran and caught
+  something — say what), **skipped with a stated reason**, or **no evidence**. Where to look: slice
   commit bodies (the `RED:`, `quality:`, `mutation:`, and `verify:` evidence lines —
   `git log` carries them), the deferred
   backlog's provenance tags (a `(slice review, <date>)` tag is evidence the review
@@ -84,7 +84,13 @@ none of them writes anything.
   say whose clone it was read from: `.git/` is per-clone, so the ledger records this
   machine's sessions only, and an activation on another machine leaves no line here.
   A named skill with no ledger line in the window, on the clone the arc ran on, is
-  the sharpest "no evidence" this sweep can produce. This sweep exists because a step can silently never run —
+  the sharpest "no evidence" this sweep can produce — **but only after the ledger
+  itself is seen alive**: if the file is absent or carries no lines at all in a
+  window where skills demonstrably ran, report "ledger silent — hook health
+  unknown" for every named skill rather than per-skill no-evidence, because a hook
+  that silently stopped recording produces exactly the same absence as a skill that
+  never fired, and concluding the latter from the former is the
+  confident-plausible-wrong shape this whole sweep exists to prevent. This sweep exists because a step can silently never run —
   on a CLI where skill activation is relevance-based, *presence is not activation* —
   and every other sweep here detects that only by the damage it eventually causes; a
   real adoption's slice-close verification was skipped silently for a whole arc and
