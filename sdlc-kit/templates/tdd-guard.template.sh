@@ -161,6 +161,15 @@ sys.stdout.write(json.dumps({"decision":"block","reason":sys.stdin.read()},separ
 process.stdout.write(JSON.stringify({decision:"block",reason:require("fs").readFileSync(0,"utf8")}));
 '
 }
+# postToolUse context injection - the same measured schema the edit-time gate hook uses.
+emit_context() {
+  printf '%s' "$1" | jr '
+import sys,json
+sys.stdout.write(json.dumps({"additionalContext":sys.stdin.read()},separators=(",",":")))
+' '
+process.stdout.write(JSON.stringify({additionalContext:require("fs").readFileSync(0,"utf8")}));
+'
+}
 
 case "$MODE" in
 
@@ -219,13 +228,19 @@ PATHLIST
     # compound like `<test cmd>; echo done` reports the echo's status, so a red run
     # records a false GREEN - which both licenses a production write and un-blocks the
     # stop guard. Only bare single-command invocations count as observations.
+    # A refusal is SPOKEN, never just logged: measured in the field (2026-08-08), a
+    # session whose runs were refused silently learned about it only at the next
+    # unexplained deny, then thrashed and probed the guard instead of complying -
+    # and misattributed the refusals to rules the guard does not have.
     case "$CMD" in
       *";"*|*"&&"*|*"||"*|*"|"*)
         log "test run NOT counted (compound command - the exit code would be the compound's, not the test's): $CMD"
+        emit_context "TDD ordering: that test run was NOT counted - the command is compound (contains ';', '&&', '||' or a pipe), so its exit code is not the test's. The run itself is unaffected; it just registers nothing. Flags and single-test selectors are fine - to trim output use the runner's quiet flag, not a pipe. Re-run as one bare command to register the RED or GREEN."
         exit 0 ;;
     esac
     if [ -z "$CODE" ]; then
       log "test run seen but no exit-code trailer found: $CMD"
+      emit_context "TDD ordering: that test run could not be counted - no exit code was found in the hook payload, so the guard cannot read the result. If this repeats on every run, the payload format has changed and the guard needs fixing before its ordering can be trusted."
     elif [ "$CODE" = "0" ]; then
       touch "$S/green-observed" 2>/dev/null; log "GREEN observed: $CMD"
     else

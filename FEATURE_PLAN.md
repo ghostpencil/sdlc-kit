@@ -2013,3 +2013,36 @@ release day — the three hand-applies, the route-named proofs, and the ledger o
 no-line-at-all state. The offer's other states (recorded decline, both contradiction
 directions) remain field-unexecuted, reachable only on adopters with different
 histories.
+
+---
+
+## 40. The silent-refusal fix — first extraction from the Phase 03 guard friction,
+## 2026-08-08
+
+The adopter's first armed BUILD day on 0.18.0 produced three TDD-guard friction
+specimens (their `spec/PROJECT_INDEX.md` friction log, four entries dated
+2026-08-08), and the session's own hook feedback, adversarially triaged there: two of
+its four premises false against the guard source (compile-failure reds and `-Dtest=`
+selectors already count — the guard reads exit codes only; both beliefs grew from
+compound-refused runs being misattributed), one defect confirmed, two gaps found by
+the triage itself that the feedback missed.
+
+**The confirmed defect is fixed on the owner's word, ahead of the retro report:**
+`observe-test` refused a run (compound command, or no exit-code trailer) by logging
+to `guard.log` and emitting nothing — the session learned only at the next
+unexplained deny, and every misattribution above grew in that gap. Both refusal
+shapes now emit the reason plus what IS allowed as postToolUse `additionalContext`
+(the gate hook's measured schema); counted runs stay silent. Suite: 35 cases (was
+31), ninth mutation added — re-silencing the refusal must be caught — offline proof
+green both dialects. CHANGELOG carries it under *Unreleased* as adoption-only with
+the hand-apply note.
+
+**Queued, deliberately not changed** — these arrive with the adopter's retro report
+so the fix batch works from a filed report, not a memory: (a) G2's green is
+pattern-based, so a targeted single-test green satisfies the stop guard
+(process-covered by the end-slice gate; documentation gap at minimum); (b) the
+separator list lacks single `&` — the field's `cmd /c "… & …"` probe was refused by
+the `;` inside its `PATH` value, luck not design; (c) the deny message could carry
+the last refusal reason; (d) disposal-intent reds (a red written to be deleted after
+licensing the write — observed in-session, `@SpyBean` on an internal bean against
+their mock policy) named as review-lens territory, not guard territory.

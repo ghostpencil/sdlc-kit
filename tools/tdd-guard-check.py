@@ -150,14 +150,23 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         check("3  test edit recorded", "test edit recorded" in b.tail(), b.tail())
 
         # The D3 defect: a compound's exit code is not the test's.
-        b.run("observe-test", shell(R, "python -m pytest; echo done", 0))
+        out = b.run("observe-test", shell(R, "python -m pytest; echo done", 0))
         check("4  compound command NOT counted", "NOT counted" in b.tail(), b.tail())
         check("4b no false GREEN from a compound",
               not os.path.exists(os.path.join(b.state, "green-observed")))
+        # The field defect (2026-08-08): a silent refusal left the session thrashing
+        # and probing the guard instead of complying. The refusal must be spoken.
+        j = json.loads(out) if out.startswith("{") else {}
+        check("4c compound refusal is spoken, not silent",
+              "NOT counted" in (j.get("additionalContext") or ""), repr(out))
+        check("4d and says what IS allowed, not only what is not",
+              "selectors are fine" in (j.get("additionalContext") or ""), repr(out))
 
         time.sleep(1.1)  # mtime ordering is 1s-granular on some filesystems
-        b.run("observe-test", shell(R, "python -m pytest", 1))
+        out = b.run("observe-test", shell(R, "python -m pytest", 1))
         check("5  red observed", "RED observed (exit 1)" in b.tail(), b.tail())
+        check("5b a counted run stays silent (no context noise on the happy path)",
+              out == "", repr(out))
 
         b.run("pre-write", write(R, [("Update", "payments.py")]))
         check("6  prod write after red -> OK", "OK production write" in b.tail(), b.tail())
@@ -307,6 +316,22 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         finally:
             shutil.rmtree(elsewhere, ignore_errors=True)
 
+        # The other refusal shape: a test-pattern command whose payload carries no
+        # exit-code trailer. Same rule as the compound case - spoken, never silent -
+        # because a format drift in the trailer would otherwise mute the guard on
+        # every run while its log looked merely quiet.
+        b.reset_state()
+        out = b.run("observe-test",
+                    {"sessionId": SID, "cwd": R, "toolName": "powershell",
+                     "toolArgs": json.dumps({"command": "python -m pytest"}),
+                     "toolResult": {"resultType": "success",
+                                    "textResultForLlm": "output with no trailer"}})
+        j = json.loads(out) if out.startswith("{") else {}
+        check("26 missing exit-code trailer is spoken, not silent",
+              "no exit-code trailer" in b.tail()
+              and "could not be counted" in (j.get("additionalContext") or ""),
+              b.tail() + " | " + repr(out))
+
         return failed
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -340,6 +365,10 @@ MUTATIONS = [
          '[ -f "$S/red-observed" ]')),
     ("trust any cwd when SDLC_REPO_ROOT is unset (state written to unrelated dirs)",
      lambda s: s.replace('  [ -d .git ] || exit 0\n', '')),
+    ("re-silence the compound refusal (the 2026-08-08 field defect: the session "
+     "thrashes and probes instead of complying)",
+     lambda s: s.replace('        emit_context "TDD ordering: that test run was NOT counted',
+                         '        : "TDD ordering: that test run was NOT counted')),
 ]
 
 

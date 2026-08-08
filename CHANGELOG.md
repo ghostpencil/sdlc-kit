@@ -10,6 +10,26 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+### Fixed
+- **[adoption-only]** **The TDD guard speaks when it refuses to count a test run.**
+  Through 0.18.0 the observe hook wrote a refusal (compound command, or a payload with
+  no exit-code trailer) only to `.git/sdlc-tdd/guard.log` and emitted nothing, so the
+  session learned about it at its next unexplained deny. Measured in the field
+  (ai-news-dashboard Phase 03, 2026-08-08): three thrash episodes, misattributed
+  beliefs that compile-failure reds and `-Dtest=` selectors do not count (both false —
+  the guard reads exit codes only), and a probe of the separator list, all downstream
+  of the silent refusal. Both refusal shapes now emit the reason and what IS allowed
+  ("flags and single-test selectors are fine; use the runner's quiet flag, not a
+  pipe") as postToolUse `additionalContext` — the same measured schema the gate hook
+  uses; counted runs stay silent. Suite grows to 35 cases and a ninth mutation
+  (re-silencing the refusal must be caught). `sdlc-tdd-guard.sh` is project-owned:
+  existing projects get this as a hand-apply; the `.json` launcher is unchanged.
+  Remaining triage from the same field day — the pattern-based green satisfying the
+  stop guard from a targeted run, and the `&`-separator gap — is recorded, not yet
+  changed; it arrives with the adopter's retro report.
+
 ## 0.18.0 — 2026-08-07
 
 The observability release, plus a discovery that reshaped every Copilot-dialect hook
