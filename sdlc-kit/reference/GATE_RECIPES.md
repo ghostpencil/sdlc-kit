@@ -274,7 +274,18 @@ are the only mechanism in the kit that can refuse an action rather than comment 
   red alone proves nothing, since any test-shaped command that exits non-zero (a
   pattern matching no tests) manufactures one — found in the field on the first armed
   arc. The corollary: a **resumed** session must touch a test file before its first
-  production write, because guard state is session-scoped.
+  production write, because guard state is session-scoped. Since 2026-08-08 G1
+  carries a **second license, for the refactor leg**: a production write is also
+  allowed while `.git/sdlc-tdd/refactor-license` exists **and** a green run has been
+  observed this session. The file is the session's own one-line declaration (step and
+  move) that the edits are behavior-preserving; every write made under it is logged
+  with that line so the review can audit the window, a test edit revokes it (a new
+  test is a new cycle), and a new session clears it. It survives reds on purpose —
+  mutation testing's expected reds and the revert of a failed refactor move are
+  production writes too, and G2 still refuses to stop while the latest run is red.
+  Field-driven: with only the red license, armed close-out passes (`change-simplify`,
+  mutation testing) forced synthetic test-edit/red cycles or suppressed legitimate
+  quality moves.
 - **G2, the premature-stop guard** (`agentStop`) — stopping is a violation while no
   green test run has been observed, or the latest observed run is red.
 

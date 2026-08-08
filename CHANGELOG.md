@@ -12,6 +12,26 @@ to an already-adopted project.
 
 ## Unreleased
 
+### Added
+- **[adoption-only]** **The TDD guard's declared refactor license — the second TDD
+  license G1 was missing.** Through 0.18.0 G1 licensed a production write only through
+  a fresh red, so the behavior-preserving close-out passes the kit itself installs
+  (`change-simplify`, mutation testing) had no lawful path once the slice was green.
+  Measured in the field (ai-news-dashboard Phase 03, 2026-08-08): three consecutive
+  slices ran synthetic test-edit/red cycles at close-out, and one legitimate
+  simplification was dropped as not worth the dance — the session was observed
+  deriving the full bypass recipe before declining on effort, not principle. A
+  production write is now also allowed while `.git/sdlc-tdd/refactor-license` exists
+  **and** a green run has been observed this session. The file is the session's own
+  one-line declaration (step and move); every write under it is logged with that line
+  so `diff-review` can audit the window, a test edit revokes it, a new session clears
+  it, and it survives reds on purpose — mutation testing's expected reds and the
+  revert of a failed refactor move are production writes too, with G2 still refusing
+  a red stop. The deny message names both ways out. Suite grows to 42 cases and three
+  new mutations (a bare declaration must not license, the revocation must not be
+  dropped, the license must not leak across sessions). Like the entry below, this is
+  a hand-apply for existing projects; the `.json` launcher is unchanged.
+
 ### Fixed
 - **[adoption-only]** **The TDD guard speaks when it refuses to count a test run.**
   Through 0.18.0 the observe hook wrote a refusal (compound command, or a payload with

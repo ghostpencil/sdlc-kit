@@ -6,6 +6,18 @@
 #      since that edit. Both halves are required: a red alone proves nothing, because
 #      any test-shaped command that exits non-zero (a pattern matching no tests)
 #      manufactures one - found in the field on the first armed arc.
+#      G1 carries a SECOND license for the refactor leg (field, 2026-08-08: with no
+#      such license, armed close-out passes - change-simplify, mutation testing -
+#      forced synthetic test-edit/red cycles or suppressed legitimate quality moves):
+#      a production write is also allowed while .git/sdlc-tdd/refactor-license exists
+#      AND a green run has been observed this session. The file is the session's own
+#      explicit declaration that the edits are behavior-preserving; its first line
+#      names the step and move, every write made under it is logged with that line so
+#      review can audit the window, a test edit revokes it (a new test is a new
+#      cycle), and it is cleared at session end. It survives reds on purpose:
+#      mutation testing's expected reds and the revert of a failed refactor move are
+#      production writes too, and G2 below still refuses to stop while the latest
+#      observed run is red.
 # G2 - premature-stop guard: stopping is a violation while no green test run has been
 #      observed, or the latest observed run is red.
 #
@@ -139,7 +151,7 @@ PATHS=$(printf '%s\n' "$F" | tail -n +5)
 # Observations are SESSION-scoped: a red observed in an earlier session does not
 # license a production write in this one. A new sessionId resets them.
 if [ -n "$SID" ] && [ "$SID" != "$(cat "$S/session" 2>/dev/null)" ]; then
-  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" 2>/dev/null
+  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" 2>/dev/null
   printf '%s' "$SID" > "$S/session" 2>/dev/null
   log "new session $SID - previous observations cleared"
 fi
@@ -201,20 +213,32 @@ PATHLIST
       # test edit before it, or it licenses nothing. The known cost: a resumed session
       # starts with cleared state, so its first production write is denied until a test
       # file is touched; the deny message names the way out.
-      if [ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && [ "$S/red-observed" -nt "$S/last-test-edit" ]; then ok=1; fi
-      if [ -n "$ok" ]; then
+      if [ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && [ "$S/red-observed" -nt "$S/last-test-edit" ]; then ok=red; fi
+      # The refactor leg's declared license: behavior-preserving edits behind an
+      # observed green. The declaration alone licenses nothing - without a counted
+      # green this session there is no gate behind the claim.
+      if [ -z "$ok" ] && [ -f "$S/refactor-license" ] && [ -f "$S/green-observed" ]; then ok=lic; fi
+      if [ "$ok" = "red" ]; then
         log "OK production write (red observed since last test edit): $prod"
+      elif [ "$ok" = "lic" ]; then
+        log "OK production write (refactor license: $(head -n 1 "$S/refactor-license" 2>/dev/null | tr -d '\r')): $prod"
       elif [ -f "$S/deny-enabled" ]; then
         log "DENY production write without observed red: $prod"
-        emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. Write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&&', '||' or pipes - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit."
+        emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&&', '||' or pipes - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING close-out edit (refactor, simplification, mutation testing) on a green slice: declare it instead - write one line naming the step and move to .git/sdlc-tdd/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review."
       else
         log "VIOLATION production write without observed red: $prod"
       fi
     fi
     # A test edit invalidates any earlier red: the new test needs its own observed red.
+    # It also revokes any refactor license - a new test is a new cycle, and a window
+    # declared for the last slice's close-out must not license this one's behavior.
     if [ -n "$test_touched" ]; then
       touch "$S/last-test-edit" 2>/dev/null
       log "test edit recorded (any earlier red is now stale)"
+      if [ -f "$S/refactor-license" ]; then
+        rm -f "$S/refactor-license" 2>/dev/null
+        log "refactor license revoked (a test edit starts a new cycle)"
+      fi
     fi
     exit 0 ;;
 

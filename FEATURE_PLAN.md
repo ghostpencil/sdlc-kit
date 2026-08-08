@@ -2046,3 +2046,29 @@ the `;` inside its `PATH` value, luck not design; (c) the deny message could car
 the last refusal reason; (d) disposal-intent reds (a red written to be deleted after
 licensing the write — observed in-session, `@SpyBean` on an internal bean against
 their mock policy) named as review-lens territory, not guard territory.
+
+**§40.1 — the refactor license, second same-day extraction on the owner's word
+(2026-08-08).** The S3 end-slice produced the fifth friction specimen, and the
+sharpest: during `change-simplify` the session derived the full synthetic-red recipe
+(edit test → red → revert → production edit, with timestamp-staleness analysis),
+briefly committed to it, then dropped its only candidate move as not worth the
+dance — observed by the owner in the reasoning stream, recorded into the adopter's
+friction log by hand, since the session's own reporting cannot see what it *almost*
+did. The structural gap none of (a)–(d) named: G1 encoded only one of TDD's two
+licenses — a fresh red for new behavior — and had nothing for the refactor leg,
+so the kit's own close-out passes (`change-simplify`, mutation testing) were either
+taxed into dropping legitimate moves or normalized into synthetic cycles (three
+consecutive slices). Fixed ahead of the retro report at the owner's direction: G1
+now also licenses a production write while `.git/sdlc-tdd/refactor-license` exists
+**and** a green has been observed this session — the session's own logged one-line
+declaration, revoked by a test edit, session-scoped, surviving reds on purpose
+(mutation reverts; G2 still refuses a red stop). A naive green-license was
+considered and rejected: the suite is green at the start of every cycle, so green
+alone would license test-last production code everywhere. Suite: 42 cases (was
+35), three new mutations (bare declaration must not license; revocation must not
+drop; no cross-session leak) — twelve total, green both dialects. CHANGELOG
+*Unreleased* under **Added**, adoption-only, hand-apply note; field-applied to
+ai-news-dashboard the same day (their `spec/SDLC.md` guard section, second
+same-day patch paragraph). Items (a)–(d) stay queued; (d)'s disposal-intent lens
+now has a smaller surface, since the honest path no longer prices worse than the
+synthetic one.

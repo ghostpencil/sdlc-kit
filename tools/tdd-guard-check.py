@@ -5,7 +5,7 @@ Two passes, and the second is the point:
 
   1. a unit pass driving every state transition of both guards, using payload shapes
      measured on the bench (FEATURE_PLAN.md 31.7) rather than invented ones;
-  2. a mutation pass that breaks the guard seven ways and requires the unit pass to
+  2. a mutation pass that breaks the guard twelve ways and requires the unit pass to
      notice each one. A suite that survives its own mutations is not testing the thing
      it claims to (invariant 13).
 
@@ -332,6 +332,54 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
               and "could not be counted" in (j.get("additionalContext") or ""),
               b.tail() + " | " + repr(out))
 
+        # The refactor license (2026-08-08 field): G1's second license - a declared
+        # behavior-preserving edit behind an observed green. Armed close-out passes
+        # (change-simplify, mutation testing) forced synthetic test-edit/red cycles or
+        # suppressed legitimate quality moves without it.
+        b.reset_state()
+        # Plant the session marker first: reset_state also removes it, and the guard's
+        # own new-session clear would otherwise delete the license before the case
+        # runs - which is the session-scoping case 31 proves, not this one.
+        io.open(os.path.join(b.state, "session"), "w").write(SID)
+        io.open(os.path.join(b.state, "refactor-license"), "w").write(
+            "change-simplify: drop the isNew flag\n")
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("27 a refactor license without a green licenses nothing",
+              "VIOLATION" in b.tail(), b.tail())
+
+        b.run("observe-test", shell(R, "python -m pytest", 0))
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("28 license + observed green -> OK, declared reason logged",
+              "refactor license: change-simplify: drop the isNew flag" in b.tail(),
+              b.tail())
+
+        # The mutation-testing shape: an expected red (the mutant caught) must not
+        # strand the revert - only a test edit or a new session ends the license.
+        b.run("observe-test", shell(R, "python -m pytest", 1))
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("29 license survives a red (mutation revert stays licensed)",
+              "OK production write (refactor license" in b.tail(), b.tail())
+
+        b.run("pre-write", write(R, [("Update", "tests/test_payments.py")]))
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("30 a test edit revokes the license -> VIOLATION",
+              "VIOLATION" in b.tail(), b.tail())
+        check("30b and the revocation is logged",
+              any("refactor license revoked" in l for l in b.loglines()))
+
+        b.reset_state()
+        io.open(os.path.join(b.state, "refactor-license"), "w").write("left over\n")
+        b.run("observe-test", shell(R, "python -m pytest", 0, sid="session-lic"))
+        b.run("pre-write", write(R, [("Update", "payments.py")], sid="session-lic"))
+        check("31 a license left by an earlier session licenses nothing",
+              "VIOLATION" in b.tail(), b.tail())
+
+        b.reset_state(); b.arm_deny()
+        out = b.run("pre-write", write(R, [("Update", "payments.py")]))
+        j = json.loads(out) if out.startswith("{") else {}
+        check("32 the deny message names both ways out (red cycle and refactor license)",
+              "refactor-license" in (j.get("permissionDecisionReason") or ""), repr(out))
+
         return failed
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -369,6 +417,18 @@ MUTATIONS = [
      "thrashes and probes instead of complying)",
      lambda s: s.replace('        emit_context "TDD ordering: that test run was NOT counted',
                          '        : "TDD ordering: that test run was NOT counted')),
+    ("drop the green requirement from the refactor license (a bare declaration "
+     "licenses with no gate behind it)",
+     lambda s: s.replace('[ -f "$S/refactor-license" ] && [ -f "$S/green-observed" ]',
+                         '[ -f "$S/refactor-license" ]')),
+    ("never revoke the refactor license on a test edit (the window outlives the "
+     "cycle it was declared for)",
+     lambda s: s.replace('        rm -f "$S/refactor-license" 2>/dev/null\n', '')),
+    ("leak the refactor license across sessions (survives the new-session clear)",
+     lambda s: s.replace(
+         'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
+         '"$S/refactor-license" 2>/dev/null',
+         'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" 2>/dev/null')),
 ]
 
 
