@@ -88,7 +88,10 @@ adopted: `disable-model-invocation` on a SKILL.md, offered there as the way to m
 skill user-typed-only, appears on no official page for skills (CLI skills how-to,
 create-skills, SDK skills, cheat sheet — all checked 2026-08-07), and the measured fate
 of undocumented skill frontmatter is silent ignoring (see *Models and tiers*: skill
-`model:`). If it ever tempts a batch, it is a bench probe first.
+`model:`). If it ever tempts a change, it is a bench probe first. Not adopted as a
+*kit mechanism*, to be precise: one vendored skill (`hypothesis-tests`) has carried
+the field since it was vendored — provenance, not adoption; `reference/SKILLS.md`
+records it, and on this CLI the expectation above is that it is silently ignored.
 
 Two `/skills` subcommands matter at install time (documented, verified 2026-08-07):
 `/skills reload` refreshes the skill listing mid-session — a just-installed skill can be
@@ -457,9 +460,9 @@ These bind anything the kit writes that must run on both CLIs, and all four fail
 
 ## Two operator levers the kit names but does not wire
 
-Both verified 2026-08-07. Both are levers in the R5.3 sense — things an operator may
-pull, which no kit command names as process — and each carries the reason it stays a
-lever, so a later batch does not promote it to a step without meeting that reason.
+Both verified 2026-08-07. Both are levers — things an operator may pull, which no kit
+command names as process — and each carries the reason it stays a lever, so a later
+change does not promote it to a step without meeting that reason.
 
 **`/rubber-duck` — an optional deepening, the `pr-review-toolkit` shape.** A built-in
 reviewer agent, GA since 2026-06-02 (changelog; the command is hyphenated), that

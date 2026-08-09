@@ -70,7 +70,8 @@ existing file becomes a shown merge plan, not a silent clobber.
    Dirty working tree in an existing repo → ask the owner to commit/stash first.
 5. Detect the mode: no source files beyond scaffolding/docs → **New Project**;
    otherwise **Existing Project**. Confirm the detection with the owner in the same
-   question round as steps 2–3's findings (AskUserQuestion). A forced-mode argument
+   question round as steps 2–3's findings (AskUserQuestion on Claude Code; plain
+   chat where the CLI lacks it). A forced-mode argument
    skips only the mode detection, not the confirmation of anything else — the target
    CLI is confirmed in this round whether or not the mode was forced.
 
@@ -306,7 +307,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    date, and resolve `{{HOOK_CONFIG_PATH}}` to name no file — the template's comment
    there says the same. `CLAUDE.md`'s hook sentence (the one carrying
    `{{HOOK_TOOLS}}`, `{{SOURCE_EXT}}`, and `{{HOOK_FEEDBACK_NOTE}}`) is replaced with
-   the same fact — the two files state the hook together and must fall together; a
+   the same fact — and so is the *Runtime Conventions* Enforcement sentence's "and
+   the edit-time hook" clause, the third home of the claim, which carries no
+   placeholder and so nothing else will flag: the three statements fall together; a
    CLAUDE.md describing a hook the project declined is the exact defect this branch
    exists to prevent, one file over. The canonical process file must never describe a check this
    project does not have; the gate then carries the whole load, and every slice close
@@ -375,9 +378,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      is licensed without a fresh red by declaring it, one line naming the step and
      move to `.git/sdlc-tdd/refactor-license`, valid only behind a counted green and
      revoked by the next test edit (*The TDD-ordering guards* in
-     `reference/GATE_RECIPES.md` is the full recipe) — because
-     nowhere else the session reads at slice time says them, and a session that
-     meets them first as an unexplained refusal probes the guard instead of complying
+     `reference/GATE_RECIPES.md` is the full recipe) — because the note is the
+     proactive statement of them: the guard's own messages say them only reactively,
+     at the refusal or counted run itself, and a session that meets them first as an
+     unexplained refusal probes the guard instead of complying
      (field, 2026-08-08). The note also says the stop guard is **session-scoped**
      (owner-decided 2026-08-08): it binds only a session that wrote production code
      or edited a test, so a planning, docs, or bookkeeping session stops clean by

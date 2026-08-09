@@ -5,9 +5,11 @@ Two passes, and the second is the point:
 
   1. a unit pass driving every state transition of both guards, using payload shapes
      measured on the bench (FEATURE_PLAN.md 31.7) rather than invented ones;
-  2. a mutation pass that breaks the guard fifteen ways and requires the unit pass to
-     notice each one. A suite that survives its own mutations is not testing the thing
-     it claims to (invariant 13).
+  2. a mutation pass that breaks the guard — one mutation per known regression, the
+     count derived from the MUTATIONS list at run time, never stated here (a hardcoded
+     count is the part that goes stale) — and requires the unit pass to notice each
+     one. A suite that survives its own mutations is not testing the thing it claims
+     to (invariant 13).
 
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/tdd-guard-check.py

@@ -99,7 +99,7 @@ one that passed.
 
 `jq` is no longer suggested as a substitute. It was only ever a note telling an adopter
 to hand-edit the body, it was never a shipped path, and it was never tested. The two
-dialects that replace it need no editing and were both exercised by the 44-case pass
+dialects that replace it need no editing and were both exercised by the proof pass
 recorded under *Hook dialects* below.
 
 ## The hook environment — measure it, do not assume it
@@ -243,14 +243,16 @@ lint output, and offline by the suite. One consequence for setup: the `.json` ta
 **no values** and is copied verbatim (only its `timeoutSec` number is ever edited);
 every placeholder now lives in the `.sh`.
 
-**Verified 2026-08-05** against the instantiated body of both dialects, 44 cases —
-every case run once under `python` and once under `node`, with `PATH` pinned to one at a
-time, because a dialect that is never exercised is not a dialect that was proven. The
-cases: `apply_patch`'s raw patch text, multi-file and delete-only patches, both payload
+**Verified 2026-08-09** against the instantiated body of both dialects — every case
+run once under `python` and once under `node`, with `PATH` pinned to one at a time,
+because a dialect that is never exercised is not a dialect that was proven; the case
+count is derived by the suite at run time, never stated here. The case classes:
+`apply_patch`'s raw patch text, multi-file and delete-only patches, both payload
 shapes (`toolArgs` and `tool_input`), absolute-Windows and repo-relative paths, a path
 containing a space, a non-source file, a payload with no path, a missing file,
-unparseable input, and neither interpreter present. Every silent case was also run
-dirty, so silence means something. That is the negative-case proof for the recipe
+unparseable input, neither interpreter present, output past the truncation cap, the
+launcher's boundary shape, and the Claude dialect's framed failure. Every silent case
+was also run dirty, so silence means something. That is the negative-case proof for the recipe
 itself; the per-project proof below is separate and still required. (The suite lives
 with the kit's development tooling, not in the bundle — an adopter runs the per-project
 proof, not this one.)
@@ -317,7 +319,8 @@ because the launcher boundary above corrupts anything richer when the hook shell
 the WSL launcher — the previous prelude (`$(cat)` plus backslash-carrying `sed`/`tr`
 deriving the root from the payload's `cwd`) came up empty on that route and **exited 0
 without running the guard, silently**, which is exactly the failure mode it was built
-to prevent. The natural experiment that confirmed the diagnosis: on one bench day, the
+to prevent. The natural experiment that confirmed the diagnosis: on one day on the
+bench (the kit's pre-release test rig — `reference/COPILOT.md`, *Provenance*), the
 only session that produced guard-log lines was the only one launched from Git Bash.
 The root now comes from the hook process's working directory (measured: the session's
 cwd, in the executing shell's own path flavour), which the script trusts only when a
@@ -352,9 +355,8 @@ hook layer and re-read *The hook environment* above.
 | Java | `src/test/*\|*Test.java\|*Tests.java` | `*mvn*test*\|*gradlew*test*` |
 | Rust | `tests/*\|*_test.rs` | `*cargo*test*` |
 
-**Key the command pattern on the test runner, never on a filename.** The bench (the
-kit's pre-release test rig — `reference/COPILOT.md`, *Provenance*) version
-matched `node test…` as adjacent words and was blind to `node .\test-x.js`, because the
+**Key the command pattern on the test runner, never on a filename.** The bench
+version matched `node test…` as adjacent words and was blind to `node .\test-x.js`, because the
 `.\` prefix sat between them. Wildcards spanning the runner and the word `test`
 (`*node*test*`) match every invocation form; a pattern anchored on a path does not.
 

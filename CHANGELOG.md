@@ -10,11 +10,11 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.19.1 — 2026-08-09
 
 The FBK batch (`FEATURE_PLAN.md` §44, owner-approved 2026-08-09): every hook's
 feedback audited against one criterion — usable context for the model, on failure
-*and* on success.
+*and* on success. Plus the pre-0.19.1 `/kit-check` fixes below.
 
 ### Added
 - **[adoption-only]** **Counted test observations are spoken, completing the 0.19.0
@@ -47,6 +47,38 @@ feedback audited against one criterion — usable context for the model, on fail
   exists to refuse, in its own output. The capped text now ends with
   `…[truncated by the gate hook at 8000 chars]`, inside the cap. `sdlc-gate.sh` is
   project-owned: hand-apply; the `.json` launcher is unchanged.
+
+### Fixed (pre-0.19.1 `/kit-check`)
+- **[installable]** **The update procedure now names the 0.19.0 and 0.19.1
+  hand-applies.** Neither release had a transition note despite seven
+  hand-apply-bearing changes between them — the first hook-changing releases to
+  skip the 0.16.x/0.18.0 precedent. `sdlc-update.md` step 5 and the root README's
+  update section now carry a combined note (four 0.19.0 guard fixes, three 0.19.1
+  hook-feedback fixes, all template-diff hand-applies, launchers unchanged), and
+  the README's "adoption-only… affects new adoptions, not yours" claim now states
+  the standing exception: template changes to project-owned files reach existing
+  projects only by hand.
+- **[installable]** **CLI-specific tools are no longer asserted as universal.**
+  `AskUserQuestion` (a Claude Code tool, absent from `COPILOT.md`'s mapping) is
+  qualified per-CLI at its six sites in four commands; `end-slice.md`'s commit
+  step names both CLIs' multi-line literal forms (heredoc on a POSIX shell tool,
+  here-string on PowerShell) instead of prescribing "the Bash tool with a
+  heredoc"; `sdlc-setup.md`'s no-hook branch now names the third home of the
+  edit-time-hook claim (`CLAUDE.md`'s *Runtime Conventions* Enforcement clause),
+  which carries no placeholder and so nothing else flags — a declined-hook
+  adoption would otherwise ship a CLAUDE.md asserting edit-time enforcement that
+  does not exist.
+- **[adoption-only]** **Reference-doc reconciliations.** `COPILOT.md`'s
+  unresolvable "R5.3" batch reference removed; the `disable-model-invocation`
+  tension settled from in-tree history (the field arrived with the vendored
+  `hypothesis-tests` copy — `SKILLS.md` now records it and its per-CLI meaning,
+  `COPILOT.md` scopes "deliberately not adopted" to kit mechanism);
+  `GATE_RECIPES.md`'s dated proof paragraph re-stamped 2026-08-09 count-free (it
+  certified a body 0.19.1 rewrote — the 0.16.0 specimen recurring) and the bench
+  anchored at first use; the guard-note rationale in `SDLC.template.md` and setup
+  updated for a guard that now speaks (the note is proactive, the guard's
+  messages reactive); the guard suite's hardcoded "fifteen ways" corrected to
+  derived-only.
 
 ## 0.19.0 — 2026-08-08
 

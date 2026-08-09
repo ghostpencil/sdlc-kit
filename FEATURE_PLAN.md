@@ -2394,3 +2394,58 @@ fail against the unmodified artifacts before either hook changed.
   (every touched artifact is project-owned). The 0.19.0 CHANGELOG entry's "counted
   runs stay silent" stands as history; the new entry names itself the completion of
   that fix.
+
+---
+
+## 45. The pre-0.19.1 `/kit-check` — run 2026-08-09; nine findings fixed in-session
+
+Full pass: four mechanical checks inline (inv 9 clean, 61 tracked files; inv 10
+clean, 36 entries = bundle minus manifest, zero mismatches; inv 4 clean, `{{` in
+`sdlc-setup.md` only with the exit-check scope exact; inv 6 delegated — 77 step
+references plus 4 §-forms, all verified, zero stale), the eleven reading invariants
+fanned to four read-only readers, every reader finding re-verified against the tree
+before any edit. Invariants 2, 3, 5, 7 pass clean — inv 2 in both directions across
+the full claim table, inv 3 with all 48 placeholders mapped and the FBK batch
+confirmed placeholder-neutral against the diff.
+
+The findings, all fixed in-session:
+
+- **Inv 8, the pass's largest:** no transition note existed for 0.19.0's four guard
+  hand-applies or FBK's three — the first hand-apply-bearing releases to skip the
+  0.16.x/0.18.0 precedent — and the root README's "adoption-only… affects new
+  adoptions, not yours" was false for exactly those entries, in the direction that
+  stops the reader looking. Fixed in both homes: a combined 0.19.0/0.19.1 note in
+  `sdlc-update.md` step 5 and the README's update section, and the adoption-only
+  claim now states the project-owned-file exception.
+- **Inv 1:** `AskUserQuestion` — a Claude Code tool absent from `COPILOT.md`'s
+  mapping — named unconditionally at six sites in four commands (qualified per-CLI
+  at first use); `end-slice.md`'s commit step prescribed "the Bash tool with a
+  heredoc", unexecutable on Copilot's measured `powershell` shell tool (now names
+  both CLIs' literal forms).
+- **Inv 11:** `hypothesis-tests/SKILL.md` carries `disable-model-invocation: true`
+  while `COPILOT.md` called the field "deliberately not adopted" and `SKILLS.md`
+  recorded nothing. Settled from in-tree history: present since the initial
+  vendoring commit — provenance, not adoption. `SKILLS.md` now records the field
+  and its per-CLI meaning; `COPILOT.md` scopes its claim to "kit mechanism".
+- **Inv 12:** `COPILOT.md`'s "levers in the R5.3 sense" — a kit-development batch
+  number unresolvable in the bundle — removed. The FBK batch's own four bundle
+  files came back clean, and the bench anchor moved to its first use in
+  `GATE_RECIPES.md`.
+- **Inv 13:** the guard suite's docstring said "fifteen ways" over 17 mutations —
+  FBK's own stale count, in the batch that restated the derived-counts rule; the
+  count is now derived-only. `GATE_RECIPES.md`'s dated 2026-08-05 proof paragraph
+  certified a body FBK.4 had rewritten (the §31.15 specimen recurring) —
+  re-stamped 2026-08-09, count-free, with the new case classes named.
+- **Inv 15:** `CLAUDE.template.md`'s *Runtime Conventions* Enforcement sentence is
+  a third home of the edit-time-hook claim that setup's no-hook fall-together
+  branch never named (it carries no placeholder, so nothing else flags it) — on a
+  declined-hook adoption the instantiated file would assert edit-time enforcement
+  that does not exist. Setup's branch now names all three homes.
+- **Inv 2 observation, fixed template-first:** the guard-note rationale "nowhere
+  else the session reads at slice time says them" went stale the moment FBK made
+  the guard speak; both homes now state the real division — the note is proactive,
+  the guard's messages are reactive.
+
+**0.19.1 released same session** — VERSION, CHANGELOG (Unreleased folded into the
+release section), manifest regenerated from staged content in the release commit,
+all four workflow gates simulated locally before the tag.

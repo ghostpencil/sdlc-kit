@@ -24,7 +24,8 @@ slice touches their area.
 
 ### 2. Confirm scope — the ONE owner halt
 
-Ask one question (AskUserQuestion): the slice you propose to do, its exit criteria in a
+Ask one question (AskUserQuestion on Claude Code; plain chat where the CLI lacks
+it): the slice you propose to do, its exit criteria in a
 sentence or two, and what it deliberately does NOT include — plain-English bullets per
 the hand-back standard (`spec/SDLC.md`, *Owner halt points*), the decision explicitly
 marked. Offer the next-best alternative

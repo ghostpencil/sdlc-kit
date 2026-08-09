@@ -30,7 +30,8 @@ scope/feature spec if one exists. Context-minimization rule applies.
 
 Present the candidate phases (roadmap order, deferred backlog pressure, anything the
 owner raised) with a recommendation and a one-line value statement each — plain-English
-bullets per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). AskUserQuestion.
+bullets per the hand-back standard (`spec/SDLC.md`, *Owner halt points*).
+AskUserQuestion (on Claude Code; plain chat where the CLI lacks it).
 Record the choice as OWNER-DECIDED with the date.
 
 ### 3. Requirements interview — grill in rounds

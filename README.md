@@ -285,7 +285,10 @@ upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 gone), and — on Copilot projects — `templates/explore.agent.template.md`, which is
 copied verbatim rather than instantiated because it carries no placeholders. A kit release that changes only
 the non-installed templates and reference docs is an adoption-only change — it affects new
-adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
+adoptions, not yours, **with one standing exception**: a template change to a
+project-owned file you instantiated (the hook scripts, the spec files) reaches you
+only as a hand-apply, and the per-version transition notes name each one.
+`CHANGELOG.md` marks each entry accordingly.
 
 ### The procedure
 
@@ -505,6 +508,14 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    old hook reported a **false** "no JSON parser" on every edit — if you have seen
    that message with python installed, this is why. Re-run the proof step after: a
    deliberate lint error must produce hook feedback.
+
+   **0.19.0 and 0.19.1 change hook behavior, all of it by hand** — four TDD-guard
+   fixes in 0.19.0 (the declared refactor license, spoken refusals, the single-`&`
+   separator fix, G2 session scoping) and three hook-feedback fixes in 0.19.1
+   (spoken counted observations, the gate's truncation marker, and — Claude Code —
+   the framed lint failure in `.claude/settings.json`). All live in project-owned
+   files; apply as template diffs per the update command's notes. The `.json`
+   launchers are unchanged throughout.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,

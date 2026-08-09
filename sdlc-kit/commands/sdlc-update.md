@@ -398,6 +398,23 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   hook-environment probe here too: the 0.16.0 note's probe instruction is standing at
   every hook-touching crossing, not a one-release step, and this restructure exists
   because the probe's answer is per-launcher.
+- **0.19.0 and 0.19.1 change hook-script behavior, and every change arrives by hand —
+  the files are project-owned.** 0.19.0 carries four TDD-guard fixes in
+  `sdlc-tdd-guard.sh`, each named in the CHANGELOG with its reason: the declared
+  refactor license (G1's second license — without it, armed close-out passes force
+  synthetic test-edit/red cycles), the spoken refusal (an uncounted run says so
+  in-context instead of only logging), the single-`&` separator fix (a single-`&`
+  compound could record a false observation), and G2's session scoping (a session
+  with no production write and no test edit stops clean). 0.19.1 adds three more,
+  one per hook: `sdlc-tdd-guard.sh` speaks counted RED/GREEN observations as state
+  facts; `sdlc-gate.sh` marks truncated output so clipped lint feedback cannot read
+  as complete; and — Claude Code — `.claude/settings.json`'s gate hook frames its
+  lint failure (hook named, file named, expectation stated) instead of emitting raw
+  linter output. Apply each as a template diff against the project's instantiated
+  copy, the way the G1 fix was in 0.16.1; the `.json` launchers are unchanged
+  throughout. State at the halt which of these are still pending — a guard note
+  describing 0.19.x semantics over a script still running 0.18.0 behavior
+  misdescribes the project in the direction that hides fixes.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

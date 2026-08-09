@@ -108,6 +108,11 @@ directory tells them apart, so they are copied as directories, never as files.
 - `hypothesis-tests/SKILL.md` — verbatim from
   [honnibal/claude-skills](https://github.com/honnibal/claude-skills)
   (`hypothesis-tests.md.txt`), **MIT license**. Verified 2026-07-19 (one-word diff).
+  The frontmatter carries `disable-model-invocation: true`, present since vendoring
+  (in-tree history, checked 2026-08-09) — on Claude Code that documented field makes
+  the skill user-typed-only; on Copilot CLI it is undocumented and expected to be
+  silently ignored (`reference/COPILOT.md`, which also states the kit adopts the
+  field as no mechanism of its own).
 - `mutation-testing/SKILL.md` — condensed derivative of the same repo's
   `mutation-testing.md.txt` (**MIT**): same structure, terminology ("3–8 mutations",
   never-stack/always-revert rules, diagnostic-quality ratings, mutation score), and

@@ -188,7 +188,9 @@ the gate, and any new guard joins step 5's mutation obligation.
 
 ### 7. Commit the slice
 
-Use the Bash tool with a heredoc for the message (never shell-specific here-strings).
+Write the multi-line message in the shell tool's own literal form — a heredoc on a
+POSIX shell tool (Claude Code's Bash), a single-quoted here-string on a PowerShell
+one (Copilot's measured shell tool) — never a form the executing shell does not parse.
 Subject line in the project's own convention where one is recorded; the shape below
 is the kit's default (`spec/SDLC.md` states the rule):
 

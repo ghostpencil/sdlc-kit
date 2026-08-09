@@ -135,7 +135,8 @@ owner is about to be asked to interpret it.
 
 ### 3. Owner interview — rounds of ≤4 questions
 
-AskUserQuestion in rounds, each round informed by the last, until a full round surfaces
+AskUserQuestion (on Claude Code; plain chat where the CLI lacks it) in rounds, each
+round informed by the last, until a full round surfaces
 nothing new. Lead with what the sweeps found — "the backlog shows X three times, was
 that friction or noise?" beats an open-ended prompt. Cover, minimum:
 
