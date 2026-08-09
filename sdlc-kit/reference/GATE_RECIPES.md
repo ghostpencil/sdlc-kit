@@ -513,7 +513,8 @@ Mechanical enforcement for the conventions recorded in the project's `CLAUDE.md`
 the **linter's own config**, so the gate and the edit-time hook enforce it with no new
 command. The match-reality rule above applies here too: check what the project's
 linter config already enables before proposing anything, and on an existing project
-measure each proposed rule's current violation count first — the owner adopts a rule
+measure each proposed rule's current violation count first, stating the shell the
+count was measured in beside it — the owner adopts a rule
 knowing its cost, and the violations a newly adopted rule surfaces land in the
 recorded gate baseline, never in a setup-time fix spree.
 

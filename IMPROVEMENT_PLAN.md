@@ -931,3 +931,30 @@ the surface explicitly, 2026-08-07).
    to the pre-write path for a message the session has already seen. Revisit only if
    a field report shows a session missing the spoken refusal and thrashing at the
    deny anyway.
+
+## 13. Deferred from the pre-0.19.0 `/kit-check` — recorded 2026-08-08
+
+Reading-pass findings whose fixes need a decided reconcile shape rather than a
+sentence; each carries its revisit condition.
+
+1. **`{{CI_DESCRIPTION}}` is a recorded claim with no reconcile step (inv 14).**
+   `spec/SDLC.md`'s "The same checks run in CI (…)" line is written at setup and
+   never re-compared against the workflow file; the gate-dependency rule covers
+   additions only, and the CI-authoritative rule reconciles results, not command
+   lists. Fix shape to decide: a claim-only marker in the template, or a phase-end
+   reconcile bullet. Revisit when a field report shows the line drifting from the
+   workflow, or whenever `/end-phase` bookkeeping is next reshaped.
+2. **The hook-timeout basis and `timeoutSec` have no reconcile (inv 14).** Setup
+   records the measured timing basis in `spec/SDLC.md` while the enforcing value
+   lives in the launcher JSON — the one file a later hand-edit is sanctioned to
+   touch — and nothing re-compares them. Same fix-shape question as item 1.
+   Revisit alongside it.
+3. **The per-project TDD-guard proof exercises two of the guard's three licenses
+   (inv 13, residue).** `sdlc-setup.md` step 6's in-project proof still proves the
+   original two negative cases (unlicensed write, red stop); the refactor-license
+   leg is proven offline against the template only. Judged acceptable because the
+   license logic carries no project placeholders, but that is a judgment, not a
+   proof. Revisit if a field report shows the license misbehaving in an adopted
+   project, or when the proof step is next edited. Kin: the setup exit check's
+   `{{` grep is described as the catch but never demonstrated to fire on a planted
+   placeholder — same class, same revisit.

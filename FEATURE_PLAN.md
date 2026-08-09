@@ -2182,3 +2182,59 @@ G2's rules — the guard header, GATE_RECIPES' G2 bullet, and the
 `{{TDD_GUARD_NOTE}}` required content (template comment + setup bullet, inv 2's
 both-sides rule). CHANGELOG *Unreleased* under **Fixed**, adoption-only with the
 hand-apply note — existing guard-running adoptions now owe three hand-applies.
+
+---
+
+## 43. The pre-0.19.0 `/kit-check` — run 2026-08-08; fifteen findings fixed
+## in-session, three deferred with a record, five discarded with reasons
+
+Full pass, fanned out as six read-only agents over the eleven reading invariants,
+mechanical checks run inline, every agent finding verified against the source before
+any edit. Mechanical: inv 9 clean (tree matches, `sdlc-kit-process-flow.md`
+included); inv 10 stale-as-expected (six bundle files since 0.18.0; regenerated in
+the release commit as every release does); inv 4 clean (`{{` in `sdlc-setup.md`
+only, exit-check scope exact); inv 6 delegated and clean (76 references, all
+correct).
+
+**The converged finding — three agents, three directions, one gap:** the refactor
+license (§40.1) was stated nowhere a session reads at slice time. The
+`{{TDD_GUARD_NOTE}}` required content claimed to exist for exactly that purpose and
+named only two rules; setup's re-offer trade-off and `sdlc-update.md`'s 0.16.0
+re-offer bullet still described pre-license, pre-scoping semantics ("block a stop
+while the suite is red" — wrong denominator, no scoping); and the disposal-intent
+lens pointed reviewers at the guard note for license content the note was never
+told to carry. Fixed at the root: the note's required content is now three rules
+plus the mode flag file, per-clone caveat, and proof record (template comment +
+setup bullet, inv 2's both-sides rule); both stale descriptions rewritten to the
+current semantics.
+
+**Also fixed:** the §41 disposal-intent trigger added to `SDLC.template.md`'s lens
+list (it was in `end-slice.md` only — the canonical file was the one missing it);
+`/code-review` qualified Claude-Code-only in `end-slice.md`; commit recipe states
+project-convention-wins; `next-slice.md`'s merge-drift gate run cites the recorded
+definition; setup's close-out URL → the recorded *Kit home repository* line; the
+Agent CLI present-but-wrong check in `sdlc-update.md` + root README (a recorded CLI
+the artifacts contradict is a finding — the absent case was already handled, the
+wrong case was trusted silently); root README step 6's "only lines" claim now
+admits accepted-offer artifact writes and carries the do-them-last rule; bundle
+README's project-owned list gains the ledger hook; the "four `{{HOOK_*}}`" count
+corrected in `CLAUDE.md` + `KIT_INVARIANTS.md` (eight in the table plus two prose);
+the retro's ledger-alive precheck added to inv 13's denominator list (ledger +
+`/kit-check`'s copy, now "as of 0.19.0"); mutation check names its environment in
+both homes; setup's final gate and measured violation counts name their shell;
+`change-verify`'s re-entry pointer names step 3.
+
+**Deferred with a record** (`IMPROVEMENT_PLAN.md` §13): `{{CI_DESCRIPTION}}` has no
+reconcile step (inv 14); the hook-timeout basis vs `timeoutSec` has none (inv 14);
+the per-project guard proof exercises two of three licenses, offline covers the
+third (inv 13 residue, kin: the exit-check grep never demonstrated to fire).
+
+**Discarded with reasons:** README step-6 "exception lacking" (partially refuted —
+the offer-answer exception was present; the artifact half was real and fixed);
+SKILLS.md line 8's "vendored from public repos" tension (self-corrects in the same
+file; notices agree); the hypothesis-tests frontmatter "verbatim" question
+(unverifiable offline; the one-word-diff record stands); Dungeon-Daddy examples in
+the vendored tdd-references (divergence recorded — compliant; upstream-adaptation
+choice, not drift); SKILLS.md's Dungeon Daddy mention (illustrative, harmless).
+
+Released same session as 0.19.0.

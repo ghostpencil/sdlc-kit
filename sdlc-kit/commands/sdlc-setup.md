@@ -335,8 +335,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    TDD-ordering guards* in `reference/GATE_RECIPES.md` is the recipe; `COPILOT.md`
    records why they exist on that CLI and not the other. Put the choice to the owner
    with its trade-off stated: the guards make TDD ordering mechanical rather than
-   advisory (deny a production write with no failing test observed; block a stop while
-   red), at the cost of two more hook files and a guard that can be wrong about which
+   advisory (deny a production write outside TDD's two licenses — an observed fresh
+   red, or a declared behavior-preserving refactor edit behind a counted green; refuse
+   a stop from a coding session that has no counted green or ended red), at the cost
+   of two more hook files and a guard that can be wrong about which
    commands are test runs. Default to offering, not to installing. If accepted:
    - `tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh` and
      `tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.json`. The JSON takes no
@@ -365,11 +367,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      environment above before adjusting anything else.
    - Record the outcome as `{{TDD_GUARD_NOTE}}` in `spec/SDLC.md`: installed or not,
      which CLI they run on, logging or deny mode, and the proof you just ran. **When
-     installed, the note also states the two rules the guards impose on a coding
+     installed, the note also states the three rules the guards impose on a coding
      session** — a test run registers only as a single bare command (no `;`, `&` or
-     `|`; flags and single-test selectors are fine), and the stop guard's green is
-     any counted green, full-suite assurance being the end-slice gate's job — because
-     nowhere else the session reads at slice time says either, and a session that
+     `|`; flags and single-test selectors are fine); the stop guard's green is
+     any counted green, full-suite assurance being the end-slice gate's job; and a
+     behavior-preserving close-out edit (refactor, simplification, mutation testing)
+     is licensed without a fresh red by declaring it, one line naming the step and
+     move to `.git/sdlc-tdd/refactor-license`, valid only behind a counted green and
+     revoked by the next test edit (*The TDD-ordering guards* in
+     `reference/GATE_RECIPES.md` is the full recipe) — because
+     nowhere else the session reads at slice time says them, and a session that
      meets them first as an unexplained refusal probes the guard instead of complying
      (field, 2026-08-08). The note also says the stop guard is **session-scoped**
      (owner-decided 2026-08-08): it binds only a session that wrote production code
@@ -490,7 +497,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    conventions, resolving `{{LOGGING_CONVENTIONS}}`/`{{ERROR_CONVENTIONS}}` in the
    merged `CLAUDE.md` per New mode Round 3's *runtime-conventions ask*, and propose
    the *Runtime-standards rules* delta with each rule's **measured** current violation
-   count — the owner adopts a rule knowing its cost, and the violations a newly
+   count, the shell it was measured in stated beside it — the owner adopts a rule
+   knowing its cost, and the violations a newly
    adopted rule surfaces land in step 4's measured baseline, never in a setup-time fix
    spree — and the **model policy** — same poll,
    same recording rules as New mode Round 3 (`{{MODEL_POLICY}}` in `spec/SDLC.md`;
@@ -560,7 +568,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    instantiated files explicitly; a check whose scope drifted with the install path is
    a check that stopped covering the file it was written for.
    Every other installed file is `{{`-free and stays that way. Re-run the gate one
-   final time (New mode: must be green).
+   final time (New mode: must be green in this session's shell — the scope the
+   baseline record names).
 2. Ask the owner: commit the setup? If yes — New mode: initial commit; Existing mode:
    a `chore/adopt-sdlc` branch and a normal PR (the team should see this land like any
    change). Never commit without asking.
@@ -572,8 +581,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the handoff — **`/clear`, then `/plan-phase`** (New, or Existing with a green gate)
    or **`/clear`, then `/next-slice`** on the STABILIZATION backlog (Existing, red
    gate). Point the team at the onboarding checklist in `sdlc-kit/reference/SKILLS.md`,
-   and at the kit's home repo (<https://github.com/ghostpencil/sdlc-kit>) for the full
-   process overview.
+   and at the kit's home repository — the *Kit home repository* line just written into
+   `spec/SDLC.md`, never a guessed URL — for the full process overview.
 
 ## Notes
 

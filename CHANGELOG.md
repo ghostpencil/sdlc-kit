@@ -10,7 +10,46 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.19.0 — 2026-08-08
+
+### Fixed (pre-0.19.0 `/kit-check` batch)
+- **[installable]** **The guard descriptions sessions actually read caught up with
+  the guard.** `sdlc-update.md`'s re-offer bullet still described the 0.16.0
+  semantics ("deny a production write when no failing test has been observed, and
+  block a stop while the suite is red") — wrong on the refactor license, the
+  any-counted-green denominator, and session scoping, and it is the text an owner
+  reads when deciding the re-offer. Also in the same batch: `end-slice.md` qualifies
+  `/code-review` as Claude Code only (its `end-phase.md` sibling always did) and
+  states the project-convention-wins rule at the commit recipe; `next-slice.md`'s
+  merge-drift gate run points at the recorded definition and baseline;
+  `sdlc-update.md` and the root README now treat a recorded *Agent CLI:* line the
+  repo's own artifacts contradict as a finding, not a value to proceed on;
+  `sdlc-setup.md`'s close-out points at the recorded *Kit home repository* line
+  instead of a hardcoded URL, qualifies its final gate run and measured violation
+  counts with the shell they ran in; `change-verify`'s re-entry pointer names the
+  step that runs (3), not just the one that specifies (2).
+### Changed (pre-0.19.0 `/kit-check` batch)
+- **[adoption-only]** **The guard note's required content now states all three
+  licenses-and-rules, and the disposal-intent trigger reached the canonical file.**
+  Three findings converged on the same gap: the refactor license was documented
+  only in GATE_RECIPES (not installed) and the guard's own deny message, while the
+  `{{TDD_GUARD_NOTE}}` required content — whose stated purpose is "nowhere else the
+  session reads at slice time says them" — never mentioned it, and the
+  disposal-intent lens pointed reviewers at the note for exactly that content. The
+  note's required content (template comment + setup bullet) now carries the third
+  rule, the mode-deciding flag file, the per-clone caveat, and the proof record;
+  `SDLC.template.md`'s slice-loop lens-trigger list gains the §41 disposal-intent
+  trigger `end-slice.md` already had (the direction that mattered: the canonical
+  file wins, and it was the one missing the newest lens); the mutation check names
+  its environment (the session's shell, the gate's own scope) in both homes.
+  Root-doc side, not shipped: the stale "four `{{HOOK_*}}`" count in `CLAUDE.md` and
+  `KIT_INVARIANTS.md` (GATE_RECIPES documents eight plus two prose ones), the
+  retro's ledger-alive precheck added to invariant 13's denominator list, the root
+  README's update step 6 acknowledging accepted-offer artifact writes with the
+  do-them-last rule, and the bundle README's project-owned enumeration gaining the
+  0.18.0 ledger hook. Three design-shaped findings deferred with revisit conditions
+  (`IMPROVEMENT_PLAN.md` §13); five discarded with reasons recorded in
+  `FEATURE_PLAN.md` §43.
 
 ### Added
 - **[adoption-only]** **The TDD guard's declared refactor license — the second TDD

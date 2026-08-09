@@ -48,6 +48,11 @@ unavoidable, record the version change against the affected slices in
   such line — infer it from what the repo holds (`.claude/settings.json` vs
   `.github/hooks/`), state the inference to the owner, and have them confirm it; the
   update writes the line as part of landing, so the next update reads rather than infers.
+  When the line is present, glance at the same evidence anyway: a recorded CLI the
+  repo's own artifacts contradict (a `Copilot CLI` line beside no `.github/`
+  install, a `Claude Code` line beside no `.claude/`) is a finding for the owner
+  before anything is copied, never a value to proceed on — every later step trusts
+  this line.
 - The target is the argument, or the newest release tag.
 - No stamp, or a stamp reading `unknown (pre-0.2.0)` → the project predates manifests.
   Clone the kit repo (step 2) and follow the *No version stamp* section of its root
@@ -285,8 +290,11 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   fix for them. Claude Code projects are unaffected.
 - **0.16.0 adds the optional TDD-ordering guards, Copilot CLI only — and every update
   from here on checks whether this project was ever offered them.** Two hook files
-  (`.github/hooks/sdlc-tdd-guard.sh` and `.json`) that deny a production write when no
-  failing test has been observed, and block a stop while the suite is red. They are
+  (`.github/hooks/sdlc-tdd-guard.sh` and `.json`) that deny a production write outside
+  TDD's two licenses (an observed fresh red since the last test edit, or a declared
+  behavior-preserving refactor edit behind a counted green) and refuse a stop from a
+  coding session while no counted green has been observed or the latest observed run
+  is red. They are
   **not** part of the automatic new-files clause: they are project-owned, optional, and
   carry this project's own test patterns, so nothing is installed without the owner's
   word. Decide from two pieces of evidence, in this order:

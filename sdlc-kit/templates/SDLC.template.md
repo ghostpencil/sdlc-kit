@@ -203,15 +203,23 @@ setup: {{HOOK_ENVIRONMENT}}
 {{TDD_GUARD_NOTE}}
 <!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
      are installed, which CLI they run on, and whether they are in logging or deny mode.
-     When installed, the note also states the two rules the guards impose on a coding
-     session, because nowhere else the session reads at slice time says either (field,
+     When installed, the note also states the three rules the guards impose on a coding
+     session, because nowhere else the session reads at slice time says them (field,
      2026-08-08 — a session that met them first as unexplained refusals thrashed and
      probed the guard instead of complying): a test run registers only as a single bare
-     command — no `;`, `&` or `|`; flags and single-test selectors are fine — and the
+     command — no `;`, `&` or `|`; flags and single-test selectors are fine; the
      stop guard's green is ANY counted green, full-suite assurance being the end-slice
-     gate's job, not the backstop's. The stop guard is session-scoped (owner-decided
+     gate's job, not the backstop's; and a behavior-preserving close-out edit (refactor,
+     simplification, mutation testing) is licensed without a fresh red by declaring it —
+     one line naming the step and move to `.git/sdlc-tdd/refactor-license`, valid only
+     behind a counted green, revoked by the next test edit, every write under it
+     logged. The stop guard is session-scoped (owner-decided
      2026-08-08): it binds only a session that wrote production code or edited a test,
-     so a planning, docs, or bookkeeping session stops clean by construction.
+     so a planning, docs, or bookkeeping session stops clean by construction. The note
+     also names the artifact that decides the mode (`.git/sdlc-tdd/deny-enabled`,
+     present means deny — arming or disarming means updating the line), records the
+     proof run that was made to fail, and says `.git/` is per-clone: the flag, state,
+     and log describe the machine that wrote the note, not this checkout.
      If they were declined, it says so WITH THE DATE — it does not delete this line. A
      missing line and a declined offer are different facts: /sdlc-update re-offers the
      guards when this project never had the choice, and must not badger an owner who
@@ -357,8 +365,11 @@ Run `/end-slice` when the slice's exit criteria are met:
    propagation, added a catch or failure path or logging around one, swept for a
    pattern or wrote a script or check whose output will be trusted, touched an
    object that outlives a request or is reachable from more than one, took in outside
-   data or passed it to an interpreter, or touched credentials or an externally
-   reachable surface or added logging or error output near either). The review is **read-only in the shared tree** —
+   data or passed it to an interpreter, touched credentials or an externally
+   reachable surface or added logging or error output near either, or added a test
+   the slice itself then deleted, skipped, or gutted — or, under armed TDD-ordering
+   guards, added a test reaching into internals the mock policy fences
+   off). The review is **read-only in the shared tree** —
    the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
    fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that
@@ -373,7 +384,8 @@ Run `/end-slice` when the slice's exit criteria are met:
    reason, or raised to the owner — and the hand-back names the discards.
 8. Mutation check: every new guard, branch, or error path this slice added is deleted
    or inverted once and the suite watched to fail on exactly the intended test
-   (mutation-testing skill for anything beyond a quick delete-and-run). A check is
+   (mutation-testing skill for anything beyond a quick delete-and-run; the runs happen
+   in the session's shell, the gate's own scope). A check is
    trustworthy only once it has been made to disagree; the step is done when every new
    guard has been seen to fail on exactly its own test. The one-line outcome
    (`mutation: <N guards, each seen to fail | none — no new guards>`) is recorded in

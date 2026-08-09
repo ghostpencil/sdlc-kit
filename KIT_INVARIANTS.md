@@ -47,8 +47,9 @@ was found by a human noticing two files disagreed.
 
 ## 3. Every template placeholder is resolved by setup — semantically
 
-Every `{{PLACEHOLDER}}` in `templates/` (plus the four `{{HOOK_*}}`/`{{SOURCE_GLOB}}`
-ones documented in `reference/GATE_RECIPES.md`) must be resolved by a question or step in
+Every `{{PLACEHOLDER}}` in `templates/` (plus the hook and guard ones documented in
+`reference/GATE_RECIPES.md` — `{{HOOK_*}}`, `{{SOURCE_GLOB}}`, `{{TEST_PATH_PATTERN}}`,
+`{{TEST_CMD_PATTERN}}`) must be resolved by a question or step in
 `sdlc-setup.md`. This is **not** a name match: when this was measured at B0, only 8 of
 the 32 placeholders then present were named verbatim in setup; the rest are asked for in
 other words (`{{GATE_LINT_CMD}}` comes from "linter", `{{RUN_COMMAND}}` from "how the
@@ -183,7 +184,8 @@ installed a kit-development command into every adopting project (plan, B6 hand-o
 
 Any check this kit specifies or ships — the isolation harness, the edit-time hook, the
 hook-environment probe, the TDD-ordering guards' proof step and their logging-to-deny
-ramp, the skill-activation ledger's proof step, the skills-listing check, the exit
+ramp, the skill-activation ledger's proof step, the retro's ledger-alive precheck, the
+skills-listing check, the exit
 checks, the coverage-floor establishment proof, the deploy verification, the update
 classifier, the release workflow's manifest
 verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is

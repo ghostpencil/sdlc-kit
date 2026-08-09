@@ -90,7 +90,8 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
   genuinely a separate arc or an urgent hotfix (the one sanctioned second branch —
   `spec/SDLC.md` *Shape* defines its path).
 - If the main branch has moved since the arc branched (a hotfix landed), merge it into
-  the arc branch and re-run the gate before starting the slice — drift is cheapest to
+  the arc branch and re-run the gate (as `spec/SDLC.md` defines it, against its
+  recorded baseline) before starting the slice — drift is cheapest to
   absorb here, one slice at a time, not at phase end.
 - If there is no arc branch yet, create one off the up-to-date main branch:
   `feat/phase-NN-<slug>` (BUILD) or `chore/cleanup-<arc-theme>` (STABILIZATION — name

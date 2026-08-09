@@ -68,9 +68,10 @@ THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-p
 **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything `/sdlc-setup` writes into your project
 (`CLAUDE.md`, `spec/*.md`, the gate hook — `.claude/settings.json` on Claude Code,
-`.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` on Copilot CLI — and the optional
+`.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` on Copilot CLI — the optional
 TDD-ordering guards,
-`.github/hooks/sdlc-tdd-guard.*`) is **project-owned** and is never
+`.github/hooks/sdlc-tdd-guard.*`, and the optional skill-activation ledger hook,
+`.github/hooks/sdlc-skill-ledger.json`) is **project-owned** and is never
 overwritten by an update — it holds your recorded gate baseline, owner decisions, and
 gotchas. The trade-off is worth knowing: a fix to a *recipe* in a later release reaches
 those files only as a changelog entry you apply by hand.

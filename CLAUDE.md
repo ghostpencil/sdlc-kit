@@ -96,8 +96,8 @@ them. The six below are the working summary; on disagreement the ledger wins.
    files, because the installed `sdlc-setup.md` legitimately names placeholders.
    Adding a placeholder to a template without teaching `sdlc-setup.md` to ask for it
    breaks that check. Current set spans `templates/` and the hook recipe in
-   `reference/GATE_RECIPES.md` (which documents the four `{{HOOK_*}}`/`{{SOURCE_GLOB}}`
-   ones).
+   `reference/GATE_RECIPES.md` (which documents the hook and guard ones —
+   `{{HOOK_*}}`, `{{SOURCE_GLOB}}`, `{{TEST_PATH_PATTERN}}`, `{{TEST_CMD_PATTERN}}`).
 2. **`SDLC.template.md` wins.** It says so itself: if a command and the SDLC file
    disagree, the file is right and the command is the bug. A process change therefore
    usually touches the template *and* one or more commands — check both.

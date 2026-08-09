@@ -80,7 +80,8 @@ those — and **Standards** — does it follow the conventions recorded in `CLAU
 `.claude/skills/diff-review/` and is available on both CLIs; it names no CLI-specific
 agent or model.
 
-The built-in `/code-review` is the owner-typed, billed escalation — it is not this
+The built-in `/code-review` (Claude Code only — like the fan-out below, it does not
+exist on Copilot CLI) is the owner-typed, billed escalation — it is not this
 step, and this command cannot launch it. On Claude Code a deeper specialist fan-out
 (`pr-review-toolkit`) may be available; it is **optional**, and if it ran, say so in
 the hand-back (step 9). The same rule binds any substitution: a review whose depth is
@@ -154,7 +155,8 @@ skill (`mutation-testing`, installed by `/sdlc-setup`) for anything beyond a qui
 delete-and-run. A check is only trustworthy once it has been made to disagree; a guard
 whose deletion leaves the suite green is untested code wearing a test's name, and this
 practice caught exactly that on a real project — twice — in guards whose tests could
-not have failed. The step is done when every new guard has been seen to fail on
+not have failed. The runs happen in this session's shell — the same scope, and the
+same local-vs-CI caveat, as the gate (step 2). The step is done when every new guard has been seen to fail on
 exactly its own test; a guard not yet seen to fail is not yet closed. The one-line
 outcome goes into the slice commit body (step 7) —
 `mutation: <N guards, each seen to fail | none — no new guards>`.
@@ -186,7 +188,9 @@ the gate, and any new guard joins step 5's mutation obligation.
 
 ### 7. Commit the slice
 
-Use the Bash tool with a heredoc for the message (never shell-specific here-strings):
+Use the Bash tool with a heredoc for the message (never shell-specific here-strings).
+Subject line in the project's own convention where one is recorded; the shape below
+is the kit's default (`spec/SDLC.md` states the rule):
 
 ```
 git add <files>   # add the slice's files explicitly; never git add -A blindly

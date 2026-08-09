@@ -158,7 +158,7 @@ unfinished, however convincing the ones above it look.
 
 **The self-check that catches the common failure: a report containing no quoted command
 output is not a report, it is a plan.** If nothing in it was copied out of a run, no
-verification happened — go back to step 2 and run something. Likewise, a "not exercised"
+verification happened — go back to step 2, name what would count, and run it (step 3). Likewise, a "not exercised"
 verdict must name the obstacle that stopped an attempt; "I have not run it yet" is not
 an obstacle.
 

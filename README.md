@@ -296,7 +296,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    such line — infer it from what the repo holds (`.claude/settings.json` versus
    `.github/hooks/`), state the inference to the owner and have them confirm it, then
    write the line as part of this update, so the next one reads it instead of
-   inferring.
+   inferring. When the line is present, glance at the same evidence anyway: a
+   recorded CLI the repo's own artifacts contradict is a finding for the owner
+   before anything is copied, never a value to proceed on — every later step trusts
+   this line.
 
 2. **Get both versions of the kit.**
 
@@ -532,7 +535,10 @@ adoptions, not yours. `CHANGELOG.md` marks each entry accordingly.
    join them **only when this update actually put an offer to you** — the TDD-guard
    offer and the skill-ledger offer each record your answer in `spec/SDLC.md`, a
    decline included, so no later update re-asks
-   it. An update that did not ask does not record an answer. From here
+   it — and an **accepted** offer also installs its artifacts (the guard pair, the
+   ledger hook), each written only on your word at that halt. An update that did not
+   ask does not record an answer. Do these writes last, so an aborted update never
+   claims a version it does not hold. From here
    every later update is mechanical.
 
 7. **Land it as a normal PR** (`chore/update-sdlc-kit-X.Y.Z`) — the same way the adoption
