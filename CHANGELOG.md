@@ -10,6 +10,44 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+The FBK batch (`FEATURE_PLAN.md` §44, owner-approved 2026-08-09): every hook's
+feedback audited against one criterion — usable context for the model, on failure
+*and* on success.
+
+### Added
+- **[adoption-only]** **Counted test observations are spoken, completing the 0.19.0
+  spoken-refusal fix.** That fix left counted runs silent, so the guard's state
+  machine stayed invisible on the success side: a session learned its run counted
+  only by the next deny not arriving. `observe-test` now echoes each counted run as
+  postToolUse `additionalContext` — the state fact it produced, never an
+  instruction. GREEN: the stop guard is satisfied, with the reminder that full-suite
+  assurance stays the end-slice gate's job (the any-counted-green ruling, spoken
+  where it applies). RED: the write license it earned — or, when no test file has
+  been edited this session, that it licenses nothing yet, because a message claiming
+  a license G1 would refuse is confidently wrong at the exact moment it is trusted.
+  Refused runs speak as before. Suite grows to 50 cases and two new mutations
+  (re-silencing the counted GREEN, and the counted REDs, must both be caught —
+  seventeen total). `sdlc-tdd-guard.sh` is project-owned: existing projects get this
+  as a hand-apply; the `.json` launcher is unchanged.
+
+### Fixed
+- **[adoption-only]** **The Claude Code gate hook frames its lint failure instead of
+  dumping raw linter output.** Through 0.19.0 the failure branch emitted the linter's
+  output alone — no statement of which hook fired, which file it checked, or what is
+  expected — while the Copilot dialect always framed. Both dialects now open with
+  "SDLC gate hook: lint/typecheck failed on the file just edited. Fix it before
+  continuing: \<file\>", and the empty-typecheck echo (a stray blank line) is gone.
+  `.claude/settings.json` is project-owned: hand-apply for existing Claude Code
+  adoptions.
+- **[adoption-only]** **The Copilot gate hook says when it truncates.** `emit()` caps
+  `additionalContext` at 8000 characters; through 0.19.0 the cut was silent, so lint
+  output clipped mid-error read as complete — the silent-failure shape the hook
+  exists to refuse, in its own output. The capped text now ends with
+  `…[truncated by the gate hook at 8000 chars]`, inside the cap. `sdlc-gate.sh` is
+  project-owned: hand-apply; the `.json` launcher is unchanged.
+
 ## 0.19.0 — 2026-08-08
 
 ### Fixed (pre-0.19.0 `/kit-check` batch)

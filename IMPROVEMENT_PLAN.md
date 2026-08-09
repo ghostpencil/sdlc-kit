@@ -930,7 +930,11 @@ the surface explicitly, 2026-08-07).
    deny no longer arrives unexplained. Building it would add a log read plus parsing
    to the pre-write path for a message the session has already seen. Revisit only if
    a field report shows a session missing the spoken refusal and thrashing at the
-   deny anyway.
+   deny anyway. *Extended 2026-08-09 (FEATURE_PLAN.md §44, FBK.3): the same record
+   and the same mootness argument cover the G2 block message carrying observed
+   state ("last counted run: none / RED at \<time\>") — since FBK.2, counted
+   observations are spoken too, so every transition (counted or refused) is
+   in-context before any block arrives. Same revisit condition, either message.*
 
 ## 13. Deferred from the pre-0.19.0 `/kit-check` — recorded 2026-08-08
 

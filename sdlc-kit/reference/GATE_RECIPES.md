@@ -220,7 +220,10 @@ wrapper differs. Resolve the same `{{HOOK_*}}` placeholders either way.
 - **Output is capped at 8000 characters** — the documented cap is 10 KB across all
   returning hooks — and decoded with `errors='replace'`, because a Windows locale codec
   mangles any non-ASCII in lint output on the way through. For the same reason the
-  hook's own messages are ASCII only.
+  hook's own messages are ASCII only. When the cap bites, the capped text ends with a
+  `…[truncated by the gate hook at 8000 chars]` marker (added 2026-08-09): lint output
+  cut mid-error with no marker reads as complete, which is the silent-failure shape
+  the loud-reporting rule above exists to refuse.
 
 **Why the Copilot dialect is a script-plus-launcher pair, not one JSON (restructured
 2026-08-07).** The hook config's command line crosses the CLI-to-shell boundary, and
@@ -294,6 +297,16 @@ are the only mechanism in the kit that can refuse an action rather than comment 
   (owner-decided, 2026-08-08): it binds only a session that made a production write
   that went through, or edited a test — a planning, docs, or bookkeeping session
   runs no tests by design and stops clean, and a denied write arms nothing.
+
+Every test-run observation is **spoken back as context, not only logged**. A refused
+run (compound command, missing exit-code trailer) is refused out loud with what is
+allowed stated — field-driven, 2026-08-08: a silently refused session thrashed and
+probed the guard instead of complying. A counted run is spoken too (owner-directed,
+2026-08-09, the same invisible-state reasoning on the success side): RED as the write
+license it earned — or, when no test file has been edited this session, that it
+licenses nothing yet — and GREEN as the stop guard satisfied, with the reminder that
+full-suite assurance stays the end-slice gate's job. State facts, never instructions:
+the messages report what is now true, and the process files say what to do about it.
 
 Templates: `templates/tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh`, and
 `templates/tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.json`. The JSON

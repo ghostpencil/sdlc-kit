@@ -2238,3 +2238,159 @@ the vendored tdd-references (divergence recorded — compliant; upstream-adaptat
 choice, not drift); SKILLS.md's Dungeon Daddy mention (illustrative, harmless).
 
 Released same session as 0.19.0.
+
+---
+
+## 44. FBK — hook feedback audited against the usable-context criterion, drafted
+## 2026-08-09
+
+Owner session. The prompt: every hook must produce usable context for the LLM — its
+result described on success and on failure; a deny explaining exactly why and
+restating the guard's purpose; a passed guard stating the next action only where that
+action is exactly known. Assessed against the four hook artifacts themselves
+(`settings.template.json`, `copilot-hook.template.sh`, `tdd-guard.template.sh`, the
+ledger pair), not the walkthrough — `sdlc-kit-process-flow.md` was checked first and
+matches the artifacts everywhere, including the subtle claims (session scoping, the
+single-`&` rule, "none denies on its own failure"); the findings are in the hooks.
+
+**What already meets the bar, verified so it is not re-proposed:** G1's deny message
+(names the file, states both licenses and the way out of each, pre-empts the
+compound-command trap); the §40 spoken refusals; every could-not-do-my-job branch in
+every hook (loud, framed, never vacuously green). The criterion's hard part is the
+success side, and one dialect asymmetry.
+
+### 44.1 The findings, ranked
+
+**FBK.1 — the Claude Code gate hook's lint-failure output is unframed; the Copilot
+dialect's is not.** On lint/typecheck failure `copilot-hook.template.sh` emits
+"SDLC gate hook: lint/typecheck failed on the file just edited. Fix it before
+continuing: <file>" before the output; `settings.template.json`'s body does
+`{ echo "$l"; echo "$t"; } >&2; exit 2` — raw linter output, no statement of which
+hook produced it, which file it checked, or what is expected, plus a stray blank
+line when the typecheck half is empty. §31.13 made this dialect loud on its
+can't-run branches and never reached the one branch that fires most. Fix: port the
+Copilot framing line (with the file name) and drop the empty-half echo. Suite:
+`tools/gate-hook-check.py` gains the framing assertion on the Claude dialect's
+failure case.
+
+**FBK.2 — counted observations are silent; the guard's state machine is invisible
+on the success side.** `observe-test` records RED/GREEN to the log only. §40 fixed
+the identical failure shape for *refusals* after a field session thrashed against
+invisible state; counted runs stayed silent as that fix's scope, and the same gap
+remains pointed the other way: a session never learns its run WAS counted, so the
+license it just earned (or the stop-guard satisfaction) is knowable only by the
+next deny not arriving. This is also the one place the pass-side criterion applies
+safely, because the next state is exactly known. Fix: emit the measured
+`additionalContext` schema on each counted observation, phrased as state facts,
+never instructions — one short line (the Core Rule is minimize context; a TDD loop
+runs many tests):
+
+- RED counted: `TDD ordering: RED counted (exit <N>). A production write is now
+  licensed for this cycle.`
+- GREEN counted: `TDD ordering: GREEN counted. The stop guard is satisfied;
+  full-suite assurance remains the end-slice gate's job.` — the second clause is
+  §41's (B) division-of-labor ruling, spoken where it applies, so a single-test
+  green is never misread as gate-grade.
+
+Suite: `tools/tdd-guard-check.py` cases for both messages plus a sixteenth
+mutation — re-silencing a counted observation must be caught (the §40 ninth
+mutation's symmetric twin). Copilot dialect only for now; VER.2's Claude port
+inherits the behavior by porting the fixed script.
+
+**FBK.3 — considered and subsumed: the G2 block message carrying observed state.**
+The candidate (block reason reports "last counted run: none / RED at <time>") dies
+to the same argument as `IMPROVEMENT_PLAN.md` §12.1: with FBK.2 shipped, every
+transition — counted or refused — is spoken at the run itself, so the block never
+arrives against a state the session was not told about, and a state dump would
+re-read the log for a message already seen. Not built; §12.1's record is extended
+to cover this shape rather than contradicted, same revisit condition (a field
+report showing a session missing the spoken lines and thrashing at the block).
+
+**FBK.4 — truncation is silent.** `emit()` caps `additionalContext` at 8000
+characters with no marker, so lint output cut mid-error reads as complete. Fix:
+when the cap bites, the capped text ends with a
+`…[truncated by the gate hook at 8000 chars]` marker inside the cap. Suite: one
+case with oversized dirty output asserting the marker.
+
+**Deliberate silences kept, enumerated so each is a decision and not an omission:**
+the gate hook on a genuine pass and on a non-source skip (fires on every edit; a
+per-edit "passed" line is noise, and pass-vs-skip only matters at
+trust-establishment time, which is what logging mode and the guard log are for);
+G1's pass (the write proceeding is the feedback; the OK is logged); the ledger's
+success (bookkeeping); G2's clean stop (terminal — there is no next action to
+inform).
+
+### 44.2 The batch
+
+| # | Item | Files | Effort |
+|---|---|---|---|
+| FBK.1 | Frame the Claude gate hook's lint-failure output (file named, no empty echo) | `settings.template.json`, `tools/gate-hook-check.py` | S |
+| FBK.2 | Spoken counted observations, state-fact phrasing, division-of-labor clause on GREEN | `tdd-guard.template.sh`, `tools/tdd-guard-check.py`, `GATE_RECIPES.md` (observe-test bullet), guard header | S |
+| FBK.4 | Truncation marker in `emit()` | `copilot-hook.template.sh`, `tools/gate-hook-check.py` | S |
+
+Ripples, to re-derive by grep at build time (§4a): `sdlc-kit-process-flow.md`'s
+hook section (observe-test's counted-runs sentence goes stale the moment FBK.2
+lands); the CHANGELOG *Unreleased* entries — all three adoption-only with
+hand-apply notes, since every touched artifact is project-owned. No new
+placeholders (inv 1 untouched); no `{{TDD_GUARD_NOTE}}` change (spoken
+observations are feedback the guard gives, not a rule the session must follow —
+the note's three rules stand); no §16 audit clock (messages are not process rules;
+stated so the omission is not read as one).
+
+**Checked against scheduled work, no conflicts found:** VER (§37.4) touches none
+of these branches, and FBK-before-VER is the profitable order — VER.2's port then
+carries the spoken observations instead of re-porting them later. §40's
+"counted runs stay silent" was that fix's scope, not a standing decision; FBK.2
+revises it on the owner's stated criterion, recorded here with its date. §12.1 is
+extended, not contradicted (FBK.3). The §42 stand-down, §41's separator classes,
+and the three-license structure are untouched. `ai-news-dashboard` currently owes
+three guard hand-applies (§42) — if FBK ships before their next `/sdlc-update`,
+FBK.2's joins them at the same halt rather than adding a second visit.
+
+**Owner decisions owed:** (a) approve FBK.2's revision of §40's counted-silent
+scope — the 2026-08-09 session's criterion is the basis, recorded here, not yet
+ruled; (b) batch order (recommendation: FBK before VER, above); (c) the release
+vehicle — the batch is fix-and-feedback shaped, 0.19.1-sized, owner's call.
+*(a) and (b) approved as recommended, 2026-08-09, same session; (c) still open —
+the CHANGELOG entries sit under Unreleased.*
+
+### 44.3 Build record — 2026-08-09, suite-first, red observed before any fix
+
+Executed in the kit's own discipline: every new case written first and watched to
+fail against the unmodified artifacts before either hook changed.
+
+- **Red observed, both suites.** Gate-hook suite: exactly the two new cases failed
+  (the Claude framing assertion, the truncation marker), both parser dialects,
+  everything else green. Guard suite: exactly the three new cases failed (5b — the
+  flipped case, 7b, 20b) under both dialects, 50 cases total, and the two new
+  re-silencing mutations reported STALE against the old source — which is the proof
+  they target the fixed one. Nothing failed that was not supposed to.
+- **One design delta against 44.1, forced by honesty: the RED message is
+  state-aware.** The drafted single message ("a production write is now licensed")
+  would be false in exactly case 20's shape — a red counted with *no test edit this
+  session* is counted but licenses nothing (the §31.18 field circumvention is that
+  gap). The shipped message claims the license only when G1 would grant one (test
+  edit this session, or refactor-license + green); otherwise it says the red
+  licenses nothing yet and why. Case 20b pins the negative direction: the spoken
+  observation must never claim a license the guard would refuse — the
+  confident-plausible-wrong shape, caught at design time.
+- **Case 5b flipped rather than added.** Until this batch it pinned counted-run
+  silence ("no context noise on the happy path") — §40's scope choice, enforced by
+  the suite as designed. It now pins the spoken observation, with the comment
+  recording the flip and its date.
+- **Two mutations, not the drafted one** — silencing GREEN and silencing the REDs
+  are separate regressions with separate witnesses (7b; 5b + 20b), so each gets its
+  own mutation. Seventeen total.
+- **Suites green after the fix:** gate-hook 56 checks across both dialects and both
+  parsers, exit 0, including the new cases; guard suite 50 cases green under both
+  parser dialects, all 17 mutations caught, exit 0. Both counts read off the runs,
+  not asserted (§31.12's rule — a hardcoded count is the part that goes stale).
+- **Ripples landed:** `GATE_RECIPES.md` — the spoken-observation paragraph after
+  the G2 bullet, and the cap bullet now names the truncation marker (found by the
+  §4a grep, not the plan's file list); guard header — the spoken-outcomes
+  paragraph; `sdlc-kit-process-flow.md` — the observe-test bullet;
+  `IMPROVEMENT_PLAN.md` §12.1 — extended per FBK.3, same revisit condition;
+  CHANGELOG — three *Unreleased* entries, all adoption-only with hand-apply notes
+  (every touched artifact is project-owned). The 0.19.0 CHANGELOG entry's "counted
+  runs stay silent" stands as history; the new entry names itself the completion of
+  that fix.

@@ -165,6 +165,20 @@ def copilot_suite(parser, check):
         check("no parser on PATH -> names the missing dependency",
               "no JSON parser" in r and "python or node" in r, r)
 
+        # FBK.4 (FEATURE_PLAN.md 44): output cut at the 8000-char cap with no marker
+        # reads as complete - truncation must say so, inside the cap.
+        lint_path = os.path.join(pj.root, "stublint")
+        io.open(lint_path, "w", encoding="utf-8", newline="\n").write(
+            "#!/bin/sh\ni=0\nwhile [ $i -lt 400 ]; do\n"
+            '  echo "E001 oversized diagnostic line $i with padding padding padding"\n'
+            "  i=$((i+1))\ndone\nexit 1\n")
+        pj.put("src/big.py", False)
+        r = ctx(ap(("Update", "src/big.py")))
+        check("over-cap output carries the truncation marker, inside the cap",
+              "truncated by the gate hook" in r and len(r) <= 8000,
+              "len=%d tail=%r" % (len(r), r[-80:]))
+        io.open(lint_path, "w", encoding="utf-8", newline="\n").write(LINTER)
+
         # The launcher JSON (FEATURE_PLAN.md 38.5.4): the WSL launcher boundary
         # corrupts backslashes, $-expansions and quoting, so the config body must
         # contain none of them - and must still hand the payload to the script from
@@ -222,6 +236,12 @@ def claude_suite(parser, check):
         rc, err = run(edit("src/a.py"))
         check("dirty source -> exit 2 with the linter output", rc == 2 and "E001" in err,
               "rc=%s err=%r" % (rc, err[:80]))
+        # FBK.1 (FEATURE_PLAN.md 44): raw linter output with no framing tells the
+        # model nothing about which hook fired, which file it checked, or what is
+        # expected - the Copilot dialect always framed; this one must match it.
+        check("...and the failure is framed: hook named, expectation stated, file named",
+              "SDLC gate hook" in err and "lint/typecheck failed" in err
+              and "src/a.py" in err, "err=%r" % err[:160])
         pj.put("src/a.py", False)
         rc, err = run(edit("src/a.py"))
         check("...and goes silent once the file is clean", rc == 0 and err == "",

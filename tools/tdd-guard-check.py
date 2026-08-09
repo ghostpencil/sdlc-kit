@@ -173,14 +173,25 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         time.sleep(1.1)  # mtime ordering is 1s-granular on some filesystems
         out = b.run("observe-test", shell(R, "python -m pytest", 1))
         check("5  red observed", "RED observed (exit 1)" in b.tail(), b.tail())
-        check("5b a counted run stays silent (no context noise on the happy path)",
-              out == "", repr(out))
+        # FBK.2 (FEATURE_PLAN.md 44): counted observations are spoken as state facts.
+        # Until 2026-08-09 this case pinned the opposite (counted runs silent) - the
+        # same invisible-state shape the 2026-08-08 spoken-refusal fix closed for
+        # refusals, pointed at the success side.
+        j = json.loads(out) if out.startswith("{") else {}
+        check("5b a counted RED is spoken and states the license it earned",
+              "RED counted (exit 1)" in (j.get("additionalContext") or "")
+              and "write is now licensed" in (j.get("additionalContext") or ""),
+              repr(out))
 
         b.run("pre-write", write(R, [("Update", "payments.py")]))
         check("6  prod write after red -> OK", "OK production write" in b.tail(), b.tail())
 
-        b.run("observe-test", shell(R, "python -m pytest", 0))
+        out = b.run("observe-test", shell(R, "python -m pytest", 0))
         check("7  green observed", "GREEN observed" in b.tail(), b.tail())
+        j = json.loads(out) if out.startswith("{") else {}
+        check("7b a counted GREEN is spoken with the division-of-labor clause",
+              "GREEN counted" in (j.get("additionalContext") or "")
+              and "end-slice gate" in (j.get("additionalContext") or ""), repr(out))
 
         # G2: the stop guard
         out = b.run("stop-check", stop(R))
@@ -271,10 +282,18 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         # nothing matched - must license nothing. "You changed a test, then watched it
         # fail" needs both halves.
         b.reset_state()
-        b.run("observe-test", shell(R, "python -m pytest tests/test_nope.py", 1))
+        out = b.run("observe-test", shell(R, "python -m pytest tests/test_nope.py", 1))
         b.run("pre-write", write(R, [("Update", "payments.py")]))
         check("20 a red with no test edit this session licenses nothing",
               "VIOLATION" in b.tail(), b.tail())
+        # The spoken observation must not claim a license the guard would refuse -
+        # a red with no test edit is counted but licenses nothing, and the message
+        # has to say exactly that or it is confidently wrong.
+        j = json.loads(out) if out.startswith("{") else {}
+        check("20b ...and its spoken observation says so, not 'licensed'",
+              "licenses nothing" in (j.get("additionalContext") or "")
+              and "write is now licensed" not in (j.get("additionalContext") or ""),
+              repr(out))
 
         # The hook-config prelude (FEATURE_PLAN.md 38.3): the WSL launcher route
         # re-parses the hook command line, corrupting backslashes and returning empty
@@ -484,6 +503,13 @@ MUTATIONS = [
          '      elif [ -f "$S/deny-enabled" ]; then\n'
          '        touch "$S/prod-write-observed" 2>/dev/null\n'
          '        log "DENY production write without observed red: $prod"')),
+    ("re-silence the counted GREEN observation (the state machine goes invisible "
+     "on the success side again - FEATURE_PLAN.md 44)",
+     lambda s: s.replace('emit_context "TDD ordering: GREEN counted',
+                         ': "TDD ordering: GREEN counted')),
+    ("re-silence the counted RED observations, both variants (ditto)",
+     lambda s: s.replace('emit_context "TDD ordering: RED counted',
+                         ': "TDD ordering: RED counted')),
 ]
 
 

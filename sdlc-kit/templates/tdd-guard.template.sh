@@ -30,6 +30,13 @@
 #      tests by design and stops clean; a denied write arms nothing, because the
 #      tree did not change.
 #
+# Every observe-test outcome is SPOKEN back as context, not only logged: refusals
+# with the reason and what is allowed (2026-08-08 - a silently refused session
+# thrashed and probed the guard instead of complying), and counted RED/GREEN runs
+# as the state fact each produced (2026-08-09, the same lesson pointed at the
+# success side - a session otherwise learns its run counted only by the next deny
+# not arriving). State facts, never instructions.
+#
 # LOGGING MODE IS THE DEFAULT. The guards only deny/block when the flag file
 # .git/sdlc-tdd/deny-enabled exists; without it they log and always exit 0. Arm deny only
 # once the log shows the guards recognizing the project's own test runs.
@@ -285,10 +292,23 @@ PATHLIST
     if [ -z "$CODE" ]; then
       log "test run seen but no exit-code trailer found: $CMD"
       emit_context "TDD ordering: that test run could not be counted - no exit code was found in the hook payload, so the guard cannot read the result. If this repeats on every run, the payload format has changed and the guard needs fixing before its ordering can be trusted."
+    # Counted observations are SPOKEN, like the refusals above (owner-directed
+    # 2026-08-09, the same invisible-state lesson pointed at the success side): the
+    # session otherwise learns its run counted only by the next deny not arriving.
+    # State facts only, never instructions - and the RED message claims a license
+    # only when G1 would actually grant one, because a red with no test edit this
+    # session is counted yet licenses nothing, and a message that says otherwise is
+    # confidently wrong at the exact moment it is trusted.
     elif [ "$CODE" = "0" ]; then
       touch "$S/green-observed" 2>/dev/null; log "GREEN observed: $CMD"
+      emit_context "TDD ordering: GREEN counted. The stop guard is satisfied; full-suite assurance remains the end-slice gate's job."
     else
       touch "$S/red-observed" 2>/dev/null; log "RED observed (exit $CODE): $CMD"
+      if [ -f "$S/last-test-edit" ] || { [ -f "$S/refactor-license" ] && [ -f "$S/green-observed" ]; }; then
+        emit_context "TDD ordering: RED counted (exit $CODE). A production write is now licensed for this cycle."
+      else
+        emit_context "TDD ordering: RED counted (exit $CODE) - but it licenses nothing yet: no test file has been edited this session, and a write license needs the test edit before its failing run."
+      fi
     fi
     exit 0 ;;
 

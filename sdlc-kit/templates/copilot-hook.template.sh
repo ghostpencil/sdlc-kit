@@ -49,8 +49,15 @@ jr() {
 # emit - wrap stdin as {"additionalContext": ...}, capped at 8000 characters (the
 # documented cap is 10 KB across all returning hooks), decoded with errors=replace
 # because a Windows locale codec mangles non-ASCII lint output on the way through.
+# When the cap bites, the capped text ends with a marker that says so - lint output
+# cut mid-error with no marker reads as complete, which is the silent-failure shape
+# this hook exists to refuse.
 emit() {
-  jr 'import sys,json;sys.stdout.write(json.dumps({"additionalContext":sys.stdin.buffer.read().decode("utf-8","replace")[:8000]}))' 'process.stdout.write(JSON.stringify({additionalContext:require("fs").readFileSync(0,"utf8").slice(0,8000)}));'
+  jr 'import sys,json
+t=sys.stdin.buffer.read().decode("utf-8","replace")
+m="...[truncated by the gate hook at 8000 chars]"
+if len(t)>8000: t=t[:8000-len(m)]+m
+sys.stdout.write(json.dumps({"additionalContext":t}))' 'const fs=require("fs");let t=fs.readFileSync(0,"utf8");const m="...[truncated by the gate hook at 8000 chars]";if(t.length>8000)t=t.slice(0,8000-m.length)+m;process.stdout.write(JSON.stringify({additionalContext:t}));'
 }
 
 if [ -z "$JP" ] && [ -z "$JN" ]; then

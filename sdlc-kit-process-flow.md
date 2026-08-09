@@ -198,7 +198,11 @@ recognizing the project's own test runs.
   revokes it, and it survives reds on purpose.
 - **observe-test** (post-shell): records RED or GREEN from a test command's exit
   code — bare single commands only. A compound (`;`, `&`, `|`) is refused *out loud*,
-  with what is allowed stated, because its exit code is not the test's.
+  with what is allowed stated, because its exit code is not the test's. Counted runs
+  are spoken too: each RED/GREEN observation is echoed back as the state fact it
+  produced (the write license earned — or that the red licenses nothing yet, absent
+  a test edit — and the stop guard satisfied), so the guard's state machine is
+  visible at every transition, not only on refusal.
 - **G2, the premature-stop guard** (agent stop): stopping is a violation while no
   green run has been observed or the latest observed run is red. The green is **any**
   counted green — a single-test selector satisfies it; full-suite assurance is
