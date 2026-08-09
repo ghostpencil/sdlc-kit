@@ -23,6 +23,12 @@
 #      a single-test selector run satisfies it. That is division of labor, not a gap
 #      (field, 2026-08-08): full-suite assurance is the end-slice gate's job, and this
 #      backstop never runs tests inline. G2 exists to refuse red and never-ran stops.
+#      G2 is SESSION-SCOPED to the work the ordering governs (owner-decided
+#      2026-08-08): it binds only a session that made a production write that went
+#      through, or edited a test (a written test never run is exactly a never-ran
+#      stop). A session that did neither - planning, docs, bookkeeping - runs no
+#      tests by design and stops clean; a denied write arms nothing, because the
+#      tree did not change.
 #
 # LOGGING MODE IS THE DEFAULT. The guards only deny/block when the flag file
 # .git/sdlc-tdd/deny-enabled exists; without it they log and always exit 0. Arm deny only
@@ -154,7 +160,7 @@ PATHS=$(printf '%s\n' "$F" | tail -n +5)
 # Observations are SESSION-scoped: a red observed in an earlier session does not
 # license a production write in this one. A new sessionId resets them.
 if [ -n "$SID" ] && [ "$SID" != "$(cat "$S/session" 2>/dev/null)" ]; then
-  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" 2>/dev/null
+  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/prod-write-observed" 2>/dev/null
   printf '%s' "$SID" > "$S/session" 2>/dev/null
   log "new session $SID - previous observations cleared"
 fi
@@ -221,14 +227,21 @@ PATHLIST
       # observed green. The declaration alone licenses nothing - without a counted
       # green this session there is no gate behind the claim.
       if [ -z "$ok" ] && [ -f "$S/refactor-license" ] && [ -f "$S/green-observed" ]; then ok=lic; fi
+      # The marker below is what session-scopes G2: it records a production write that
+      # actually WENT THROUGH. The deny branch sets nothing on purpose - a denied
+      # write leaves the tree unchanged, and a stop guard armed by it would demand a
+      # green for code that was never written.
       if [ "$ok" = "red" ]; then
+        touch "$S/prod-write-observed" 2>/dev/null
         log "OK production write (red observed since last test edit): $prod"
       elif [ "$ok" = "lic" ]; then
+        touch "$S/prod-write-observed" 2>/dev/null
         log "OK production write (refactor license: $(head -n 1 "$S/refactor-license" 2>/dev/null | tr -d '\r')): $prod"
       elif [ -f "$S/deny-enabled" ]; then
         log "DENY production write without observed red: $prod"
         emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&' or '|' separators - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING close-out edit (refactor, simplification, mutation testing) on a green slice: declare it instead - write one line naming the step and move to .git/sdlc-tdd/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review."
       else
+        touch "$S/prod-write-observed" 2>/dev/null
         log "VIOLATION production write without observed red: $prod"
       fi
     fi
@@ -283,6 +296,16 @@ PATHLIST
     # Stand down inside a forced continuation: never fight the documented block cap.
     if [ "$ACTIVE" = "true" ]; then
       log "stop: stop_hook_active set - standing down"
+      exit 0
+    fi
+    # Session scoping (owner-decided 2026-08-08): the ordering G2 backstops is about
+    # writes, so it binds only a session that made one - a production write that went
+    # through (the pre-write marker), or a test edit (a written test never run is
+    # exactly a never-ran stop). A planning, docs, or bookkeeping session runs no
+    # tests by design; refusing its stop enforces a rule about writes against a
+    # session that made none.
+    if [ ! -f "$S/prod-write-observed" ] && [ ! -f "$S/last-test-edit" ]; then
+      log "stop: clean (no production write or test edit this session - nothing to guard)"
       exit 0
     fi
     reason=""

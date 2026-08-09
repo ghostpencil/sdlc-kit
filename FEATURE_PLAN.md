@@ -2143,3 +2143,42 @@ GATE_RECIPES' delete-the-test-afterwards honest limit now points at it. (c):
 gains two entries (the separator fix adoption-only with the hand-apply note; the
 documentation/lens work under **Changed**). Existing guard-running adoptions owe
 two hand-applies: the separator fix and the guard-note extension.
+
+---
+
+## 42. G2 session-scoping — the owner's TDD-doctrine assessment, one gap confirmed,
+## fixed same day, 2026-08-08
+
+The owner assessed the process against TDD's own doctrine in three claims:
+refactoring (simplification included) rides existing greens in small increments
+rather than fresh reds; mutation testing follows only a completed red→green; and
+`/plan-phase` writes no code, so the gates must not apply to it. Checked against the
+tree: the first two are already the design — §40.1's declared refactor license is
+claim one mechanized (the declaration being the only way a shell script can tell
+"refactor on greens" from "test-last new behavior"), and the mutation check's
+placement at `/end-slice` step 5, after gate and review, is claim two by
+construction. Claim three was already true for the write-path guards — spec and
+docs writes match neither `{{SOURCE_GLOB}}` nor the test pattern, an exemption by
+file-kind rather than by command, which also covers code written mid-"planning" —
+but it confirmed one real gap: **G2 fired on `agentStop` unconditionally**, so a
+session with no production write and no test edit (`/plan-phase`, docs,
+bookkeeping, `/sdlc-retro`, `/sdlc-update`) could not stop clean in deny mode,
+refused for running no tests when it had no business running any. Logging mode
+masked it as WOULD-BLOCK log lines nobody read back.
+
+**Fixed on the owner's word, same session.** G1's pre-write now drops a
+session-scoped marker (`.git/sdlc-tdd/prod-write-observed`) when a production
+write actually goes through — the deny branch sets nothing on purpose, because a
+denied write leaves the tree unchanged — and stop-check stands down when neither
+the marker nor `last-test-edit` exists. A test edit alone still arms G2: a written
+test never run is exactly the never-ran stop the guard exists to refuse. The
+setup-time proof ("end a session with no green run, confirm a would-block") is
+unaffected — its scripted session makes a production write first. Suite: 48 cases
+(was 44; a no-writes session and a docs-only session stop clean deny-mode
+included, a denied write arms nothing, a test edit alone blocks) and two new
+mutations (dropping the stand-down; arming from the deny branch) — fifteen total,
+proof green both dialects, 15/15 caught. Documented in all three homes that state
+G2's rules — the guard header, GATE_RECIPES' G2 bullet, and the
+`{{TDD_GUARD_NOTE}}` required content (template comment + setup bullet, inv 2's
+both-sides rule). CHANGELOG *Unreleased* under **Fixed**, adoption-only with the
+hand-apply note — existing guard-running adoptions now owe three hand-applies.

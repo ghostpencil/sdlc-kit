@@ -5,7 +5,7 @@ Two passes, and the second is the point:
 
   1. a unit pass driving every state transition of both guards, using payload shapes
      measured on the bench (FEATURE_PLAN.md 31.7) rather than invented ones;
-  2. a mutation pass that breaks the guard thirteen ways and requires the unit pass to
+  2. a mutation pass that breaks the guard fifteen ways and requires the unit pass to
      notice each one. A suite that survives its own mutations is not testing the thing
      it claims to (invariant 13).
 
@@ -215,6 +215,10 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
               j.get("permissionDecision") == "deny" and bool(j.get("permissionDecisionReason")),
               repr(out))
 
+        # G2 is session-scoped, and case 13's write was DENIED - the tree never
+        # changed, so that write armed nothing (case 34 proves it). Arm the stop
+        # guard the legitimate way before asking for the block schema.
+        b.run("pre-write", write(R, [("Add", "tests/test_payments.py")]))
         out = b.run("stop-check", stop(R))
         j = json.loads(out) if out.startswith("{") else {}
         check("14 block emits the measured agentStop schema",
@@ -388,6 +392,32 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         check("32 the deny message names both ways out (red cycle and refactor license)",
               "refactor-license" in (j.get("permissionDecisionReason") or ""), repr(out))
 
+        # G2 session scoping (owner-decided 2026-08-08): the stop guard binds only a
+        # session that wrote production code or edited a test. A planning, docs, or
+        # bookkeeping session runs no tests by design and must stop clean - deny mode
+        # included, since logging mode masks exactly this class of false block.
+        b.reset_state(); b.arm_deny()
+        out = b.run("stop-check", stop(R))
+        check("33 a session with no writes stops clean, deny mode included",
+              out == "" and "nothing to guard" in b.tail(), b.tail() + " | " + repr(out))
+
+        b.run("pre-write", write(R, [("Update", "README.md")]))
+        out = b.run("stop-check", stop(R))
+        check("33b a docs-only session stops clean",
+              out == "" and "nothing to guard" in b.tail(), b.tail() + " | " + repr(out))
+
+        b.run("pre-write", write(R, [("Update", "payments.py")]))  # denied above
+        out = b.run("stop-check", stop(R))
+        check("34 a denied production write arms nothing (the tree never changed)",
+              out == "" and "nothing to guard" in b.tail(), b.tail() + " | " + repr(out))
+
+        b.run("pre-write", write(R, [("Add", "tests/test_payments.py")]))
+        out = b.run("stop-check", stop(R))
+        j = json.loads(out) if out.startswith("{") else {}
+        check("35 a test edit alone arms the stop guard (a test never run is a "
+              "never-ran stop)",
+              j.get("decision") == "block" and bool(j.get("reason")), repr(out))
+
         return failed
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -438,8 +468,22 @@ MUTATIONS = [
     ("leak the refactor license across sessions (survives the new-session clear)",
      lambda s: s.replace(
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
-         '"$S/refactor-license" 2>/dev/null',
-         'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" 2>/dev/null')),
+         '"$S/refactor-license" "$S/prod-write-observed" 2>/dev/null',
+         'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
+         '"$S/prod-write-observed" 2>/dev/null')),
+    ("drop G2's session scoping (the stop guard binds planning and docs sessions "
+     "again)",
+     lambda s: s.replace(
+         'if [ ! -f "$S/prod-write-observed" ] && [ ! -f "$S/last-test-edit" ]; then',
+         'if false; then')),
+    ("arm the stop guard from a denied write (a rule about writes enforced against "
+     "a session that made none)",
+     lambda s: s.replace(
+         '      elif [ -f "$S/deny-enabled" ]; then\n'
+         '        log "DENY production write without observed red: $prod"',
+         '      elif [ -f "$S/deny-enabled" ]; then\n'
+         '        touch "$S/prod-write-observed" 2>/dev/null\n'
+         '        log "DENY production write without observed red: $prod"')),
 ]
 
 

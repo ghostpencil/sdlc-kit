@@ -55,6 +55,21 @@ to an already-adopted project.
   doubled forms by containment. Suite grows to 44 cases and a thirteenth mutation
   (regressing to the doubled-only list must be caught). Hand-apply, same file as
   above; the `.json` launcher is unchanged.
+- **[adoption-only]** **The stop guard is session-scoped: no writes, nothing to
+  guard** (owner-decided 2026-08-08). Through 0.18.0 G2 fired on every `agentStop`
+  unconditionally, so a session with no production write and no test edit —
+  `/plan-phase`, docs, bookkeeping, `/sdlc-retro` — could not stop clean in deny
+  mode, refused with "no green test run has been observed" against work that runs
+  no tests by design (masked so far by logging mode, where it only wrote
+  WOULD-BLOCK lines). G1 now records when a production write actually goes through
+  (`.git/sdlc-tdd/prod-write-observed`, cleared per session like every other
+  observation), and stop-check stands down when neither that marker nor a test
+  edit exists. A denied write arms nothing — the tree never changed — while a test
+  edit alone still arms the guard, because a written test never run is exactly the
+  never-ran stop G2 exists to refuse. Suite grows to 48 cases and two new
+  mutations (dropping the stand-down, and arming from a denied write, must both be
+  caught — fifteen total). Hand-apply, same file as above; the `.json` launcher is
+  unchanged.
 - **The stop guard's green is documented as any counted green — division of labor,
   not a gap** (sdlc-kit#5 finding 4, owner-decided 2026-08-08). A targeted
   single-test green satisfies G2 by design: full-suite assurance is the end-slice

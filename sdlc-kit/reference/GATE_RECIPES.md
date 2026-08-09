@@ -290,7 +290,10 @@ are the only mechanism in the kit that can refuse an action rather than comment 
   green test run has been observed, or the latest observed run is red. The green is
   **any** counted green — a single-test selector run satisfies it. Division of
   labor, not a gap (owner-decided, 2026-08-08): full-suite assurance is the
-  end-slice gate's job, and this backstop never runs tests inline.
+  end-slice gate's job, and this backstop never runs tests inline. Session-scoped
+  (owner-decided, 2026-08-08): it binds only a session that made a production write
+  that went through, or edited a test — a planning, docs, or bookkeeping session
+  runs no tests by design and stops clean, and a denied write arms nothing.
 
 Templates: `templates/tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh`, and
 `templates/tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.json`. The JSON
