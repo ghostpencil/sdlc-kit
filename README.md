@@ -230,6 +230,8 @@ IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.
 FEATURE_PLAN.md                      ← the live plan: standing decisions, clocks, active work
 FEATURE_PLAN_HISTORY.md              ← its retired sections §1–§30, numbering preserved
 KIT_INVARIANTS.md                    ← the invariant ledger /kit-check verifies
+sdlc-kit-process-flow.md             ← the process walkthrough: setup, the four daily
+                                        commands, the halts, and where the hook guards fire
 LICENSE                              ← MIT
 ```
 
