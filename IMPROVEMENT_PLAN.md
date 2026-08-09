@@ -962,3 +962,27 @@ sentence; each carries its revisit condition.
    project, or when the proof step is next edited. Kin: the setup exit check's
    `{{` grep is described as the catch but never demonstrated to fire on a planted
    placeholder — same class, same revisit.
+
+## 14. Below-threshold observations from the pre-0.19.1 `/kit-check` — recorded
+## 2026-08-09, not scheduled
+
+Reader notes that survived re-verification but sat under the fix line; each with its
+revisit condition. The nine findings themselves were fixed in-session
+(`FEATURE_PLAN.md` §45).
+
+1. **Existing mode resolves several PROJECT_INDEX fields only via the catch-all.**
+   `sdlc-setup.md` 2b's PROJECT_INDEX bullet enumerates status, Phase History,
+   START HERE, and the backlog but never names *Notes & gotchas*; its resolution
+   rides "same placeholder-resolution rules as New mode" plus the close-out `{{`
+   grep. Naming the field would cost a clause. Revisit when 2b's generate step is
+   next edited.
+2. **`sdlc-update.md`'s clone block hardcodes `/tmp/kit` paths.** The block is
+   explicitly bash-fenced, so it states its own shell — but it is the same species
+   as the 0.19.1 `AskUserQuestion`/heredoc findings one notch down. Revisit if the
+   CLI-tool question is reopened or a Copilot-only adopter reports the block
+   failing as written.
+3. **`tdd-guide/SKILL.md` is 182 lines against `SKILLS.md`'s "first ~120 lines"
+   claim.** Adaptation could account for the delta; unverifiable offline. Check at
+   the next provenance refresh against upstream — same revisit as the
+   hypothesis-tests one-word-diff record (§43, discarded there as unverifiable
+   offline).
