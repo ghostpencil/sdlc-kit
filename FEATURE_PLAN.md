@@ -1654,7 +1654,10 @@ discipline (§31.8→§31.10) applies unchanged: pre-registered criteria includi
 value criterion, the owner reads each report before the next step, nothing enters
 the installed set unproven. VER.2's port, if its probe surprises (as Copilot's
 did — the exit code arrived as a text trailer nobody predicted), redesigns rather
-than approximates.
+than approximates. VER.2 also carries the §48 license-wording fix
+(owner-assigned 2026-08-11): the Copilot template is reworded before the port,
+so both dialects state the license without the misdirecting close-out label —
+the §44.2 pattern (fix the source script first, port the fixed one).
 
 ### 37.5 JUDGE — queued behind VER, not scheduled
 
@@ -2668,3 +2671,50 @@ The findings, all fixed in-session except the last:
   revisit condition.
 
 Proof re-run green after the edits: 21 cases, 8 mutations caught.
+
+---
+
+## 48. The close-out label detour — guard-friction specimen, queued onto VER.2,
+## 2026-08-11
+
+A session (external model, Kimi k2.7) pinning existing behavior — a
+characterization test, green on its first run — was denied a production write by
+G1, read the deny message's license clause, and bounced off it twice on one word:
+"For a BEHAVIOR-PRESERVING **close-out** edit … declare it instead" was read
+literally as *close-out only* ("I'm not in close-out"), so the session spent the
+detour re-deriving §40.1's synthetic-red recipe (flip the test to assert the
+opposite, watch it fail, flip it back), plus a license-as-guard-removal
+misreading, before landing on the documented path anyway: declare the license,
+mutation-verify the pin, read the spec's guard section. Observed in the reasoning
+stream by the owner — the same channel that caught §40.1, and again the session's
+own output would not have carried the near-miss.
+
+**The gap: the label is narrower than the rule.** The license's mechanics are
+fully general — behavior-preserving production writes behind a counted green,
+logged per write, revoked by the next test edit — and a mid-slice mutation to
+prove a pin test bites is mutation testing, named in the license's own list. But
+both places that state the rule to a session attach "close-out":
+the deny message (`templates/tdd-guard.template.sh`, `emit_deny` text) and the
+`{{TDD_GUARD_NOTE}}` comment (`templates/SDLC.template.md`, "a behavior-preserving
+close-out edit"). `GATE_RECIPES.md` already phrases it neutrally ("the refactor
+leg") and needs nothing. Same lineage as §40's silent-refusal finding, one layer
+deeper: the guard now speaks, and one word in what it says misdirects the literal
+reader at exactly the moment it is trusted.
+
+**Fix shape, for the VER.2 build:** reword both sites to name the case instead of
+the phase — "a behavior-preserving edit (refactor, simplification, mutation
+testing — including a temporary mutation to prove a test for existing behavior
+bites)" — dropping the close-out restriction; the script header's close-out
+sentences are the license's origin story and stay. Suite ripple is minimal by
+measurement: `tools/tdd-guard-check.py` pins only that the deny reason names
+`refactor-license`, so the reword is a re-run, no case edits owed. Adoption-only
+with the hand-apply note; `ai-news-dashboard` completed its 0.20.0 update
+2026-08-11, so this rides their *next* update halt.
+
+**Queued onto VER.2 at the owner's direction (2026-08-11), not built now:** the
+fix belongs to the script VER.2 ports, and fixing before porting means the Claude
+dialect never ships the misdirecting label (§44.2's FBK-before-VER argument,
+applied at section scale). §37.4's batch paragraph carries the pointer. The §40
+queued items (a)–(d) are untouched — they still wait on the adopter's filed retro
+report; this one is recorded here because it was owner-triaged in-session, the
+§40.1 route.
