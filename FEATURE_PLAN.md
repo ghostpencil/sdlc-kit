@@ -2449,3 +2449,116 @@ The findings, all fixed in-session:
 **0.19.1 released same session** — VERSION, CHANGELOG (Unreleased folded into the
 release section), manifest regenerated from staged content in the release commit,
 all four workflow gates simulated locally before the tag.
+
+---
+
+## 46. VER.1 pre-registered design — pre-registered 2026-08-10, before any checker code
+
+The close-out evidence checker (§37.4, VER.1), designed and committed before the
+script or its fixtures exist — the §31.8 precedent, per §37.7's rule that every
+probe is pre-registered (§5, §13 shape). Two owner decisions taken 2026-08-10 and
+recorded here: **(1)** the RED zero-form below extends the ratified record contract
+in both homes, template first; **(2)** strictness is presence-plus-non-empty —
+no grammar policing.
+
+### 46.1 Scope and the boundary it must not cross
+
+A dependency-free POSIX sh script that reads one commit's body off `git log` and
+verifies the R5 record is **structurally present**: every evidence line there, or
+carrying its stated-skip form, silent absence failing loudly. It verifies presence,
+never truth — whether a `verify: ran` verdict is real output or a characterization
+wearing a result's clothes is JUDGE's question (§37.5: judge what the script cannot
+parse, not what it can), and the checker's own pass output states the boundary so
+COMPLETE is never read as "evidence verified."
+
+### 46.2 The grammar as parsed
+
+Keys anchor at line start (`^RED:`, `^quality:`, `^mutation:`, `^verify:`),
+case-sensitive, so prose mentioning a key mid-line cannot collide. Body read via
+`git log -1 --format=%B <ref>`, CRs stripped defensively (the guard's
+`tr -d '\r'` lesson, §44).
+
+- `RED:` — one or more lines, each non-empty after the colon: the observed form,
+  `not observed — <reason>`, or the zero-form. Absent or any line empty → fail.
+- `quality:`, `mutation:`, `verify:` — exactly one line each, non-empty after the
+  colon. Absent, empty, or duplicated → fail. Duplicated fails because two
+  `quality:` lines means nobody knows which is the record.
+
+**The contract gap this design surfaced:** a slice with zero behavior batches
+(docs, config — the contract's own `verify:`-skip examples) had no legal `RED:`
+form — "one per behavior batch" and "never omitted" are unsatisfiable together at
+zero batches, and a checker requiring ≥ 1 would false-block exactly the slice the
+skip forms exist for. Fixed in the same batch, template first (inv 2): the
+zero-form **`RED: none — no behavior batches this slice`** joins
+`SDLC.template.md` step 10 and `end-slice.md` step 7. The checker treats it as an
+ordinary non-empty `RED:` line.
+
+### 46.3 Interface
+
+- **Home:** `templates/close-out.template.sh` → `.github/hooks/sdlc-close-out.sh`,
+  both CLIs. Verified before choosing: `.github/hooks/` is not a GitHub-reserved
+  behavior directory (only `workflows/` is), so it is inert on a Claude-only
+  adoption; it is the home `sdlc-update.md` already classifies for kit scripts;
+  and VER.3 wires this same script at `agentStop`, at which point it genuinely is
+  a hook occupant. **Zero placeholders** — the four keys are kit-fixed; the file
+  copies verbatim like the skill-ledger JSON, no new inv-1 burden.
+- **Invocation:** `sh .github/hooks/sdlc-close-out.sh check [<ref>]`, default
+  `HEAD`, from the repo root. Mode argument now so VER.3 adds `stop-check` to the
+  same file, guard-style, instead of forking the parse logic.
+- **Exit codes:** 0 complete; 1 incomplete, each missing/empty/duplicated key
+  named; 2 cannot check (bad ref, git absent). As a command step it fails
+  **closed** — deliberately opposite to the hook fail-open rule, because the agent
+  sees and quotes the failure rather than silently losing it.
+- **Flow position:** new `/end-slice` step between commit and PROJECT_INDEX —
+  checking the commit actually made (the artifact `/sdlc-retro` reads), not a
+  draft; remediation is `git commit --amend`, before anything is pushed. Output
+  quoted in full either way — a pass not observed is not a pass.
+- **Failure output is anti-fabrication by construction:** a missing key's line
+  says "if the step ran, amend with its real outcome; if it was skipped, amend
+  with its stated form — never invent evidence the session did not produce." The
+  pass line states "structural presence only; this does not verify the evidence
+  is true."
+
+### 46.4 The one probe
+
+Single unknown: does `sh` resolve from Copilot CLI's **agent shell tool** (the
+measured `powershell`)? The hook shell is proven; the agent shell is not the hook
+shell (measured 2026-08-07). Probe: run `sh --version` through the shell tool
+before the invocation form is written into `end-slice.md`. If it fails, setup
+proves a working invocation at install time and records it in `spec/SDLC.md`
+beside the gate — the guard's JSON-parser-note precedent. No other unknowns: no
+JSON, no hook payload, no timeout budget.
+
+### 46.5 Criteria and decision rule
+
+Offline fixture corpus first (~16 commit-body cases: all-present, each key
+missing, each empty, every stated-skip form, the RED zero-form, a duplicated
+singleton, a mid-line key lookalike, a CRLF body, multi-RED, real record bodies
+from the adopter's armed arcs), then live.
+
+- **V1 — catch:** a body missing one key → INCOMPLETE naming exactly that key,
+  exit 1.
+- **V2 — empty-payload catch:** a key with nothing after the colon → INCOMPLETE.
+- **V3 — silence on clean:** every fully-formed record, skip forms and zero-form
+  included → COMPLETE, exit 0, zero flags.
+- **S1 — zero false failures** across the whole corpus.
+- **S2 — cheap:** sub-second; git and standard utils only; no network.
+- **S3 — its own failure is loud:** bad ref / no git → exit 2 with a message,
+  never a silent pass.
+- **S4 — dialect agreement:** identical verdicts on Git Bash and via the probed
+  Copilot invocation over the same corpus.
+
+**Decision rule, fixed now:** all seven → wire into `end-slice.md`,
+`SDLC.template.md`, and `sdlc-setup.md` in the same batch; the owner reads the
+trial report before release. Any V fails → the parse design is wrong, back to
+this section. S4 fails → ships Claude-dialect-first with the Copilot form stated
+as owed, mirroring VER.3's own ramp.
+
+### 46.6 Cost named up front
+
+Inserting a step renumbers `end-slice.md` 8→9, 9→10 and `SDLC.template.md`
+11→12; the pre-0.19.1 kit-check verified 77 step references, so the edit carries
+a full inv-6 sweep before commit. Bookkeeping: README file tree (inv 5),
+`COPILOT.md` mapping row, `sdlc-update.md` transition note, CHANGELOG Unreleased,
+manifest at release. The checker enters the §16 audit clock like every new rule,
+counted in field arcs.
