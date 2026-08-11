@@ -10,11 +10,14 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.20.0 — 2026-08-10
 
 VER.1 (`FEATURE_PLAN.md` §37.4, design pre-registered as §46 before any code,
 owner-approved 2026-08-10): the close-out evidence record stops being prose-only —
-a script now fails loudly when a slice commit's record is silently absent.
+a script now fails loudly when a slice commit's record is silently absent. Includes
+the pre-0.20.0 `/kit-check` fixes (§47) — the largest being the delivery gap: the
+update path's new-files clause, both classification scripts, and both denominator
+checks were blind to the one file this release adds; all now name it.
 
 ### Added
 - **[installable]** **The close-out evidence checker: `templates/close-out.template.sh`
