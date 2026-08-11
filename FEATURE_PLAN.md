@@ -2605,3 +2605,66 @@ bookkeeping (both READMEs, COPILOT.md row, sdlc-update classification row — th
 checker is the one kit-owned `.github/hooks/` file — and its 0.20.0 transition
 note, CHANGELOG Unreleased, root CLAUDE.md tools line). Release timing is the
 owner's call; `/kit-check` before it per §37.7.
+
+---
+
+## 47. The pre-0.20.0 `/kit-check` — run 2026-08-10; findings fixed in-session
+
+Full pass. Mechanical: inv 9 clean (63 tracked files, tree complete — the two VER.1
+files were added with their hooks in the wiring commit); inv 10 discriminates
+exactly (the six bundle files the batch edited mismatch, the new template unlisted,
+nothing else — regeneration owed to the release commit per procedure); inv 4 clean
+(49 `{{` hits, all in `sdlc-setup.md`, exit-check scope exact); inv 6 clean (76
+step references, every renumbered `end-slice.md` reference verified against its
+target). Eleven reading invariants fanned to four read-only readers; every finding
+re-verified against the tree before any edit. Inv 11 clean in both provenance
+directions; inv 3 clean with all 49 placeholders mapped and the
+`{{CLOSE_OUT_CHECK_NOTE}}` chain verified end-to-end.
+
+The findings, all fixed in-session except the last:
+
+- **The delivery gap (inv 5/7, the pass's largest):** the checker was installed by
+  setup step 6 but every update-path artifact looked only at step 5's install
+  table — the new-files clause in both homes named step 5 alone, neither
+  classification script walked `.github/hooks/`, and both denominator checks
+  repeated the same directory list, self-consistently blind. Followed literally,
+  0.20.0's one new file would never reach an updating project and never classify.
+  Fixed: both new-files clauses name the step-6 artifact, both scripts gain the
+  `sdlc-close-out.sh` pathspec and a verbatim-compare arm, both denominators name
+  the extended list.
+- **The CLI-inference break (inv 7):** four sites inferred "Copilot project" from
+  `.github/hooks/` existing — false from 0.20.0, when every adoption holds the
+  directory. All four now point at `sdlc-gate.*` specifically.
+- **The New-mode proof landed nowhere (inv 3):** New mode always reaches step 6
+  with zero commits (`git init` is scaffold step 1; the first commit is close-out
+  step 2), and close-out step 2 carried no instruction to run the deferred proof —
+  a note recording an invocation nobody ran, the checker's own target defect one
+  layer up. Fixed: close-out step 2 performs the proof and finalizes the note; the
+  template comment carries the sanctioned deferral; the re-adoption case (a `HEAD`
+  already bearing a record, where the see-it-fail proof cannot fail) proves against
+  an older ref, stated in both modes.
+- **Inv 2:** `SDLC.template.md`'s commit step still said "heredoc via the Bash
+  tool" — the Claude-only form `end-slice.md` had already generalized, resolving
+  the wrong way under the template-wins rule; absorbed. The Windows-only scope of
+  the no-`sh` measurement was present in the template and dropped in setup and
+  sdlc-update; restored, with the non-Windows-measures-its-own-answer clause.
+- **Inv 13:** the ledger's denominator list and `/kit-check`'s restatement were not
+  extended for the new check — the invariant's own "same batch" rule, violated by
+  the batch that added a checker; both lists now name the close-out checker and its
+  setup proof step, restamped 0.20.0.
+- **Inv 14/15:** the recorded invocation now carries the machine-scope caveat and
+  add-a-CLI update trigger its sibling notes had; `end-slice.md` step 8 and
+  template step 11 name the agent's shell tool and the per-CLI line selection;
+  step 8 handles the note-absent update window (a missing note is named, never a
+  guessed invocation); the hand-back inventory lists the checker output; the S4
+  harness comment no longer claims the Copilot environment it does not enter; the
+  shipped 1.7 s comment is dated and located. `next-slice.md` and
+  `CLAUDE.template.md`'s step-list summaries gained the record check;
+  `sdlc-retro.md`'s sweep now states what an absent record line means on a
+  checker-era slice.
+- **Deferred, recorded as `IMPROVEMENT_PLAN.md` §15:** the kit's own operational
+  procedures (update classifier, setup exit grep, end-phase `&&`) assume a POSIX
+  toolchain the measured Copilot shell does not have — a batch of its own, with its
+  revisit condition.
+
+Proof re-run green after the edits: 21 cases, 8 mutations caught.

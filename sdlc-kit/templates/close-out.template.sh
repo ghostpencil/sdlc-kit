@@ -42,8 +42,10 @@ git rev-parse --verify --quiet "$REF^{commit}" >/dev/null 2>&1 \
   || cannot "'$REF' does not resolve to a commit in this repository"
 
 # All eight counters in ONE awk pass. Not style: a per-pattern grep costs a
-# process pair per counter, and on a Windows sh that is ~1.7 s of fork overhead
-# per invocation - measured against this script's own sub-second budget. The CR
+# process pair per counter, and process forks are expensive on Windows sh - the
+# grep-per-counter draft of this script cost ~1.7 s per invocation there
+# (measured 2026-08-10, Git Bash), against the design intent that a close-out
+# step's check be effectively free. The CR
 # strip is defensive: a body written through a Windows shell can carry CRLF, and
 # a stray CR turns the end-anchored empty-payload match false.
 COUNTS=$(git log -1 --format=%B "$REF" | awk '

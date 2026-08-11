@@ -46,8 +46,10 @@ unavoidable, record the version change against the affected slices in
   the project is *on*, which is what makes "unmodified" provable rather than hopeful.
 - Read the project's agent CLI from `spec/PROJECT_INDEX.md` (*Agent CLI:*). It decides
   which directories step 3 enumerates. Absent — projects adopted before 0.14.0 have no
-  such line — infer it from what the repo holds (`.claude/settings.json` vs
-  `.github/hooks/`), state the inference to the owner, and have them confirm it; the
+  such line — infer it from what the repo holds (`.claude/settings.json` vs the
+  Copilot gate pair `.github/hooks/sdlc-gate.*`; the directory alone proves nothing
+  from 0.20.0, when the both-CLIs `sdlc-close-out.sh` moves in), state the
+  inference to the owner, and have them confirm it; the
   update writes the line as part of landing, so the next update reads rather than infers.
   When the line is present, glance at the same evidence anyway: a recorded CLI the
   repo's own artifacts contradict (a `Copilot CLI` line beside no `.github/`
@@ -79,9 +81,16 @@ cd <project root>
 MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
 for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
-                        .github/skills .github/agents); do
+                        .github/skills .github/agents \
+                        .github/hooks/sdlc-close-out.sh); do
   have=""
   case "$f" in
+    .github/hooks/sdlc-close-out.sh)
+      base=sdlc-close-out.sh
+      # the one kit-owned file in .github/hooks/ — copied verbatim, no project
+      # values. Its neighbors are project-owned and deliberately NOT in the
+      # pathspec above: this loop must never classify the gate or guard scripts.
+      want=$(awk '$2 == "templates/close-out.template.sh" {print $1}' "$MAN") ;;
     .claude/commands/*)
       base=${f#.claude/commands/}
       # commands/ and reference/REVIEW_LENSES.md install here. So did skills/ on kits
@@ -131,7 +140,8 @@ result rather than an error:
 
 - **Denominator.** The loop must print exactly as many lines as
   `git ls-files .claude/commands .claude/skills .claude/agents .github/skills
-  .github/agents | wc -l` — the same directory list the loop walks, so the two cannot
+  .github/agents .github/hooks/sdlc-close-out.sh | wc -l` — the same pathspec list
+  the loop walks, so the two cannot
   drift apart. Fewer means the matching dropped files (`tdd-references/` lives two
   directories down and is the usual casualty). On a Copilot project the count includes
   files under `.github/` that a Claude-only project does not have, and on a "both"
@@ -175,7 +185,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
 - Copy the target version's files over the `UNCHANGED` set and whatever `DRIFTED` files
   the owner released — plus any files **new in the target's install set**, which
   classification never saw because the project does not hold them yet. Sources and
-  destinations follow the per-CLI table in `sdlc-setup.md` New mode step 5 — the
+  destinations follow the per-CLI table in `sdlc-setup.md` New mode step 5 — **plus
+  step 6's one kit-owned artifact, `templates/close-out.template.sh` →
+  `.github/hooks/sdlc-close-out.sh` (both CLIs, verbatim), which lives outside the
+  step-5 table because it installs beside the hooks** — the
   *Agent CLI:* line says which column applies, and "both" gets both columns. Claude
   Code column: `sdlc-kit/commands/` into `.claude/commands/`. Copilot column: each
   command re-packaged into `.github/skills/<name>/SKILL.md` by that step's packaging
@@ -423,10 +436,12 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `spec/SDLC.md` needs the close-out checker note beside the gate: the proven
   invocation per installed CLI, each form actually run against a real commit before
   being recorded. On Claude Code that is `sh .github/hooks/sdlc-close-out.sh check`;
-  on Copilot CLI the shell tool resolves no `sh` (measured 2026-08-10 — and its
-  PATH's `bash` is WSL's, the corrupting route), so the working form derives sh from
+  on Copilot CLI the shell tool on Windows resolves no `sh` (measured 2026-08-10 —
+  and its PATH's `bash` is WSL's, the corrupting route), so there the working form
+  derives sh from
   the git on its PATH (`bin\sh.exe` beside `git.exe`'s `cmd` directory) and the note
-  carries that literal proven path. Prove it the way setup does: run it against a
+  carries that literal proven path; a non-Windows Copilot project measures its own
+  answer. Prove it the way setup does: run it against a
   pre-record commit and watch it fail INCOMPLETE naming all four keys. (b) The
   slice loop in `spec/SDLC.md` gains the verify-the-record step after the commit
   step and the `RED:` zero-form (`RED: none — no behavior batches this slice`) in
@@ -517,8 +532,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
 - Changelog entries marked *[adoption-only]* changed templates or the non-installed
   reference docs, read only at `/sdlc-setup` time; they affect new adoptions, not this
   project (`reference/REVIEW_LENSES.md` is installed and its changes are
-  *[installable]*, and on a Copilot project so is `templates/explore.agent.template.md`,
-  copied verbatim to `.github/agents/`). If one fixes
+  *[installable]*; on a Copilot project so is `templates/explore.agent.template.md`,
+  copied verbatim to `.github/agents/`; and from 0.20.0 so is
+  `templates/close-out.template.sh`, copied verbatim to
+  `.github/hooks/sdlc-close-out.sh` on both CLIs). If one fixes
   something the project cares about, raise it with the owner as a manual follow-up —
   never apply it automatically.
 - Skipping several versions is fine: classify against the version the project is on,

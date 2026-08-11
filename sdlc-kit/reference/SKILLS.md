@@ -187,8 +187,10 @@ anything a teammate needs must be in the repo, not on your machine.
 ## Team onboarding checklist (per developer machine)
 
 1. Install the CLI this project adopted — ask, or look at what it holds: a
-   `.github/hooks/` gate is a Copilot project, a `.claude/settings.json` one is Claude
-   Code, and a repo may hold both. On Claude Code, run `claude update` to current.
+   `.github/hooks/sdlc-gate.*` gate is a Copilot project, a `.claude/settings.json`
+   one is Claude
+   Code, and a repo may hold both (`.github/hooks/sdlc-close-out.sh` alone signals
+   neither — it installs on both CLIs from 0.20.0). On Claude Code, run `claude update` to current.
 2. Clone the project repo — the kit commands, the TDD skill set, `diff-review`,
    `change-simplify`, `change-verify`, the hook, and the specs all come with it (they
    were installed project-scoped by `/sdlc-setup`). **Nothing per-machine is required

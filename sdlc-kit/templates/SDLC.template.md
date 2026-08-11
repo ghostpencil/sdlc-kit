@@ -258,7 +258,13 @@ setup: {{HOOK_ENVIRONMENT}}
      form derives sh from the git on its PATH, e.g.
      `& '<git-install>\bin\sh.exe' .github/hooks/sdlc-close-out.sh check`, with the
      literal proven path written into the note. A recorded invocation that was never
-     run is exactly the silent absence the checker exists to catch. -->
+     run is exactly the silent absence the checker exists to catch. (One sanctioned
+     deferral: a brand-new repo has no commit to prove against until setup's own
+     close-out makes the initial commit — the proof runs there, still inside setup,
+     and the note is finalized in the same breath.) Like its two sibling notes above,
+     this line is a claim about the machine and CLIs setup ran on: the proven path
+     describes that machine (a teammate's clone re-proves before trusting it), and
+     adding a CLI later means adding its proven line — nothing else will. -->
 
 
 ## Model policy
@@ -417,7 +423,9 @@ Run `/end-slice` when the slice's exit criteria are met:
    does not stand in for halt 4's owner acceptance.
    A break it observes is fixed through the same loop as a review fix: apply, re-run
    the gate, and any new guard joins step 8's mutation obligation.
-10. Commit (heredoc for multi-line messages, via the Bash tool). Subject line in the
+10. Commit — the multi-line message written in the shell tool's own literal form: a
+    heredoc on a POSIX shell tool (Claude Code's Bash), a single-quoted here-string
+    on a PowerShell one (Copilot CLI's measured shell tool). Subject line in the
     project's own convention where one is recorded; the kit's default shape is
     `<type>(<area>): <summary>` with `docs:` for bookkeeping commits. The commit body
     carries the slice's evidence record: the observed-RED lines from step 4's running
@@ -426,11 +434,15 @@ Run `/end-slice` when the slice's exit criteria are met:
     behavior batches writing the zero-form `RED: none — no behavior batches this
     slice`) and the `quality:`, `mutation:`, and `verify:` lines from steps 6, 8,
     and 9.
-11. Verify the record: run the close-out checker on the commit just made, using the
-    invocation the close-out checker note beside the gate in this file records, and
+11. Verify the record: run the close-out checker on the commit just made — **in the
+    agent's shell tool**, the same scope as steps 5–9, using the invocation line the
+    close-out checker note beside the gate in this file records **for the CLI running
+    this session** (on a both-CLIs project the note carries one line each) — and
     quote its output in full — a pass not observed is not a pass. The
     checker verifies **structural presence only** — every evidence line there or
-    carrying its stated-skip form — never truth; its own output says so. On
+    carrying its stated-skip form, one line per key for `quality:`/`mutation:`/
+    `verify:` (a duplicate fails — nobody knows which line is the record), each key
+    at the start of its line — never truth; its own output says so. On
     INCOMPLETE, `git commit --amend` with the real outcome or the stated-skip form —
     never with invented evidence — and re-run; on CANNOT CHECK, fix what it names
     and re-run. The step is done only at COMPLETE, and it exists because the record

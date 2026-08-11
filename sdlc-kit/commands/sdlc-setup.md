@@ -445,20 +445,30 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    it as a command step in the agent's shell, and it fails closed there on purpose.
    Prove it the way every other check is proven — by seeing it fail: run it against
    `HEAD` (`sh .github/hooks/sdlc-close-out.sh check` wherever `sh` resolves in the
-   agent's shell — Claude Code's Bash tool does), and since any pre-kit commit
-   carries no record, the proof is INCOMPLETE naming all four keys, exit 1. A repo
-   with no commits yet runs the same proof at close-out step 2's initial commit
-   instead, and the note says so until then.
+   agent's shell — Claude Code's Bash tool does, measured 2026-08-10), and a pre-kit
+   commit carries no record, so the proof is INCOMPLETE naming all four keys,
+   exit 1. Two branches, neither assumed: a repo whose `HEAD` **does** carry a
+   record (a re-adoption from kit ≥ 0.15.0 — the partial-install case in the Notes)
+   proves against a commit predating the record instead, because a COMPLETE is the
+   proof not failing; and a repo with **no commits yet** — every New-mode run, since
+   `git init` is scaffold step 1 and the first commit is close-out step 2 — defers
+   the proof to that step, where it is actually performed (close-out step 2 says
+   so), and the note is finalized there, still inside setup.
    **On Copilot CLI the invocation itself is the thing to measure**: its shell tool
-   is not the shell you type in, and measured 2026-08-10 it resolves no `sh` — while
-   the `bash` on its PATH is WSL's, the route that corrupts hook bodies; never
-   substitute it. The working form derives sh from the git on its PATH — `bin\sh.exe`
-   beside the `cmd` directory that holds `git.exe` — so resolve that literal path,
+   is not the shell you type in, and measured 2026-08-10 **on Windows** it resolves
+   no `sh` — while the `bash` on its PATH is WSL's, the route that corrupts hook
+   bodies; never substitute it. There the working form derives sh from the git on
+   its PATH — `bin\sh.exe` beside the `cmd` directory that holds `git.exe` — so
+   resolve that literal path,
    run the proof through it **from a session of the CLI itself**, and record the
-   exact form that ran. Then resolve `{{CLOSE_OUT_CHECK_NOTE}}` in `spec/SDLC.md`:
+   exact form that ran (a non-Windows Copilot project measures its own answer —
+   `sh` may simply resolve; the probe, not the platform lore, decides). Then
+   resolve `{{CLOSE_OUT_CHECK_NOTE}}` in `spec/SDLC.md`:
    one invocation line per installed CLI, each one actually run against a real
    commit — a recorded invocation that was never run is exactly the silent absence
-   the checker exists to catch, one layer up.
+   the checker exists to catch, one layer up. The note is a claim about this
+   machine and these CLIs: a teammate's clone re-proves before trusting it, and
+   adding a CLI later means adding its proven line, because nothing else will.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
@@ -562,8 +572,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      installed and verified per New mode step 6, merged with any existing hooks rather
      than replacing them (Copilot's live in `.github/hooks/*.json` or inline in
      `.github/copilot/settings.json`, so look in both); the close-out evidence
-     checker installed and proven per the same step — an adopted repo always has a
-     recordless `HEAD` to prove it against. A deliberate lint error in a
+     checker installed and proven per the same step — an adopted repo has commits to
+     prove against, and when `HEAD` itself already carries a record (a re-adoption
+     from kit ≥ 0.15.0), the proof runs against a commit predating it, because a
+     COMPLETE is the proof not failing. A deliberate lint error in a
      scratch source file must produce the hook's feedback. An unverified hook is
      enforcement that reads as complete.
 4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in
@@ -590,7 +602,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
    plus `.github/hooks/sdlc-gate.sh` when the target CLI is Copilot, and
    `.github/hooks/sdlc-tdd-guard.sh` when step 6's guards were accepted (the gate's
-   and the guard's `.json` launchers take no values, so neither is in scope). The scope is
+   and the guard's `.json` launchers take no values, and neither does
+   `.github/hooks/sdlc-close-out.sh` — copied verbatim — so none of the three is in
+   scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,
    and on Copilot the same is true of `.github/skills/sdlc-setup/SKILL.md`. Name the
@@ -601,7 +615,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    baseline record names).
 2. Ask the owner: commit the setup? If yes — New mode: initial commit; Existing mode:
    a `chore/adopt-sdlc` branch and a normal PR (the team should see this land like any
-   change). Never commit without asking.
+   change). Never commit without asking. **New mode: the close-out checker proof
+   deferred from step 6 runs now, against the initial commit just made** — it carries
+   no slice record, so the checker must report INCOMPLETE naming all four keys,
+   exit 1; quote that output and finalize the `{{CLOSE_OUT_CHECK_NOTE}}` line in
+   `spec/SDLC.md` from deferred to proven, in this same commit (amend it). If the
+   owner declines the commit, the note keeps saying the proof is owed — a note
+   claiming a proof that never ran is the exact defect the checker exists to catch.
 3. Report: what was generated, skill/plugin verification results — **file-level only:
    source and installed copies checked; the listing check is still owed, and the report
    says how per CLI: on Copilot the owner types `/skills reload` and checks it now, on

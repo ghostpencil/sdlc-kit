@@ -273,6 +273,7 @@ The whole procedure rests on this split:
 | `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the eight `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; it takes no project values, unlike its two `.sh` neighbors. |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
@@ -282,11 +283,13 @@ user-typed under `.claude/commands/`, once packaged under `.github/skills/` — 
 copies update.
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
-re-applied to an already-adopted project — with two exceptions, both of which track
+re-applied to an already-adopted project — with three exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
-gone), and — on Copilot projects — `templates/explore.agent.template.md`, which is
-copied verbatim rather than instantiated because it carries no placeholders. A kit release that changes only
+gone); on Copilot projects `templates/explore.agent.template.md`, which is
+copied verbatim rather than instantiated because it carries no placeholders; and —
+from 0.20.0, on both CLIs — `templates/close-out.template.sh`, copied verbatim to
+`.github/hooks/sdlc-close-out.sh` for the same reason. A kit release that changes only
 the non-installed templates and reference docs is an adoption-only change — it affects new
 adoptions, not yours, **with one standing exception**: a template change to a
 project-owned file you instantiated (the hook scripts, the spec files) reaches you
@@ -299,8 +302,10 @@ only as a hand-apply, and the per-version transition notes name each one.
    Projects adopted before 0.2.0 have no stamp; see *No version stamp* below.
    **And your agent CLI:** `spec/PROJECT_INDEX.md` records it (*Agent CLI:*), which
    decides which directories step 3 enumerates. Projects adopted before 0.14.0 have no
-   such line — infer it from what the repo holds (`.claude/settings.json` versus
-   `.github/hooks/`), state the inference to the owner and have them confirm it, then
+   such line — infer it from what the repo holds (`.claude/settings.json` versus the
+   Copilot gate pair `.github/hooks/sdlc-gate.*` — the directory alone proves nothing
+   from 0.20.0, when the both-CLIs `sdlc-close-out.sh` moves in), state the
+   inference to the owner and have them confirm it, then
    write the line as part of this update, so the next one reads it instead of
    inferring. When the line is present, glance at the same evidence anyway: a
    recorded CLI the repo's own artifacts contradict is a finding for the owner
@@ -330,9 +335,16 @@ only as a hand-apply, and the per-version transition notes name each one.
    MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
    for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
-                           .github/skills .github/agents); do
+                           .github/skills .github/agents \
+                           .github/hooks/sdlc-close-out.sh); do
      have=""
      case "$f" in
+       .github/hooks/sdlc-close-out.sh)
+         # the one kit-owned file in .github/hooks/ — copied verbatim, no project
+         # values. Its neighbors are project-owned and deliberately NOT in the
+         # pathspec above: this loop must never classify the gate or guard scripts.
+         base=sdlc-close-out.sh
+         want=$(awk '$2 == "templates/close-out.template.sh" {print $1}' "$MAN") ;;
        .claude/skills/*)
          base=${f#.claude/skills/}
          # skills/ installs one directory per skill here from 0.14.0 on.
@@ -382,7 +394,8 @@ only as a hand-apply, and the per-version transition notes name each one.
      empty input and silently "matches" the wrong entry. Look the path up in the manifest,
      as above, rather than probing for it.
    - **Check the denominator.** The loop should report exactly as many files as
-     `git ls-files` over the same directory list the loop walks. If it reports fewer,
+     `git ls-files` over the same pathspec list the loop walks (the five directories
+     plus `.github/hooks/sdlc-close-out.sh`). If it reports fewer,
      your prefix matching is dropping files — `tdd-references/` lives two directories
      down and is the usual casualty. A Copilot project counts files under `.github/`
      too, and a project set up for both counts the seven commands twice, once per copy.
@@ -406,7 +419,10 @@ only as a hand-apply, and the per-version transition notes name each one.
    never saw them — it enumerates what your project already holds, and your project does
    not hold them yet — so they appear in no category above and are the one class of
    update a purely classification-driven pass silently skips. Take the install set from
-   the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5).
+   the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5 — plus step 6's
+   one kit-owned artifact, `templates/close-out.template.sh` →
+   `.github/hooks/sdlc-close-out.sh`, both CLIs, which lives outside the step-5 table
+   because it installs beside the hooks).
 
    The symmetric case: files **removed from the target's install set** — listed in your
    old version's manifest under an install mapping but absent from the target's. An

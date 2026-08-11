@@ -75,7 +75,10 @@ none of them writes anything.
   and report each one's evidence in the window: **ran**, **caught** (ran and caught
   something — say what), **skipped with a stated reason**, or **no evidence**. Where to look: slice
   commit bodies (the `RED:`, `quality:`, `mutation:`, and `verify:` evidence lines —
-  `git log` carries them), the deferred
+  `git log` carries them; where the process file names the close-out record check,
+  that checker structurally prevents a missing line at slice close, so an absent
+  line on such a slice means the checker itself was never run — a different and
+  sharper finding than a step silently skipped), the deferred
   backlog's provenance tags (a `(slice review, <date>)` tag is evidence the review
   ran), the friction log — and, where `spec/SDLC.md`'s skill-ledger note says one is
   installed, `.git/sdlc-skill-ledger.jsonl`: one timestamped line per skill

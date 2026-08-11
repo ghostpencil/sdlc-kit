@@ -181,8 +181,12 @@ class Bench:
                      input=message.encode("utf-8"))
         assert p.returncode == 0, "bench commit failed: " + p.stderr.decode()
 
-    via_powershell = False  # S4: same corpus through the PowerShell -> sh chain,
-                            # the invocation a Copilot CLI shell tool would issue
+    via_powershell = False  # S4: same corpus through a PowerShell -> sh chain. This
+                            # proves dialect agreement, not the Copilot environment:
+                            # its shell tool resolves no bare `sh` (measured
+                            # 2026-08-10), so the git-derived sh.exe form the docs
+                            # mandate was proven separately, live in a Copilot
+                            # session (FEATURE_PLAN.md 46.7).
 
     def run(self, args):
         t0 = time.perf_counter()

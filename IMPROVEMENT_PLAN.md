@@ -986,3 +986,20 @@ revisit condition. The nine findings themselves were fixed in-session
    the next provenance refresh against upstream — same revisit as the
    hypothesis-tests one-word-diff record (§43, discarded there as unverifiable
    offline).
+
+## 15. Deferred from the pre-0.20.0 `/kit-check` — recorded 2026-08-10, not scheduled
+
+1. **The kit's own operational procedures assume a POSIX toolchain, and the 0.20.0
+   measurement makes that demonstrable rather than latent.** `sdlc-update.md`'s
+   whole classifier (sh + awk + sha256sum + `/tmp`), `sdlc-setup.md`'s exit-check
+   grep, and `end-phase.md`'s `git checkout <main> && git pull` (`&&` is a parser
+   error on PowerShell 5.1, Copilot's measured shell tool) each prescribe forms the
+   Copilot agent shell cannot execute as written — the same species as IMPROVEMENT_PLAN
+   §14.2, now with the 2026-08-10 no-`sh` measurement behind it. The 0.19.1 batch
+   fixed this class in `end-slice.md` only (per-CLI literal forms). Fixing it
+   everywhere is a batch of its own (per-CLI forms or a documented
+   run-via-derived-sh convention for the update procedure). Revisit when a Copilot
+   adopter first runs `/sdlc-update` end-to-end — the update was designed
+   operator-driven, so the practical exposure may be lower than the letter of
+   invariant 1 suggests — or when VER.2 lands and both dialects' shell facts sit in
+   one place.

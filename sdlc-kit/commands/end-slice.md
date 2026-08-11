@@ -221,13 +221,22 @@ loop already wrote down.
 
 ### 8. Verify the record — structural, and quoted
 
-Run the close-out checker on the commit just made, with the invocation recorded
-beside the gate in `spec/SDLC.md` (the close-out checker note — where `sh` resolves
-in this shell it is `sh .github/hooks/sdlc-close-out.sh check`), and quote its
-output in full in the hand-back — a pass not observed is not a pass.
+Run the close-out checker on the commit just made — in **the agent's shell tool**,
+the same scope as the gate — with the invocation recorded beside the gate in
+`spec/SDLC.md`, taking the close-out checker note's line **for the CLI running this
+session** (where `sh` resolves in the agent's shell it is
+`sh .github/hooks/sdlc-close-out.sh check`), and quote its output in full in the
+hand-back — a pass not observed is not a pass. If `spec/SDLC.md` carries **no**
+such note, this project's process file predates the checker (`/sdlc-update`'s
+transition note names exactly this window): say so in the hand-back and have the
+note resolved per that procedure — never guess an invocation, because on a shell
+without `sh` the guess dies as a shell error, not as the checker's own CANNOT
+CHECK.
 
 The checker verifies **structural presence only**: every evidence line of step 7's
-record present, or carrying its stated-skip form, with silent absence failing
+record present, or carrying its stated-skip form — one line per key for
+`quality:`/`mutation:`/`verify:` (a duplicate fails: nobody knows which line is
+the record), each key at the start of its line — with silent absence failing
 loudly. It never verifies truth — its own output says so — and COMPLETE is not
 evidence the work behind a line happened; the steps that produced the lines remain
 the record of that.
@@ -296,8 +305,9 @@ outcome (N fixed / N deferred / N discarded as unverified, naming those),
 mutation-check outcome (N guards checked, each seen to fail), **RED evidence per
 behavior batch** (the command, the failing line, the exit code — with `not observed`
 stated, never omitted, same contract as the quality pass), **verification outcome**
-(the verdicts, or skipped with the reason), any tool substituted for one this file
-names, and commit hashes. End with: **safe to `/clear`**.
+(the verdicts, or skipped with the reason), **the record check's quoted output**
+(step 8 — COMPLETE, or how an INCOMPLETE was remediated), any tool substituted for
+one this file names, and commit hashes. End with: **safe to `/clear`**.
 
 ## Notes
 

@@ -83,10 +83,11 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.19.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.20.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe, the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
-  retro's ledger-alive precheck, the
+  close-out evidence checker and its setup proof step, the retro's ledger-alive
+  precheck, the
   skills-listing check, the setup exit checks, the
   coverage-floor establishment proof, the deploy verification, the update
   classifier, the release workflow, the `tools/` proof suites, and this command.

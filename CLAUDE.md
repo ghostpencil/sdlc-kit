@@ -42,6 +42,7 @@ way they read once the folder is sitting in a target project.
 sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
   templates/*.template.*                     CLAUDE.md, spec/*.md, .claude/settings.json
                                              (Copilot: .github/hooks/, .github/agents/)
+                                             (both CLIs: .github/hooks/sdlc-close-out.sh)
   commands/*.md                              .claude/commands/*.md
                                              (Copilot: .github/skills/<name>/SKILL.md)
   skills/<name>/SKILL.md                     .claude/skills/<name>/SKILL.md
@@ -55,7 +56,9 @@ runs in two modes — **New Project** (interview → scaffold → establish a gr
 **Existing Project** (analyze → propose → confirm → generate, merging never overwriting) —
 and it instantiates every template, installs the four daily commands, `sdlc-retro.md`,
 `sdlc-update.md`, the vendored TDD skill set, and the three kit-written change passes
-(`diff-review`, `change-simplify`, `change-verify`), and writes the edit-time hook.
+(`diff-review`, `change-simplify`, `change-verify`), writes the edit-time hook, and
+installs the close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, verbatim,
+both CLIs — the one kit-owned file in that directory).
 `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
 *Updating an adopted project* section state the same procedure and must agree.

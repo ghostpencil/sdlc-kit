@@ -35,9 +35,12 @@ a script now fails loudly when a slice commit's record is silently absent.
   PowerShell→sh chain and live in a Copilot CLI session.
 - **[installable]** **`/end-slice` gains step 8, "Verify the record" — and renumbers
   again**: PROJECT_INDEX 8→9, hand-back 9→10. The step runs the checker on the commit
-  just made — the artifact `/sdlc-retro` reads, not a draft — quotes its output in
-  full either way, and remediates INCOMPLETE by `git commit --amend` with the real
-  outcome or the stated-skip form, before anything is pushed.
+  just made — the artifact `/sdlc-retro` reads, not a draft — in the agent's shell
+  tool, taking the recorded invocation for the CLI running the session, quotes its
+  output in full either way, and remediates INCOMPLETE by `git commit --amend` with
+  the real outcome or the stated-skip form, before anything is pushed. The same file
+  gains the `RED:` zero-form in its step-7 record contract (next entry), and the
+  hand-back inventory now lists the record check's quoted output.
 - **[adoption-only]** **The `RED:` zero-form closes a contract gap the checker design
   surfaced**: a slice with no behavior batches (docs, config — the contract's own
   `verify:`-skip examples) had no legal `RED:` line, since "one per behavior batch"
@@ -45,10 +48,14 @@ a script now fails loudly when a slice commit's record is silently absent.
   and `end-slice.md` step 7 now name `RED: none — no behavior batches this slice`.
   `SDLC.template.md` also gains slice-loop step 11 (verify the record; 11→12, 12→13)
   and the `{{CLOSE_OUT_CHECK_NOTE}}` placeholder beside the gate — the proven checker
-  invocation per installed CLI, resolved by setup's step 6, which now installs the
-  checker and proves it by watching it fail INCOMPLETE against a pre-record `HEAD`.
+  invocation per installed CLI, each form run before recorded, machine-scoped like
+  its sibling notes, resolved by setup's step 6, which now installs the
+  checker and proves it by watching it fail INCOMPLETE against a pre-record commit
+  (a New-mode repo defers that proof to setup's own close-out commit; a re-adoption
+  whose `HEAD` already carries a record proves against an older ref).
   Measured 2026-08-10 and recorded where setup will need it: Copilot CLI's shell
-  tool resolves no `sh` (and its PATH's `bash` is WSL's, the corrupting route); the
+  tool on Windows resolves no `sh` (and its PATH's `bash` is WSL's, the corrupting
+  route); there the
   working invocation derives sh from the git on its PATH, and the note carries the
   literal proven form.
 

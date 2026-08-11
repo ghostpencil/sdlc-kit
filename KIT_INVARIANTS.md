@@ -184,7 +184,8 @@ installed a kit-development command into every adopting project (plan, B6 hand-o
 
 Any check this kit specifies or ships — the isolation harness, the edit-time hook, the
 hook-environment probe, the TDD-ordering guards' proof step and their logging-to-deny
-ramp, the skill-activation ledger's proof step, the retro's ledger-alive precheck, the
+ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
+setup proof step, the retro's ledger-alive precheck, the
 skills-listing check, the exit
 checks, the coverage-floor establishment proof, the deploy verification, the update
 classifier, the release workflow's manifest
