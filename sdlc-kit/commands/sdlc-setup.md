@@ -198,8 +198,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    mandatory-mock table, and the integration-vs-unit boundary —
    where integration tests live and what they may touch — for THIS stack; leave
    `{{ISOLATION_HARNESS}}` for step 4, which authors what it describes).
-   `{{HOOK_ENVIRONMENT}}`, `{{TDD_GUARD_NOTE}}`, and `{{SKILL_LEDGER_NOTE}}` are all
-   left for step 6, which measures the first and decides the other two.
+   `{{HOOK_ENVIRONMENT}}`, `{{TDD_GUARD_NOTE}}`, `{{SKILL_LEDGER_NOTE}}`, and
+   `{{CLOSE_OUT_CHECK_NOTE}}` are all left for step 6, which measures the first,
+   decides the middle two, and proves the last.
    `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
    <date> on the walking skeleton, <this session's shell>)`, which step 2 just proved.
    The record names where it was measured, because a later session comparing against
@@ -436,6 +437,28 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    or removing the hook later means updating this line, because nothing else will. Declined: say so **with the date — never delete
    the line**. `/sdlc-update` reads it exactly as it reads the TDD-guard note: a
    recorded decline is settled; a missing line is a project that never had the choice.
+
+   **Install the close-out evidence checker — both CLIs, always, not an offer.**
+   `close-out.template.sh` → `.github/hooks/sdlc-close-out.sh`, copied verbatim — it
+   takes no values (the record's four keys are fixed by the process); do not edit it.
+   It is not a hook despite its address: `/end-slice`'s verify-the-record step runs
+   it as a command step in the agent's shell, and it fails closed there on purpose.
+   Prove it the way every other check is proven — by seeing it fail: run it against
+   `HEAD` (`sh .github/hooks/sdlc-close-out.sh check` wherever `sh` resolves in the
+   agent's shell — Claude Code's Bash tool does), and since any pre-kit commit
+   carries no record, the proof is INCOMPLETE naming all four keys, exit 1. A repo
+   with no commits yet runs the same proof at close-out step 2's initial commit
+   instead, and the note says so until then.
+   **On Copilot CLI the invocation itself is the thing to measure**: its shell tool
+   is not the shell you type in, and measured 2026-08-10 it resolves no `sh` — while
+   the `bash` on its PATH is WSL's, the route that corrupts hook bodies; never
+   substitute it. The working form derives sh from the git on its PATH — `bin\sh.exe`
+   beside the `cmd` directory that holds `git.exe` — so resolve that literal path,
+   run the proof through it **from a session of the CLI itself**, and record the
+   exact form that ran. Then resolve `{{CLOSE_OUT_CHECK_NOTE}}` in `spec/SDLC.md`:
+   one invocation line per installed CLI, each one actually run against a real
+   commit — a recorded invocation that was never run is exactly the silent absence
+   the checker exists to catch, one layer up.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
@@ -538,7 +561,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      per New mode step 5 — the destinations depend on the confirmed target CLI; hook
      installed and verified per New mode step 6, merged with any existing hooks rather
      than replacing them (Copilot's live in `.github/hooks/*.json` or inline in
-     `.github/copilot/settings.json`, so look in both). A deliberate lint error in a
+     `.github/copilot/settings.json`, so look in both); the close-out evidence
+     checker installed and proven per the same step — an adopted repo always has a
+     recordless `HEAD` to prove it against. A deliberate lint error in a
      scratch source file must produce the hook's feedback. An unverified hook is
      enforcement that reads as complete.
 4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in

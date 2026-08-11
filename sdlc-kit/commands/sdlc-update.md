@@ -18,6 +18,7 @@ the project owns.**
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — it takes no project values, unlike its two `.sh` neighbors |
 | `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
 
@@ -415,6 +416,27 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   throughout. State at the halt which of these are still pending — a guard note
   describing 0.19.x semantics over a script still running 0.18.0 behavior
   misdescribes the project in the direction that hides fixes.
+- **0.20.0 adds the close-out evidence checker, and the file arrives automatically
+  but its wiring does not.** `.github/hooks/sdlc-close-out.sh` is kit-owned and
+  verbatim (the classification table above), so the new-files clause delivers it —
+  but three things live in project-owned files and arrive only by hand. (a)
+  `spec/SDLC.md` needs the close-out checker note beside the gate: the proven
+  invocation per installed CLI, each form actually run against a real commit before
+  being recorded. On Claude Code that is `sh .github/hooks/sdlc-close-out.sh check`;
+  on Copilot CLI the shell tool resolves no `sh` (measured 2026-08-10 — and its
+  PATH's `bash` is WSL's, the corrupting route), so the working form derives sh from
+  the git on its PATH (`bin\sh.exe` beside `git.exe`'s `cmd` directory) and the note
+  carries that literal proven path. Prove it the way setup does: run it against a
+  pre-record commit and watch it fail INCOMPLETE naming all four keys. (b) The
+  slice loop in `spec/SDLC.md` gains the verify-the-record step after the commit
+  step and the `RED:` zero-form (`RED: none — no behavior batches this slice`) in
+  the commit step's record contract — hand the owner the template diff, do not edit
+  the spec. (c) `/end-slice` renumbers again: PROJECT_INDEX 8→9, hand-back 9→10.
+  Project notes citing those numbers go stale — flag, do not fix. Until (a) and (b)
+  land, the updated command names a checker invocation and a record form the
+  project's process file does not know — the same disagreement direction as the
+  0.15.0 note, and the same resolution: the spec wins until the owner folds the
+  diff.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

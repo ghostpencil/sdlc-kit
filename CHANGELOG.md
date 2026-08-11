@@ -10,6 +10,48 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+VER.1 (`FEATURE_PLAN.md` §37.4, design pre-registered as §46 before any code,
+owner-approved 2026-08-10): the close-out evidence record stops being prose-only —
+a script now fails loudly when a slice commit's record is silently absent.
+
+### Added
+- **[installable]** **The close-out evidence checker: `templates/close-out.template.sh`
+  → `.github/hooks/sdlc-close-out.sh`, both CLIs, always, verbatim.** A dependency-free
+  POSIX sh script that reads the slice commit body off `git log` and verifies the
+  R5 record **structurally**: `RED:` at least once, `quality:` / `mutation:` /
+  `verify:` exactly once each, every line non-empty after the colon — presence or
+  stated-skip form, never omitted, with duplicates of the singletons failing because
+  nobody knows which line is the record. Presence only, never truth — its own pass
+  output says so — and its failure message steers to the true record ("never invent
+  evidence the session did not produce"), not to manufacturing one. Exit 0/1/2
+  (complete / incomplete / cannot check); it **fails closed** as a command step, the
+  deliberate opposite of the hook fail-open rule. Kit-owned at update time: it takes
+  no project values (the sole `.github/hooks/` file that doesn't). Proof:
+  `tools/close-out-check.py`, a 21-case corpus (every skip form, each key
+  missing/empty/duplicated, mid-line lookalikes, CRLF, two verbatim adopter record
+  bodies) plus 8 mutations, all caught; S4 dialect agreement proven through the
+  PowerShell→sh chain and live in a Copilot CLI session.
+- **[installable]** **`/end-slice` gains step 8, "Verify the record" — and renumbers
+  again**: PROJECT_INDEX 8→9, hand-back 9→10. The step runs the checker on the commit
+  just made — the artifact `/sdlc-retro` reads, not a draft — quotes its output in
+  full either way, and remediates INCOMPLETE by `git commit --amend` with the real
+  outcome or the stated-skip form, before anything is pushed.
+- **[adoption-only]** **The `RED:` zero-form closes a contract gap the checker design
+  surfaced**: a slice with no behavior batches (docs, config — the contract's own
+  `verify:`-skip examples) had no legal `RED:` line, since "one per behavior batch"
+  and "never omitted" are unsatisfiable together at zero. `SDLC.template.md` step 10
+  and `end-slice.md` step 7 now name `RED: none — no behavior batches this slice`.
+  `SDLC.template.md` also gains slice-loop step 11 (verify the record; 11→12, 12→13)
+  and the `{{CLOSE_OUT_CHECK_NOTE}}` placeholder beside the gate — the proven checker
+  invocation per installed CLI, resolved by setup's step 6, which now installs the
+  checker and proves it by watching it fail INCOMPLETE against a pre-record `HEAD`.
+  Measured 2026-08-10 and recorded where setup will need it: Copilot CLI's shell
+  tool resolves no `sh` (and its PATH's `bash` is WSL's, the corrupting route); the
+  working invocation derives sh from the git on its PATH, and the note carries the
+  literal proven form.
+
 ## 0.19.1 — 2026-08-09
 
 The FBK batch (`FEATURE_PLAN.md` §44, owner-approved 2026-08-09): every hook's

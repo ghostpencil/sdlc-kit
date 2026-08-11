@@ -246,6 +246,20 @@ setup: {{HOOK_ENVIRONMENT}}
      offers the ledger when this project never had the choice, and must not badger an
      owner who already made it. -->
 
+{{CLOSE_OUT_CHECK_NOTE}}
+<!-- Setup resolves {{CLOSE_OUT_CHECK_NOTE}} to the proven invocation of the close-out
+     evidence checker (`.github/hooks/sdlc-close-out.sh`, installed verbatim on every
+     adoption — it takes no per-project values), one line per installed CLI, each form
+     actually RUN at setup against a real commit before being recorded — the same
+     discipline as the hook environment note above. `sh .github/hooks/sdlc-close-out.sh
+     check` is the default wherever `sh` resolves in the agent's shell tool; measured
+     2026-08-10, Copilot CLI's shell tool on Windows resolves no `sh` (and the `bash`
+     on its PATH is WSL's, the route that corrupts hook bodies) — there the working
+     form derives sh from the git on its PATH, e.g.
+     `& '<git-install>\bin\sh.exe' .github/hooks/sdlc-close-out.sh check`, with the
+     literal proven path written into the note. A recorded invocation that was never
+     run is exactly the silent absence the checker exists to catch. -->
+
 
 ## Model policy
 
@@ -408,15 +422,27 @@ Run `/end-slice` when the slice's exit criteria are met:
     `<type>(<area>): <summary>` with `docs:` for bookkeeping commits. The commit body
     carries the slice's evidence record: the observed-RED lines from step 4's running
     record (one per behavior batch — command, failing line, exit code, with
-    `not observed — <reason>` stated rather than omitted) and the `quality:`,
-    `mutation:`, and `verify:` lines from steps 6, 8, and 9.
-11. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
+    `not observed — <reason>` stated rather than omitted, and a slice with no
+    behavior batches writing the zero-form `RED: none — no behavior batches this
+    slice`) and the `quality:`, `mutation:`, and `verify:` lines from steps 6, 8,
+    and 9.
+11. Verify the record: run the close-out checker on the commit just made, using the
+    invocation the close-out checker note beside the gate in this file records, and
+    quote its output in full — a pass not observed is not a pass. The
+    checker verifies **structural presence only** — every evidence line there or
+    carrying its stated-skip form — never truth; its own output says so. On
+    INCOMPLETE, `git commit --amend` with the real outcome or the stated-skip form —
+    never with invented evidence — and re-run; on CANNOT CHECK, fix what it names
+    and re-run. The step is done only at COMPLETE, and it exists because the record
+    is what `/sdlc-retro`'s step-evidence sweep reads off `git log`: a silently
+    absent line there is a step nobody can later weigh.
+12. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
     detail lives in the phase spec and the commit message), deferred items appended,
     and any friction with the process itself written to the Kit friction log now,
     while the evidence is still accurate, in the log's one-line shape
     (`- <date> — <friction> — open`) — then commit the docs change. Push the
     branch (no PR — that is phase end).
-12. Owner clears context (`/clear`). Every slice starts from a fresh window.
+13. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end
 

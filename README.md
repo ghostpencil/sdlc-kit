@@ -198,6 +198,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── tdd-guard.template.json      → .github/hooks/sdlc-tdd-guard.json (their hook config; no values)
 │   ├── skill-ledger.template.json   → .github/hooks/sdlc-skill-ledger.json (optional, logging-only:
 │   │                                   the skill-activation ledger, Copilot dialect; no values)
+│   ├── close-out.template.sh        → .github/hooks/sdlc-close-out.sh (both CLIs, always: the
+│   │                                   close-out evidence checker /end-slice runs; no values)
 │   └── explore.agent.template.md    → .github/agents/explore.agent.md (Copilot only: read-only sweeps)
 ├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
@@ -215,6 +217,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 tools/gate-hook-check.py             ← proves the gate hooks (script + launcher) against measured payloads
 tools/skill-ledger-check.py          ← proves the skill-activation ledger, both dialects
 tools/tdd-guard-check.py             ← proves the TDD guards, then mutates them to prove the proof
+tools/close-out-check.py             ← proves the close-out evidence checker, corpus + mutations
 .gitattributes                       ← pins LF — the manifest hashes depend on it
 .gitignore
 README.md                            ← you are here
@@ -516,6 +519,17 @@ only as a hand-apply, and the per-version transition notes name each one.
    the framed lint failure in `.claude/settings.json`). All live in project-owned
    files; apply as template diffs per the update command's notes. The `.json`
    launchers are unchanged throughout.
+
+   **0.20.0 adds the close-out evidence checker, and only the file arrives on its
+   own** — `.github/hooks/sdlc-close-out.sh` is kit-owned and verbatim (the one
+   `.sh` there that carries no project values), but its wiring is hand-applied:
+   `spec/SDLC.md` needs the checker note beside the gate (the proven invocation per
+   CLI — on Copilot the shell tool resolves no `sh`, so the note carries the
+   git-derived `bin\sh.exe` form, actually run before recorded), the slice loop's
+   new verify-the-record step, and the `RED:` zero-form
+   (`RED: none — no behavior batches this slice`). `/end-slice` renumbers again
+   (PROJECT_INDEX 8→9, hand-back 9→10) — notes citing those numbers go stale. The
+   update command's 0.20.0 note walks all three.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,

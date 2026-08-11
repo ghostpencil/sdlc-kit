@@ -2562,3 +2562,46 @@ a full inv-6 sweep before commit. Bookkeeping: README file tree (inv 5),
 `COPILOT.md` mapping row, `sdlc-update.md` transition note, CHANGELOG Unreleased,
 manifest at release. The checker enters the §16 audit clock like every new rule,
 counted in field arcs.
+
+### 46.7 VER.1 trial report — run 2026-08-10, same day: ALL SEVEN CRITERIA MET
+
+Checker built after `c6f0a38` committed §46, provably. Proof harness:
+`tools/close-out-check.py`, the tdd-guard-check shape — a 21-case corpus committed
+into a bench git repo and checked through the script's real interface, then a
+mutation pass whose count is derived from the list.
+
+- **V1/V2/V3 + S1 met** — each key missing → INCOMPLETE naming exactly it, exit 1;
+  empty payloads and the duplicated singleton caught; every clean form (all
+  stated-skips, the zero-form, CRLF, multi-RED, mid-line lookalikes beside a full
+  record, and two verbatim record bodies from the adopter's armed arcs — S7 with
+  em-dash separators, S6 with `--` separators and a free-form `verify:`) →
+  COMPLETE, exit 0, zero flags. The S6 body is the presence-only decision proving
+  itself: grammar policing would have false-flagged a legitimate field record.
+- **S2 met, and it forced the one design change of the build** — the drafted
+  per-pattern `printf|grep` counters cost 1.7 s of process-fork overhead per
+  invocation on a Windows sh, breaking the sub-second budget; all eight counters
+  moved into a single awk pass. Warm max 324 ms, cold spawn ~600 ms.
+- **S3 met** — bad ref, unknown mode, missing mode → exit 2 with CANNOT CHECK;
+  ref-guard-bypassed and mode-gate-loosened mutations both caught.
+- **S4 met, in two halves** — the full corpus through the PowerShell→sh chain:
+  21/21 identical verdicts; then live in a Copilot CLI session (bench, probe
+  commit later soft-reset away): COMPLETE/0 on the record commit, INCOMPLETE/1
+  naming all four keys on the recordless baseline.
+- **Mutation pass: 8/8 caught** (anchors ×2, empty-check, duplicate-check,
+  exit-code, problem-recording, ref-guard, mode-gate).
+
+**The §46.4 probe answered NO, and the pre-registered fallback is now the design:**
+Copilot CLI's shell tool resolves no `sh` (`where.exe sh` → not found), its PATH's
+`bash` is `C:\Windows\System32\bash.exe` — WSL's, the corrupting route — and the
+git on its PATH yields a working sh at `<git-install>\bin\sh.exe` (proven live,
+GNU bash 5.2.12 msys). Setup therefore proves the invocation per CLI at install
+time and records it as `{{CLOSE_OUT_CHECK_NOTE}}` in `spec/SDLC.md` — a new
+placeholder, taught to setup in the same batch (inv 1).
+
+Per the decision rule the wiring shipped in the same batch: `end-slice.md` (new
+step 8, renumber, zero-form), `SDLC.template.md` (step 11, renumber, zero-form,
+the note placeholder), `sdlc-setup.md` (install + prove + resolve), plus the §46.6
+bookkeeping (both READMEs, COPILOT.md row, sdlc-update classification row — the
+checker is the one kit-owned `.github/hooks/` file — and its 0.20.0 transition
+note, CHANGELOG Unreleased, root CLAUDE.md tools line). Release timing is the
+owner's call; `/kit-check` before it per §37.7.

@@ -181,10 +181,18 @@ class Bench:
                      input=message.encode("utf-8"))
         assert p.returncode == 0, "bench commit failed: " + p.stderr.decode()
 
+    via_powershell = False  # S4: same corpus through the PowerShell -> sh chain,
+                            # the invocation a Copilot CLI shell tool would issue
+
     def run(self, args):
         t0 = time.perf_counter()
-        p = subprocess.run(["sh", self.script] + args, cwd=self.root,
-                           capture_output=True)
+        if self.via_powershell:
+            cmd = "sh '%s'%s; exit $LASTEXITCODE" % (
+                self.script, "".join(" '%s'" % a for a in args))
+            argv = ["powershell", "-NoProfile", "-Command", cmd]
+        else:
+            argv = ["sh", self.script] + args
+        p = subprocess.run(argv, cwd=self.root, capture_output=True)
         return p.returncode, p.stdout.decode("utf-8", "replace"), time.perf_counter() - t0
 
 
@@ -221,6 +229,21 @@ def unit_pass(src, verbose):
 
 def main():
     src = io.open(TPL, encoding="utf-8").read()
+
+    if "--via-powershell" in sys.argv:
+        # S4 dialect run: unit corpus only (mutations re-prove nothing new here),
+        # no S2 assert - the extra powershell spawn is the harness's cost, not
+        # the script's.
+        Bench.via_powershell = True
+        print("== S4 unit pass via powershell -> sh (%d cases) ==" % len(CASES))
+        failures, slowest = unit_pass(src, verbose=True)
+        print("slowest invocation incl. powershell spawn: %.0f ms" % (slowest * 1000))
+        if failures:
+            for name, problems, out in failures:
+                print("\nFAILED %s: %s\n--- output ---\n%s" % (name, "; ".join(problems), out))
+            sys.exit(1)
+        print("\nS4 green: %d cases, verdicts identical to the direct-sh pass" % len(CASES))
+        return
 
     print("== unit pass (%d cases) ==" % len(CASES))
     failures, slowest = unit_pass(src, verbose=True)

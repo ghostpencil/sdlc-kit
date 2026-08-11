@@ -22,6 +22,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
 | TDD-ordering guards | **not installed** — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` (optional) |
 | Skill-activation ledger (optional, logging-only) | the `"Skill"`-matcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
+| Close-out evidence checker (always; a command step run by `/end-slice`, not a hook) | `.github/hooks/sdlc-close-out.sh`, invoked `sh …` from the Bash tool | the same file — but the shell tool resolves no `sh` (measured 2026-08-10, and its PATH's `bash` is WSL's, the corrupting route), so the invocation derives sh from the git on its PATH and `spec/SDLC.md` records the proven literal form |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |

@@ -1,8 +1,8 @@
 # End Slice
 
 Close out the current slice: gate → quality pass → review → fix → mutation check →
-verification → commit → record. Runs without asking except for owner-facing design
-questions. Process reference: `spec/SDLC.md`.
+verification → commit → record check → record. Runs without asking except for
+owner-facing design questions. Process reference: `spec/SDLC.md`.
 
 ## How to use
 
@@ -63,7 +63,7 @@ Three rules make it safe to run automatically:
   restore point behind it.
 
 **Skipping it is legitimate; skipping it silently is not.** On a small or mechanical
-slice there may be nothing to do — say that in the hand-back (step 9), along with what
+slice there may be nothing to do — say that in the hand-back (step 10), along with what
 was applied if it ran. A pass whose outcome nobody stated is one nobody can weigh.
 Either way the one-line outcome also goes into the slice commit body (step 7) —
 `quality: <N moves applied | nothing to do | skipped — reason>` — so the record
@@ -84,7 +84,7 @@ The built-in `/code-review` (Claude Code only — like the fan-out below, it doe
 exist on Copilot CLI) is the owner-typed, billed escalation — it is not this
 step, and this command cannot launch it. On Claude Code a deeper specialist fan-out
 (`pr-review-toolkit`) may be available; it is **optional**, and if it ran, say so in
-the hand-back (step 9). The same rule binds any substitution: a review whose depth is
+the hand-back (step 10). The same rule binds any substitution: a review whose depth is
 not stated is one nobody can weigh, and a good substitute review is exactly the kind
 nobody thinks to question.
 
@@ -119,13 +119,13 @@ policy fences off), also apply the matching lens from
 Triage findings — **verify each one against the source before it enters any pile.** A
 finding is a claim about the code; severity is asserted by the reviewer, not measured,
 and a false premise survives review at CRITICAL just as easily as at LOW. Findings that
-did not survive verification are reported in the hand-back (step 9) alongside the ones
+did not survive verification are reported in the hand-back (step 10) alongside the ones
 that did, never dropped silently.
 
 - **Fix now:** correctness bugs, silent failures, trust-boundary violations, anything
   CRITICAL/HIGH.
 - **Defer:** style/structure improvements, latent issues with no current trigger. Each
-  deferred item gets a one-line entry with rationale (step 8), its stated cause marked
+  deferred item gets a one-line entry with rationale (step 9), its stated cause marked
   **measured** (you reproduced or observed it) or **suspected** (you inferred it) — the
   reader of that entry needs to know what still needs checking, because a backlog entry
   is a hypothesis with a timestamp, not a finding.
@@ -175,7 +175,7 @@ applies (a transcript block per run — a pass not observed is not a pass).
 
 Same contract as step 3: **skipping is legitimate; skipping silently is not.** On a
 small or mechanical slice — docs, config, a change the gate fully pins — state the skip
-and its reason in the hand-back (step 9). Either way the one-line outcome goes into the
+and its reason in the hand-back (step 10). Either way the one-line outcome goes into the
 slice commit body (step 7): `verify: ran — <verdict per behavior, naming the shell it
 ran in>` or `verify: skipped — <reason>`, so the record outlives the session. The
 shell matters because this step runs in the **agent's** shell: a pass here does not
@@ -212,12 +212,35 @@ EOF
 The `RED:` lines are the slice's observed-red record, copied from the running record
 `/next-slice` §4 keeps as each red is observed — the exact test command, the failing
 test's line, the exit code. A behavior whose red was not observed is written
-`RED: not observed — <reason>`, never omitted. The commit body is where this record
+`RED: not observed — <reason>`, never omitted — and a slice with no behavior batches
+at all (docs, config) writes the zero-form `RED: none — no behavior batches this
+slice`, so the record line exists either way. The commit body is where this record
 lives durably: `/sdlc-retro`'s step-evidence sweep reads it off `git log`, and an
 observed red cannot be reconstructed at close-out — the commit only carries what the
 loop already wrote down.
 
-### 8. Record in PROJECT_INDEX
+### 8. Verify the record — structural, and quoted
+
+Run the close-out checker on the commit just made, with the invocation recorded
+beside the gate in `spec/SDLC.md` (the close-out checker note — where `sh` resolves
+in this shell it is `sh .github/hooks/sdlc-close-out.sh check`), and quote its
+output in full in the hand-back — a pass not observed is not a pass.
+
+The checker verifies **structural presence only**: every evidence line of step 7's
+record present, or carrying its stated-skip form, with silent absence failing
+loudly. It never verifies truth — its own output says so — and COMPLETE is not
+evidence the work behind a line happened; the steps that produced the lines remain
+the record of that.
+
+- **INCOMPLETE** — `git commit --amend` the slice commit with the real outcome, or
+  with the stated-skip form if the step was skipped. Never with invented evidence:
+  a fabricated line is worse than a missing one, because the checker will believe it.
+  Re-run until COMPLETE.
+- **CANNOT CHECK** — fix what it names and re-run. Never proceed past it silently;
+  the checker fails closed on purpose, the opposite of the hook rule, because a
+  command step's failure is seen and quoted rather than silently swallowed.
+
+### 9. Record in PROJECT_INDEX
 
 Update `spec/PROJECT_INDEX.md`:
 - Mark the slice done in the current phase's status/START HERE section. **Status only —
@@ -261,7 +284,7 @@ Update `spec/PROJECT_INDEX.md`:
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).
 
-### 9. Hand back
+### 10. Hand back
 
 Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open with a
 plain-English executive summary in bullets: what the slice now does, gate green (test

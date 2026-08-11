@@ -54,19 +54,21 @@ skills/                  ← TDD skill set + the three kit-written passes
                            (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup; four are copied
+templates/               ← instantiated into the project by /sdlc-setup; five are copied
                            verbatim instead (the explore agent profile, the TDD guards'
                            hook JSON, the gate hook's launcher JSON, and the
-                           skill-ledger hook JSON — all Copilot-side; none takes values)
+                           skill-ledger hook JSON — all Copilot-side — plus the
+                           close-out evidence checker, both CLIs; none takes values)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
 LICENSE                  ← MIT
 THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-pro's
                            redistribution status unverified — the notices say so)
 ```
 
-`commands/`, `skills/`, and the installed `reference/REVIEW_LENSES.md` are
-**kit-owned**:
-they track upstream and an update may overwrite them when they are unmodified. Everything `/sdlc-setup` writes into your project
+`commands/`, `skills/`, the installed `reference/REVIEW_LENSES.md`, and the
+close-out evidence checker (`.github/hooks/sdlc-close-out.sh` — a verbatim copy
+holding no project values) are **kit-owned**:
+they track upstream and an update may overwrite them when they are unmodified. Everything else `/sdlc-setup` writes into your project
 (`CLAUDE.md`, `spec/*.md`, the gate hook — `.claude/settings.json` on Claude Code,
 `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` on Copilot CLI — the optional
 TDD-ordering guards,
