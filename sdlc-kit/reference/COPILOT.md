@@ -20,7 +20,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Kit skills (8: 5 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
-| TDD-ordering guards | **not installed** — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` (optional) |
+| TDD-ordering guards (optional, per dialect since 0.21.0) | `.github/hooks/sdlc-tdd-guard.py` + four hook blocks in `.claude/settings.json` — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` |
 | Skill-activation ledger (optional, logging-only) | the `"Skill"`-matcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
 | Close-out evidence checker (always; a command step run by `/end-slice`, not a hook) | `.github/hooks/sdlc-close-out.sh`, invoked `sh …` from the Bash tool | the same file — but the shell tool resolves no `sh` (measured 2026-08-10, and its PATH's `bash` is WSL's, the corrupting route), so the invocation derives sh from the git on its PATH and `spec/SDLC.md` records the proven literal form |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
@@ -29,8 +29,8 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 
 A repo that answers **both** at the interview gets both columns. Nothing is written
 twice: the seven commands exist once per CLI in different formats, and the eight skill
-directories exist once in a shared directory. Three rows are Copilot-only by nature —
-the guards, the sweep agent, and the model pin — and the table says so in place rather
+directories exist once in a shared directory. Two rows are Copilot-only by nature —
+the sweep agent and the model pin — and the table says so in place rather
 than letting a dual-CLI project assume symmetry.
 
 ### Why `CLAUDE.md` is not translated — and why `AGENTS.md` is prohibited
@@ -279,7 +279,7 @@ file. Setup reads `copilot --version` and says plainly if the installed CLI is o
 rather than installing a gate that cannot fire. Same treatment as any other
 environment-dependent claim: state where it was checked, or do not make it.
 
-## The TDD-ordering guards, and why they are Copilot-only
+## The TDD-ordering guards, and the dialect decision
 
 The field finding that motivated them is a Copilot property: **on Copilot CLI a skill is
 a prompt, so presence is not process.** The kit's highest-risk steps — write the test
@@ -288,44 +288,35 @@ The guards give those two steps a deterministic backstop. The recipe, the placeh
 the ramp and the proof step are in `GATE_RECIPES.md`; what belongs here is the dialect
 decision and its evidence.
 
-**They ship for Copilot CLI only, and the Claude Code port is deferred, not declined.**
-Claude Code has the matching events — a `PreToolUse` hook can deny, a `Stop` hook can
-block — so the port looks like a translation exercise. It is not, and the reason is the
-same one that made the Copilot guards take a bench run: **the guard's whole mechanism
-rests on two payload facts, and Claude Code's documentation settles neither** (checked
-against the hooks reference, 2026-08-05):
+**Since 0.21.0 they ship per-CLI, per dialect** — the `.sh` + `.json` pair on Copilot,
+and on Claude Code a project-owned `.github/hooks/sdlc-tdd-guard.py` (instantiated
+from `templates/tdd-guard-claude.template.py`, same three patterns) plus four hook
+blocks in `.claude/settings.json` (PreToolUse `Edit|Write`; PostToolUse and
+PostToolUseFailure `Bash|PowerShell`; Stop). Same state machine, shared
+`.git/sdlc-tdd/` state and deny flag, same logging-to-deny ramp and fail-first proof.
 
-1. **Whether a shell command's exit code is available to `PostToolUse`, and in what
-   form.** The docs give no `PostToolUse` input example and do not state what
-   `tool_response` carries for the Bash tool. G1 and G2 both turn on observing a test
-   run's exit status; on Copilot this resolved into a *text trailer* parse, which no one
-   predicted from the docs.
-2. **Which field of a file-write's `tool_input` holds the path.** The docs document no
-   input schema for `Edit` or `Write`. On Copilot the equivalent assumption — that the
-   write tool sends JSON — is exactly what broke the gate hook for a whole release.
+Through 0.20.0 the Claude port was deferred, not translated, because the guard's whole
+mechanism rests on payload facts Claude Code's documentation does not settle (checked
+against the hooks reference, 2026-08-05): what a shell command's result carries after
+a failure, which field of a file-write's `tool_input` holds the path, whether Stop
+input carries a `stop_hook_active` flag, and which way a timed-out `PreToolUse` fails.
+The kit's own rule — **only a bench answers this** — held: the pre-registered probe
+ran 2026-08-12 (before any port code was written) and earned its keep three times
+over. A failing command never reaches `PostToolUse` at all — the CLI splits the
+events, and failures arrive as `PostToolUseFailure` with the exit code as a text
+header of the `error` field; the shell tool's hook-visible name on Windows is
+`PowerShell`, not `Bash` — the display-name trap a third time; and the default
+Windows hook shell is PowerShell, so the dialect's hook command lines are
+shell-neutral `python` launchers (the per-hook `"shell"` key is undocumented and
+deliberately not relied on). Deny uses the documented JSON `permissionDecision` form;
+Stop honors `stop_hook_active` under the documented 8-cap; the timeout fail direction
+remains undocumented, and the template states that rather than assuming (invariant
+15). The offline proof suite and the live logging-mode bench runs are recorded in the
+kit's home repo.
 
-Two more are unstated: whether Claude Code's Stop input carries a `stop_hook_active`
-flag (the guard's stand-down depends on it) and whether a consecutive-block cap exists.
-And the timeout semantics are ambiguous in the one direction that matters — the docs do
-not say whether a timed-out `PreToolUse` fails open or closed.
-
-Writing the port from those gaps would mean shipping a guard whose failure mode is
-silence, into the CLI where the kit's users would trust it most. The kit's own rule
-applies unchanged: **only a bench answers this.** A Claude Code port is a future batch
-whose first step is a probe run, pre-registered before any code is written: log a real
-`PostToolUse` payload for a deliberately failing test command, and a real `PreToolUse`
-payload for an `Edit` and a `Write`, and design the state machine from what they
-actually contain rather than from what the documentation implies.
-
-Two Claude-side facts *are* documented and worth carrying into that batch: hooks get
-`$CLAUDE_PROJECT_DIR` for portable path resolution, and the Windows shell is stated
-(Git Bash, with a per-hook `"shell"` key) rather than left to `PATH` — so the WSL hazard
-in `GATE_RECIPES.md` is a Copilot-side problem specifically, and the Claude port would
-not need the self-locating prelude.
-
-The generated `spec/SDLC.md` says which CLI the guards run on — a verification step has
-to name the environment it verifies against, and a dual-CLI project must not read a
-Copilot-only backstop as covering both.
+The generated `spec/SDLC.md` says which CLI(s) the guards run on — a verification step
+has to name the environment it verifies against, and a dual-CLI project must not read
+a one-dialect install as covering both.
 
 ## Models and tiers
 

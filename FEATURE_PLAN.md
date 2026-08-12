@@ -2961,3 +2961,50 @@ proof → live bench proof, logging mode throughout, nothing armed.
 Unreleased; `/kit-check` owed before the tag, release timing the owner's call.
 The adopter is Copilot-only, so their next update halt carries the hand-apply
 notes (§48 reword, §49 halves) and no dialect install.
+
+## 51. The owed /kit-check pass — the dialect's derived statements, the stale
+## manifest, the mutation check's missing seat
+
+Full pass, 2026-08-12: all 15 invariants, the mechanical four run in-session and
+the eleven reading passes fanned out to seven parallel agents. Twelve pass with
+their negative cases stated; three findings, all fixed in this batch:
+
+- **Invariant 10 — the manifest was stale.** Nine hashes behind the §48/§49/VER.2
+  commits and no entry at all for `tdd-guard-claude.template.py` — 37 recorded
+  against 38 owed. The bundle-touching commits did not regenerate it, so the tag
+  push would have failed (that is the release workflow's check working, but the
+  invariant says same-commit, and three commits shipped without it). Regenerated
+  from the index; discrimination held — exactly the edited files changed hash.
+- **Invariant 7, with 8's mirror — four derived statements missed VER.2's
+  per-CLI turn.** §50.5's wiring list said "both README trees" and delivered
+  them, but the root README's project-owned row and step-5 do-not-rewrite list
+  never gained the `.py`; root CLAUDE.md's flow diagram still labeled
+  `.github/hooks/` Copilot-only; `COPILOT.md` — the file that calls itself the
+  one place the mapping is stated — still declared the guards Copilot-only in
+  three places, its deferred-port section unaware its own pre-registered probe
+  had run; and the root README's update lineage stopped at 0.20.0, its 0.16.0
+  note still saying "Copilot CLI only" unqualified. All four fixed: the README
+  gains the condensed 0.21.0 note mirroring `sdlc-update.md`'s, COPILOT.md's
+  guard section now records the probe's three surprises as the dialect's
+  evidence. Same root cause as every §47 finding: the change updated the
+  definition and left derived statements standing.
+- **Invariant 13 — the slice loop's mutation check sat in neither denominator
+  list.** It states its own negative case better than most (`end-slice.md` step
+  5, "made to disagree… caught exactly that on a real project — twice") but
+  appears in neither the ledger's enumeration nor `/kit-check`'s copy — the
+  precise staleness the invariant's own text warns about. Added to both, same
+  batch, as the rule demands. Sub-finding under 2's mirror: `deploy NOT
+  verified — <what was seen>` existed only in `/end-phase`; the template's
+  Notes-cell vocabulary now defines it too.
+
+Swept up alongside, below finding threshold: `diff-review/SKILL.md` no longer
+says `/code-review` exists "on either CLI" (Claude Code only, per its three
+other homes); `sdlc-kit-process-flow.md`'s guard paragraph updated (same VER.2
+root cause) and its refactor-license sentence reworded off the "close-out"
+label §48 retired. Observed and deliberately not acted on: `TESTING.template.md`
+carries a second prose home of `{{GATE_TEST_CMD}}` with no named reconcile (the
+retro's spec-claims sweep is the mitigation); `{{START_HERE}}`'s in-flight state
+names no git evidence (`/next-slice` checks git directly, not the record); and
+`RED:` lines do not name their shell where `verify:` lines must. CHANGELOG
+carries the adopter-visible fixes under *Unreleased*. The pass is done; the
+release is unblocked — tag timing stays the owner's call.

@@ -182,8 +182,10 @@ than at slice end. Non-source files (specs, docs) pass through. If it cannot che
 (no parser, no path, no project dir), it says "the gate did NOT run" instead of
 passing vacuously.
 
-**The TDD-ordering guards G1 + G2** (`.github/hooks/sdlc-tdd-guard.sh`, Copilot CLI
-only, optional). A cooperative backstop, not a security boundary — shell-tool writes
+**The TDD-ordering guards G1 + G2** (both CLIs, per dialect, optional —
+`.github/hooks/sdlc-tdd-guard.sh` on Copilot, `.github/hooks/sdlc-tdd-guard.py` plus
+four `.claude/settings.json` hook blocks on Claude Code). A cooperative backstop, not
+a security boundary — shell-tool writes
 are invisible to it, and it exists to make TDD ordering the path of least
 resistance. **Logging mode is the default**; deny arms only when
 `.git/sdlc-tdd/deny-enabled` exists, and only after the log shows the guards
@@ -192,8 +194,9 @@ recognizing the project's own test runs.
 - **G1, the observed-RED write guard** (pre-write): a production-source write needs
   either a test edit this session followed by an observed failing run (the fresh-red
   license, for new behavior), or a declared `.git/sdlc-tdd/refactor-license` plus an
-  observed green this session (the refactor license, for behavior-preserving
-  close-out work — `change-simplify` moves, mutation-testing edits). The declaration
+  observed green this session (the refactor license, for behavior-preserving edits at
+  any point in the cycle — refactors, `change-simplify` moves, mutation-testing
+  edits). The declaration
   is one line naming the step and move; every write under it is logged, a test edit
   revokes it, and it survives reds on purpose.
 - **observe-test** (post-shell): records RED or GREEN from a test command's exit

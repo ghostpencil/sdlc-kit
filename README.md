@@ -277,7 +277,7 @@ The whole procedure rests on this split:
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
 | `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; it takes no project values, unlike its two `.sh` neighbors. |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
 Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names
@@ -492,7 +492,8 @@ only as a hand-apply, and the per-version transition notes name each one.
    `reference/GATE_RECIPES.md`) and compare against what `spec/SDLC.md` recorded at
    setup — a machine that gained WSL or lost the hook's JSON parser moves that answer,
    and nothing else ever looks again; a moved answer is a finding, not a silent edit.
-   **0.16.0 also adds the optional TDD-ordering guards (Copilot CLI only), and every
+   **0.16.0 also adds the optional TDD-ordering guards (Copilot CLI only until
+   0.21.0), and every
    update from here on checks whether your project was ever offered them.** They are
    project-owned and optional, so nothing is installed unasked. If the guard files are
    already there, an update leaves them alone. Two contradictions are reported to you
@@ -550,10 +551,25 @@ only as a hand-apply, and the per-version transition notes name each one.
    (PROJECT_INDEX 8→9, hand-back 9→10) — notes citing those numbers go stale. The
    update command's 0.20.0 note walks all three.
 
+   **0.21.0 adds the Claude Code TDD-guard dialect, retiring the 0.16.0 CLI gate:
+   the guard offer is now per-CLI, per dialect.** The new artifacts — a
+   project-owned `.github/hooks/sdlc-tdd-guard.py` plus four hook blocks in
+   `.claude/settings.json` — are project-owned, optional, and patterned, so nothing
+   arrives automatically. The 0.16.0 two-state check now runs per CLI your project
+   runs, with one 0.21.0-specific reading: a guard line in `spec/SDLC.md` saying the
+   guards are *Copilot-CLI-only and this project does not run that CLI* was setup's
+   pre-0.21.0 statement about the kit, **not an owner decline** — that project never
+   had the choice, so the Claude dialect is offered now as a first setup would
+   (logging mode, fail-first proof in a Claude Code session). 0.21.0 also rewords
+   the guard deny message and the guard note (the refactor license names the case,
+   not "close-out") — hand-applied as template diffs per the CHANGELOG. The update
+   command's 0.21.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,
-   `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, or
-   `.github/hooks/sdlc-tdd-guard.sh`. They hold your recorded
+   `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`,
+   `.github/hooks/sdlc-tdd-guard.sh`, or `.github/hooks/sdlc-tdd-guard.py`. They hold
+   your recorded
    baseline, your gate commands, your TDD-guard patterns, and
    your decisions; the kit cannot regenerate them. The only exceptions are the
    single-line writes named in step 6.

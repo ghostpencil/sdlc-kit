@@ -187,7 +187,8 @@ hook-environment probe, the TDD-ordering guards' proof step and their logging-to
 ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
 setup proof step, the retro's ledger-alive precheck, the
 skills-listing check, the exit
-checks, the coverage-floor establishment proof, the deploy verification, the update
+checks, the slice loop's mutation check, the coverage-floor establishment proof, the
+deploy verification, the update
 classifier, the release workflow's manifest
 verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.

@@ -27,8 +27,8 @@ Arguments, all optional:
 
 ## What this skill is not
 
-- **Not `/code-review`.** That is the owner-typed, billed escalation on either CLI; a
-  session cannot launch it, and no kit command means it by "review".
+- **Not `/code-review`.** That is the owner-typed, billed escalation (Claude Code
+  only); a session cannot launch it, and no kit command means it by "review".
 - **Not the review lenses.** `.claude/commands/REVIEW_LENSES.md` covers runtime failure
   modes — error propagation, swallowed errors, denominators, shared state, untrusted
   input, secrets — each behind its own trigger. This skill does not restate them, and

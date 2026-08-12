@@ -524,7 +524,8 @@ Run `/end-phase` when the last slice is done:
    deployed artifact is checked against the platform's own record (the deploy run's
    SHA or deployed-commit field, per the deploy note) and the result recorded in the
    Phase History row's Notes cell (`deployed+verified <date>` / `deploy pending —
-   <where tracked>` / `n/a — no deploy`), with a pending deploy carried in START HERE
+   <where tracked>` / `deploy NOT verified — <what was seen>`, a halt-5 fact for the
+   owner / `n/a — no deploy`), with a pending deploy carried in START HERE
    until verified, and followed by the question the deploy outcome does not answer —
    **what did this deploy turn on**, and what disables each newly-live control by
    itself (newly-live controls recorded in the same Notes cell; one without an

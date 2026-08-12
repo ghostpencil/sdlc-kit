@@ -84,6 +84,17 @@ offline and live before entering the tree.
   paragraph and phase-end step 6 restated the same way — hand-apply: replace the
   *Coverage floor* procedure paragraph in `spec/SDLC.md` with this release's
   template text (or fold the two changes: figure source and threshold home).
+- **[adoption-only]** **The pre-release `/kit-check` pass: the Claude-guard dialect's
+  derived statements catch up (invariant 7).** `reference/COPILOT.md` still declared
+  the TDD guards Copilot-only in three places after the dialect entered the tree —
+  the mapping-table row, the "Copilot-only by nature" sentence, and the guard
+  section, whose deferred-port rationale is now recorded as resolved by the
+  2026-08-12 probe. And `SDLC.template.md`'s phase-end Notes-cell vocabulary gains
+  the failure form `/end-phase` already records — hand-apply: add
+  `deploy NOT verified — <what was seen>` to the deploy bullet's Notes-cell forms in
+  `spec/SDLC.md`. **[installable]** half: `skills/diff-review/SKILL.md` no longer
+  implies `/code-review` exists on both CLIs (it is Claude Code only, as
+  `/end-slice`, `/end-phase`, and the process file already said).
 
 ## 0.20.0 — 2026-08-10
 
