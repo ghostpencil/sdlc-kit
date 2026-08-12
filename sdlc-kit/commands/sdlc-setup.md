@@ -375,7 +375,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      session** — a test run registers only as a single bare command (no `;`, `&` or
      `|`; flags and single-test selectors are fine); the stop guard's green is
      any counted green, full-suite assurance being the end-slice gate's job; and a
-     behavior-preserving close-out edit (refactor, simplification, mutation testing)
+     behavior-preserving edit (refactor, simplification, mutation testing — including
+     a temporary mutation to prove a test of existing behavior bites, at any point in
+     the cycle, not only at close-out)
      is licensed without a fresh red by declaring it, one line naming the step and
      move to `.git/sdlc-tdd/refactor-license`, valid only behind a counted green and
      revoked by the next test edit (*The TDD-ordering guards* in

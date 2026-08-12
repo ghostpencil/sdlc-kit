@@ -17,6 +17,18 @@ Phase 04 retro's two confirmed findings, each a check trusting a record its tool
 never produces. Rides the VER.2 release at the owner's direction.
 
 ### Fixed
+- **[adoption-only]** **The refactor license no longer says "close-out"
+  (FEATURE_PLAN §48, field-confirmed by sdlc-kit#6 finding 3).** The guard's deny
+  message and the `{{TDD_GUARD_NOTE}}` text named the license's cases under a
+  "close-out" label, and a literal reader mid-slice bounced off the word — twice
+  observed, once at the cost of a whole skill going unused. Both now name the case,
+  not the phase: "a behavior-preserving edit at any point in the cycle (refactor,
+  simplification, mutation testing — including a temporary mutation to prove a test
+  of existing behavior bites)". The script header's origin-story sentences stay.
+  **[installable]** half: `sdlc-setup.md`'s note-resolve wording (the third site the
+  §48 list missed) states the same. Hand-apply: reword the deny message in
+  `.github/hooks/sdlc-tdd-guard.sh` and the guard note in `spec/SDLC.md` to the new
+  template text.
 - **[installable]** **The skill-activation ledger's evidence claim is scoped to what
   the hook can see.** The ledger records **tool-dispatched** activations only: an
   owner-typed slash command is injected by the CLI with no tool call and writes no

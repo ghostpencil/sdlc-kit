@@ -2817,3 +2817,107 @@ CHANGELOG *Unreleased* carries both under **Fixed** with hand-apply notes for
 the SDLC.md-side halves; everything rides the adopter's next update halt
 together with the §48 reword. Unreleased on main; `/kit-check` owed before the
 VER.2 tag as always.
+
+---
+
+## 50. VER.2 opened — the §48 reword built, the §31.12 probe run: five answers,
+## three surprises, and a redesign awaiting the owner's read, 2026-08-12
+
+### 50.1 The §48 reword — built, one more site than §48 listed
+
+The mechanical sweep (§4a) found three sites, not two: the deny message in
+`templates/tdd-guard.template.sh` (drops both phase words — "close-out" and "on
+a green slice", the latter redundant with the license sentence that follows —
+and names the case: "a BEHAVIOR-PRESERVING edit at any point in the cycle
+(refactor, simplification, mutation testing - including a temporary mutation to
+prove a test of existing behavior bites)"), the `{{TDD_GUARD_NOTE}}` comment in
+`SDLC.template.md` ("at any point in the cycle, not only at close-out"), and the
+same note's restatement in `commands/sdlc-setup.md` step 6 — the site §48's own
+list missed. The script header's close-out origin-story sentences stay, per §48.
+Suite re-run 2026-08-12: green, exit 0, all twelve mutations caught — no case
+edits owed, as §48 measured (the deny reason still names `refactor-license`).
+
+### 50.2 The §31.12 probe — four takes on the standing bench, all five
+### pre-registered questions answered
+
+Method: `.claude/settings.json` logging hooks on `copilot-ci-test`, headless
+sessions (`claude -p`, CLI 2.1.221), a deliberately failing `node test-fail.js`,
+an `Edit`, a `Write`; docs sweep run in parallel (claude-code-guide agent,
+hooks-guide.md). Raw payloads and the full record: the bench's
+`ENF_PROBE_NOTES.md`; pre-registration appended there before any hook was
+written. Answers:
+
+1. **Exit code — the event type is the signal; the code itself is a text
+   header.** `PostToolUse` fires only on success and its `tool_response`
+   (`{stdout, stderr, interrupted, isImage}`) carries no exit code; a failing
+   command fires **`PostToolUseFailure`**, whose `error` field is text beginning
+   `Exit code 1` plus the command's stderr, with `is_interrupt` and
+   `duration_ms` beside it. Copilot's exit code arrived as a text trailer nobody
+   predicted; Claude Code's arrives as an event split with a text header —
+   the §31.7 lesson repaid a second time.
+2. **Write path:** `tool_input.file_path` on both `Edit` and `Write`, absolute
+   Windows form; `Edit` carries `old_string`/`new_string`, `Write` carries
+   `content`.
+3. **`stop_hook_active` exists** on Stop input (plus `last_assistant_message`).
+4. **Block cap: 8 consecutive Stop blocks**, documented, overridable via
+   `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` — the same number Copilot measured.
+5. **PreToolUse timeout direction: undocumented and unmeasured** (default hook
+   timeout 10 minutes, per-hook configurable). Stated as a gap in whatever the
+   port ships (inv 15 — name what the verification does not cover).
+
+### 50.3 Three surprises, each fatal to a port written from the banked facts
+
+- **S1 — the Windows hook shell is PowerShell on this machine, not Git Bash.**
+  Take 1's `{ ... } >> file` bodies produced files holding the braces' *inner
+  text* — PowerShell scriptblock stringification. Docs: Git Bash on Windows "or
+  PowerShell when Git Bash isn't installed by default"; with Git at a custom
+  path (`C:\DevelopmentTools\Git`), the fallback is what fired — and custom
+  install paths are what real Windows adopters have. The banked "stated Git
+  Bash shell" fact is dead; hook command lines must be shell-neutral.
+- **S2 — the shell tool's hook-visible name on Windows is `PowerShell`, not
+  `Bash`.** A `"matcher": "Bash"` hook sat silent through two takes while the
+  catch-all logged `tool_name: "PowerShell"`. The display-name trap a third
+  time (§31.7, §31.12's own warning). Matchers must cover `Bash|PowerShell`.
+- **S3 — no single post-tool event sees both outcomes.** Green and red arrive
+  on different event types (PostToolUse vs PostToolUseFailure), so observation
+  needs two hooks feeding one state.
+
+Also measured: hook cwd is the project root (undocumented — relative paths
+landed there), hooks run in `-p` mode, PreToolUse fires for the shell tool,
+deny is documented two ways (exit 2 + stderr, or JSON
+`permissionDecision: "deny"` with a reason fed back to the model).
+
+### 50.4 The redesign these facts force — proposed, not built (§37.7: the owner
+### reads the probe report before anything enters the installed set)
+
+The state machine survives unchanged (G1 observed-red + refactor license, G2
+stop check, session-scoped state in `.git/sdlc-tdd/`); every signal path around
+it changes:
+
+- **Guard body in Python, not sh.** The only launcher shape measured to work
+  under a PowerShell hook shell is `python <file> <arg>` (`probe-hook.py`
+  proved stdin delivery and project-root cwd under PowerShell); an
+  `sh`-launcher line under a PowerShell hook shell is unmeasured, and python is
+  already the guard family's chosen parser dependency (§31.12 item 2, GATE
+  RECIPES). One script, `.github/hooks/sdlc-tdd-guard-claude.py`, all events
+  dispatched by argv mode — the §38.3 launcher discipline for a second reason.
+- **Observation from the event split:** counted green = `PostToolUse` on a
+  test-pattern command; observed red = `PostToolUseFailure` on a test-pattern
+  command with `is_interrupt` false. No trailer parsing at all — cleaner than
+  the Copilot dialect, once the split is known.
+- **Matchers `Bash|PowerShell`** for the shell-tool hooks; `Edit|Write` for the
+  pre-write gate (fields measured).
+- **Deny via documented JSON `permissionDecision`** (reason fed to the model —
+  the §40 spoken-refusal requirement comes for free), exit 2 kept as fallback
+  only if the JSON path fails a ramp probe. Stop uses `stop_hook_active` and
+  lives under the documented 8-cap.
+- **Ramp unchanged** (§31.8→§31.10): logging mode first on the bench, then the
+  offer in setup; pre-registered criteria with a value criterion; nothing
+  enters the installed set unproven. The 10-minute default timeout and its
+  undocumented fail direction are stated in the guard header and
+  `GATE_RECIPES.md` (inv 15).
+
+Owner decisions owed before the build: **(a)** approve the redesign direction —
+python-bodied guard, dual-event observation, `Bash|PowerShell` matchers, JSON
+deny; **(b)** whether the Claude dialect ships in the same release as the §48
+reword and §49 batch (one adopter update halt) or waits for its own bench arc.
