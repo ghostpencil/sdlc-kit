@@ -81,18 +81,26 @@ none of them writes anything.
   sharper finding than a step silently skipped), the deferred
   backlog's provenance tags (a `(slice review, <date>)` tag is evidence the review
   ran), the friction log — and, where `spec/SDLC.md`'s skill-ledger note says one is
-  installed, `.git/sdlc-skill-ledger.jsonl`: one timestamped line per skill
-  activation, machine evidence that a named skill *ran* (not that it was diligent —
-  the commit-body lines still carry that). Filter it to the window by timestamp, and
-  say whose clone it was read from: `.git/` is per-clone, so the ledger records this
-  machine's sessions only, and an activation on another machine leaves no line here.
-  A named skill with no ledger line in the window, on the clone the arc ran on, is
-  the sharpest "no evidence" this sweep can produce — **but only after the ledger
-  itself is seen alive**: if the file is absent or carries no lines at all in a
-  window where skills demonstrably ran, report "ledger silent — hook health
-  unknown" for every named skill rather than per-skill no-evidence, because a hook
-  that silently stopped recording produces exactly the same absence as a skill that
-  never fired, and concluding the latter from the former is the
+  installed, `.git/sdlc-skill-ledger.jsonl`: one timestamped line per
+  **tool-dispatched** skill activation, machine evidence that a named skill *ran*
+  (not that it was diligent — the commit-body lines still carry that). Filter it to
+  the window by timestamp, and say whose clone it was read from: `.git/` is
+  per-clone, so the ledger records this machine's sessions only, and an activation
+  on another machine leaves no line here. The dispatch scoping bounds the evidence
+  on both CLIs: the hook fires on the skill *tool*, and a command the owner types
+  as a slash command is injected by the CLI with no tool call, so it writes no
+  line. A missing line for a slash-invocable command (`next-slice`, `end-slice`,
+  `end-phase`, `sdlc-retro`) is therefore **no signal either way** — a real arc's
+  ledger was alive and faithful for every tool-dispatched skill while all four
+  slash-typed slice closes went unrecorded, and the sweep's first draft read that
+  absence as "end-slice never ran"; only a session-store cross-check caught it.
+  A model-invocable skill with no ledger line in the window, on the clone the arc
+  ran on, is the sharpest "no evidence" this sweep can produce — **but only after
+  the ledger itself is seen alive**: if the file is absent or carries no lines at
+  all in a window where skills demonstrably ran, report "ledger silent — hook
+  health unknown" for every named skill rather than per-skill no-evidence, because
+  a hook that silently stopped recording produces exactly the same absence as a
+  skill that never fired, and concluding the latter from the former is the
   confident-plausible-wrong shape this whole sweep exists to prevent. This sweep exists because a step can silently never run —
   on a CLI where skill activation is relevance-based, *presence is not activation* —
   and every other sweep here detects that only by the damage it eventually causes; a

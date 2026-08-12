@@ -159,18 +159,26 @@ regardless.
 
 **Coverage floor:** {{COVERAGE_FLOOR}}
 <!-- "TBD from first CI run" until one exists. Set just below the first green CI run's
-     observed figure, using CI's exact invocation; it only ever raises. Lowering it to
-     pass a build defeats its only purpose — existing coverage debt is a backlog item,
-     not a merge blocker. -->
+     observed figure (printed, or read from that run's coverage report artifact where
+     the check prints only pass/fail), using CI's exact invocation; it only ever
+     raises. Lowering it to pass a build defeats its only purpose — existing coverage
+     debt is a backlog item, not a merge blocker. -->
 
 The floor raises by procedure, not by rule alone — at phase end, where coverage is
-known: if CI's printed coverage rose over the arc, post-merge bookkeeping sets the
-floor in the CI workflow file to just under CI's printed figure (in the same docs
-commit as the PROJECT_INDEX update), then asserts that the floor recorded here and in
-`spec/PROJECT_INDEX.md` is identical to the value in the workflow file — the
-bookkeeping is not done until they are. The recorded
-number is a claim; the workflow value is the enforcement — a mismatch means the ratchet
-is not ratcheting, which is the only regression the floor exists to prevent.
+known: if the coverage measured for the merged branch rose over the arc, post-merge
+bookkeeping sets the threshold — in whichever artifact carries it: the CI workflow
+file, or the build file's check rule where the workflow only invokes the check — to
+just under the measured figure (in the same docs commit as the PROJECT_INDEX update),
+then asserts that the floor recorded here and in `spec/PROJECT_INDEX.md` is identical
+to that threshold value — the bookkeeping is not done until they are. The measured
+figure is read off the enforced run's own output: CI's printed number where the check
+prints one, else the coverage report artifact the same run produced — a check that
+prints only pass/fail yields no printed figure ever, and waiting for one leaves this
+leg inert. Reading that artifact is not computing the number locally; re-running
+coverage outside the enforced invocation to produce a different number is. The
+recorded number is a claim; the threshold value is the enforcement — a mismatch means
+the ratchet is not ratcheting, which is the only regression the floor exists to
+prevent.
 
 **When the floor is first established, prove it fires — once.** Set it above the
 observed number, run the gate's own commands (and CI's, if they differ), and watch
@@ -231,11 +239,16 @@ setup: {{HOOK_ENVIRONMENT}}
 
 {{SKILL_LEDGER_NOTE}}
 <!-- Setup resolves {{SKILL_LEDGER_NOTE}} to a statement of whether the skill-activation
-     ledger is installed — a logging-only hook that appends one line per skill
-     activation to `.git/sdlc-skill-ledger.jsonl`, so the retro's step-evidence sweep
-     can read which named skills actually ran instead of trusting that presence meant
-     activation. It runs on both CLIs (the hook fires on the skill tool: `skill` on
-     Copilot, `Skill` on Claude Code — measured 2026-08-07). The note names the hook
+     ledger is installed — a logging-only hook that appends one line per
+     TOOL-DISPATCHED skill activation to `.git/sdlc-skill-ledger.jsonl`, so the
+     retro's step-evidence sweep can read which named skills actually ran instead of
+     trusting that presence meant activation. It runs on both CLIs (the hook fires on
+     the skill tool: `skill` on Copilot, `Skill` on Claude Code — measured
+     2026-08-07), and the dispatch scoping bounds it: a command the owner types as a
+     slash command is injected with no tool call and writes no line (field-measured
+     2026-08-11 — four phases of slash-typed slice closes, zero ledger lines), so the
+     note must also say that a missing line for a slash-invocable command is no
+     signal either way. The note names the hook
      artifact that makes "installed" true (the Copilot hook JSON, the settings-file
      block on Claude Code — adding or removing either later means updating this line,
      because nothing else will), names the ledger
@@ -511,7 +524,8 @@ Run `/end-phase` when the last slice is done:
    **what did this deploy turn on**, and what disables each newly-live control by
    itself (newly-live controls recorded in the same Notes cell; one without an
    independent off switch goes to the backlog as a risk); the coverage-floor ratchet
-   (set the workflow value, then reconcile
+   (set the threshold where it lives — workflow file or build-file check rule — from
+   the enforced run's figure, then reconcile
    it against the recorded floor — see *Coverage floor* above); the red-baseline
    decision (lower it here, schedule it, or ratify holding it with the arc count — see
    *Gate baseline* above); the backlog surfaced

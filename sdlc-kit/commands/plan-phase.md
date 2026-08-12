@@ -109,10 +109,12 @@ subagent ever interacts with the owner.
   criterion. Each slice's exit criteria name **what observes them and when** — a local
   command, the gate, CI on the main branch, or the owner. A criterion naming an
   observer that does not run at that point is a planning defect, not a slice problem;
-  the kit's own ratchet phrasing is the standing exposure — "raise the coverage floor
-  from CI's printed number" is unsatisfiable on an arc branch whenever CI runs only on
-  the main branch, and a real arc wrote that criterion twice in one planning session
-  against a convention its own previous arc had recorded. Separately: if **every**
+  the kit's own former ratchet phrasing is the recorded exposure — "raise the
+  coverage floor from CI's printed number" is unsatisfiable on an arc branch whenever
+  CI runs only on the main branch, and unsatisfiable everywhere on a stack whose
+  check prints no figure (the phrasing now names the enforced run's report artifact
+  as the fallback source) — and a real arc wrote that criterion twice in one planning
+  session against a convention its own previous arc had recorded. Separately: if **every**
   slice comes out behavior-neutral by construction (nothing runs until an activation
   moment), flag it in the spec now — `/end-phase` will owe a local real-data pass of
   the composed system before the PR, and an acceptance checklist written entirely for

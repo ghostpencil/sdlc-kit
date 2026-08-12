@@ -405,10 +405,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
    **Then offer the skill-activation ledger — both CLIs, optional, logging-only.** *The
    skill-activation ledger* in `reference/GATE_RECIPES.md` is the recipe and carries the
-   measured facts. Put the choice plainly: one hook appending one line per skill
-   activation to `.git/sdlc-skill-ledger.jsonl`, so `/sdlc-retro`'s step-evidence sweep
-   reads which skills actually ran instead of trusting that presence meant activation;
-   the cost is one more hook and a per-clone log file. It never blocks anything.
+   measured facts. Put the choice plainly: one hook appending one line per
+   tool-dispatched skill activation to `.git/sdlc-skill-ledger.jsonl`, so
+   `/sdlc-retro`'s step-evidence sweep reads which skills actually ran instead of
+   trusting that presence meant activation (slash-typed commands dispatch no tool and
+   leave no line — the recipe states the bound); the cost is one more hook and a
+   per-clone log file. It never blocks anything.
    Default to offering, not to installing. If accepted:
    - Copilot side: `skill-ledger.template.json` → `.github/hooks/sdlc-skill-ledger.json`,
      copied verbatim — it takes no values; do not edit it.
@@ -432,8 +434,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    write (this sentence sits outside the accepted-only list above for exactly that
    reason). Installed: which CLIs, **the hook artifact that makes it true** —
    `.github/hooks/sdlc-skill-ledger.json` on Copilot, the `"Skill"`-matcher block in
-   `.claude/settings.json` on Claude Code — the ledger path, and that `.git/` is
-   per-clone so the ledger describes one machine. Say in the same breath that adding
+   `.claude/settings.json` on Claude Code — the ledger path, that `.git/` is
+   per-clone so the ledger describes one machine, and that it records
+   tool-dispatched activations only, so a missing line for a slash-invocable
+   command is no signal either way. Say in the same breath that adding
    or removing the hook later means updating this line, because nothing else will. Declined: say so **with the date — never delete
    the line**. `/sdlc-update` reads it exactly as it reads the TDD-guard note: a
    recorded decline is settled; a missing line is a project that never had the choice.

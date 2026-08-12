@@ -218,22 +218,30 @@ one at a time buried in the bullet that raised it.
   and it takes an explicit owner ruling — fix now, or amend the decision it
   contradicts — because a decision the owner ratified does not get un-decided by
   deferral.
-- **Coverage floor — bump the enforcement, then reconcile:** if CI's printed coverage
-  for the merged branch rose this arc, set the floor in the CI workflow file (the
-  workflow's coverage-threshold value, whatever the stack's tool calls it) to just
-  under CI's printed number, in the
+- **Coverage floor — bump the enforcement, then reconcile:** if the coverage measured
+  for the merged branch rose this arc, set the threshold — in whichever artifact
+  carries it: the CI workflow file, or the build file's check rule where the workflow
+  only invokes the check (a Maven adoption's number lives in the build file; the
+  workflow never sees it) — to just under the measured number, in the
   same docs commit as the bookkeeping below. Then **assert the two homes agree**: the
-  floor recorded in `spec/PROJECT_INDEX.md` (and `spec/SDLC.md`) and the value in the
-  workflow file must be identical — the bullet is not done until they are. **If this
+  floor recorded in `spec/PROJECT_INDEX.md` (and `spec/SDLC.md`) and that threshold
+  value must be identical — the bullet is not done until they are. **If this
   arc established the floor for the first time, prove it fires before recording it:**
   set it above the observed number, run the gate's own commands (and CI's, if they
   differ), watch the failure, then set the real value — two homes agreeing proves
   nothing about whether the enforcing step ever runs in the commands the gate
   executes (`spec/SDLC.md`, *Coverage floor*, states the rule). The
-  recorded number is a claim; the workflow value
+  recorded number is a claim; the threshold value
   is the enforcement — a mismatch means the ratchet is not actually ratcheting. Read
-  the floor off CI's printed figure, never compute it locally; a real arc recorded a
-  raise in the index twice while CI silently kept enforcing the old floor.
+  the measured number off the enforced run's own output: CI's printed figure where
+  the check prints one, else the coverage report artifact that same run produced —
+  some check tools print only pass/fail, never a percentage, and waiting for a
+  printed figure on such a stack leaves this leg inert forever (a real arc's
+  `jacoco:check` recorded "no ratchet applied" for exactly that reason). Reading the
+  enforced run's artifact is not computing locally; re-running coverage outside the
+  enforced invocation to produce a different number is, and stays forbidden — a real
+  arc recorded a raise in the index twice while CI silently kept enforcing the old
+  floor.
 - **Red baseline — lower it or ratify holding it:** for a project adopted with a red
   gate baseline (`spec/SDLC.md`), report this arc's count beside the recorded one. If it
   fell, lower the baseline in `spec/SDLC.md` in this same docs commit — that record *is*

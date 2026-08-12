@@ -10,6 +10,44 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+The sdlc-kit#6 doc batch (`FEATURE_PLAN.md` §49, owner-approved 2026-08-12): the
+Phase 04 retro's two confirmed findings, each a check trusting a record its tooling
+never produces. Rides the VER.2 release at the owner's direction.
+
+### Fixed
+- **[installable]** **The skill-activation ledger's evidence claim is scoped to what
+  the hook can see.** The ledger records **tool-dispatched** activations only: an
+  owner-typed slash command is injected by the CLI with no tool call and writes no
+  line — on both CLIs, since Claude Code's `.claude/commands/` are harness-expanded
+  and never dispatch the `Skill` tool either. Field evidence (sdlc-kit#6 finding 1):
+  a four-phase ledger, alive and faithful for every tool-dispatched skill, held zero
+  lines for its slash-typed slice closes, and the retro sweep's first draft read
+  that absence as "end-slice never ran". `/sdlc-retro`'s step-evidence sweep now
+  states the bound and rules a missing line for a slash-invocable command **no
+  signal either way**; the offer/record wording in `sdlc-setup.md`, `sdlc-update.md`,
+  and `GATE_RECIPES.md` says "tool-dispatched" wherever it said "skill activation".
+  **[adoption-only]** half: the `{{SKILL_LEDGER_NOTE}}` comment in
+  `SDLC.template.md` requires the resolved note to carry the same bound —
+  hand-apply: add the sentence to the skill-ledger note in `spec/SDLC.md` (one
+  sentence: the ledger records tool-dispatched activations only; a missing line for
+  a slash-invocable command is no signal either way).
+- **[installable]** **The coverage-floor ratchet works on stacks whose check prints
+  no figure and whose threshold lives outside the workflow file.** The old bullet
+  assumed CI prints a coverage percentage and the threshold lives in the CI workflow
+  file; on a Maven/JaCoCo adoption `jacoco:check` prints only pass/fail — the
+  ratchet could never fire — and the threshold lives in the build file, so "assert
+  the two homes agree" named the wrong home (sdlc-kit#6 finding 2). `/end-phase` now
+  reads the measured number off the enforced run's own output — CI's printed figure
+  where one exists, else the coverage report artifact the same run produced — and
+  sets the threshold "in whichever artifact carries it"; re-running coverage outside
+  the enforced invocation stays forbidden. `/plan-phase`'s testability-sweep example
+  updated to match. **[adoption-only]** half: `SDLC.template.md`'s *Coverage floor*
+  paragraph and phase-end step 6 restated the same way — hand-apply: replace the
+  *Coverage floor* procedure paragraph in `spec/SDLC.md` with this release's
+  template text (or fold the two changes: figure source and threshold home).
+
 ## 0.20.0 — 2026-08-10
 
 VER.1 (`FEATURE_PLAN.md` §37.4, design pre-registered as §46 before any code,

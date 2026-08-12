@@ -369,7 +369,8 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   no spec change.
 - **0.18.0 adds the optional skill-activation ledger, both CLIs — and every update from
   here on checks whether this project was ever offered it.** A logging-only hook
-  appending one line per skill activation to `.git/sdlc-skill-ledger.jsonl`, read by
+  appending one line per tool-dispatched skill activation to
+  `.git/sdlc-skill-ledger.jsonl`, read by
   `/sdlc-retro`'s step-evidence sweep (*The skill-activation ledger* in
   `reference/GATE_RECIPES.md` is the recipe). It is **not** part of the automatic
   new-files clause: hooks are project-owned and nothing is installed without the

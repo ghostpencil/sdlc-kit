@@ -2718,3 +2718,102 @@ applied at section scale). §37.4's batch paragraph carries the pointer. The §4
 queued items (a)–(d) are untouched — they still wait on the adopter's filed retro
 report; this one is recorded here because it was owner-triaged in-session, the
 §40.1 route.
+
+---
+
+## 49. sdlc-kit#6 triaged against the tree — Phase 04's retro, two doc gaps
+## confirmed, §48's reword gains its field evidence, 2026-08-11
+
+The Phase 04 retro is filed (`sdlc-kit#6`, three findings from the adopter's
+`spec/SDLC_RETRO_2026-08-11.md` — the same-day arc that also produced §48's
+specimen). First arc where the evidence machinery all fired together: the VER.1
+checker ran and was quoted in all four slice closes on its first field day, every
+commit body carried the full record, and halt 4's composed-run clause fired. The
+report's own theme names both real findings precisely: a record the process
+*trusts* but its tooling doesn't *produce*. Every claim checked against kit main
+before any fix work:
+
+- **Finding 1 — confirmed, the sharpest: the skill-activation ledger is blind to
+  owner-typed slash commands.** `templates/skill-ledger.template.json` matches
+  `postToolUse` on `"matcher": "skill"` — it records tool-dispatched activations
+  only. An owner-typed slash command injects the skill with no tool call, so the
+  adopter's ledger (alive, 51 lines, faithful on `tdd`/`diff-review`/
+  `change-simplify`/`change-verify`) holds **zero** `end-slice`/`end-phase`/
+  `sdlc-retro` lines across four phases while the session store shows them
+  slash-typed — and the retro sweep initially produced the false finding
+  "end-slice never ran" before a session-store cross-check caught it. The
+  "seen alive" guard in `commands/sdlc-retro.md` does not cover this mode: the
+  ledger was alive and still structurally could not see the close-out commands.
+  `SDLC.template.md`'s `{{SKILL_LEDGER_NOTE}}` comment ("one line per skill
+  activation") overstates the same way. Fix shape (the report's, confirmed):
+  scope both claims — the ledger records *tool-dispatched* activations only, and
+  a missing line for a slash-invocable command is no signal either way. Sharpened
+  at triage: write it CLI-neutral, not as a Copilot hazard — the Claude Code
+  command path (`.claude/commands/`, harness-expanded) never dispatches the
+  `Skill` tool either, so the blindness is the install split itself (§37.4's
+  commands-vs-skills line), not a dialect quirk.
+- **Finding 2 — confirmed: the coverage-ratchet leg is inert on a stack whose
+  check prints no figure.** `commands/end-phase.md`'s bullet assumes CI prints a
+  coverage figure (`mvn jacoco:check` prints pass/fail, never a percentage — the
+  ratchet can *never* fire there) and that the threshold lives in the workflow
+  file (theirs is `pom.xml`'s `coverage-check` execution; the workflow only
+  invokes it, so "assert the two homes agree" names the wrong home).
+  "Read the floor off CI's printed figure, never compute it locally" forbids the
+  only source that exists on this stack. Same defect family as the report notes:
+  a figure the process trusts that the tooling never prints. Fix shape: name a
+  per-stack figure source (the stack's coverage report artifact — e.g. the JaCoCo
+  XML report counter — or a prescribed CI print step), widen the threshold home
+  to "the build file or workflow step that carries it", and give
+  never-compute-locally its carve-out (reading the report artifact the enforced
+  run produced is not computing). Touches `end-phase.md` and
+  `SDLC.template.md`'s phase-end step 6 + *Coverage floor* wording.
+- **Finding 3 — field confirmation of §48, no new fix.** `mutation-testing` had
+  zero activations on the arc day (prior phase: 4×) while real mutation checks
+  ran manually with full commit-body evidence; the owner observed the
+  "close-out" bounce as the cause. The §48/VER.2 reword now ships with field
+  evidence attached — the misdirection costs behavior (a skipped skill) even
+  where it no longer denies writes. Nothing new queued.
+- **Protect from simplification** (the report's own list, echoed for the §16
+  audit record): VER.1's checker banked its first confirmed field arc — 4/4
+  closes, output quoted; the commit-body evidence format assembled the whole
+  retro step table from `git log` alone; halt 4's composed-run clause fired.
+
+**Proposed batch — findings 1+2 as one small doc-only pass before VER.2** (the
+§44.2 order argument again: neither touches a script VER.2 ports, both are
+retro/end-phase truthfulness fixes that should not wait behind an L-sized port),
+finding 3 riding VER.2 as already queued. Both fixes are adoption-relevant
+(`sdlc-retro.md` reinstalls on update; the SDLC.md notes are hand-apply) and ride
+the adopter's next update halt with the §48 reword. Owner decisions owed:
+(a) approve the batch and its before-VER.2 order; (b) whether it ships in the
+VER.2 release or as its own tag.
+
+### 49.1 Batch executed — both owner decisions taken as recommended, 2026-08-12
+
+(a) approved, batch before VER.2; (b) rides the VER.2 release, no own tag. The
+edit map was derived mechanically (§4a) and came out wider than the report's
+file list — the two phrasings live in seven files, not four:
+
+- **Finding 1** (tool-dispatch scoping, six sites): `sdlc-retro.md`'s sweep
+  paragraph now states the bound and the no-signal rule for slash-invocable
+  commands, with the false "end-slice never ran" draft as its cautionary case;
+  `SDLC.template.md`'s `{{SKILL_LEDGER_NOTE}}` comment requires the resolved
+  note to carry the same sentence; `GATE_RECIPES.md`'s recipe gains the
+  field-measured what-it-cannot-see paragraph; `sdlc-setup.md` (offer wording
+  + note-resolve list) and `sdlc-update.md` (transition note) say
+  "tool-dispatched". Written CLI-neutral throughout, per the triage sharpening.
+  `settings.template.json`'s status message is accurate as-is (it displays only
+  when the hook actually fires).
+- **Finding 2** (figure source + threshold home, four sites): `end-phase.md`'s
+  bullet reads the number off the enforced run's output (printed figure, else
+  that run's coverage report artifact) and sets "whichever artifact carries
+  the threshold"; `SDLC.template.md`'s *Coverage floor* comment, procedure
+  paragraph, and phase-end step 6 restated identically (inv 2 — template and
+  command agree); `plan-phase.md`'s testability-sweep example retensed to
+  "former ratchet phrasing" with the no-figure case added.
+- Historical texts (`CHANGELOG` 0.18.0/0.5.0 entries, field reports, plan
+  history §7) keep the old phrasing — they record what was, not what is.
+
+CHANGELOG *Unreleased* carries both under **Fixed** with hand-apply notes for
+the SDLC.md-side halves; everything rides the adopter's next update halt
+together with the §48 reword. Unreleased on main; `/kit-check` owed before the
+VER.2 tag as always.

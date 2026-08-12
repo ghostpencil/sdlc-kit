@@ -394,7 +394,8 @@ disposal-intent test*) rather than guard territory.
 
 ## The skill-activation ledger — optional, logging-only, both CLIs
 
-One hook, one line per skill activation, appended to `.git/sdlc-skill-ledger.jsonl`:
+One hook, one line per tool-dispatched skill activation, appended to
+`.git/sdlc-skill-ledger.jsonl`:
 an ISO-8601 UTC timestamp, a space, then the hook payload verbatim. It exists because
 **presence is not activation** — on Copilot CLI skill activation is relevance-based, a
 skill can silently never run, and until this ledger the only detector was the damage a
@@ -405,7 +406,13 @@ The measured facts it is built on (bench, 2026-08-07 — Copilot CLI 1.0.78 and 
 Code, one probe run each, explicit and relevance-based activation both logged):
 invoking a skill fires the post-tool-use event on **both** CLIs, under `toolName:
 "skill"` on Copilot (a name absent from the hooks reference's own tool-name list —
-measured, not documented) and `tool_name: "Skill"` on Claude Code. Copilot's payload
+measured, not documented) and `tool_name: "Skill"` on Claude Code. What it cannot
+see, field-measured 2026-08-11: a command the owner types as a slash command is
+injected by the CLI with no tool call — no post-tool-use event, no line (a real
+adoption's ledger ran four phases without a single line for its slash-typed slice
+closes, while faithfully recording every tool-dispatched skill). The ledger is
+evidence for tool-dispatched activations only; a missing line for a slash-invocable
+command is no signal either way, and the retro sweep is told so. Copilot's payload
 carries its own `timestamp`; Claude Code's does not, and neither payload ends with a
 newline — so the hook stamps the time itself and appends the newline itself, or the
 "JSONL" file becomes one unparseable line.
