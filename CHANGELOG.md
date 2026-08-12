@@ -10,13 +10,14 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.21.0 — 2026-08-12
 
 The sdlc-kit#6 doc batch (`FEATURE_PLAN.md` §49, owner-approved 2026-08-12): the
 Phase 04 retro's two confirmed findings, each a check trusting a record its tooling
 never produces. Plus VER.2 (`FEATURE_PLAN.md` §50): the §48 deny-message reword and
 the Claude Code TDD-guard dialect, built from the §31.12 probe run and proven
-offline and live before entering the tree.
+offline and live before entering the tree. Closed out by the pre-release
+`/kit-check` pass (§51), whose fixes ride along below.
 
 ### Added
 - **[adoption-only]** **The TDD-ordering guards gain a Claude Code dialect —
