@@ -268,10 +268,26 @@ recorded there.
 
 ---
 
-## The TDD-ordering guards — optional, Copilot CLI only
+## The TDD-ordering guards — optional, both CLIs, one dialect each
 
 The edit-time hook checks *what* was written. These two guards check **when**, and they
-are the only mechanism in the kit that can refuse an action rather than comment on it:
+are the only mechanism in the kit that can refuse an action rather than comment on it.
+Two dialects, one state machine: the Copilot pair
+(`tdd-guard.template.sh` + `.json`, described below in Copilot's event names) and the
+Claude Code script (`tdd-guard-claude.template.py` →
+`.github/hooks/sdlc-tdd-guard.py`, hook blocks in `.claude/settings.json`). They share
+`.git/sdlc-tdd/` — state, log, and the `deny-enabled` flag, so arming deny arms every
+installed dialect. The Claude dialect's measured facts (probe 2026-08-12, kit
+FEATURE_PLAN §50): **green and red arrive on different events** — `PostToolUse` fires
+only when a command succeeds and carries no exit code; a failing command fires
+`PostToolUseFailure` with the code as a text header of its `error` field — so the
+guard reads the event split instead of an exit-code trailer; the shell tool's
+hook-visible name on Windows is **`PowerShell`, not `Bash`** (matchers cover both);
+and the default Windows hook shell is PowerShell, so the hook command lines are
+shell-neutral `python` launchers with every branch of logic in the script. Deny uses
+the documented JSON `permissionDecision` form; Stop honors `stop_hook_active` under
+the documented 8-block cap. Undocumented and unmeasured: whether a timed-out hook
+fails open or closed (default timeout 10 minutes; the guard does state I/O only).
 
 - **G1, the observed-RED write guard** (`preToolUse`) — a write to a production source
   file is a violation unless a test file has been edited **in this session** and a

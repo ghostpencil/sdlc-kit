@@ -235,9 +235,12 @@ setup: {{HOOK_ENVIRONMENT}}
      missing line and a declined offer are different facts: /sdlc-update re-offers the
      guards when this project never had the choice, and must not badger an owner who
      already made it. Deleting the record erases the difference.
-     They are Copilot-CLI-only: on a project that also runs Claude Code, the backstop
-     covers only the Copilot side, and saying so is the point. Never describe a guard
-     this project does not have. -->
+     The note names the dialect(s) installed — Copilot (`.github/hooks/
+     sdlc-tdd-guard.sh` + `.json`), Claude Code (`.github/hooks/sdlc-tdd-guard.py`
+     plus the four hook blocks in `.claude/settings.json`) — and on a project running
+     both CLIs says which sides are covered; the deny flag and state are shared, so
+     arming deny arms every installed dialect. Never describe a guard this project
+     does not have. -->
 
 {{SKILL_LEDGER_NOTE}}
 <!-- Setup resolves {{SKILL_LEDGER_NOTE}} to a statement of whether the skill-activation

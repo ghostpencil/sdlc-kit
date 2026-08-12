@@ -2867,13 +2867,18 @@ written. Answers:
 
 ### 50.3 Three surprises, each fatal to a port written from the banked facts
 
-- **S1 — the Windows hook shell is PowerShell on this machine, not Git Bash.**
-  Take 1's `{ ... } >> file` bodies produced files holding the braces' *inner
-  text* — PowerShell scriptblock stringification. Docs: Git Bash on Windows "or
-  PowerShell when Git Bash isn't installed by default"; with Git at a custom
-  path (`C:\DevelopmentTools\Git`), the fallback is what fired — and custom
-  install paths are what real Windows adopters have. The banked "stated Git
-  Bash shell" fact is dead; hook command lines must be shell-neutral.
+- **S1 — the *default* Windows hook shell is PowerShell on this machine, not
+  Git Bash.** Take 1's `{ ... } >> file` bodies produced files holding the
+  braces' *inner text* — PowerShell scriptblock stringification. Docs: Git Bash
+  on Windows "or PowerShell when Git Bash isn't installed by default"; with Git
+  at a custom path (`C:\DevelopmentTools\Git`), the fallback is what fired —
+  and custom install paths are what real Windows adopters have. **Correction
+  found at build time:** the banked fact has a real source — the kit's existing
+  Claude hooks (`settings.template.json`, gate + ledger) pin `"shell": "bash"`
+  per hook, an *undocumented* key that was bench-proven 2026-08-07; the probe
+  omitted it and measured the default. Both facts now stand: the key works but
+  is undocumented, the default is PowerShell. A guard should depend on
+  neither — hook command lines must be shell-neutral.
 - **S2 — the shell tool's hook-visible name on Windows is `PowerShell`, not
   `Bash`.** A `"matcher": "Bash"` hook sat silent through two takes while the
   catch-all logged `tool_name: "PowerShell"`. The display-name trap a third
@@ -2921,3 +2926,38 @@ Owner decisions owed before the build: **(a)** approve the redesign direction �
 python-bodied guard, dual-event observation, `Bash|PowerShell` matchers, JSON
 deny; **(b)** whether the Claude dialect ships in the same release as the §48
 reword and §49 batch (one adopter update halt) or waits for its own bench arc.
+
+### 50.5 Built — both decisions taken as recommended (same session, 2026-08-12):
+### approved as proposed, same release after bench proof
+
+The dialect is built and proven, ramp held: probe → owner read → build → offline
+proof → live bench proof, logging mode throughout, nothing armed.
+
+- **`templates/tdd-guard-claude.template.py`** — one script, three modes
+  (`pre-write` / `observe-test` / `stop-check`, the sh dialect's names), same
+  three placeholders, same `.git/sdlc-tdd/` state files and log (mode tags
+  `[claude:*]`), root from `SDLC_REPO_ROOT` → `CLAUDE_PROJECT_DIR` → cwd-with-
+  `.git` else no-op. `observe-test` dispatches on `hook_event_name`, so one
+  settings command line serves both post events. The deny message carries the
+  §48-reworded license text from birth — the port never ships the misdirecting
+  label, which was the point of the ordering.
+- **Wiring**: `settings.template.json` (+4 blocks, removed on decline),
+  `sdlc-setup.md` (offer both-CLIs, per-dialect install bullets, proof per CLI),
+  `GATE_RECIPES.md` (dialect paragraph with the measured facts),
+  `SDLC.template.md` guard-note comment (names dialects, shared-flag sentence),
+  `sdlc-update.md` (0.21.0 note: CLI gate retired, the pre-0.21.0
+  "Copilot-CLI-only" note read as never-had-the-choice, not a decline;
+  project-owned table gains the `.py`), both README trees, CHANGELOG.
+- **Proof, offline**: `tools/tdd-guard-claude-check.py`, 33 unit cases green on
+  first run, 12/12 mutations caught (green-requirement, revocation, session
+  leak, compound, interrupt, denied-write-arms, stand-down, silent deny,
+  headerless red, event-split reversal, classification order, cwd trust).
+- **Proof, live** (bench, logging mode, headless): session A —
+  `VIOLATION production write` + `stop: WOULD-BLOCK`; session B — full cycle,
+  `test edit recorded` → `RED observed (exit 1)` off `PostToolUseFailure` →
+  `OK production write` → `GREEN observed` off `PostToolUse` → `stop: clean`.
+  The Claude pair joins the bench's standing artifacts beside the Copilot pair.
+
+Unreleased; `/kit-check` owed before the tag, release timing the owner's call.
+The adopter is Copilot-only, so their next update halt carries the hand-apply
+notes (§48 reword, §49 halves) and no dialect install.

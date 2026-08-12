@@ -193,9 +193,11 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── copilot-hook.template.sh     → .github/hooks/sdlc-gate.sh (the same hook, Copilot dialect:
 │   │                                   the logic, holding every placeholder)
 │   ├── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (its bare launcher; no values)
-│   ├── tdd-guard.template.sh        → .github/hooks/sdlc-tdd-guard.sh (Copilot only, optional:
-│   │                                   the observed-RED write guard and the premature-stop guard)
+│   ├── tdd-guard.template.sh        → .github/hooks/sdlc-tdd-guard.sh (optional: the observed-RED
+│   │                                   write guard and the premature-stop guard, Copilot dialect)
 │   ├── tdd-guard.template.json      → .github/hooks/sdlc-tdd-guard.json (their hook config; no values)
+│   ├── tdd-guard-claude.template.py → .github/hooks/sdlc-tdd-guard.py (the same guards, Claude Code
+│   │                                   dialect: event-split observation, shell-neutral launcher)
 │   ├── skill-ledger.template.json   → .github/hooks/sdlc-skill-ledger.json (optional, logging-only:
 │   │                                   the skill-activation ledger, Copilot dialect; no values)
 │   ├── close-out.template.sh        → .github/hooks/sdlc-close-out.sh (both CLIs, always: the
@@ -217,6 +219,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 tools/gate-hook-check.py             ← proves the gate hooks (script + launcher) against measured payloads
 tools/skill-ledger-check.py          ← proves the skill-activation ledger, both dialects
 tools/tdd-guard-check.py             ← proves the TDD guards, then mutates them to prove the proof
+tools/tdd-guard-claude-check.py      ← proves the Claude Code guard dialect the same two-pass way
 tools/close-out-check.py             ← proves the close-out evidence checker, corpus + mutations
 .gitattributes                       ← pins LF — the manifest hashes depend on it
 .gitignore

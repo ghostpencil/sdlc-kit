@@ -1,7 +1,56 @@
 {
   "model": "{{DEFAULT_MODEL}}",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .github/hooks/sdlc-tdd-guard.py pre-write",
+            "timeout": 30,
+            "statusMessage": "SDLC TDD guard"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .github/hooks/sdlc-tdd-guard.py observe-test",
+            "timeout": 30,
+            "statusMessage": "SDLC TDD guard"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .github/hooks/sdlc-tdd-guard.py stop-check",
+            "timeout": 30,
+            "statusMessage": "SDLC TDD guard"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .github/hooks/sdlc-tdd-guard.py observe-test",
+            "timeout": 30,
+            "statusMessage": "SDLC TDD guard"
+          }
+        ]
+      },
       {
         "matcher": "Edit|Write",
         "hooks": [

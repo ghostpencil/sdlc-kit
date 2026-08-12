@@ -326,29 +326,34 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the matcher is the first suspect — `reference/COPILOT.md` has the discovery
    procedure.
 
-   **Resolve `{{TDD_GUARD_NOTE}}` on every adoption, including Claude-Code-only ones.**
+   **Resolve `{{TDD_GUARD_NOTE}}` on every adoption.**
    The placeholder lives in `spec/SDLC.md`, which is instantiated on both CLIs, so a
-   path that never reaches the offer below still has to fill it or the close-out `{{`
-   check fires with nothing to write. On a **Claude-Code-only** project resolve it to
-   the plain fact — the guards are Copilot-CLI-only and this project does not run that
-   CLI — and skip the rest of this sub-step. That is a statement about the CLI, not a
-   decision the owner made, and `/sdlc-update` reads it that way: a project that later
-   adds Copilot gets the offer then.
+   path that declines the offer below still has to fill it or the close-out `{{`
+   check fires with nothing to write.
 
-   **Then offer the TDD-ordering guards — Copilot CLI only, and optional.** *The
-   TDD-ordering guards* in `reference/GATE_RECIPES.md` is the recipe; `COPILOT.md`
-   records why they exist on that CLI and not the other. Put the choice to the owner
-   with its trade-off stated: the guards make TDD ordering mechanical rather than
-   advisory (deny a production write outside TDD's two licenses — an observed fresh
-   red, or a declared behavior-preserving refactor edit behind a counted green; refuse
-   a stop from a coding session that has no counted green or ended red), at the cost
-   of two more hook files and a guard that can be wrong about which
+   **Then offer the TDD-ordering guards — both CLIs, per dialect, and optional.** *The
+   TDD-ordering guards* in `reference/GATE_RECIPES.md` is the recipe for both
+   dialects; `COPILOT.md` records the Copilot-side history. Put the choice to the
+   owner with its trade-off stated: the guards make TDD ordering mechanical rather
+   than advisory (deny a production write outside TDD's two licenses — an observed
+   fresh red, or a declared behavior-preserving refactor edit behind a counted green;
+   refuse a stop from a coding session that has no counted green or ended red), at
+   the cost of the hook artifacts below and a guard that can be wrong about which
    commands are test runs. Default to offering, not to installing. If accepted:
-   - `tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh` and
+   - Copilot CLI: `tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh` and
      `tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.json`. The JSON takes no
      values — do not edit it.
-   - The script takes `{{TEST_PATH_PATTERN}}`, `{{TEST_CMD_PATTERN}}` and
-     `{{SOURCE_GLOB}}`. **Do not ask for these cold and do not invent them from the
+   - Claude Code: `tdd-guard-claude.template.py` → `.github/hooks/sdlc-tdd-guard.py`,
+     and the four `sdlc-tdd-guard.py` hook blocks already in the instantiated
+     `.claude/settings.json` stay (PreToolUse `Edit|Write`, PostToolUse and
+     PostToolUseFailure `Bash|PowerShell` — the shell tool's hook-visible name on
+     Windows is `PowerShell`, measured 2026-08-12 — and Stop). Their command lines
+     are shell-neutral `python` launchers on purpose: the default Windows hook shell
+     is PowerShell, so nothing POSIX may live in a hook command. **If the guards are
+     declined, or the project runs no Claude Code, REMOVE those four blocks** — the
+     same two-state handling as the skill ledger's block, recorded the same way.
+   - Both dialect scripts take `{{TEST_PATH_PATTERN}}`, `{{TEST_CMD_PATTERN}}` and
+     `{{SOURCE_GLOB}}` — resolve them identically in both. **Do not ask for these cold and do not invent them from the
      language.** You already know the answers: the test framework came from Round 2, and
      the test layout is the one you are writing into `spec/TESTING.md` at step 3. Derive
      both patterns from those, show the owner the two literal patterns you resolved, and
@@ -361,9 +366,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      recognises the project's own test runs. A guard armed before that blocks every
      production write in the repo.
    - Prove them the way every other check is proven — by making them fail. In a scratch
-     session **of the Copilot CLI itself** — the guards fire only from its hooks, and
-     they execute in the hook shell the environment probe above measured, so a proof
-     run anywhere else proves nothing about them —
+     session **of each CLI a dialect was installed for** — the guards fire only from
+     that CLI's hooks, and they execute in the hook shell the environment probe above
+     measured, so a proof run anywhere else proves nothing about them —
      write a production file with no failing test first and confirm the log
      names it; then end a session with no green run and confirm the stop guard logs a
      would-block. An unproven guard is a file that reads as enforcement. If neither

@@ -19,7 +19,7 @@ the project owns.**
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
 | `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — it takes no project values, unlike its two `.sh` neighbors |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
 
 **Which of those rows apply here is recorded, not guessed:** `spec/PROJECT_INDEX.md`
@@ -453,6 +453,25 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   project's process file does not know — the same disagreement direction as the
   0.15.0 note, and the same resolution: the spec wins until the owner folds the
   diff.
+- **0.21.0 adds the Claude Code TDD-guard dialect, and it retires the 0.16.0 CLI
+  gate: the guard offer is now per-CLI, per dialect.** The new artifacts — a
+  project-owned `.github/hooks/sdlc-tdd-guard.py` (instantiated from
+  `templates/tdd-guard-claude.template.py` with the same three patterns as the sh
+  dialect) plus four hook blocks in `.claude/settings.json` (PreToolUse
+  `Edit|Write`; PostToolUse and PostToolUseFailure `Bash|PowerShell`; Stop) — are
+  **not** part of the automatic new-files clause, for the same reason as ever:
+  project-owned, optional, patterned. Run the 0.16.0 two-state check per CLI the
+  project runs, with one 0.21.0-specific reading: a `spec/SDLC.md` guard line that
+  says the guards are *Copilot-CLI-only and this project does not run that CLI* was
+  setup's pre-0.21.0 statement about the kit, **not an owner decline** — that
+  project never had the choice, so offer the Claude dialect now, as a first setup
+  would (instantiate, keep or add the settings blocks, logging mode, fail-first
+  proof in a Claude Code session). On acceptance the four settings blocks arrive by
+  hand — `.claude/settings.json` is project-owned and the update never edits it.
+  0.21.0 also rewords the guard deny message and the guard note (the refactor
+  license names the case, not "close-out") — hand-applied as template diffs per the
+  CHANGELOG, alongside its other hand-apply notes (the skill-ledger scope sentence,
+  the coverage-floor procedure text).
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

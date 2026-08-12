@@ -14,7 +14,32 @@ to an already-adopted project.
 
 The sdlc-kit#6 doc batch (`FEATURE_PLAN.md` §49, owner-approved 2026-08-12): the
 Phase 04 retro's two confirmed findings, each a check trusting a record its tooling
-never produces. Rides the VER.2 release at the owner's direction.
+never produces. Plus VER.2 (`FEATURE_PLAN.md` §50): the §48 deny-message reword and
+the Claude Code TDD-guard dialect, built from the §31.12 probe run and proven
+offline and live before entering the tree.
+
+### Added
+- **[adoption-only]** **The TDD-ordering guards gain a Claude Code dialect —
+  `templates/tdd-guard-claude.template.py` → `.github/hooks/sdlc-tdd-guard.py`,
+  offered per CLI, logging mode first.** Same state machine as the Copilot pair
+  (G1 observed-red + refactor license, G2 stop check), shared `.git/sdlc-tdd/`
+  state and deny flag; every signal path rebuilt from the 2026-08-12 probe
+  (§50): observation reads the **event split** (`PostToolUse` fires only on
+  success; failures arrive as `PostToolUseFailure` with the exit code as a text
+  header of `error`), matchers cover **`Bash|PowerShell`** (the shell tool's
+  hook-visible Windows name is `PowerShell` — the display-name trap a third
+  time), hook command lines are shell-neutral `python` launchers (the default
+  Windows hook shell is PowerShell; the undocumented per-hook `"shell"` key is
+  deliberately not relied on), deny uses the documented JSON
+  `permissionDecision` form, Stop honors `stop_hook_active` under the
+  documented 8-cap. `settings.template.json` carries the four hook blocks
+  (setup removes them on decline, ledger-style); `sdlc-setup.md`'s offer is now
+  both-CLIs; `sdlc-update.md` re-offers to Claude-Code-only projects whose
+  guard note recorded the old CLI fact rather than a decline. Proof:
+  `tools/tdd-guard-claude-check.py` — 33 cases, 12 mutations, all caught — and
+  live logging-mode bench sessions on both guard paths (violation + full
+  red-green cycle), recorded in the bench's `ENF_PROBE_NOTES.md`. Timeout fail
+  direction is undocumented and stated as such (inv 15).
 
 ### Fixed
 - **[adoption-only]** **The refactor license no longer says "close-out"
