@@ -3008,3 +3008,162 @@ names no git evidence (`/next-slice` checks git directly, not the record); and
 `RED:` lines do not name their shell where `verify:` lines must. CHANGELOG
 carries the adopter-visible fixes under *Unreleased*. The pass is done; the
 release is unblocked — tag timing stays the owner's call.
+
+## 52. VER.3 opened — the stop-time backstop designed: the checker's reserved
+## seat filled, a two-class binding rule, the ramp pre-registered, 2026-08-13
+
+VER.3's two prerequisites cleared in 0.21.0: VER.1's checker owns the record
+grammar and reserved the seat (§46.3's mode argument), and VER.2's dialect
+proved Claude's `Stop` event live on the bench (`stop: WOULD-BLOCK` /
+`stop: clean`, §50.5) — the gate the §37.4 table set on the Claude half. What
+follows is the design, proposed not built: the owner reads before anything
+enters the installed set (§37.7), and the ENF ramp discipline (§31.8→§31.10)
+applies unchanged.
+
+### 52.1 Scope — the escape it closes, and the one it honestly does not
+
+`/end-slice` step 8 runs the checker cooperatively; the session that commits a
+slice and ends without running it — or ends past an unresolved INCOMPLETE —
+escapes. The stop hook is the backstop for exactly that session. It is not a
+second gate on sessions the command flow already served: when step 8 ran and
+passed, the stop hook re-parses the same commit with the same grammar and
+agrees by construction — one parse function, two callers, no state between
+them.
+
+### 52.2 The binding crux, and the two-class rule proposed
+
+A stop hook takes no ref argument; "the session's slice commit" (the §37.4
+row's phrase) must be derived. The subject-line route is out — the commit
+convention is the project's own where one is recorded (`end-slice.md` step 7),
+so shape-matching subjects would bind on a convention the kit does not control.
+The rule proposed instead classifies every **unpushed** commit by the record
+grammar itself:
+
+- **Candidates:** `git rev-list @{u}..HEAD`, capped at 20; no upstream → HEAD
+  only, the narrowing stated in the log line. Unpushed is also the remediation
+  boundary: the fix is `git commit --amend`, legal exactly while unpushed —
+  the same boundary step 8's own fix line states.
+- **Complete record** — all four keys valid → clean.
+- **Defective record** — ≥ 1 key line present but the set incomplete, empty,
+  or duplicated → **flag**. Partial presence proves close-out intent; this is
+  VER.1's INCOMPLETE escaped past step 8, and the verdict is stateless — a
+  defective record is defective whichever session looks at it, so this class
+  needs no session baseline, no `sessionStart` hook, no new state machinery.
+- **Bare commit** — zero keys → ambiguous: a slice commit with the
+  silent-total absence the checker exists to catch, or a legitimate
+  docs/bookkeeping commit. Flagged only when the TDD guard's state shows
+  slice-loop evidence for *this* session — `prod-write-observed` or
+  `last-test-edit` under `.git/sdlc-tdd/` beside a `session` marker matching
+  the stop payload's id; the guard already resets that state per session
+  (owner-decided 2026-08-08), so its scoping ruling does double duty here.
+  Where the guard is absent or declined, bare commits log a note and never
+  block — stated per inv 15: on a guard-less adoption the backstop catches
+  defective records, not silent-total absence; step 8 and `/sdlc-retro`'s
+  git-log sweep own that class there.
+
+**Bare-flagging arms last, if ever:** it rides the whole ramp in log-only form
+and arms only if the trial *and* the first field arc show zero false
+candidates — a docs commit made in the same session as slice work is a real
+false-block shape, and a block whose remedy is "assert this is not a slice
+commit and stop again" is a worse rule than a log line. Pre-registered now so
+the arming decision is evidence-bound, not mood-bound.
+
+### 52.3 Interface
+
+- **Home:** the reserved seat — `stop-check` joins `close-out.template.sh`,
+  the check-mode awk extracted into a `parse_record <ref>` function both modes
+  call (§46.3's point: share the parse, never fork it). State dir
+  `.git/sdlc-close-out/` (log + arming flag), mirroring the guard's layout.
+- **Fail direction inverts per mode, in one file:** `check` stays fail-closed
+  (§46.3, unchanged); `stop-check` fails OPEN — its own errors log and exit 0,
+  because a hook that errors must not block real work (§31.7 item 5 is the
+  specimen). The header states both directions side by side, since one file
+  now carries both.
+- **Payload:** the only fields read are `stop_hook_active` (stand down
+  unconditionally when true — never fight the cap, measured at 8 on both
+  dialects) and the session id (bare-class matching only; `sessionId` /
+  `session_id`, either casing). Both are machine-emitted fixed keys, so a
+  fixed sed/grep extraction replaces the guard's python-or-node parser
+  apparatus — the guard parses prose-valued fields (commands, patch text) and
+  needs a real JSON parser; a literal boolean and a UUID do not. If the
+  extraction misses, stop-check logs and stands down — fail-open again.
+- **Copilot wiring:** its own hook file `close-out-hook.template.json` →
+  `.github/hooks/sdlc-close-out.json`, `agentStop`, using the guard json's
+  proven wrapper shape (`cat | sh .github/hooks/sdlc-close-out.sh stop-check`
+  behind the `.git`-and-file existence test). Block schema measured §31.11:
+  `{"decision":"block","reason":…}`.
+- **Claude wiring:** a `Stop` block in `settings.template.json` behind the
+  proven-but-undocumented `"shell": "bash"` pin — the same file already
+  carries it twice (gate and ledger hooks, bench-proven 2026-08-07) — so the
+  sh body runs without a python shim. Same block schema, documented on Claude;
+  honored-in-practice is a ramp probe (P2), not an assumption — §31.10's rule,
+  a denial that does not deny is the failure mode being hunted.
+- **Install stance:** an offer, not unconditional — enforcement wiring falls
+  under §31.14's two-state rule (accepted or declined-with-date, recorded in
+  `spec/SDLC.md`), its own offer beside the guard's in setup and in
+  `/sdlc-update`'s transition note. Independent of the guard decision; setup
+  states the bare-class dependency when the guard is declined.
+
+### 52.4 Probes pre-registered (before any build)
+
+- **P1 — the Stop-with-bash-pin launch:** does a `"shell": "bash"` `Stop` hook
+  deliver stdin and run an sh script on the Windows bench? The pin is proven
+  on `PostToolUse`; `Stop` is unmeasured, and §50.3's S1 is the standing
+  warning against assuming a hook shell. One logging hook, one bench session.
+- **P2 — Claude stop-block honored** (a deny-ramp probe, not pre-build):
+  VER.2's live proof ran logging mode only; the armed schema on Claude is
+  documented, not measured.
+- No Copilot probes owed: `agentStop` schema, block schema, wrapper shape, and
+  `-p`-mode firing are all §31.9/§31.11 bench facts the guard ships on today.
+
+### 52.5 Criteria and decision rule
+
+Offline first against a fixture corpus (defective / complete / bare crossed
+with guard state present / absent / stale-session; the no-upstream fallback;
+CRLF bodies; the candidate cap), driven through `tools/close-out-check.py`
+grown for the mode, mutation seats included; then live on the bench, both
+dialects, logging mode throughout.
+
+- **V1 — defective-catch:** a scripted run commits a slice missing one key,
+  skips step 8, stops → WOULD-BLOCK naming the commit and the key.
+- **V2 — bare-catch:** guard-armed bench, a slice-loop session commits with
+  zero keys → WOULD-BLOCK via the discriminator.
+- **V3 — silence on clean:** complete record → `stop: clean`; a guard-less
+  docs session's bare commit → note only; a mid-slice session with no commit →
+  clean.
+- **S1 — zero false flags** across the corpus. **S2 — cheap:** capped walk,
+  two forks per candidate (§46.2's fork-budget note applies per commit).
+  **S3 — logging inert and fail-open verified:** errors never block, exit 0
+  throughout. **S4 — stand-down** on `stop_hook_active`; the 8-cap never
+  approached. **S5 — reversible:** hook files + state dir removed → clean
+  session, no artifact recreated. **S6 — dialect agreement** on identical
+  corpora.
+
+**Decision rule, fixed now:** all → the owner reads the trial report; then the
+deny-ramp (arming flag, D-criteria in §31.10's shape, P2 inside it) may be
+proposed. Any V fails → the binding rule is wrong, back to 52.2. Any S fails →
+ships log-only or not at all. Bare-flagging's arming has its own bar (52.2).
+JUDGE stays queued behind this batch (§37.5), unchanged.
+
+### 52.6 Cost named up front, and the owner decisions owed
+
+Files: `close-out.template.sh`, new `close-out-hook.template.json`,
+`settings.template.json`, `sdlc-setup.md` (offer, per-dialect install bullets,
+proof step), `sdlc-update.md`, `GATE_RECIPES.md`, `SDLC.template.md`'s checker
+note, both README trees (inv 5), `COPILOT.md` mapping row, CHANGELOG,
+`tools/close-out-check.py`; manifest regenerated same-commit — §51's finding
+is one release old, and the release workflow catches it late where the
+invariant wants it never. New rules enter the §16 audit clock, counted in
+field arcs.
+
+Owner decisions owed before the build: **(a)** the binding rule — the
+two-class design, bare-flagging log-only until its own bar clears; **(b)** the
+install stance — its own offer, independent of the guard's; **(c)** ramp
+scheduling — P1 plus the logging trial now, release timing decided at the
+halt, or the whole batch held for its own bench arc.
+
+**All three taken as recommended, 2026-08-13:** (a) approved as proposed;
+(b) its own offer; (c) P1 plus the logging trial now, the owner reads the
+trial report at the next halt and release timing is decided there. This
+section is committed before any probe or guard code runs — pre-registration
+proven by commit ordering, §31.9's `4928fa9` precedent.
