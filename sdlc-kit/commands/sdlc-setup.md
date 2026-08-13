@@ -480,6 +480,39 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the checker exists to catch, one layer up. The note is a claim about this
    machine and these CLIs: a teammate's clone re-proves before trusting it, and
    adding a CLI later means adding its proven line, because nothing else will.
+
+   **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
+   optional where the checker itself is not.** The same script's `stop-check` mode,
+   wired as a stop hook: at session end it classifies the *unpushed* commits by the
+   record grammar and logs a would-block when one carries a **defective** record
+   (some evidence keys present, but one missing, empty, or duplicated) — the
+   `/end-slice` escape the command step cannot catch, a session that committed and
+   ended without verifying. A commit with **no** record keys at all is flagged only
+   when the TDD guards are installed and their state shows this session did
+   slice-loop work, and that class never blocks — it is log-only by design until
+   the kit's own field bar clears — so on a guard-less adoption say plainly: the
+   backstop catches defective records, not silently absent ones. The cost is one
+   more stop hook and a per-clone log. Default to offering, not to installing.
+   If accepted:
+   - Copilot CLI: `close-out-hook.template.json` → `.github/hooks/sdlc-close-out.json`,
+     copied verbatim — it takes no values; do not edit it.
+   - Claude Code: the `sdlc-close-out.sh stop-check` Stop block already in the
+     instantiated `.claude/settings.json` stays — its `"shell": "bash"` key is
+     load-bearing and measured (2026-08-13: the pin holds on Stop, runs Git Bash,
+     delivers the payload on stdin); do not strip it. **If the backstop is
+     declined, or the project runs no Claude Code, REMOVE that block** — the same
+     two-state handling as the guard and ledger blocks, recorded the same way.
+   - It installs in **logging mode** and stays there: never create
+     `.git/sdlc-close-out/deny-enabled` during setup — blocking is armed by the
+     owner after reading `.git/sdlc-close-out/log` across a few real sessions.
+   - Prove it by seeing it fire: in a scratch session of each installed CLI, end a
+     session in a repo whose `HEAD` is an unpushed commit missing a record key and
+     confirm the log holds `stop: WOULD-BLOCK - defective record` naming the
+     commit; a clean stop logs `stop: clean`. No line → the hook is not firing;
+     re-check the hook environment before trusting it.
+   - Record the outcome in the same `{{CLOSE_OUT_CHECK_NOTE}}` line: installed
+     (which CLIs, logging mode, the flag file and log path, per-clone) or declined
+     with the date — the note's comment in `SDLC.template.md` states both forms.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).

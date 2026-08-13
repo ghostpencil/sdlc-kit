@@ -1,23 +1,29 @@
 # -*- coding: utf-8 -*-
-"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46).
+"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46, §52).
 
-Two passes, and the second is the point:
+Three passes, and the last is the point:
 
-  1. a unit pass driving the checker over a fixture corpus of real commit bodies -
+  1. a unit pass driving check mode over a fixture corpus of real commit bodies -
      every stated-skip form, the RED zero-form, each key missing / empty /
      duplicated, a mid-line key lookalike, a CRLF body, and two verbatim record
      bodies from the first adopter's armed arcs (ai-news-dashboard S6/S7) - each
      case committed into a bench git repo and checked through the script's real
      interface;
-  2. a mutation pass that breaks the checker - the count derived from the
-     MUTATIONS list at run time, never stated here - and requires the unit pass
+  2. a stop pass driving stop-check mode (the §52 backstop) over per-case bench
+     repos - defective / complete / bare crossed with guard-state present /
+     absent / stale-session, the no-upstream narrowing, pushed-commits-out-of-
+     scope, the candidate cap, stand-down on stop_hook_active, both session-id
+     casings, the armed block JSON, and fail-open on an empty payload - each
+     through the script's real interface with the payload on stdin;
+  3. a mutation pass that breaks the checker - the count derived from the
+     MUTATIONS list at run time, never stated here - and requires pass 1 or 2
      to notice each one. A suite that survives its own mutations is not testing
      the thing it claims to (invariant 13).
 
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/close-out-check.py
 """
-import io, os, subprocess, sys, tempfile, time
+import io, json, os, subprocess, sys, tempfile, time
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "close-out.template.sh")
@@ -146,7 +152,8 @@ CASES = [
     ("no_mode", None, [], 2, None, ["CANNOT CHECK -", "unknown mode ''"]),
 ]
 
-# One mutation per defect class the corpus pins; each must break >= 1 unit case.
+# One mutation per defect class the corpus pins; each must break >= 1 unit or
+# stop case.
 MUTATIONS = [
     ("anchor_dropped_RED", "/^RED:/      { rn++;", "/RED:/      { rn++;"),
     ("anchor_dropped_quality", "/^quality:/  { qn++;", "/quality:/  { qn++;"),
@@ -157,6 +164,25 @@ MUTATIONS = [
      'line="MISSING - $AMEND"'),
     ("ref_guard_bypassed", '--verify --quiet "$REF^{commit}"', "--verify --quiet HEAD"),
     ("mode_gate_loosened", '[ "$MODE" = "check" ]', '[ -n "$MODE" ]'),
+    # --- stop-check (§52). Each models a plausible backstop defect.
+    ("standdown_disabled",
+     '"stop_hook_active"[[:space:]]*:[[:space:]]*true',
+     '"stop_hook_active_never"[[:space:]]*:[[:space:]]*true'),
+    ("defective_counted_complete",
+     'else defective="$defective $C($probs )"; fi',
+     'else complete=$((complete + 1)); fi'),
+    ("bare_ignores_guard_evidence",
+     'if [ -n "$GUARD_EVID" ]; then bare_flagged="$bare_flagged $C"',
+     'if [ -n "" ]; then bare_flagged="$bare_flagged $C"'),
+    ("guard_session_not_matched",
+     '[ "$(cat .git/sdlc-tdd/session 2>/dev/null)" = "$SID" ]',
+     '[ -d .git/sdlc-tdd ]'),
+    ("block_regardless_of_flag",
+     'if [ -f "$SD/deny-enabled" ]; then',
+     'if [ ! -f "$SD/deny-enabled.never" ]; then'),
+    ("cap_unbounded", "rev-list --abbrev-commit -n 20", "rev-list --abbrev-commit -n 9999"),
+    ("scope_ignores_upstream", "-n 20 '@{u}..HEAD'", "-n 20 HEAD"),
+    ("red_treated_singleton", 'pk RED "$red_n" "$red_e" ""', 'pk RED "$red_n" "$red_e" s'),
 ]
 
 
@@ -198,6 +224,208 @@ class Bench:
             argv = ["sh", self.script] + args
         p = subprocess.run(argv, cwd=self.root, capture_output=True)
         return p.returncode, p.stdout.decode("utf-8", "replace"), time.perf_counter() - t0
+
+
+SID = "11111111-2222-3333-4444-555555555555"
+STALE_SID = "99999999-8888-7777-6666-555555555555"
+
+
+def payload(sid=SID, active=False, camel=False):
+    key = "sessionId" if camel else "session_id"
+    return '{"%s":"%s","hook_event_name":"Stop","stop_hook_active":%s}' % (
+        key, sid, "true" if active else "false")
+
+
+FULL_BODY = body("feat(x): slice",
+                 "RED: pytest -q — t.py:1 — exit 1",
+                 "RED: pytest -q — t.py:9 — exit 1",
+                 "quality: nothing to do",
+                 "mutation: 2 guards, each seen to fail",
+                 "verify: ran — CLI path green (Git Bash)")
+DEFECTIVE_BODY = body("feat(x): slice missing verify",
+                      "RED: pytest -q — t.py:1 — exit 1",
+                      "quality: nothing to do",
+                      "mutation: 1 guard, seen to fail")
+BARE_BODY = "docs(z): notes only\n\nProse, no record keys.\n"
+
+
+class StopBench(Bench):
+    """A per-case repo for stop-check: optional origin/upstream, guard state,
+    arming flag, and the stop log - everything the backstop actually reads."""
+
+    def base_commit(self):
+        self.commit("chore: base\n\nPre-kit commit, no record.\n")
+
+    def set_origin(self, base):
+        origin = os.path.join(base, "origin.git")
+        subprocess.run(["git", "init", "-q", "--bare", origin], capture_output=True)
+        self.git("remote", "add", "origin", origin)
+        p = self.git("push", "-q", "-u", "origin", "HEAD")
+        assert p.returncode == 0, "bench push failed: " + p.stderr.decode()
+
+    def push(self):
+        p = self.git("push", "-q", "origin", "HEAD")
+        assert p.returncode == 0, "bench push failed: " + p.stderr.decode()
+
+    def guard_state(self, sid, evidence=True):
+        d = os.path.join(self.root, ".git", "sdlc-tdd")
+        os.makedirs(d, exist_ok=True)
+        io.open(os.path.join(d, "session"), "w", newline="\n").write(sid)
+        if evidence:
+            io.open(os.path.join(d, "prod-write-observed"), "w").write("")
+
+    def arm(self):
+        d = os.path.join(self.root, ".git", "sdlc-close-out")
+        os.makedirs(d, exist_ok=True)
+        io.open(os.path.join(d, "deny-enabled"), "w").write("")
+
+    def run_stop(self, pl):
+        p = subprocess.run(["sh", self.script, "stop-check"], cwd=self.root,
+                           input=pl.encode("utf-8"), capture_output=True)
+        log = os.path.join(self.root, ".git", "sdlc-close-out", "log")
+        text = io.open(log, encoding="utf-8").read() if os.path.exists(log) else ""
+        return p.returncode, p.stdout.decode("utf-8", "replace"), text
+
+
+# (name, setup(bench, base) -> payload, stdout check: None | "block-json",
+#  log must-contain, log must-NOT-contain)
+def _s_standdown(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    return payload(active=True)
+
+def _s_defective(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    return payload()
+
+def _s_complete(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(FULL_BODY)
+    return payload()
+
+def _s_bare_no_guard(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    return payload()
+
+def _s_bare_guard(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.guard_state(SID)
+    return payload()
+
+def _s_bare_guard_armed(b, base):
+    # bare NEVER blocks: armed or not, no stdout verdict.
+    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.guard_state(SID); b.arm()
+    return payload()
+
+def _s_bare_stale_session(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.guard_state(STALE_SID)
+    return payload()
+
+def _s_bare_guard_camel(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.guard_state(SID)
+    return payload(camel=True)
+
+def _s_defective_armed(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.arm()
+    return payload()
+
+def _s_no_upstream(b, base):
+    # HEAD-only narrowing: the older defective commit is out of scope, stated.
+    b.base_commit(); b.commit(DEFECTIVE_BODY); b.commit(FULL_BODY)
+    return payload()
+
+def _s_pushed_out_of_scope(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY); b.push()
+    return payload()
+
+def _s_defective_below_head(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY); b.commit(FULL_BODY)
+    return payload()
+
+def _s_crlf_defective(b, base):
+    b.base_commit(); b.set_origin(base)
+    b.commit(DEFECTIVE_BODY.replace("\n", "\r\n"))
+    return payload()
+
+def _s_cap(b, base):
+    b.base_commit(); b.set_origin(base)
+    for i in range(22):
+        b.commit("docs(z): bare %d\n\nProse.\n" % i)
+    return payload()
+
+def _s_empty_payload(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(FULL_BODY)
+    return ""
+
+STOP_CASES = [
+    ("stop_standdown", _s_standdown, None,
+     ["standing down"], ["WOULD-BLOCK", "clean"]),
+    ("stop_defective_logs_wouldblock", _s_defective, None,
+     ["stop: WOULD-BLOCK - defective record on", "missing verify"], ["stop: BLOCK"]),
+    ("stop_complete_clean", _s_complete, None,
+     ["stop: clean (1 complete, 0 bare"], ["WOULD-BLOCK"]),
+    ("stop_bare_without_guard_noted", _s_bare_no_guard, None,
+     ["stop: clean (0 complete, 1 bare"], ["WOULD-BLOCK"]),
+    ("stop_bare_with_guard_flagged", _s_bare_guard, None,
+     ["stop: WOULD-BLOCK (bare, log-only by design)"], []),
+    ("stop_bare_never_blocks_even_armed", _s_bare_guard_armed, None,
+     ["stop: WOULD-BLOCK (bare, log-only by design)"], ["stop: BLOCK"]),
+    ("stop_bare_stale_session_noted", _s_bare_stale_session, None,
+     ["stop: clean (0 complete, 1 bare"], ["WOULD-BLOCK"]),
+    ("stop_bare_camel_session_id", _s_bare_guard_camel, None,
+     ["stop: WOULD-BLOCK (bare, log-only by design)"], []),
+    ("stop_defective_armed_blocks", _s_defective_armed, "block-json",
+     ["stop: BLOCK - defective record on"], []),
+    ("stop_no_upstream_head_only", _s_no_upstream, None,
+     ["stop: clean (1 complete, 0 bare", "no upstream configured"], ["WOULD-BLOCK"]),
+    ("stop_pushed_out_of_scope", _s_pushed_out_of_scope, None,
+     ["stop: clean (no candidate commits"], ["WOULD-BLOCK"]),
+    ("stop_defective_below_head_flagged", _s_defective_below_head, None,
+     ["stop: WOULD-BLOCK - defective record on", "missing verify"], []),
+    ("stop_crlf_defective", _s_crlf_defective, None,
+     ["stop: WOULD-BLOCK - defective record on"], []),
+    ("stop_candidate_cap_20", _s_cap, None,
+     ["20 bare without slice-loop evidence"], ["22 bare"]),
+    ("stop_empty_payload_fails_open", _s_empty_payload, None,
+     ["stop: clean (1 complete"], ["WOULD-BLOCK"]),
+]
+
+
+def stop_pass(src, verbose):
+    """Runs every stop case in its own bench repo; returns (failures, {name: secs})."""
+    failures, times = [], {}
+    for name, setup, stdout_kind, contains, absent in STOP_CASES:
+        with tempfile.TemporaryDirectory() as base:
+            b = StopBench(base, src)
+            pl = setup(b, base)
+            t0 = time.perf_counter()
+            code, out, log = b.run_stop(pl)
+            times[name] = time.perf_counter() - t0
+            problems = []
+            if code != 0:
+                problems.append("exit %d, expected 0 (stop-check must fail open)" % code)
+            if stdout_kind == "block-json":
+                try:
+                    d = json.loads(out)
+                    if d.get("decision") != "block" or not d.get("reason"):
+                        problems.append("stdout is not a block verdict: %r" % out)
+                except ValueError:
+                    problems.append("stdout is not valid JSON: %r" % out)
+            elif out.strip():
+                problems.append("unexpected stdout (logging mode must stay silent): %r" % out)
+            for c in contains:
+                if c not in log:
+                    problems.append("log lacks %r" % c)
+            for c in absent:
+                if c in log:
+                    problems.append("log wrongly contains %r" % c)
+            if problems:
+                failures.append((name, problems, "stdout: %s\nlog:\n%s" % (out, log)))
+            if verbose:
+                print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
+    return failures, times
 
 
 def unit_pass(src, verbose):
@@ -261,20 +489,43 @@ def main():
         print("S2 FAILED: slowest invocation %.2f s" % slowest)
         sys.exit(1)
 
+    print("\n== stop pass (%d cases) ==" % len(STOP_CASES))
+    failures, times = stop_pass(src, verbose=True)
+    # Two budgets, both against the 30 s hook timeout: typical sessions hold a
+    # handful of unpushed commits (< 1.5 s), and the cap case's 20-candidate walk
+    # pays ~2 Windows-sh forks per candidate (measured ~3.5 s at cap on the dev
+    # machine - bounded by the cap, nowhere near the timeout's fail-open edge).
+    cap_t = times.pop("stop_candidate_cap_20")
+    typical = max(times.values())
+    print("slowest typical stop invocation: %.0f ms (budget: 1500 ms); cap-20 walk: %.0f ms (budget: 5000 ms)"
+          % (typical * 1000, cap_t * 1000))
+    if failures:
+        for name, problems, out in failures:
+            print("\nFAILED %s: %s\n--- detail ---\n%s" % (name, "; ".join(problems), out))
+        sys.exit(1)
+    if typical >= 1.5 or cap_t >= 5.0:
+        print("S2 FAILED: stop invocation over budget")
+        sys.exit(1)
+
     print("\n== mutation pass (%d mutations, count derived) ==" % len(MUTATIONS))
     survivors = []
     for name, old, new in MUTATIONS:
         assert old in src, "mutation %s no longer applies - update it" % name
         mutated = src.replace(old, new)
         broke, _ = unit_pass(mutated, verbose=False)
-        print("  %-38s %s" % (name, "caught (%d case%s)" % (len(broke), "s" if len(broke) != 1 else "") if broke else "SURVIVED"))
+        where = "unit"
+        if not broke:
+            broke, _ = stop_pass(mutated, verbose=False)
+            where = "stop"
+        print("  %-38s %s" % (name, "caught (%d %s case%s)" % (len(broke), where, "s" if len(broke) != 1 else "") if broke else "SURVIVED"))
         if not broke:
             survivors.append(name)
     if survivors:
         print("\nMUTATIONS SURVIVED: %s - the corpus does not pin what it claims" % ", ".join(survivors))
         sys.exit(1)
 
-    print("\nall green: %d unit cases, %d mutations caught" % (len(CASES), len(MUTATIONS)))
+    print("\nall green: %d unit + %d stop cases, %d mutations caught"
+          % (len(CASES), len(STOP_CASES), len(MUTATIONS)))
 
 
 if __name__ == "__main__":

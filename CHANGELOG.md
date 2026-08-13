@@ -10,6 +10,37 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+VER.3 (`FEATURE_PLAN.md` §52, owner-approved 2026-08-13): the close-out checker's
+stop-time backstop — the enforcement seat VER.1 reserved, filled after its own
+pre-registered probe and logging trial.
+
+### Added
+- **[adoption-only]** **The close-out checker gains a `stop-check` mode and an
+  optional stop-hook wiring per CLI — the backstop for the `/end-slice` escape.**
+  `templates/close-out.template.sh` (the parse now shared by both modes) classifies
+  the session's *unpushed* commits at stop time: a **defective** record (a key
+  missing, empty, or duplicated) logs a would-block naming the commit and problems;
+  a **bare** commit (no record keys) flags only when the TDD guards' session state
+  shows slice-loop work, and that class is log-only by design. `stop-check` fails
+  **open** (its errors log and exit 0) where `check` stays fail-closed — one file,
+  both directions, each stated in its header. Wiring: new
+  `templates/close-out-hook.template.json` → `.github/hooks/sdlc-close-out.json`
+  (Copilot, `agentStop`, verbatim, kit-owned like its `.sh` sibling) and a `Stop`
+  block in `settings.template.json` behind the `"shell": "bash"` pin (measured
+  2026-08-13: the pin holds on `Stop`, runs Git Bash, delivers the payload on
+  stdin). Offered by `sdlc-setup.md` step 6 beside the checker install, two-state
+  recorded in the same `{{CLOSE_OUT_CHECK_NOTE}}` line; `GATE_RECIPES.md` carries
+  the recipe and the measured facts; logging mode always — blocking is armed later
+  via `.git/sdlc-close-out/deny-enabled`, and never by setup.
+- **[installable]** **`sdlc-update.md` learns the 0.22.0 transition**: the checker
+  script updates automatically (its new mode arrives with the file), the wiring is
+  offered where the checker note predates the backstop, a recorded decline is
+  settled; `.github/hooks/sdlc-close-out.json` joins the kit-owned classification
+  row and pathspec, and the ownership table's `.github/hooks/*.json` project row
+  now names it as the exception.
+
 ## 0.21.0 — 2026-08-12
 
 The sdlc-kit#6 doc batch (`FEATURE_PLAN.md` §49, owner-approved 2026-08-12): the

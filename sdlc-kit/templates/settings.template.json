@@ -37,6 +37,17 @@
             "statusMessage": "SDLC TDD guard"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "if [ -d .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh .github/hooks/sdlc-close-out.sh stop-check; fi",
+            "timeout": 30,
+            "statusMessage": "SDLC close-out backstop"
+          }
+        ]
       }
     ],
     "PostToolUse": [

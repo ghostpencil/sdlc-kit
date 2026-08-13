@@ -408,6 +408,63 @@ disposal-intent test*) rather than guard territory.
 
 ---
 
+## The close-out stop-time backstop — optional, both CLIs, one wiring each
+
+The close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, installed on
+every adoption) carries a second mode, `stop-check`, wired as a stop hook where the
+owner accepts the offer. At session end it classifies the **unpushed** commits
+(`@{u}..HEAD`, capped at 20; `HEAD` only when no upstream is configured — the log
+line states which) by the same record grammar `/end-slice`'s command step runs:
+
+- a **defective** record — some evidence keys present, but one missing, empty, or
+  duplicated — logs a would-block naming the commit and its problems. This is the
+  escape the command step cannot catch: a session that committed a slice and ended
+  without verifying, or past an unresolved INCOMPLETE. The verdict is stateless —
+  a defective body is defective whichever session looks at it, and the remedy
+  (amend before pushing) is legal exactly while the commit is unpushed.
+- a **bare** commit — no record keys at all — is ambiguous (a silent slice commit,
+  or a legitimate docs commit), so it flags only when the TDD guards are installed
+  and their session state (`.git/sdlc-tdd/`) shows this session wrote production
+  code or edited a test. **This class never blocks, armed or not** — log-only by
+  design until the kit's own field bar clears — and on a guard-less adoption the
+  generated `spec/SDLC.md` must say plainly: the backstop catches defective
+  records, not silently absent ones.
+
+**Wiring, measured per dialect.** Copilot CLI: `.github/hooks/sdlc-close-out.json`
+(verbatim from `templates/close-out-hook.template.json`), `agentStop`, the same
+`cat | sh …` wrapper shape as the guard JSON; the block schema
+(`{"decision":"block","reason":…}`) was measured on the bench 2026-08-05. Claude
+Code: a `Stop` block in `.claude/settings.json` whose `"shell": "bash"` key is
+**load-bearing and measured** (2026-08-13: the pin holds on `Stop`, runs Git Bash
+— not the PowerShell default, not WSL — and delivers the payload on stdin to a
+bare `sh .github/hooks/sdlc-close-out.sh stop-check` line); the same block schema
+is documented there, and blocking on Claude Code stays a ramp question until a
+deny-mode run measures it honored.
+
+**Fail direction — the inverse of the command step, on purpose.** `check` fails
+closed because a command step's failure is seen and quoted; `stop-check` fails
+open — its own errors log to `.git/sdlc-close-out/log` and exit 0 — because a
+hook that errors must not block real work. It also stands down unconditionally
+under `stop_hook_active` (the documented consecutive-block cap, measured at 8 on
+both dialects, is never fought).
+
+**Logging first, always.** It installs logging-only: verdicts appear as
+`stop: WOULD-BLOCK` lines in `.git/sdlc-close-out/log`, and nothing is blocked.
+Blocking the defective class is armed by creating `.git/sdlc-close-out/deny-enabled`
+and disarmed by deleting it — the owner's call, after reading a few real sessions
+of the log, and the `{{CLOSE_OUT_CHECK_NOTE}}` line in `spec/SDLC.md` is updated
+in the same breath. Prove it by firing it: end a scratch session on an unpushed
+commit missing one record key and read the would-block line back; no line means
+the hook is not firing.
+
+**What it is not.** A cooperative backstop with the guards' own honest limits: it
+reads commit bodies, not truth — a fabricated record line passes it, which is why
+the steps that produce the lines remain the evidence — and a session can read its
+source and state. Scope is deliberately narrow: unpushed commits on the current
+branch, this clone only (`.git/` is per-clone, like the guard state beside it).
+
+---
+
 ## The skill-activation ledger — optional, logging-only, both CLIs
 
 One hook, one line per tool-dispatched skill activation, appended to

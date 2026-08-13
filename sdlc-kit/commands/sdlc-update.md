@@ -19,7 +19,8 @@ the project owns.**
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
 | `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — it takes no project values, unlike its two `.sh` neighbors |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
+| `.github/hooks/sdlc-close-out.json` (Copilot: the checker's stop-time backstop wiring, offered from 0.22.0 — present only where accepted) | kit | same rule; compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes the owner's accept; the update never adds or removes it — the 0.22.0 note below offers it where the choice was never put |
+| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
 
 **Which of those rows apply here is recorded, not guessed:** `spec/PROJECT_INDEX.md`
@@ -82,15 +83,21 @@ MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 
 for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
                         .github/skills .github/agents \
-                        .github/hooks/sdlc-close-out.sh); do
+                        .github/hooks/sdlc-close-out.sh \
+                        .github/hooks/sdlc-close-out.json); do
   have=""
   case "$f" in
     .github/hooks/sdlc-close-out.sh)
       base=sdlc-close-out.sh
-      # the one kit-owned file in .github/hooks/ — copied verbatim, no project
-      # values. Its neighbors are project-owned and deliberately NOT in the
-      # pathspec above: this loop must never classify the gate or guard scripts.
+      # one of the two kit-owned files in .github/hooks/ — copied verbatim, no
+      # project values. Their neighbors are project-owned and deliberately NOT in
+      # the pathspec above: this loop must never classify the gate or guard scripts.
       want=$(awk '$2 == "templates/close-out.template.sh" {print $1}' "$MAN") ;;
+    .github/hooks/sdlc-close-out.json)
+      base=sdlc-close-out.json
+      # the other kit-owned file: the stop-time backstop's Copilot wiring, present
+      # only where the 0.22.0 offer was accepted (git ls-files skips it otherwise).
+      want=$(awk '$2 == "templates/close-out-hook.template.json" {print $1}' "$MAN") ;;
     .claude/commands/*)
       base=${f#.claude/commands/}
       # commands/ and reference/REVIEW_LENSES.md install here. So did skills/ on kits
@@ -140,7 +147,8 @@ result rather than an error:
 
 - **Denominator.** The loop must print exactly as many lines as
   `git ls-files .claude/commands .claude/skills .claude/agents .github/skills
-  .github/agents .github/hooks/sdlc-close-out.sh | wc -l` — the same pathspec list
+  .github/agents .github/hooks/sdlc-close-out.sh .github/hooks/sdlc-close-out.json
+  | wc -l` — the same pathspec list
   the loop walks, so the two cannot
   drift apart. Fewer means the matching dropped files (`tdd-references/` lives two
   directories down and is the usual casualty). On a Copilot project the count includes
@@ -186,9 +194,11 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   the owner released — plus any files **new in the target's install set**, which
   classification never saw because the project does not hold them yet. Sources and
   destinations follow the per-CLI table in `sdlc-setup.md` New mode step 5 — **plus
-  step 6's one kit-owned artifact, `templates/close-out.template.sh` →
-  `.github/hooks/sdlc-close-out.sh` (both CLIs, verbatim), which lives outside the
-  step-5 table because it installs beside the hooks** — the
+  step 6's kit-owned artifacts, `templates/close-out.template.sh` →
+  `.github/hooks/sdlc-close-out.sh` (both CLIs, verbatim) and, where the backstop
+  offer was accepted, `templates/close-out-hook.template.json` →
+  `.github/hooks/sdlc-close-out.json` (Copilot, verbatim), which live outside the
+  step-5 table because they install beside the hooks** — the
   *Agent CLI:* line says which column applies, and "both" gets both columns. Claude
   Code column: `sdlc-kit/commands/` into `.claude/commands/`. Copilot column: each
   command re-packaged into `.github/skills/<name>/SKILL.md` by that step's packaging
@@ -472,6 +482,19 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   license names the case, not "close-out") — hand-applied as template diffs per the
   CHANGELOG, alongside its other hand-apply notes (the skill-ledger scope sentence,
   the coverage-floor procedure text).
+- **0.22.0 adds the close-out checker's stop-time backstop, as an offer.** The
+  checker script itself updates automatically (kit-owned; its new `stop-check`
+  mode arrives with the file), but the *wiring* is optional and per-CLI:
+  `.github/hooks/sdlc-close-out.json` on Copilot (kit-owned verbatim, present only
+  where accepted), a `Stop` block in `.claude/settings.json` on Claude Code
+  (project-owned, arrives by hand, and its `"shell": "bash"` key is load-bearing —
+  measured 2026-08-13). Read the backstop half of the `{{CLOSE_OUT_CHECK_NOTE}}`
+  line in `spec/SDLC.md` with the 0.16.0 two-state rule: a recorded decline is
+  settled; a line that predates 0.22.0 says nothing about the backstop, so put the
+  choice now as setup would (logging mode, never create
+  `.git/sdlc-close-out/deny-enabled`, fire-first proof per `sdlc-setup.md` step 6,
+  outcome recorded in that same note line). Its bare-commit class is log-only by
+  design on every install — say so when offering.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts
@@ -553,9 +576,11 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   reference docs, read only at `/sdlc-setup` time; they affect new adoptions, not this
   project (`reference/REVIEW_LENSES.md` is installed and its changes are
   *[installable]*; on a Copilot project so is `templates/explore.agent.template.md`,
-  copied verbatim to `.github/agents/`; and from 0.20.0 so is
+  copied verbatim to `.github/agents/`; from 0.20.0 so is
   `templates/close-out.template.sh`, copied verbatim to
-  `.github/hooks/sdlc-close-out.sh` on both CLIs). If one fixes
+  `.github/hooks/sdlc-close-out.sh` on both CLIs; and from 0.22.0, on a Copilot
+  project that accepted the backstop, so is `templates/close-out-hook.template.json`,
+  copied verbatim to `.github/hooks/sdlc-close-out.json`). If one fixes
   something the project cares about, raise it with the owner as a manual follow-up —
   never apply it automatically.
 - Skipping several versions is fine: classify against the version the project is on,

@@ -3167,3 +3167,70 @@ halt, or the whole batch held for its own bench arc.
 trial report at the next halt and release timing is decided there. This
 section is committed before any probe or guard code runs — pre-registration
 proven by commit ordering, §31.9's `4928fa9` precedent.
+
+### 52.7 Built and proven — same day: P1 one take, offline all green, every
+### live criterion met on both dialects; the report awaits the owner's read
+
+**P1 first, one take** (bench `probe-stop-pin.log`, session 851140ea): the
+`"shell": "bash"` pin **holds on `Stop`** — the script ran under Git Bash
+(`MINGW64`, not the S1 PowerShell default, not WSL), the full JSON payload
+arrived on stdin (`session_id` snake_case, `stop_hook_active`, plus
+unadvertised fields), hook cwd was the project root, and the exact ship shape
+`sh .github/hooks/<file>.sh stop-check` ran verbatim with no wrapper and no
+python shim. The Claude wiring ships that literal line.
+
+**Built** per 52.3, no design deviations: `close-out.template.sh` grew
+`count_record()` (one parse, two callers — check-mode output byte-identical,
+proven before anything else was touched) and the fail-open `stop-check` flow;
+new `close-out-hook.template.json` (Copilot `agentStop`, guard-wrapper shape);
+the settings `Stop` block behind the pin; the offer in `sdlc-setup.md` step 6
+recording into the existing `{{CLOSE_OUT_CHECK_NOTE}}` (no new placeholder —
+inv 1's set is unchanged); the backstop recipe section in `GATE_RECIPES.md`;
+the 0.22.0 transition in `sdlc-update.md` (the `.json` joins the kit-owned
+classification row and pathspec, with the project row's `*.json` glob gaining
+its exception); both README turns and root CLAUDE.md's "one kit-owned file"
+phrase (now two — §51's derived-statement lesson applied at write time);
+CHANGELOG Unreleased.
+
+**Offline** (`tools/close-out-check.py`, now three passes): 21 unit cases
+byte-identical green, **15 new stop cases** green on their first run
+(defective/complete/bare × guard present/absent/stale-session, both session-id
+casings, armed block JSON parsed, bare-never-blocks-even-armed, no-upstream
+narrowing, pushed-out-of-scope, defective-below-HEAD, CRLF, cap-20,
+empty-payload fail-open), **16 mutations all caught** — the 8 original plus 8
+stop-mode seats (stand-down disabled, defective-counted-complete,
+bare-ignores-guard, session-unmatched, block-regardless-of-flag,
+cap-unbounded, scope-ignores-upstream, RED-treated-singleton). Timing: 255 ms
+typical, 3.4 s at the pathological cap-20 bound (~85 ms per Windows sh fork ×
+2 forks per candidate) against the 30 s hook timeout.
+
+**Live** (bench, logging mode, seven sessions; record in the bench's
+`ENF_PROBE_NOTES.md`, log kept as a standing artifact):
+
+- **V1** — a Claude session committed a record missing `verify:` and stopped:
+  `stop: WOULD-BLOCK - defective record on 11becd0( missing verify )`.
+- **V2** — Write-tool production file (the guard logged the violation and the
+  marker) then a bare commit: `stop: WOULD-BLOCK (bare, log-only by design)`.
+- **V3** — no-commit session → `clean (no candidate commits)`; amend-to-
+  complete → `clean (1 complete, 0 bare)`; and the load-bearing one: a
+  shell-only session beside the *same two bare commits* V2 flagged →
+  `clean (… 2 bare without slice-loop evidence)` — the discriminator is
+  session-scoped, so the docs-session false-block shape cannot occur.
+- **S6** — Copilot `agentStop` ran the identical script through the json
+  wrapper: `WOULD-BLOCK - defective record on 53d303f( missing quality )`,
+  then `clean (2 complete, 2 bare)` after the amend. Same grammar, same log,
+  both dialects.
+- **S1** zero false flags across all firings; **S2** every firing far inside
+  the 30 s budget; **S3** nothing denied or blocked, stdout never carried a
+  verdict; **S4** structurally satisfied in logging mode and pinned offline
+  (the `stop_standdown` case and `standdown_disabled` mutation); **S5** hook
+  files moved aside → zero new log lines → restored.
+
+Bench reversed to its baseline; the backstop trio joins the standing bench
+artifacts beside the guard pairs. Manifest regenerated same-commit (§51's
+lesson, applied at write time this once). **Per the 52.5 decision rule the
+deny-ramp may now be proposed — after the owner reads this report at the next
+halt, where release timing is also decided.** Unreleased until then; the
+adopter's next update halt would carry the offer, not an install. P2 (Claude
+stop-block honored in practice) remains the deny-ramp's opening probe;
+bare-flagging stays log-only with its arming bar untouched.

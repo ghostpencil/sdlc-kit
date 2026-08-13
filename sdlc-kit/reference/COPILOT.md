@@ -23,6 +23,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | TDD-ordering guards (optional, per dialect since 0.21.0) | `.github/hooks/sdlc-tdd-guard.py` + four hook blocks in `.claude/settings.json` — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` |
 | Skill-activation ledger (optional, logging-only) | the `"Skill"`-matcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
 | Close-out evidence checker (always; a command step run by `/end-slice`, not a hook) | `.github/hooks/sdlc-close-out.sh`, invoked `sh …` from the Bash tool | the same file — but the shell tool resolves no `sh` (measured 2026-08-10, and its PATH's `bash` is WSL's, the corrupting route), so the invocation derives sh from the git on its PATH and `spec/SDLC.md` records the proven literal form |
+| Close-out stop-time backstop (optional, offered from 0.22.0; the same script's `stop-check` mode) | a `Stop` block in `.claude/settings.json` behind the `"shell": "bash"` pin (measured 2026-08-13: holds on `Stop`, runs Git Bash, stdin delivered) | `.github/hooks/sdlc-close-out.json`, `agentStop`, the guard JSON's `cat \| sh …` wrapper shape |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |

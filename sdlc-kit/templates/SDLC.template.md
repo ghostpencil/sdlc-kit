@@ -282,7 +282,19 @@ setup: {{HOOK_ENVIRONMENT}}
      and the note is finalized in the same breath.) Like its two sibling notes above,
      this line is a claim about the machine and CLIs setup ran on: the proven path
      describes that machine (a teammate's clone re-proves before trusting it), and
-     adding a CLI later means adding its proven line — nothing else will. -->
+     adding a CLI later means adding its proven line — nothing else will.
+     THE SAME NOTE also records the stop-time backstop's state — the same script's
+     `stop-check` mode wired at agentStop (Copilot, `.github/hooks/sdlc-close-out.json`)
+     / Stop (Claude Code, the settings-file block), offered separately and OPTIONAL
+     where the checker itself is not. Installed: which CLIs, logging or armed
+     (the flag file `.git/sdlc-close-out/deny-enabled`, present means armed — arming
+     means updating this line, because nothing else will), and that the log lives at
+     `.git/sdlc-close-out/log`, per-clone like everything under `.git/`. Declined:
+     say so WITH THE DATE — never delete the line; /sdlc-update reads it exactly as
+     it reads the guard note's decline. Unlike the command step above, the backstop
+     fails OPEN (a hook that errors must not block work), and its bare-commit class
+     is log-only by design regardless of the flag. -->
+
 
 
 ## Model policy

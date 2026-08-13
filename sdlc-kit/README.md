@@ -54,11 +54,12 @@ skills/                  ← TDD skill set + the three kit-written passes
                            (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup; five are copied
+templates/               ← instantiated into the project by /sdlc-setup; six are copied
                            verbatim instead (the explore agent profile, the TDD guards'
-                           hook JSON, the gate hook's launcher JSON, and the
-                           skill-ledger hook JSON — all Copilot-side — plus the
-                           close-out evidence checker, both CLIs; none takes values)
+                           hook JSON, the gate hook's launcher JSON, the skill-ledger
+                           hook JSON, and the close-out backstop's hook JSON — all
+                           Copilot-side — plus the close-out evidence checker, both
+                           CLIs; none takes values)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
 LICENSE                  ← MIT
 THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-pro's
@@ -66,8 +67,10 @@ THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-p
 ```
 
 `commands/`, `skills/`, the installed `reference/REVIEW_LENSES.md`, and the
-close-out evidence checker (`.github/hooks/sdlc-close-out.sh` — a verbatim copy
-holding no project values) are **kit-owned**:
+close-out evidence checker with its optional stop-hook wiring
+(`.github/hooks/sdlc-close-out.sh` on both CLIs, `.github/hooks/sdlc-close-out.json`
+on a Copilot project that accepted the backstop offer — verbatim copies holding no
+project values) are **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything else `/sdlc-setup` writes into your project
 (`CLAUDE.md`, `spec/*.md`, the gate hook — `.claude/settings.json` on Claude Code,
 `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` on Copilot CLI — the optional
@@ -91,7 +94,8 @@ commands), or see the *Updating an adopted project* section of the home reposito
 README — both state the same procedure. The short version: compare your installed
 `.claude/commands/*.md` and `.claude/skills/*/SKILL.md` (plus `.github/skills/` and
 `.github/agents/` on a Copilot CLI project, `.github/hooks/sdlc-close-out.sh` on
-kits ≥ 0.20.0, and `.claude/agents/*.md` on kits
+kits ≥ 0.20.0, `.github/hooks/sdlc-close-out.json` where the ≥ 0.22.0 backstop
+offer was accepted, and `.claude/agents/*.md` on kits
 0.6.0–0.9.0) against the
 `MANIFEST.sha256` of the version you are currently
 on (recorded in your `spec/SDLC.md`). Files that match are provably unmodified and safe
