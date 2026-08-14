@@ -505,14 +505,21 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - It installs in **logging mode** and stays there: never create
      `.git/sdlc-close-out/deny-enabled` during setup — blocking is armed by the
      owner after reading `.git/sdlc-close-out/log` across a few real sessions.
-   - Prove it by seeing it fire: in a scratch session of each installed CLI, end a
+   - Prove it by seeing it fire: in a scratch session of each installed CLI —
+     **launched the way this project's operator actually launches it**, since the
+     Copilot hook shell is per-launcher (the Claude block pins `"shell": "bash"`
+     per hook, so no launcher boundary is crossed there) — end a
      session in a repo whose `HEAD` is an unpushed commit missing a record key and
      confirm the log holds `stop: WOULD-BLOCK - defective record` naming the
      commit; a clean stop logs `stop: clean`. No line → the hook is not firing;
      re-check the hook environment before trusting it.
    - Record the outcome in the same `{{CLOSE_OUT_CHECK_NOTE}}` line: installed
-     (which CLIs, logging mode, the flag file and log path, per-clone) or declined
-     with the date — the note's comment in `SDLC.template.md` states both forms.
+     (which CLIs, logging mode, the flag file and log path, per-clone, **and the
+     fire-proof actually seen — which CLI and launcher, the would-block line read
+     back**) or declined
+     with the date — the note's comment in `SDLC.template.md` states both forms. A
+     recorded install whose proof was never run is the silent absence this checker
+     family exists to catch, one layer up.
 7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
@@ -523,7 +530,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    parallel read-only subagents (the same pattern `/plan-phase` uses for its sweeps:
    read-only by tool restriction, findings return here, every owner question stays in
    this session; Claude Code's built-in `Explore` type serves. On Copilot nothing is
-   installed yet — the `explore` profile arrives at step 5, for `/plan-phase` and after
+   installed yet — the `explore` profile arrives with this mode's step 3 generation
+   (New mode installs it at step 5), for `/plan-phase` and after
    — so this survey runs in this session, and serially if fan-out is unavailable rather
    than being trimmed to fit). Collect:
    languages + versions; build system; how tests are actually run (CI config is the
@@ -646,9 +654,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
    plus `.github/hooks/sdlc-gate.sh` when the target CLI is Copilot, and
    `.github/hooks/sdlc-tdd-guard.sh` when step 6's guards were accepted (the gate's
-   and the guard's `.json` launchers take no values, and neither does
-   `.github/hooks/sdlc-close-out.sh` — copied verbatim — so none of the three is in
-   scope). The scope is
+   and the guard's `.json` launchers take no values, and neither do the
+   skill-ledger's, the backstop's (`sdlc-close-out.json`), or
+   `.github/hooks/sdlc-close-out.sh` — all copied verbatim — so none of the five is
+   in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,
    and on Copilot the same is true of `.github/skills/sdlc-setup/SKILL.md`. Name the

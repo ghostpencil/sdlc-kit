@@ -506,10 +506,72 @@ catch at all. Owner's call; the clocks section holds the pending state.
 
 **Ruled (b) same day, and executed:** the attribution contract now lives in
 `REVIEW_LENSES.md`'s preamble (an applied lens reports by name,
-`<lens>: <finding | clean>`; a review applying none writes `no lens triggered`)
+`<lens>: <finding, file and line | clean>`; a review applying none writes
+`no lens triggered`; a lens finding carries its lens name into wherever the
+finding lands, because the hand-back is not retained)
 and is mirrored at all three calling sites — `end-slice.md` §4, `end-phase.md`'s
 arc review (the unconsumed-artifact verdict named), `SDLC.template.md` step 7's
-trigger summary (inv 2, both sides). **The final clock: two field arcs from the
+trigger summary AND phase-end step 4 (inv 2, both sides — the phase-end half was
+a §55 catch). **The final clock: two field arcs from the
 next arc to run; a catch counts only lens-named; no further extension.** The
 owner also ruled 0.22.0 releases now, carrying this batch — the pre-release
-`/kit-check` is the remaining step before the tag.
+`/kit-check` is §55.
+
+## 55. The pre-0.22.0 `/kit-check` — run 2026-08-14; sixteen findings, all fixed
+## in-session, and the theme is the same-session batch leaving its own derived
+## statements stale
+
+Full pass: the mechanical four in-session, the eleven reading passes fanned to
+seven parallel agents, every agent reporting the violation it hunted alongside
+its verdict. Six invariants clean outright (3, 5 near-clean, 6, 8, 9, 10 — inv 3
+confirmed all 49 placeholders resolved and both new close-out files
+placeholder-free). Sixteen findings across the rest, all fixed before this
+section was written, and all but three caused by the last 48 hours' own batches:
+
+- **inv 4** — the 0.22.0 transition note in `sdlc-update.md` named
+  `{{CLOSE_OUT_CHECK_NOTE}}` literally; only `sdlc-setup.md` may carry `{{`.
+- **inv 7** — the root README's exception count went stale exactly as it did at
+  0.16.1 ("three exceptions" enumerating four, with the insertion scar); setup's
+  exit-check parenthetical said "none of the three" over five out-of-scope
+  artifacts; the CHANGELOG's backstop entry was `[adoption-only]` while the
+  kit-owned `.sh` reaches adopters automatically → `[installable]`.
+- **inv 11** — the LEDGER ITSELF miscounted the vendored set ("five files";
+  seven files across five directories) — the denominator slip its own specimen
+  warns about, fixed in ledger and command copy.
+- **inv 12** — three adopter-facing citations in `tdd-guard-claude.template.py`
+  (two unqualified `FEATURE_PLAN.md` refs, one bench file no adopter can
+  resolve); the `change-simplify` sentence exposing a kit-internal deletion
+  clock.
+- **inv 13** — the new backstop had NO SEAT in either denominator list (ledger
+  + `/kit-check` copy, whose "As of 0.21.0" stamp was also stale): the check
+  was proven but invisible to the next pass — the precise defect the invariant
+  exists for, caught pre-release this time.
+- **inv 14** — the lens clock as first written into the installed
+  `REVIEW_LENSES.md` recorded kit-internal state with an unreachable enforcing
+  artifact; reworded to the field fact plus a durable-home rule (a lens finding
+  carries its name into the backlog/fix record). Also: arm/disarm asymmetry in
+  the template comment; the update path's missing two-direction reconcile for
+  the backstop record.
+- **inv 15** — three of a kind: the backstop's fire-first proof under-named its
+  environment in both homes (now binds the operator's launcher, with the
+  Claude-side pin exemption stated), and the checker note did not require the
+  fire-proof itself to be recorded (now does, both homes).
+- **inv 2** — the attribution clause was missing from the template's phase-end
+  step (the mirror obligation: `/end-phase` enforced a rule the canonical file
+  did not state), and the lens grammar had drifted (`file and line` dropped in
+  both commands); one grammar now stated identically in all four homes.
+- **inv 1** — two borderline hedges tightened (`pr-review-toolkit` "stays
+  installed **where it is**"; "may be available" at phase end).
+
+Sub-threshold notes recorded, not actioned: inv 3's four (formatter/package-
+manager answers feed scaffolding but nothing records them; PROJECT_INDEX's
+gotchas section has no placeholder to catch a skipped write), inv 11's
+mutation-testing entry carrying documented divergence but no re-datable
+verification date, inv 15's credential-clearing checks passing vacuously on a
+machine that never held credentials, and inv 1's observation that the update
+classifier's POSIX loop is unrunnable from Copilot's Windows shell tool (an
+executability gap, not a stated fact — future work, not this release).
+
+Proof suites re-run after the comment-touching fixes: guard dialect 33 cases +
+12/12 mutations, close-out 21 + 15 cases + 16/16 mutations, all green. The
+release is unblocked; 0.22.0 tags with this section in the tree.

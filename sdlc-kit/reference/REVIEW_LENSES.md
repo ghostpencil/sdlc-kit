@@ -11,8 +11,11 @@ bloat the pointer exists to avoid.
 `<lens>: <finding, file and line | clean>` — and a review that applied none says
 `no lens triggered` rather than nothing. This is the lens's evidence line: a catch
 that surfaces without its lens named cannot be credited to the lens, and three field
-arcs of real catches proved unattributable for exactly this gap (2026-08-14 audit) —
-the lenses now sit on a clock that only lens-named catches can satisfy.
+arcs of real catches proved unattributable for exactly this gap (field, 2026-08-14).
+The review hand-back itself is not retained, so **a lens finding carries its lens
+name into wherever the finding lands** — the backlog entry's provenance tag, or the
+fix batch's record — the same way step-provenance tags like `(S4 diff-review)`
+already travel; only a lens-named record is lens evidence later.
 
 Unlike the rest of `reference/`, this file is **installed** into `.claude/commands/` by
 `/sdlc-setup`, so the pointer resolves in every adopted project even after the kit

@@ -130,8 +130,8 @@ and the reader cannot tell which they are looking at.
   Reuse the line names what was searched (the added symbols checked, and against
   what). A blanket "nothing to do" is indistinguishable from "did not look" — the same
   defect this kit's field reports keep finding in checks whose denominator was assumed
-  — so the axis line is the denominator, written down. Three arcs of blanket
-  "nothing to do" is what put this pass on a deletion clock.
+  — so the axis line is the denominator, written down. Three field arcs of blanket
+  "nothing to do" proved unauditable after the fact (field, 2026-08-06 → 2026-08-11).
 - **Findings, not edits** — anything the prime directive stopped, and nothing you went
   looking for. This is not a bug hunt: you will pass directly over behavior you are
   forbidden to change, and what you noticed *while doing the work* is owed to the caller.

@@ -286,9 +286,12 @@ setup: {{HOOK_ENVIRONMENT}}
      THE SAME NOTE also records the stop-time backstop's state — the same script's
      `stop-check` mode wired at agentStop (Copilot, `.github/hooks/sdlc-close-out.json`)
      / Stop (Claude Code, the settings-file block), offered separately and OPTIONAL
-     where the checker itself is not. Installed: which CLIs, logging or armed
+     where the checker itself is not. Installed: which CLIs, the fire-proof actually
+     seen (which CLI and launcher, the would-block line read back — a recorded
+     install whose proof never ran is the silent absence this family catches,
+     one layer up), logging or armed
      (the flag file `.git/sdlc-close-out/deny-enabled`, present means armed — arming
-     means updating this line, because nothing else will), and that the log lives at
+     or disarming means updating this line, because nothing else will), and that the log lives at
      `.git/sdlc-close-out/log`, per-clone like everything under `.git/`. Declined:
      say so WITH THE DATE — never delete the line; /sdlc-update reads it exactly as
      it reads the guard note's decline. Unlike the command step above, the backstop
@@ -420,7 +423,8 @@ Run `/end-slice` when the slice's exit criteria are met:
    reachable surface or added logging or error output near either, or added a test
    the slice itself then deleted, skipped, or gutted — or, under armed TDD-ordering
    guards, added a test reaching into internals the mock policy fences
-   off — each applied lens reporting by name with its verdict, `no lens triggered`
+   off — each applied lens reporting by name with its verdict,
+   `<lens>: <finding, file and line | clean>`, and `no lens triggered`
    when none did). The review is **read-only in the shared tree** —
    the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
    fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
@@ -520,7 +524,9 @@ Run `/end-phase` when the last slice is done:
    because an untested fix can silently leave. The arc-triggered lens applies here:
    *the unconsumed artifact* (`.claude/commands/REVIEW_LENSES.md`) — every artifact the arc
    introduced names its production consumer, a question no slice-shaped review is
-   positioned to ask. Verify each finding against the source
+   positioned to ask — reported by name with its verdict
+   (`unconsumed artifact: <finding, file and line | clean>`), per the lens file's
+   contract: an unnamed lens verdict cannot be credited to the lens. Verify each finding against the source
    before it enters a fix batch, and report the ones that did not survive alongside
    the ones that did. The review is done only when **every** reviewer has returned:
    the fix batch is assembled after the last return and goes through the gate as one

@@ -289,12 +289,12 @@ user-typed under `.claude/commands/`, once packaged under `.github/skills/` — 
 copies update.
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
-re-applied to an already-adopted project — with three exceptions, all of which track
+re-applied to an already-adopted project — with four exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
 gone); on Copilot projects `templates/explore.agent.template.md`, which is
-copied verbatim rather than instantiated because it carries no placeholders; —
-from 0.20.0, on both CLIs — `templates/close-out.template.sh`, copied verbatim to
+copied verbatim rather than instantiated because it carries no placeholders;
+from 0.20.0, on both CLIs, `templates/close-out.template.sh`, copied verbatim to
 `.github/hooks/sdlc-close-out.sh` for the same reason; and — from 0.22.0, on a
 Copilot project that accepted the backstop offer — `templates/close-out-hook.template.json`,
 copied verbatim to `.github/hooks/sdlc-close-out.json`. A kit release that changes only
@@ -586,8 +586,9 @@ only as a hand-apply, and the per-version transition notes name each one.
    a `Stop` block in `.claude/settings.json` on Claude Code (project-owned, by
    hand — its `"shell": "bash"` key is load-bearing). A checker note predating
    0.22.0 says nothing about the backstop, so the choice is put now as setup would
-   (logging mode only; blocking is armed later via
-   `.git/sdlc-close-out/deny-enabled`); a recorded decline is settled. The update
+   (logging mode only, fire-first proof per setup step 6; blocking is armed later via
+   `.git/sdlc-close-out/deny-enabled`, and the bare-commit class stays log-only on
+   every install); a recorded decline is settled. The update
    command's 0.22.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,

@@ -4,7 +4,7 @@
 # Same state machine as the Copilot dialect (sdlc-tdd-guard.sh) - G1 observed-RED
 # write guard with the refactor license, G2 premature-stop guard, session-scoped
 # state in .git/sdlc-tdd/ - with every signal path rebuilt from the 2026-08-12
-# probe (kit FEATURE_PLAN.md 50; raw payloads in the bench's ENF_PROBE_NOTES.md):
+# probe (kit FEATURE_PLAN.md 50; raw payloads kept on the kit's dev bench):
 #
 #   - Green and red arrive on DIFFERENT EVENTS, not as an exit-code trailer:
 #     PostToolUse fires only when a command succeeds (its tool_response carries no
@@ -18,7 +18,7 @@
 #     guard depends on neither: the hook config's command line is the
 #     shell-neutral `python <this file> <mode>`, which runs identically under
 #     PowerShell and any POSIX shell, and all logic lives here in python - the
-#     same launcher-line discipline as the gate/guard split (FEATURE_PLAN.md 38.3),
+#     same launcher-line discipline as the gate/guard split (kit FEATURE_PLAN.md 38.3),
 #     forced this time by the shell being unknowable rather than by a re-parse.
 #   - Write paths arrive one per call in tool_input.file_path, absolute Windows
 #     form; hooks run with the project root as cwd (measured, undocumented) and
@@ -77,7 +77,7 @@ def match_any(value, patterns):
 # An explicit SDLC_REPO_ROOT wins so a harness can pin it; then the documented
 # CLAUDE_PROJECT_DIR; then the measured cwd - but only if .git sits there. With no
 # root, do nothing rather than write state to an unrelated directory (the same
-# trust-nothing default the Copilot dialect ships, FEATURE_PLAN.md 38.6).
+# trust-nothing default the Copilot dialect ships, kit FEATURE_PLAN.md 38.6).
 def repo_root():
     r = os.environ.get("SDLC_REPO_ROOT")
     if r:

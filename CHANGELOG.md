@@ -17,8 +17,10 @@ stop-time backstop — the enforcement seat VER.1 reserved, filled after its own
 pre-registered probe and logging trial.
 
 ### Added
-- **[adoption-only]** **The close-out checker gains a `stop-check` mode and an
+- **[installable]** **The close-out checker gains a `stop-check` mode and an
   optional stop-hook wiring per CLI — the backstop for the `/end-slice` escape.**
+  The updated `sdlc-close-out.sh` reaches adopted projects automatically
+  (kit-owned, the 0.20.0 precedent); the wiring below is offered, never auto-installed.
   `templates/close-out.template.sh` (the parse now shared by both modes) classifies
   the session's *unpushed* commits at stop time: a **defective** record (a key
   missing, empty, or duplicated) logs a would-block naming the commit and problems;

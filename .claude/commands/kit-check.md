@@ -72,7 +72,8 @@ For each, read the named files in full — do not sample — and cite evidence p
   finding.
 - **8 — update procedure agrees:** `sdlc-update.md` beside the root README's *Updating
   an adopted project*: same classification rules, same ownership table, same traps.
-- **11 — provenance, two regimes, not conflated:** the five *vendored* `skills/` files
+- **11 — provenance, two regimes, not conflated:** the seven *vendored* `skills/` files
+  (five directories; `tdd-references/` counts per file)
   match `reference/SKILLS.md`'s verification claims or have their divergence documented
   there; the three *kit-written* ones (`diff-review`, `change-simplify`,
   `change-verify`) have no upstream to verify against, and the check is the opposite —
@@ -83,11 +84,12 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.21.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.22.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe, the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
-  close-out evidence checker and its setup proof step, the retro's ledger-alive
-  precheck, the
+  close-out evidence checker and its setup proof step, the checker's stop-time
+  backstop with its fire-first proof and logging-to-deny ramp, the retro's
+  ledger-alive precheck, the
   skills-listing check, the setup exit checks, the slice loop's mutation check, the
   coverage-floor establishment proof, the deploy verification, the update
   classifier, the release workflow, the `tools/` proof suites, and this command.

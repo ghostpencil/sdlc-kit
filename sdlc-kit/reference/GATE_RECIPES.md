@@ -456,7 +456,10 @@ both dialects, is never fought).
 Blocking the defective class is armed by creating `.git/sdlc-close-out/deny-enabled`
 and disarmed by deleting it — the owner's call, after reading a few real sessions
 of the log, and the `{{CLOSE_OUT_CHECK_NOTE}}` line in `spec/SDLC.md` is updated
-in the same breath. Prove it by firing it: end a scratch session on an unpushed
+in the same breath. Prove it by firing it — in a scratch session of each installed
+CLI, **launched the way this project's operator actually launches it**, since the
+Copilot hook shell is per-launcher (the Claude block pins `"shell": "bash"` per
+hook, so no launcher boundary is crossed there): end the session on an unpushed
 commit missing one record key and read the would-block line back; no line means
 the hook is not firing.
 

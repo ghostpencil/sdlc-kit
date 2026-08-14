@@ -32,6 +32,10 @@ packaged under `.github/skills/` — and both copies update.
 
 `/sdlc-update` — update to the latest release. `/sdlc-update v0.4.0` — a specific one.
 
+Paths written `reference/…` in this command read from step 2's clone of the kit
+(`/tmp/kit/sdlc-kit/reference/…`), never from the project — an adopted repo need not
+hold the kit folder, and only `REVIEW_LENSES.md` is installed from that directory.
+
 **When to run it: at a phase/arc boundary, never with an arc in flight.** An update
 mid-arc changes the rules governing slices already scoped, and which kit version
 governed which slice becomes unreconstructable afterward. If a mid-arc update is truly
@@ -238,7 +242,8 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   travels with the repo and runs on both CLIs. Two consequences for the owner, both
   worth stating at the halt. **A Copilot project gains a per-slice review it never
   had** — the commands used to name a reviewer that did not exist there. **A Claude
-  Code project loses nothing**: `pr-review-toolkit` stays installed and stays usable as
+  Code project loses nothing**: `pr-review-toolkit` stays installed where it is and
+  stays usable as
   an optional deepening at phase end, it simply stops being required, so no one needs
   to uninstall anything. If the project's onboarding docs tell new developers to
   install that plugin, that instruction is now optional — flag it, but do not edit
@@ -488,13 +493,17 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `.github/hooks/sdlc-close-out.json` on Copilot (kit-owned verbatim, present only
   where accepted), a `Stop` block in `.claude/settings.json` on Claude Code
   (project-owned, arrives by hand, and its `"shell": "bash"` key is load-bearing —
-  measured 2026-08-13). Read the backstop half of the `{{CLOSE_OUT_CHECK_NOTE}}`
+  measured 2026-08-13). Read the backstop half of the close-out checker note
   line in `spec/SDLC.md` with the 0.16.0 two-state rule: a recorded decline is
   settled; a line that predates 0.22.0 says nothing about the backstop, so put the
   choice now as setup would (logging mode, never create
   `.git/sdlc-close-out/deny-enabled`, fire-first proof per `sdlc-setup.md` step 6,
   outcome recorded in that same note line). Its bare-commit class is log-only by
-  design on every install — say so when offering.
+  design on every install — say so when offering. Reconcile both directions, as the
+  guard check does: a note saying installed beside no artifact, or the artifact
+  present beside a recorded decline, is a contradiction to report — and on Copilot
+  the artifact whose presence encodes the accept is
+  `.github/hooks/sdlc-close-out.json`.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

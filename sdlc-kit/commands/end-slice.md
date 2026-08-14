@@ -115,7 +115,8 @@ either, or added a test the slice itself then deleted, skipped, or gutted (or ra
 under armed TDD-ordering guards and a new test reaches into internals the mock
 policy fences off), also apply the matching lens from
 `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file. **Each applied lens
-reports by name with its verdict** — `<lens>: <finding | clean>` — and a review that
+reports by name with its verdict** — `<lens>: <finding, file and line | clean>` —
+and a review that
 applied none writes `no lens triggered`; an unnamed lens verdict cannot be credited
 to the lens (the file's own preamble states the contract).
 

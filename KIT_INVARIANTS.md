@@ -156,7 +156,9 @@ trusted only after it flagged the 3 genuinely changed files at `v0.2.0` and no o
 ## 11. Vendored skills match their recorded provenance
 
 `skills/` holds **two provenance regimes, and the check must not conflate them.** The
-five vendored files are third-party MIT content: each either matches the upstream
+seven vendored files (across five vendored directories — `tdd/` and its two
+`tdd-references/` files count per file, which is the point: the specimen below is one
+of them) are third-party MIT content: each either matches the upstream
 verification recorded in `reference/SKILLS.md`, or its divergence is documented there,
 and `THIRD_PARTY_NOTICES.md` carries the attributions. The three kit-written files
 (`diff-review`, `change-simplify`, `change-verify`, all 2026-08-03) have **no upstream to
@@ -185,7 +187,8 @@ installed a kit-development command into every adopting project (plan, B6 hand-o
 Any check this kit specifies or ships — the isolation harness, the edit-time hook, the
 hook-environment probe, the TDD-ordering guards' proof step and their logging-to-deny
 ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
-setup proof step, the retro's ledger-alive precheck, the
+setup proof step, the checker's stop-time backstop with its fire-first proof and
+logging-to-deny ramp, the retro's ledger-alive precheck, the
 skills-listing check, the exit
 checks, the slice loop's mutation check, the coverage-floor establishment proof, the
 deploy verification, the update
