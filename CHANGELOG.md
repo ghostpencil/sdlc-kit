@@ -33,7 +33,10 @@ pre-registered probe and logging trial.
   stdin). Offered by `sdlc-setup.md` step 6 beside the checker install, two-state
   recorded in the same `{{CLOSE_OUT_CHECK_NOTE}}` line; `GATE_RECIPES.md` carries
   the recipe and the measured facts; logging mode always — blocking is armed later
-  via `.git/sdlc-close-out/deny-enabled`, and never by setup.
+  via `.git/sdlc-close-out/deny-enabled`, and never by setup. The armed mode is
+  bench-proven on both dialects (2026-08-14 deny ramp, all six pre-registered
+  criteria): a blocked session on either CLI received the reason and amended the
+  commit with the honest stated-skip form rather than fabricating evidence.
 - **[installable]** **`sdlc-update.md` learns the 0.22.0 transition**: the checker
   script updates automatically (its new mode arrives with the file), the wiring is
   offered where the checker note predates the backstop, a recorded decline is

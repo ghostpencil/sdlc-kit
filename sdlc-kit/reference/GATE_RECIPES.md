@@ -438,8 +438,11 @@ Code: a `Stop` block in `.claude/settings.json` whose `"shell": "bash"` key is
 **load-bearing and measured** (2026-08-13: the pin holds on `Stop`, runs Git Bash
 — not the PowerShell default, not WSL — and delivers the payload on stdin to a
 bare `sh .github/hooks/sdlc-close-out.sh stop-check` line); the same block schema
-is documented there, and blocking on Claude Code stays a ramp question until a
-deny-mode run measures it honored.
+was measured honored there too (2026-08-14, the pre-registered deny ramp): the
+blocked session received the reason, amended the commit with the stated-skip form
+rather than fabricating evidence, and the next stop stood down on
+`stop_hook_active` — the same sequence the Copilot dialect produced on the same
+bench.
 
 **Fail direction — the inverse of the command step, on purpose.** `check` fails
 closed because a command step's failure is seen and quoted; `stop-check` fails
