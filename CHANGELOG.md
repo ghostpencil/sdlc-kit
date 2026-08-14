@@ -10,11 +10,14 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.22.0 — 2026-08-14
 
 VER.3 (`FEATURE_PLAN.md` §52, owner-approved 2026-08-13): the close-out checker's
 stop-time backstop — the enforcement seat VER.1 reserved, filled after its own
-pre-registered probe and logging trial.
+pre-registered probe, logging trial, and deny ramp (all six criteria met on both
+dialects, §52.8). Plus the `change-simplify` redirect and the lens-attribution
+contract (§53–§54, owner rulings 2026-08-14), closed out by the pre-release
+`/kit-check` (§55), whose sixteen fixes ride along.
 
 ### Added
 - **[installable]** **The close-out checker gains a `stop-check` mode and an
