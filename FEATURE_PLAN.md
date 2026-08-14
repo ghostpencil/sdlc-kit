@@ -347,3 +347,52 @@ halt, where release timing is also decided.** Unreleased until then; the
 adopter's next update halt would carry the offer, not an install. P2 (Claude
 stop-block honored in practice) remains the deny-ramp's opening probe;
 bare-flagging stays log-only with its arming bar untouched.
+
+### 52.8 The halt — owner rulings 2026-08-14, and the deny-ramp protocol
+### pre-registered before any deny run
+
+Four rulings taken (the fifth item put at the halt — the §16 regime's
+re-denomination wording — received no ruling and stays flagged, untouched):
+
+1. **Release held.** 0.22.0 stays untagged; timing returns to the owner after
+   this ramp.
+2. **The deny ramp opens now** — against the recommendation to wait one
+   adopter arc, recorded per the house rule that the disagreement is written
+   down, not litigated. Protocol below, pre-registered before any armed run.
+3. **`change-simplify`: ruling (b) plus a directed improvement pass** — §53.
+4. **The STD per-lens audit is authorized** — §54.
+
+**Deny-ramp protocol (the §31.10 shape, adapted).** Arming is the flag file
+`.git/sdlc-close-out/deny-enabled`; absent = logging, unchanged. Scope: the
+**defective class only** — bare stays log-only regardless of the flag, by
+§52.2's untouched arming bar. The open unknown is P2: Claude Code's Stop-hook
+block JSON (`{"decision":"block","reason":…}`) is documented but has never
+been measured honored; a denial that does not deny is the failure mode being
+hunted (§31.10's rule). The observable for "honored" is fixed now: the log
+must show the pair **`stop: BLOCK` followed by `stop: stop_hook_active set -
+standing down`** — `stop_hook_active` goes true only when the CLI actually
+processed a block, so the pair is the CLI's own receipt — plus the session
+visibly receiving the reason (its reply or a remediating action).
+
+- **D1 — deny catches (P2 answered):** armed bench, a session commits a
+  defective record and stops → the stop is actually blocked; the BLOCK/
+  stand-down pair appears; the session reacts to the reason rather than
+  silently ending.
+- **D2 — zero false denials:** armed, a session leaving only complete records
+  stops clean, no block.
+- **D3 — bare stays log-only armed:** armed, bare commit + guard evidence →
+  WOULD-BLOCK line only, no block (offline-proven; confirmed live).
+- **D4 — no lockup:** every blocked session ends (the stand-down guarantees
+  the cap is never fought); a hang is a timeout and fails this criterion.
+- **D5 — reversible:** deleting the flag returns the bench to logging mode,
+  re-proven by re-running the D1 prompt and seeing WOULD-BLOCK only.
+- **D6 — Copilot dialect:** one armed `agentStop` run repeats D1 through the
+  json wrapper (the guard's block schema was measured §31.11; this proves the
+  backstop emits it correctly).
+
+**Decision rule, fixed now:** all six → the armed mode may be offered — as
+arming *instructions* in `GATE_RECIPES.md`'s backstop section (the flag is
+per-clone owner action, exactly the guard's pattern; nothing in the installed
+set changes), and the owner decides release timing. Any failure → the flag
+path ships documented as logging-only-until-fixed, and the failure is the
+finding. The bench is disarmed after the trial regardless.
