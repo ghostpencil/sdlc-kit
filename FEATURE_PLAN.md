@@ -70,15 +70,14 @@ itself. **The §16 audit regime ("no confirmed catch after two releases") has th
 identical flaw and is a standing decision, so it is flagged here rather than rewritten:
 it wants the same re-denomination whenever it is next opened.**
 
-- **STD's audit — RUN 2026-08-14 (§54); disposition of the three lenses pending
-  the owner's ruling.** The runtime-standards recipe section KEEPS on confirmed
-  catches (§33's meta-result, the `EI_EXPOSE_REP` bank). The three STD lenses
-  (*logging and swallowed errors*, *untrusted input*, *secrets and exposure*):
-  zero attributed catches in three arcs, while their subject matter produced real
-  defects that other machinery caught — deletion candidates, with the recorded
-  caveat that per-lens attribution was structurally invisible (no per-lens line in
-  `diff-review`'s report). Options put: delete-with-repointing, or one final
-  attributed clock behind a `diff-review` per-lens-verdict fix (§54's (a)/(b)).
+- **The three STD lenses — RULED 2026-08-14, §54's (b): one final ATTRIBUTED
+  clock.** The audit ran (§54): the runtime-standards recipe KEEPS on confirmed
+  catches; the lenses had zero attributed catches in three arcs, with the recorded
+  caveat that attribution was structurally invisible. The instrument is now fixed
+  (lens verdicts report by name — `REVIEW_LENSES.md` preamble + all three calling
+  sites, shipped with 0.22.0). **The clock: two field arcs from the next arc to
+  run; only a lens-named catch counts; no further extension — a lens with none is
+  deleted, with the conventions' enforcement lines re-pointed in the same batch.**
 - **`change-verify` — clock satisfied** (§30.4): confirmed field catch at slice
   level, arc one, 2026-08-06 (§32.3).
 - **`change-simplify` — RULED 2026-08-14: kept on a final clock, redirected first**
@@ -504,3 +503,13 @@ exact pattern), then two arcs in which a catch must arrive lens-named, no furthe
 extension. (b) is not the impaired-arc argument respent: the claim is not that
 exposure was impaired but that the recording instrument could not register a
 catch at all. Owner's call; the clocks section holds the pending state.
+
+**Ruled (b) same day, and executed:** the attribution contract now lives in
+`REVIEW_LENSES.md`'s preamble (an applied lens reports by name,
+`<lens>: <finding | clean>`; a review applying none writes `no lens triggered`)
+and is mirrored at all three calling sites — `end-slice.md` §4, `end-phase.md`'s
+arc review (the unconsumed-artifact verdict named), `SDLC.template.md` step 7's
+trigger summary (inv 2, both sides). **The final clock: two field arcs from the
+next arc to run; a catch counts only lens-named; no further extension.** The
+owner also ruled 0.22.0 releases now, carrying this batch — the pre-release
+`/kit-check` is the remaining step before the tag.

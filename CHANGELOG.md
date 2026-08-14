@@ -46,6 +46,14 @@ pre-registered probe and logging trial.
   added symbol checked against the repo before "no duplication"; and the report
   gains per-axis verdicts with the Reuse search named, so "nothing to do" is
   distinguishable from "did not look".
+- **[installable]** **Lens verdicts are now attributed** (owner ruling 2026-08-14,
+  `FEATURE_PLAN.md` §54: the three STD lenses survived their audit only because
+  no catch *could* be credited to a lens — the review never named one).
+  `REVIEW_LENSES.md`'s preamble states the contract — an applied lens reports
+  `<lens>: <finding | clean>`, a review applying none writes `no lens triggered` —
+  and `end-slice.md` §4, `end-phase.md`'s arc review, and `SDLC.template.md`
+  step 7 mirror it. The three lenses are on a final two-arc clock that only
+  lens-named catches satisfy.
 - **[installable]** **`sdlc-update.md` learns the 0.22.0 transition**: the checker
   script updates automatically (its new mode arrives with the file), the wiring is
   offered where the checker note predates the backstop, a recorded decline is

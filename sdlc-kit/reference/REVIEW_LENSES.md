@@ -7,6 +7,13 @@ each lens names its own trigger. If no
 trigger matches the slice, close this file — reading it "just in case" is the context
 bloat the pointer exists to avoid.
 
+**An applied lens reports by name.** One line per lens applied —
+`<lens>: <finding, file and line | clean>` — and a review that applied none says
+`no lens triggered` rather than nothing. This is the lens's evidence line: a catch
+that surfaces without its lens named cannot be credited to the lens, and three field
+arcs of real catches proved unattributable for exactly this gap (2026-08-14 audit) —
+the lenses now sit on a clock that only lens-named catches can satisfy.
+
 Unlike the rest of `reference/`, this file is **installed** into `.claude/commands/` by
 `/sdlc-setup`, so the pointer resolves in every adopted project even after the kit
 folder is removed. It is kit-owned and tracks upstream like the commands.

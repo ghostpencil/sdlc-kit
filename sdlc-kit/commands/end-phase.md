@@ -124,7 +124,9 @@ its Spec axis is asking whether the arc delivered the phase it promised, which n
 slice-level review was ever positioned to see. Apply the arc-triggered lens from
 `.claude/commands/REVIEW_LENSES.md` — *the unconsumed artifact*: every entity,
 column, endpoint, config key, or public API the arc introduced names its production
-consumer, or becomes a finding.
+consumer, or becomes a finding. Report it by name with its verdict
+(`unconsumed artifact: <finding | clean>`), per the lens file's contract — an
+unnamed lens verdict cannot be credited to the lens.
 
 On Claude Code a deeper specialist fan-out is optionally available
 (`pr-review-toolkit:review-pr`); it is not required, and the paragraphs below about

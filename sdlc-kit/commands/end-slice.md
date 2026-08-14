@@ -114,7 +114,10 @@ credentials or an externally reachable surface or added logging or error output 
 either, or added a test the slice itself then deleted, skipped, or gutted (or ran
 under armed TDD-ordering guards and a new test reaches into internals the mock
 policy fences off), also apply the matching lens from
-`.claude/commands/REVIEW_LENSES.md`; otherwise skip that file.
+`.claude/commands/REVIEW_LENSES.md`; otherwise skip that file. **Each applied lens
+reports by name with its verdict** — `<lens>: <finding | clean>` — and a review that
+applied none writes `no lens triggered`; an unnamed lens verdict cannot be credited
+to the lens (the file's own preamble states the contract).
 
 Triage findings — **verify each one against the source before it enters any pile.** A
 finding is a claim about the code; severity is asserted by the reviewer, not measured,

@@ -420,7 +420,8 @@ Run `/end-slice` when the slice's exit criteria are met:
    reachable surface or added logging or error output near either, or added a test
    the slice itself then deleted, skipped, or gutted — or, under armed TDD-ordering
    guards, added a test reaching into internals the mock policy fences
-   off). The review is **read-only in the shared tree** —
+   off — each applied lens reporting by name with its verdict, `no lens triggered`
+   when none did). The review is **read-only in the shared tree** —
    the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
    fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that
