@@ -70,18 +70,15 @@ itself. **The §16 audit regime ("no confirmed catch after two releases") has th
 identical flaw and is a standing decision, so it is flagged here rather than rewritten:
 it wants the same re-denomination whenever it is next opened.**
 
-- **STD's audit clock — EXPIRED 2026-08-08; the audit is DUE** (§22, §31.6;
-  reconciled against the arc records 2026-08-13). Arc one banked 2026-08-06 with the
-  first R5.6 evidence table (§32.3); **arc two banked 2026-08-08** (Phase 03 retro,
-  per-step table: `diff-review` ran with ledger evidence and caught — N+1 and
-  per-source exception findings); a third arc has since run too (Phase 04,
-  2026-08-11: `diff-review` ran ×4 and caught ×2, including **mock-policy drift** —
-  a standards-axis catch — and the `LogCaptor` duplication). The subjects are §22's four: the three STD lenses and
-  the runtime-standards recipe section; the recipe already has field catches on
-  record (§33's meta-result: every mechanized rule held — Checkstyle, no-stdout,
-  SpotBugs `EI_EXPOSE_REP`). What remains is the per-lens adjudication —
-  which of the three lenses owns a confirmed catch — run at the next kit session
-  beside the §52.7 halt, under the §16 regime's re-denomination flag above.
+- **STD's audit — RUN 2026-08-14 (§54); disposition of the three lenses pending
+  the owner's ruling.** The runtime-standards recipe section KEEPS on confirmed
+  catches (§33's meta-result, the `EI_EXPOSE_REP` bank). The three STD lenses
+  (*logging and swallowed errors*, *untrusted input*, *secrets and exposure*):
+  zero attributed catches in three arcs, while their subject matter produced real
+  defects that other machinery caught — deletion candidates, with the recorded
+  caveat that per-lens attribution was structurally invisible (no per-lens line in
+  `diff-review`'s report). Options put: delete-with-repointing, or one final
+  attributed clock behind a `diff-review` per-lens-verdict fix (§54's (a)/(b)).
 - **`change-verify` — clock satisfied** (§30.4): confirmed field catch at slice
   level, arc one, 2026-08-06 (§32.3).
 - **`change-simplify` — RULED 2026-08-14: kept on a final clock, redirected first**
@@ -451,3 +448,59 @@ untouched. CHANGELOG carries the entry as **[installable]** (the skill file
 installs to `.claude/skills/`). **The clock is final and stated in the standing
 section: one confirmed catch in the next two field arcs, or deletion — no further
 extension, the impaired-arc argument spent with this ruling.**
+
+## 54. The STD per-lens audit — owner-authorized 2026-08-14, run same day: the
+## recipe keeps, all three lenses are deletion candidates, and the record could
+## not have said otherwise
+
+Method: the four §22 subjects (the three STD lenses — *logging and swallowed
+errors*, *untrusted input*, *secrets and exposure* — and the runtime-standards
+recipe section) matched against every banked catch in the three arcs of exposure:
+the 2026-08-06 whole-tree audit (§33), the Phase 03 retro's evidence table
+(2026-08-08), the Phase 04 retro's (2026-08-11), and the adopter's backlog and
+phase specs, read directly.
+
+**Runtime-standards recipe — CONFIRMED CATCHES, KEEPS.** The mechanical rules it
+put into the adopter's gate held everywhere: §33's meta-result ("every mechanized
+rule held — Checkstyle catches, no-stdout, SpotBugs"), the SpotBugs
+`EI_EXPOSE_REP` catch banked in arc one's evidence table. The recipe is the
+lineage's best-performing rule, and its thesis — mechanize what can be
+mechanized — is the one every field report keeps re-proving.
+
+**The three lenses — zero attributed catches in three arcs; deletion candidates.**
+Not one catch in any retro, backlog entry, or evidence table names any of the
+three. The near-misses were checked, not assumed: Phase 03's per-source exception
+finding is *error propagation* territory (the pre-STD lens, not on this clock) —
+propagation across a loop boundary, not a swallowed error; Phase 04's two
+`diff-review` catches were mock-policy drift and a Reuse duplication, neither a
+lens on this clock. Sharper than absence-of-catch: the lenses' own subject matter
+**produced real defects in the same window and other machinery caught them** —
+the level ladder bent and the external audit caught it, not the logging lens; the
+malformed-URL key corruption (untrusted input, on an RSS-ingesting adopter —
+maximal exposure) was the external audit's catch too; secrets had exposure (API
+keys) and neither catch nor recorded activation.
+
+**The caveat the verdict carries:** per-lens attribution is structurally
+invisible — R5.6's evidence sweep records `diff-review` as one step, and
+`diff-review`'s report does not name which lens produced a finding. A lens catch
+in these arcs *could not have been credited* — the same assumed-denominator
+defect §53 just fixed in `change-simplify`, one file over. The audit therefore
+cannot distinguish "never catches" from "catch never attributable", and says so
+rather than pretending the three arcs were a clean test.
+
+**The coupling cost, checked before the halt:** the conventions section names
+these lenses as its enforcement (inv 14 — the adopter's `CLAUDE.md` cites the
+swallowed-errors lens twice), so deletion re-points those enforcement lines or
+trims the conventions to their mechanized part; and the trigger summaries in
+`SDLC.template.md` slice-loop step and `end-slice.md` §3 name all three (inv 2's
+both-sides rule). Deletion is a multi-file batch, not a file removal.
+
+**Dispositions put to the owner** (the §16 disposition is theirs, never
+defaulted): **(a)** delete all three now — three arcs, zero attributed catches,
+subject matter demonstrably served better by mechanical rules and audits; the
+batch carries the re-pointing above; **(b)** one final *attributed* clock — fix
+the denominator first (per-lens verdict lines in `diff-review`'s report, §53's
+exact pattern), then two arcs in which a catch must arrive lens-named, no further
+extension. (b) is not the impaired-arc argument respent: the claim is not that
+exposure was impaired but that the recording instrument could not register a
+catch at all. Owner's call; the clocks section holds the pending state.
