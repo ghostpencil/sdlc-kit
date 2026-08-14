@@ -26,9 +26,9 @@ close-out evidence checker, which are
 kit-development checks and not part of the process the kit installs)
 is documentation *about* the kit and must never end up in an adopter's repo.
 `FEATURE_PLAN.md` carries only the standing decisions, running clocks, and active work;
-its retired sections (§1–§30) live in `FEATURE_PLAN_HISTORY.md` with numbering
-preserved, so a `FEATURE_PLAN.md §N` reference with N ≤ 30 — here or in any older
-document — resolves there.
+its retired sections (§1–§51, moved in two passes) live in `FEATURE_PLAN_HISTORY.md`
+with numbering preserved, so a `FEATURE_PLAN.md §N` reference with N ≤ 51 — here or in
+any older document — resolves there.
 
 When adding a file, the question is always: does an adopting project need this at setup or
 slice time? Yes → `sdlc-kit/`. No → root.
