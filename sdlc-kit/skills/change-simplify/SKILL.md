@@ -63,6 +63,20 @@ Applied only where the change set introduced or worsened the condition.
 | **Efficiency** | Is there work done repeatedly that could be done once, or a pass over data that could be one pass instead of three? Only where it is *also* clearer; a faster version nobody can read is a different kind of debt. |
 | **Altitude** | Is this written at the right level? A function mixing a policy decision with the mechanics of carrying it out reads as two things, and the mechanics usually belong one level down. |
 
+**Test code is in scope.** The change set is the whole diff — test files included.
+Duplicated setup, a copied helper, a fixture re-derived beside an existing one: all
+Reuse territory, and on a TDD process tests are where most of every slice's new code
+lives. The founding miss is on record: a duplicated `LogCaptor` test helper sailed
+through this pass as "nothing to do" and was caught by `diff-review` minutes later on
+the same diff (field, 2026-08-11) — a reviewer had to report what this pass exists to
+fix.
+
+**Reuse is searched, not eyeballed.** For each helper, fixture, private method,
+constant, or type the diff *adds*, look for an existing equivalent before concluding
+there is none — search the repo for the name, the shape, or the thing it wraps
+(`grep`/IDE lookup; on a fanned-out review, the project's own conventions file first).
+An unsearched "no duplication" is not a verdict, it is a guess with the same spelling.
+
 **The project's documented conventions win over every axis.** `CLAUDE.md` *Runtime
 Conventions* first, then any other convention file the repo carries. If the repo says to
 do something an axis above would undo, the repo is right and the axis is silent — say so
@@ -83,7 +97,9 @@ the caller can re-scope rather than read "nothing to simplify" as a verdict on t
 
 ### 2. Propose, in writing, before editing
 
-List the candidate moves: the file and line, the axis, the move, and — the part that
+Walk each axis against the change set — tests included — and for Reuse, run the
+search the axis section requires, noting what was searched. Then list the candidate
+moves: the file and line, the axis, the move, and — the part that
 does the work — **what makes it behavior-preserving**. A move you cannot say that about
 is a move you have not finished thinking about.
 
@@ -103,13 +119,19 @@ was not is worth more as a note than as a silent retry.
 
 ### 4. Report
 
-**All four sections are always present, including when one is empty.** "Findings: none"
+**All five sections are always present, including when one is empty.** "Findings: none"
 is a statement; an omitted section is indistinguishable from a section nobody filled in,
 and the reader cannot tell which they are looking at.
 
 - **Applied** — per move: file and line, axis, what changed, and the gate result after.
 - **Proposed and dropped** — with the reason. A move rejected as taste, as too large, or
   as resting on untested code is information; a vanished one is a pass nobody can audit.
+- **Per-axis verdicts** — one line per axis, even when the answer is clean, and for
+  Reuse the line names what was searched (the added symbols checked, and against
+  what). A blanket "nothing to do" is indistinguishable from "did not look" — the same
+  defect this kit's field reports keep finding in checks whose denominator was assumed
+  — so the axis line is the denominator, written down. Three arcs of blanket
+  "nothing to do" is what put this pass on a deletion clock.
 - **Findings, not edits** — anything the prime directive stopped, and nothing you went
   looking for. This is not a bug hunt: you will pass directly over behavior you are
   forbidden to change, and what you noticed *while doing the work* is owed to the caller.
@@ -122,8 +144,9 @@ and the reader cannot tell which they are looking at.
 
 Every proposed move is either applied with a green gate behind it or recorded as dropped
 with its reason, the final gate is green, every behavior-changing improvement noticed
-along the way is left as a finding rather than an edit, and **all four report sections
-have been written — `none` where that is the answer**. A pass that ends with an
+along the way is left as a finding rather than an edit, and **all five report sections
+have been written — `none` where that is the answer, and the Reuse axis line naming
+its search**. A pass that ends with an
 unexplained diff is not done, whatever the gate says.
 
 ## Notes

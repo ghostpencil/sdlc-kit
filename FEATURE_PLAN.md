@@ -84,18 +84,15 @@ it wants the same re-denomination whenever it is next opened.**
   beside the §52.7 halt, under the §16 regime's re-denomination flag above.
 - **`change-verify` — clock satisfied** (§30.4): confirmed field catch at slice
   level, arc one, 2026-08-06 (§32.3).
-- **`change-simplify` — clock EXPIRED without a catch; deletion candidate, owner's
-  call at the next halt** (§30.4; reconciled 2026-08-13). Three arcs of exposure:
-  arc one 2026-08-06 — moves applied, no catch (§32.3); arc two 2026-08-08 — one
-  move applied (S2), no catch, **exposure impaired** (the unlicensed guard blocked
-  it in S1/S3 and its one viable S3 move was dropped — the friction that became
-  §48's refactor license); arc three 2026-08-11, license shipped, clean exposure —
-  ran ×4, "nothing to do" all four. Even discounting the impaired arc, two clean
-  arcs produced no catch, so §30.4's own terms make it a deletion candidate. The
-  disposition halt should weigh: it is wired into `/end-slice` step order (deleting
-  it renumbers again), and "nothing to do" on a disciplined TDD codebase may be the
-  healthy reading — but that argument was already spent once at the §16 audit, and
-  the clock exists so it is not spent twice by default.
+- **`change-simplify` — RULED 2026-08-14: kept on a final clock, redirected first**
+  (§30.4 expiry reconciled 2026-08-13; owner ruling (b) at the §52.8 halt; the
+  improvement pass is §53). **The new clock: one confirmed catch in the next two
+  field arcs, no further extension** — the impaired-arc argument (arc two's
+  unlicensed guard) is spent with this ruling and cannot be re-used. The redirect
+  shipped 2026-08-14: test code named in scope, Reuse searched not eyeballed,
+  per-axis verdicts with the Reuse search named — built from the founding miss
+  (Phase 04 S4's duplicated `LogCaptor` helper, "nothing to do" from this pass,
+  caught by `diff-review` on the same diff).
 - **R3.8's aging rule — no longer starved, still unexercised** (§16 contingent
   keep; reconciled 2026-08-13): R4.6's writer has produced real friction entries
   since 2026-08-08 (the adopter's guard-friction specimens), and the retro sweep
@@ -422,3 +419,35 @@ armed mode is offerable: `GATE_RECIPES.md`'s backstop section drops its
 "stays a ramp question" caveat for the measured fact (the one edit this
 result owes), and release timing for 0.22.0 — now carrying a proven armed
 mode — returns to the owner.
+
+## 53. `change-simplify` redirected — the owner's (b) ruling executed: the miss
+## diagnosed, three direction defects fixed, one final clock — 2026-08-14
+
+The field record carried its own diagnosis: **Phase 04 S4, the same diff, minutes
+apart — this pass said "nothing to do"; `diff-review` caught a duplicated
+`LogCaptor` test helper.** A textbook Reuse-axis catch, missed by the pass whose
+first axis is Reuse. Three direction defects explain it, each fixed in
+`skills/change-simplify/SKILL.md`:
+
+1. **Nothing said test code was in scope.** The axes read as production-shaped; on
+   a TDD process, tests are where most of a slice's new code lives — and the miss
+   was in a test file. Fixed: a scope paragraph naming test files, duplicated
+   setup, and copied fixtures as Reuse territory, with the founding miss cited.
+2. **Reuse asked a question but prescribed no act.** "Does this repeat something?"
+   invites an eyeball over the diff in isolation — and an unsearched "no
+   duplication" spells exactly like a verified one. Fixed: for every symbol the
+   diff adds, search the repo for an existing equivalent before concluding clean;
+   workflow step 2 runs the search and notes what was searched.
+3. **The report had no denominator.** One blanket "nothing to do" line cannot be
+   told apart from "did not look" — the assumed-denominator defect every field
+   report keeps finding, sitting in the kit's own skill. Fixed: a fifth report
+   section, per-axis verdicts, the Reuse line naming its search; the done-when
+   requires it.
+
+No derived statements owed: no other file restates the report's section count
+(checked — `end-slice.md`, `SDLC.template.md`, `SKILLS.md` describe the pass's
+role, not its report shape), and the commit record's `quality:` line grammar is
+untouched. CHANGELOG carries the entry as **[installable]** (the skill file
+installs to `.claude/skills/`). **The clock is final and stated in the standing
+section: one confirmed catch in the next two field arcs, or deletion — no further
+extension, the impaired-arc argument spent with this ruling.**

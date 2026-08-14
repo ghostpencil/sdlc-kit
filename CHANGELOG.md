@@ -37,6 +37,15 @@ pre-registered probe and logging trial.
   bench-proven on both dialects (2026-08-14 deny ramp, all six pre-registered
   criteria): a blocked session on either CLI received the reason and amended the
   commit with the honest stated-skip form rather than fabricating evidence.
+- **[installable]** **`change-simplify` redirected after three arcs without a
+  catch** (owner ruling 2026-08-14, `FEATURE_PLAN.md` §53; the skill is now on a
+  final clock — one confirmed catch in two arcs or deletion). Three direction
+  fixes, built from the founding miss (a duplicated `LogCaptor` test helper this
+  pass called "nothing to do" and `diff-review` caught on the same diff): test
+  code is named in scope; the Reuse axis is **searched, not eyeballed** — every
+  added symbol checked against the repo before "no duplication"; and the report
+  gains per-axis verdicts with the Reuse search named, so "nothing to do" is
+  distinguishable from "did not look".
 - **[installable]** **`sdlc-update.md` learns the 0.22.0 transition**: the checker
   script updates automatically (its new mode arrives with the file), the wiring is
   offered where the checker note predates the backstop, a recorded decline is
