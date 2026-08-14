@@ -70,21 +70,39 @@ itself. **The §16 audit regime ("no confirmed catch after two releases") has th
 identical flaw and is a standing decision, so it is flagged here rather than rewritten:
 it wants the same re-denomination whenever it is next opened.**
 
-- **STD's audit clock — two field arcs from 2026-08-05** (§22, §31.6): the audit ran at
-  its 0.15.0 deadline — no lens catch, and no evidence the lenses *activated* in the one
-  arc of exposure, which the pre-R5.6 records could not distinguish from "ran and caught
-  nothing". R5.6's step-evidence sweep now produces the per-step catch record at source,
-  so the next two arcs are a deadline with real evidence behind it. No further extension
-  on no-evidence grounds once those arcs have run: after R5.6, "no evidence" means "did
-  not run". **Arc one banked 2026-08-06 with the evidence table present (§32.3).**
-- **`change-simplify` and `change-verify` — two field arcs from 2026-08-05** (§30.4): a
-  confirmed field catch each, or deletion candidates. R5.1 (shipped 0.15.0) exists partly
-  to give `change-verify` a slice-level path to one, and had no arc of exposure before
-  this clock was re-denominated. **`change-verify`'s catch landed in arc one, at slice
-  level, 2026-08-06 (§32.3) — its clock is satisfied; `change-simplify` has one arc
-  left.**
-- **R3.8's aging rule** — §16 contingent keep, waiting on R4.6's writer producing
-  friction entries to age.
+- **STD's audit clock — EXPIRED 2026-08-08; the audit is DUE** (§22, §31.6;
+  reconciled against the arc records 2026-08-13). Arc one banked 2026-08-06 with the
+  first R5.6 evidence table (§32.3); **arc two banked 2026-08-08** (Phase 03 retro,
+  per-step table: `diff-review` ran with ledger evidence and caught — N+1 and
+  per-source exception findings); a third arc has since run too (Phase 04,
+  2026-08-11: `diff-review` ran ×4 and caught ×2, including **mock-policy drift** —
+  a standards-axis catch — and the `LogCaptor` duplication). The subjects are §22's four: the three STD lenses and
+  the runtime-standards recipe section; the recipe already has field catches on
+  record (§33's meta-result: every mechanized rule held — Checkstyle, no-stdout,
+  SpotBugs `EI_EXPOSE_REP`). What remains is the per-lens adjudication —
+  which of the three lenses owns a confirmed catch — run at the next kit session
+  beside the §52.7 halt, under the §16 regime's re-denomination flag above.
+- **`change-verify` — clock satisfied** (§30.4): confirmed field catch at slice
+  level, arc one, 2026-08-06 (§32.3).
+- **`change-simplify` — clock EXPIRED without a catch; deletion candidate, owner's
+  call at the next halt** (§30.4; reconciled 2026-08-13). Three arcs of exposure:
+  arc one 2026-08-06 — moves applied, no catch (§32.3); arc two 2026-08-08 — one
+  move applied (S2), no catch, **exposure impaired** (the unlicensed guard blocked
+  it in S1/S3 and its one viable S3 move was dropped — the friction that became
+  §48's refactor license); arc three 2026-08-11, license shipped, clean exposure —
+  ran ×4, "nothing to do" all four. Even discounting the impaired arc, two clean
+  arcs produced no catch, so §30.4's own terms make it a deletion candidate. The
+  disposition halt should weigh: it is wired into `/end-slice` step order (deleting
+  it renumbers again), and "nothing to do" on a disciplined TDD codebase may be the
+  healthy reading — but that argument was already spent once at the §16 audit, and
+  the clock exists so it is not spent twice by default.
+- **R3.8's aging rule — no longer starved, still unexercised** (§16 contingent
+  keep; reconciled 2026-08-13): R4.6's writer has produced real friction entries
+  since 2026-08-08 (the adopter's guard-friction specimens), and the retro sweep
+  consumed them in both later retros — but every entry so far was absorbed in its
+  own arc, so the carry rule for entries **older than one phase** has never had one
+  to carry. That is the healthy state, and the rule is its backstop; stays on the
+  contingent keep.
 - **Bare-flagging arming bar (§52.2)** — the backstop's bare-commit class stays
   log-only until **zero false candidates across the logging trial (banked
   2026-08-13, §52.7) and the first field arc**; the arming decision is
