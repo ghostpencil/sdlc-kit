@@ -25,7 +25,9 @@ second source of truth, which is its own recurring hazard
 - **SIMP, 2026-08-03** (§16): the surveyor is deleted and the bar for any future
   custom agent is high; the doubles lens stays; R3.7's archival bullet is the safety
   net. The §16 audit regime binds every rule since: **no confirmed catch after two
-  releases makes it a deletion candidate.**
+  field arcs makes it a deletion candidate** (re-denominated from "two releases" by
+  owner ruling 2026-08-14 — the clocks preamble below records why; §16's original
+  wording stands unedited in the history file, as retirement requires).
 - **Brainstorm, 2026-08-03** (§18): batch order was LEG → COP → STD; secure coding
   ships as lenses, not a command; standards ship as interview + conventions + lenses +
   mechanical gate rules, not prose.
@@ -66,9 +68,10 @@ is produced by steps that shipped hours earlier, and no adopter had run an arc u
 them. A release is something this repo can do twice in an afternoon; an arc is the unit
 that actually exercises a rule. The denominator was wrong, not the rule — this is the
 same defect the field reports keep surfacing, found this time in the audit regime
-itself. **The §16 audit regime ("no confirmed catch after two releases") has the
-identical flaw and is a standing decision, so it is flagged here rather than rewritten:
-it wants the same re-denomination whenever it is next opened.**
+itself. **The §16 audit regime is re-denominated to match — "no confirmed catch after
+two field arcs" — by owner ruling 2026-08-14**, closing the flag that stood here since
+2026-08-05 (put at two halts before being ruled; the digest above carries the
+re-denominated form, and every clock in this section was already counted in arcs).
 
 - **The three STD lenses — RULED 2026-08-14, §54's (b): one final ATTRIBUTED
   clock.** The audit ran (§54): the runtime-standards recipe KEEPS on confirmed
@@ -345,7 +348,8 @@ bare-flagging stays log-only with its arming bar untouched.
 ### pre-registered before any deny run
 
 Four rulings taken (the fifth item put at the halt — the §16 regime's
-re-denomination wording — received no ruling and stays flagged, untouched):
+re-denomination wording — received no ruling at this halt; it was ruled later the
+same day, after the 0.22.0 release — the clocks preamble records it):
 
 1. **Release held.** 0.22.0 stays untagged; timing returns to the owner after
    this ramp.
