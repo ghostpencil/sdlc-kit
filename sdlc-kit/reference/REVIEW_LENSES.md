@@ -177,7 +177,8 @@ lenses to look through, not defect-rate claims.
 ## Lens: the disposal-intent test
 
 **Trigger:** the slice added a test that the slice itself then deleted, skipped, or
-gutted — or it ran under armed TDD-ordering guards and a new test reaches into
+gutted — or it deleted, skipped, or gutted a test `spec/PRODUCT_CONTRACT.md` names
+as a pin — or it ran under armed TDD-ordering guards and a new test reaches into
 internals the project's mock policy fences off.
 
 1. **A test written to be disposed of is a key, not a test.** Under a mechanical
@@ -193,6 +194,10 @@ internals the project's mock policy fences off.
 3. **A mock-policy violation inside a red-only test is still a violation.** A double
    that exists to manufacture a failure inherits every drift risk the mock policy
    names, plus one of its own: nobody expects it to stay, so nobody reviews it.
+4. **A contract pin retires only by contract edit.** A test the product contract
+   names as a pin is the enforcement half of a ratified behavior (`spec/SDLC.md`,
+   *Product contract*): deleting or gutting it takes halt 3 — retire or amend the
+   entry with the owner — never a quiet suite cleanup, however stale the test looks.
 
 Provenance: derived in the field before it was ever executed (2026-08-08) — a
 session under armed guards worked out the full synthetic-red recipe (a spy on an
@@ -217,6 +222,15 @@ review (`/end-phase`), where everything the arc built is finally visible at once
 3. **A public API only tests call is not public API.** A constructor overload or
    factory variant whose sole callers are tests manufactures states production cannot
    reach — the test double drifts from reality through the door it opened.
+4. **The fix path checks the contract before it deletes.** When the remedy for a
+   finding is deletion — the artifact judged dead inventory — search
+   `spec/PRODUCT_CONTRACT.md` and the ratifying phase specs for it first: a hit
+   means the artifact is the remnant of a ratified behavior, and that is a spec
+   conflict (halt 3 — build the consumer, or retire the decision), never a cleanup.
+   The specimen is real: a status entity with no production writer was filed as
+   dead and deleted, closing its backlog entry while moving the tree further from
+   the owner-ratified decisions that required it. The search's negative case: run
+   it against a name the contract does contain and see it hit.
 
 "No consumer" is a search-absence claim, so the *verify the denominator* lens applies
 to the search that establishes it: say how consumers were enumerated, and remember

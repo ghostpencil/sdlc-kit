@@ -90,6 +90,17 @@ the data: stopping the server (or the backing service) leaves the product up whi
 writes go nowhere — the failure paths exercised are identical, and authoritative data is
 never at risk.
 
+**Record a per-item verdict as the owner goes** — in the spec's acceptance checklist
+itself, item by item, covering the phase's own items and any *Preserved Behaviors*
+entries the spec carries: **met**, **deferred** (becomes a backlog entry, and the
+behavior does not enter the product contract), or **dropped** (the ratifying decision
+is amended in the spec — an owner ruling, halt-3 shaped, taken here). An unmet item
+with no recorded disposition is this halt not finished. The rule exists because a
+real phase was accepted with two checklist items unmet and nothing recorded; the
+absence surfaced three phases later, by external review, with every intervening
+gate green — and by then the only schema remnant of the behavior had been deleted
+as dead code.
+
 Findings become fix commits (through the gate again). Large findings mean a new slice —
 stop and say so. Proceed only on explicit owner OK.
 
@@ -128,6 +139,19 @@ consumer, or becomes a finding. Report it by name with its verdict
 (`unconsumed artifact: <finding, file and line | clean>`), per the lens file's
 contract — an
 unnamed lens verdict cannot be credited to the lens.
+
+Beside it runs the **preserved-contract check** (its subject is the contract, not
+the diff): for every surface the arc rewrote, read `spec/PRODUCT_CONTRACT.md`'s
+entries on that surface and confirm each still holds — the named pin exists in the
+tree and ran green in this arc's gate (step 2's run; that is the environment the
+claim is about). Report `preserved contract: <finding, file and line | clean |
+n/a — no entries on touched surfaces>`. Its negative case: pointed at an entry
+whose pinning test was renamed or deleted, it must flag that entry — a run that
+cannot fail that way is not this check. A violation that turns out deliberate is
+halt 3, not a finding to fix quietly: a ratified behavior is retired by the owner
+or not at all. A missing contract file means the project predates it
+(`/sdlc-update`'s transition note names the window) — say so in the hand-back
+rather than skipping silently.
 
 On Claude Code a deeper specialist fan-out may be available
 (`pr-review-toolkit:review-pr` — a per-machine plugin the kit never installs); it is
@@ -222,7 +246,21 @@ one at a time buried in the bullet that raised it.
   and it takes an explicit owner ruling — fix now, or amend the decision it
   contradicts — because a decision the owner ratified does not get un-decided by
   deferral.
-- **Coverage floor — bump the enforcement, then reconcile:** if the coverage measured
+- **Product-contract reconcile:** fold halt 4's verdicts into
+  `spec/PRODUCT_CONTRACT.md`. Every item recorded **met** enters or updates its
+  entry — decision pointer and enforcement named (`pinned: <test>` or `claim-only
+  (<date>)`); **deferred** items go to the backlog, not the contract; **dropped**
+  items leave it, with the amended decision recorded in the phase spec. Then
+  reconcile the direction nothing else checks: every entry on a surface this arc
+  rewrote still names a pin that exists in the tree — the preserved-contract check
+  read that at review time; this is the write-side mirror, and the bullet is not
+  done until entry and pin agree (an entry naming a test the tree does not hold
+  fails this reconcile — that visible failure is the check's negative case).
+  **One-time backfill:** if the contract is empty while Phase History shows merged
+  phases — an adoption or update predating the file — offer the backfill now: walk
+  the prior phase specs' ratified decisions with the owner and enter only what they
+  confirm as still-current, never an inference. A decline is recorded in the
+  contract file with the date, so the offer is not re-made at every close.
   for the merged branch rose this arc, set the threshold — in whichever artifact
   carries it: the CI workflow file, or the build file's check rule where the workflow
   only invokes the check (a Maven adoption's number lives in the build file; the

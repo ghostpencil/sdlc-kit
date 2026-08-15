@@ -84,14 +84,16 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.22.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.23.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe, the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
   close-out evidence checker and its setup proof step, the checker's stop-time
   backstop with its fire-first proof and logging-to-deny ramp, the retro's
   ledger-alive precheck, the
   skills-listing check, the setup exit checks, the slice loop's mutation check, the
-  coverage-floor establishment proof, the deploy verification, the update
+  coverage-floor establishment proof, the deploy verification, the
+  preserved-contract check and the product-contract reconcile, the
+  unconsumed-artifact lens's deletion-path contract search, the update
   classifier, the release workflow, the `tools/` proof suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy

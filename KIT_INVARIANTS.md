@@ -191,7 +191,8 @@ setup proof step, the checker's stop-time backstop with its fire-first proof and
 logging-to-deny ramp, the retro's ledger-alive precheck, the
 skills-listing check, the exit
 checks, the slice loop's mutation check, the coverage-floor establishment proof, the
-deploy verification, the update
+deploy verification, the preserved-contract check and the product-contract
+reconcile, the unconsumed-artifact lens's deletion-path contract search, the update
 classifier, the release workflow's manifest
 verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.

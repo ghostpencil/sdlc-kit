@@ -189,6 +189,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── CLAUDE.template.md           → CLAUDE.md           (agent instructions)
 │   ├── PROJECT_INDEX.template.md    → spec/PROJECT_INDEX.md (source of truth)
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
+│   ├── PRODUCT_CONTRACT.template.md → spec/PRODUCT_CONTRACT.md (current-truth product
+│   │                                   contract — seeds empty, placeholder-free)
 │   ├── settings.template.json       → .claude/settings.json (edit-time gate hook, Claude Code dialect)
 │   ├── copilot-hook.template.sh     → .github/hooks/sdlc-gate.sh (the same hook, Copilot dialect:
 │   │                                   the logic, holding every placeholder)
@@ -592,8 +594,23 @@ only as a hand-apply, and the per-version transition notes name each one.
    every install); a recorded decline is settled. The update
    command's 0.22.0 note states the same procedure.
 
+   **0.23.0 adds the product contract, and the file arrives only by hand — it is
+   project-owned.** A new spec file, `spec/PRODUCT_CONTRACT.md` (from
+   `templates/PRODUCT_CONTRACT.template.md`, placeholder-free, seeds empty), holds
+   the current-truth statement of owner-ratified externally observable behavior,
+   read at phase boundaries by the updated `/plan-phase` (preserved-contract sweep)
+   and `/end-phase` (per-item acceptance verdicts, preserved-contract check,
+   contract reconcile). The updated commands point at that file and at
+   `spec/SDLC.md` sections (*Product contract* and its phase-start/phase-end
+   additions) your un-re-instantiated spec does not yet carry — the spec wins until
+   you fold the template diff. Copy the template as-is; the contract starts empty
+   on purpose — the one-time backfill over prior phases' ratified decisions is
+   offered at your next `/end-phase`, owner-confirmed there, never inferred at
+   update time. The update command's 0.23.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
-   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `CLAUDE.md`, `.claude/settings.json`,
+   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `spec/PRODUCT_CONTRACT.md`,
+   `CLAUDE.md`, `.claude/settings.json`,
    `.github/hooks/*.json` (other than `sdlc-close-out.json`, which is kit-owned),
    `.github/hooks/sdlc-gate.sh`,
    `.github/hooks/sdlc-tdd-guard.sh`, or `.github/hooks/sdlc-tdd-guard.py`. They hold

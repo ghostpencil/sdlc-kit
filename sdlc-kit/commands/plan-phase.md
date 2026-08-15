@@ -80,6 +80,21 @@ subagent ever interacts with the owner.
 - **Trust-boundary sweep** — scan for any behavior where an external system, model, or
   untrusted input mutates authoritative state. The application disposes; violations get
   redesigned as proposal + validator or an application-owned rule.
+- **Preserved-contract sweep** — read `spec/PRODUCT_CONTRACT.md` whole (it is bounded
+  by design; if it is absent, the project predates it — say so, and the phase-close
+  reconcile owns the backfill offer). List the entries on surfaces this phase
+  touches and carry them into the spec's *Preserved Behaviors* section verbatim,
+  pins included; slices then inherit them from the phase spec, which is what keeps
+  the contract out of the per-slice read. **An entry the phase would remove or alter
+  is an owner question** — at this halt or halt 3, never a decision the plan makes:
+  a rewrite that drops a ratified behavior is indistinguishable from an
+  implementation simplification unless someone is made to say which it is, and one
+  passed silently exactly that way on a real adoption. When a touched surface
+  **consumes** data the contract's *Trust boundaries* section classifies untrusted,
+  re-read those invariants and carry the applicable ones the same way — the
+  producer's boundary rules were ratified in a phase spec no later phase reads, and
+  a consumer-side rewrite can expose stored hostile data without touching any
+  ingestion point.
 - **Consequence sweep** — scan the behaviors for changes to authentication or
   authorization, money or financial calculation, destructive or irreversible data
   operations (migration, deletion, retention), credential handling, or regulated data.
@@ -144,6 +159,9 @@ step-6 approval), write `spec/PHASE_NN_<SLUG>.md`:
 ## Non-Goals            (everything cut, by name)
 ## Trust Boundaries     (what external systems may propose/read; what only the app does
                          — omit if no external systems are touched)
+## Preserved Behaviors  (product-contract entries on surfaces this phase touches,
+                         carried verbatim with their pins — the preserved-contract
+                         sweep fills it; omit if none)
 ## Data & Migration     (models, migration id, seed/fixtures, existing-data impact)
 ## User-Visible Surface (screens/endpoints/CLI touched + acceptance-review checklist
                          for /end-phase)

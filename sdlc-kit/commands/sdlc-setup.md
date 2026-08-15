@@ -193,7 +193,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    delete the placeholder line), `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status:
    PRE-PHASE-1; START HERE points at `/plan-phase` for the first phase; Phase History
    has no rows yet and Notes starts `- (none)` — empty is a resolved value, stated,
-   never a placeholder left behind), `spec/TESTING.md`
+   never a placeholder left behind), `spec/PRODUCT_CONTRACT.md` (copied as-is — the
+   template is placeholder-free and seeds empty by design; entries arrive at each
+   phase close via `/end-phase`'s contract reconcile), `spec/TESTING.md`
    (test layout — step 6's guard patterns derive from it — layer strategy,
    mandatory-mock table, and the integration-vs-unit boundary —
    where integration tests live and what they may touch — for THIS stack; leave
@@ -618,6 +620,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - `spec/PROJECT_INDEX.md` — seeded with reality: current status, a few Phase
      History rows from git history (pre-SDLC is fine), in-flight work in START HERE,
      known issues in the backlog.
+   - `spec/PRODUCT_CONTRACT.md` — the empty scaffold, copied as-is (placeholder-free).
+     **Do not backfill it at setup:** entries seeded from inference are invented
+     facts, and the one-time owner-confirmed backfill is `/end-phase`'s job at the
+     first phase close (`spec/SDLC.md`, *Product contract*, states the rule).
    - Commands, the eight kit skills (five vendored, three kit-written), and
      `reference/REVIEW_LENSES.md` installed
      per New mode step 5 — the destinations depend on the confirmed target CLI; hook

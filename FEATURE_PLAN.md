@@ -905,3 +905,48 @@ with the one-time backfill offered at their next phase-close reconcile; halt 4
 gains per-item verdicts. This section is committed before the build (§31.9's
 pre-registration-by-commit-ordering precedent); the edit map below is derived
 mechanically at build time per §4a, with §57.4 as the floor, not the list.
+
+### 57.7 Built — same day, all three rulings applied as taken
+
+The edit map, derived mechanically at build time (§4a) — §57.4's floor held, plus
+two walkthrough touches it had not named (`sdlc-kit-process-flow.md`'s sweep count
+and phase-end steps) and the `CLAUDE.template.md` spec-loading row:
+
+- **New:** `templates/PRODUCT_CONTRACT.template.md` — placeholder-free, seeds
+  empty, entry grammar and trust-boundaries section per 57.1; inv 3's set
+  unchanged (census re-run: `{{` hits in `sdlc-setup.md` only).
+- **Canonical:** `SDLC.template.md` gains the *Product contract* section (read
+  boundaries, write rule, retirement-only-by-ratification, pinned-test rule,
+  deletion rule, mid-flight backfill) plus its five mirrors: phase-start sweep
+  list and spec contents, halt-4 per-item verdicts, arc-review
+  preserved-contract check, bookkeeping reconcile, slice-loop trigger line
+  (inv 2, both sides in the same batch).
+- **Commands:** `plan-phase.md` (preserved-contract sweep with the
+  consumer-side trust re-read; spec template's *Preserved Behaviors*),
+  `end-phase.md` (halt-4 verdicts with the field specimen cited; the
+  preserved-contract check with its stated negative case — a renamed-away pin
+  must flag; the reconcile bullet with its own — an entry naming a test the
+  tree does not hold fails it; the one-time backfill offer, decline recorded
+  with date), `end-slice.md` §4 trigger summary.
+- **Lenses:** the unconsumed artifact gains rule 4 (the fix path searches the
+  contract before deletion — negative case: a name the contract does contain
+  must hit; `523844e` cited as specimen); the disposal-intent trigger and
+  rule 4 cover contract-pinned tests.
+- **Seams:** setup instantiates the contract in both modes (Existing mode
+  seeds empty by design — backfill is `/end-phase`'s, never setup's);
+  `sdlc-update.md` + root README carry the mirrored 0.23.0 transition note
+  (inv 8); both README trees updated (inv 5/9, the bundle's verbatim count is
+  now seven); CHANGELOG Unreleased; inv 13's denominator extended in ledger
+  and `/kit-check` copy (stamp moved to 0.23.0); `COPILOT.md` needed nothing —
+  its spec row is the `spec/*.md` glob.
+- **Manifest:** regenerated from staged content, discrimination proven —
+  exactly the nine edited bundle files changed hash plus the one new entry,
+  nothing else; entry count 40 = `git ls-files sdlc-kit` − 1; `sha256sum -c`
+  green in the working tree (the release workflow's own check).
+
+No step renumbering anywhere — every insertion was designed into an existing
+step's body, so no project notes go stale this release. Unreleased: the full
+`/kit-check` runs pre-release per the plan's own rule, and release timing is
+the owner's. The §16 clock on the whole mechanism starts with the first field
+arc that runs under it; the adopter's pending STABILIZATION arc is the seed
+case (§56.3 (f) — the filing session and contract seeding land together).

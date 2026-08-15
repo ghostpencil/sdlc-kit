@@ -324,6 +324,46 @@ setup: {{HOOK_ENVIRONMENT}}
      tier the owner left on `auto` is recorded as `auto (ratified <date>)` with what
      that forfeits stated beside it. -->
 
+## Product contract
+
+`spec/PRODUCT_CONTRACT.md` is the current-truth statement of owner-ratified,
+externally observable behavior — one line per behavior, grouped by user-facing
+surface, each line naming the decision that ratified it (`P<NN> D<M>`) and its
+enforcement: `pinned: <test or mechanical check>` or `claim-only (<date>)`. Phase
+specs remain the decision record and stay historical; this file states what is
+currently true — the role that otherwise belongs to no artifact, which is how a
+ratified behavior can vanish with every gate, test, and review green.
+
+- **Read at phase boundaries only.** `/plan-phase` carries the entries on surfaces
+  the phase touches into the phase spec (*Preserved Behaviors*), so slices inherit
+  them from the spec they already read — the context-minimization rule is untouched.
+- **Written at phase close.** `/end-phase`'s contract reconcile enters each
+  acceptance-checklist behavior recorded **met**, with its pinning test named (or
+  `claim-only`, dated). Anywhere else, the file changes only by owner decision.
+- **A behavior leaves only by ratified retirement.** A superseding decision replaces
+  its line and the superseding phase spec records why; omission is never retirement.
+  A planned change that would remove or alter an entry is an owner question at
+  planning (halt 1 or halt 3), never a decision the plan makes on its own.
+- **A pinned test is contract-bound.** Deleting, skipping, or gutting a test this
+  file names as a pin is a contract edit, and a contract edit is an owner decision
+  (halt 3) — never a quiet suite cleanup.
+- **The deletion rule.** A record-shaped artifact (an entity, a column, a config key)
+  is not deleted as dead until this file and the ratifying phase specs have been
+  searched for it — a hit is a spec conflict (halt 3: build the consumer, or retire
+  the decision), not a cleanup. The rule exists because a real cleanup deleted the
+  only remnant of a ratified-but-undelivered behavior, closing a backlog entry while
+  moving the tree further from the spec that required it.
+- **Trust boundaries ride here.** The file's closing section carries high-consequence
+  invariants (untrusted-data classifications, scheme/rendering policies, authority
+  rules). `/plan-phase` re-reads it whenever a touched surface **consumes** data
+  classified untrusted there — the consumer side inherits the producer's boundary
+  rules, which otherwise live in a phase spec no later phase reads.
+- **Adopted mid-flight:** a contract still empty while Phase History shows merged
+  phases (an adoption or update predating this file) gets a **one-time backfill
+  offer** at the next phase close — an owner-confirmed pass over the prior phase
+  specs' ratified decisions, never an inference; a decline is recorded in the file
+  with the date, so the offer is not re-made at every close.
+
 ## Phase start
 
 Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping, or when
@@ -332,7 +372,9 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
 1. Candidate phases presented with a recommendation; owner picks the scope *(halt 1)*.
 2. Requirements interview in rounds (≤4 questions each) until a round surfaces nothing
    new, then an adversarial gap analysis (walkthrough, trust-boundary sweep,
-   consequence sweep, cross-system sweep, persistence/compatibility sweep, testability
+   preserved-contract sweep — the product contract's entries on touched surfaces,
+   carried into the spec — consequence sweep, cross-system sweep,
+   persistence/compatibility sweep, testability
    sweep, contradiction sweep, minimal-version attack — the sweeps may fan out as
    parallel read-only subagents per the rule above). Every gap becomes
    a question or a numbered decision — never an assumption. Two rules bind the
@@ -344,7 +386,9 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    unrelated system has no rollback.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
    numbered owner decisions, behaviors, non-goals, data/migration impact, trust
-   boundaries (what the consequence sweep found, recorded), user-visible
+   boundaries (what the consequence sweep found, recorded), preserved behaviors (the
+   product-contract entries on surfaces this phase touches, carried with their pins —
+   see *Product contract* above), user-visible
    surface + acceptance-review checklist, slices with exit criteria that name **what
    observes them and when** (a criterion naming an observer that does not run at that
    point — CI on an arc branch, typically — is a planning defect), risks. Any decision
@@ -421,8 +465,9 @@ Run `/end-slice` when the slice's exit criteria are met:
    object that outlives a request or is reachable from more than one, took in outside
    data or passed it to an interpreter, touched credentials or an externally
    reachable surface or added logging or error output near either, or added a test
-   the slice itself then deleted, skipped, or gutted — or, under armed TDD-ordering
-   guards, added a test reaching into internals the mock policy fences
+   the slice itself then deleted, skipped, or gutted — or deleted, skipped, or
+   gutted a test `spec/PRODUCT_CONTRACT.md` names as a pin — or, under armed
+   TDD-ordering guards, added a test reaching into internals the mock policy fences
    off — each applied lens reporting by name with its verdict,
    `<lens>: <finding, file and line | clean>`, and `no lens triggered`
    when none did). The review is **read-only in the shared tree** —
@@ -506,7 +551,13 @@ Run `/end-phase` when the last slice is done:
    step runs in the agent's shell and does not stand in for halt 4 — the owner's run
    is the next step, and it is the one that runs in the owner's shell.
 2. **Owner acceptance review** *(halt 4)* — owner runs `{{RUN_COMMAND}}` and verifies the
-   phase's visible behavior against the spec's checklist. Findings become fix commits
+   phase's visible behavior against the spec's checklist. **Every checklist item —
+   the phase's own and any *Preserved Behaviors* entry — gets a recorded per-item
+   verdict in the spec's checklist: met, deferred (a backlog entry; the behavior does
+   not enter the product contract), or dropped (the ratifying decision amended — an
+   owner ruling).** An unmet item with no recorded disposition is this halt not
+   finished; an acceptance that waves one through silently is how a ratified behavior
+   first goes missing. Findings become fix commits
    (back to the slice loop if large). This is the one step in the *slice and phase loop*
    that runs in the **owner's** shell rather than an agent's — setup has its own
    owner-shell asks, for the same reason — and the two are different
@@ -526,7 +577,13 @@ Run `/end-phase` when the last slice is done:
    introduced names its production consumer, a question no slice-shaped review is
    positioned to ask — reported by name with its verdict
    (`unconsumed artifact: <finding, file and line | clean>`), per the lens file's
-   contract: an unnamed lens verdict cannot be credited to the lens. Verify each finding against the source
+   contract: an unnamed lens verdict cannot be credited to the lens. Beside it runs
+   the **preserved-contract check**: for every surface the arc rewrote, the product
+   contract's entries on that surface still hold — each named pin exists and ran
+   green in this arc's gate — reported as `preserved contract: <finding, file and
+   line | clean | n/a — no entries on touched surfaces>`; a violation that turns out
+   deliberate is halt 3, because a ratified behavior is retired by the owner or not
+   at all. Verify each finding against the source
    before it enters a fix batch, and report the ones that did not survive alongside
    the ones that did. The review is done only when **every** reviewer has returned:
    the fix batch is assembled after the last return and goes through the gate as one
@@ -548,7 +605,11 @@ Run `/end-phase` when the last slice is done:
    until verified, and followed by the question the deploy outcome does not answer —
    **what did this deploy turn on**, and what disables each newly-live control by
    itself (newly-live controls recorded in the same Notes cell; one without an
-   independent off switch goes to the backlog as a risk); the coverage-floor ratchet
+   independent off switch goes to the backlog as a risk); the **product-contract
+   reconcile** (halt 4's met behaviors enter `spec/PRODUCT_CONTRACT.md` with their
+   pins named; entries on rewritten surfaces re-affirmed against pins that exist —
+   the record is not done until entry and pin agree; the one-time backfill offered
+   where the *Product contract* section above says it is owed); the coverage-floor ratchet
    (set the threshold where it lives — workflow file or build-file check rule — from
    the enforced run's figure, then reconcile
    it against the recorded floor — see *Coverage floor* above); the red-baseline

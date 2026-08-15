@@ -137,6 +137,7 @@ Load a spec file ONLY for its trigger. If you open a spec, say which one.
 | `spec/SDLC.md` | process questions; a session command seems to conflict with process |
 | `spec/TESTING.md` | invoking the TDD skill (always read first); writing/modifying tests |
 | `spec/PHASE_NN_*.md` | working the current phase (pointer in PROJECT_INDEX) |
+| `spec/PRODUCT_CONTRACT.md` | phase boundaries only — `/plan-phase` and `/end-phase` read it; slices get its entries via the phase spec's *Preserved Behaviors* |
 {{EXTRA_SPEC_ROWS}}
 <!-- As the project grows, add one row per new spec (ARCHITECTURE.md, DATA_MODEL.md,
      UI_SPEC.md, …) with a precise trigger. Precise triggers are what keep context small. -->

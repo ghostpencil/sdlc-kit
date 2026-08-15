@@ -89,12 +89,15 @@ summary first, every decision numbered and explicitly marked, detail after.
 3. **Requirements interview** — rounds of ≤4 questions until a round surfaces nothing
    new. Every number in a decision is tagged **measured** (with the run behind it) or
    **estimated**. The prime directive: never fill a gap with an assumption.
-4. **Adversarial gap analysis** — eight read-only sweeps (walkthrough, trust-boundary,
-   consequence, cross-system, persistence, testability, contradiction,
+4. **Adversarial gap analysis** — nine read-only sweeps (walkthrough, trust-boundary,
+   preserved-contract — the product contract's entries on touched surfaces carried
+   into the spec, removals owner-ruled — consequence, cross-system, persistence,
+   testability, contradiction,
    minimal-version), fanned out as parallel read-only subagents where the CLI can.
    Findings become questions or decisions, never assumptions.
 5. **Draft the spec** — `spec/PHASE_NN_*.md`: goal, numbered decisions, behaviors,
-   non-goals, trust boundaries, data/migration, acceptance checklist, slices whose
+   non-goals, trust boundaries, preserved behaviors, data/migration, acceptance
+   checklist, slices whose
    exit criteria name what observes them and when, risks.
 6. **Approval** — on the owner's OK: branch created, PROJECT_INDEX flipped to BUILD,
    spec committed, then `/clear` and `/next-slice`.
@@ -150,17 +153,23 @@ edits through untouched, and the stop guard does not bind it (see *Session scopi
    phase-level verification the spec names (`change-verify` on the arc). A pass not
    observed is not a pass. If every slice was behavior-neutral by construction, the
    composed system is run locally on real data before the PR.
-2. **Owner acceptance review** — *halt 4*, in the owner's shell. The run's log output
+2. **Owner acceptance review** — *halt 4*, in the owner's shell. Every checklist item
+   gets a recorded per-item verdict (met / deferred / dropped) — an unmet item with
+   no disposition is the halt not finished. The run's log output
    is part of the acceptance surface. A command that fails in the owner's shell is a
    defect in the instructions, fixed in both its homes.
 3. **PR** — `gh pr create`, the body summarizing the phase against its exit criteria.
 4. **Whole-arc review** — `diff-review` on `<main>...HEAD` against the *phase's* exit
-   criteria, plus the unconsumed-artifact lens. Findings verified before the fix
+   criteria, plus the unconsumed-artifact lens and the preserved-contract check
+   (contract entries on rewritten surfaces still hold, their pins alive in this
+   arc's gate). Findings verified before the fix
    batch; the batch is assembled only after the last reviewer returns and goes
    through the gate as one unit.
 5. **Merge approval** — *halt 5*, then merge.
 6. **Post-merge bookkeeping** — the deploy question closed with a verified outcome,
-   what the deploy turned on (and each control's independent off switch), the backlog
+   what the deploy turned on (and each control's independent off switch), the
+   product-contract reconcile (met behaviors enter `spec/PRODUCT_CONTRACT.md` with
+   their pins), the backlog
    surfaced for an owner decision, the coverage-floor ratchet reconciled against the
    CI workflow file, the red baseline lowered or ratified held, Phase History row,
    closed-phase detail archived out of the index. `/sdlc-retro` is offered, not run.

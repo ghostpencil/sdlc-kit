@@ -504,6 +504,22 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   present beside a recorded decline, is a contradiction to report — and on Copilot
   the artifact whose presence encodes the accept is
   `.github/hooks/sdlc-close-out.json`.
+- **0.23.0 adds the product contract, and the artifact arrives only by hand — it is
+  project-owned.** A new spec file, `spec/PRODUCT_CONTRACT.md` (from
+  `templates/PRODUCT_CONTRACT.template.md`, placeholder-free, seeds empty), holds
+  the current-truth statement of owner-ratified externally observable behavior —
+  the file `/plan-phase`'s new preserved-contract sweep and `/end-phase`'s new
+  per-item acceptance verdicts, preserved-contract check, and contract reconcile
+  all read or write. Those commands arrive by classification, but they point at
+  this file and at `spec/SDLC.md` sections (*Product contract*; the phase-start,
+  halt-4, arc-review, and bookkeeping additions; the slice-loop trigger line) that
+  the project's un-re-instantiated spec does not yet carry — the 0.15.0
+  disagreement direction, same resolution: the spec wins until the owner folds the
+  template diff. Create the file by copying the template as-is, hand the owner the
+  `SDLC.template.md` diff, and say plainly: **the contract starts empty on
+  purpose** — the one-time backfill over prior phases' ratified decisions is
+  offered at the next `/end-phase`, owner-confirmed there, never inferred at
+  update time.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

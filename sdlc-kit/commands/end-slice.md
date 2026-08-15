@@ -111,7 +111,8 @@ around one, swept the codebase for a pattern or wrote a script or check whose ou
 will be trusted, touched an object that outlives a request or is reachable
 from more than one, took in outside data or passed it to an interpreter, touched
 credentials or an externally reachable surface or added logging or error output near
-either, or added a test the slice itself then deleted, skipped, or gutted (or ran
+either, deleted, skipped, or gutted a test `spec/PRODUCT_CONTRACT.md` names as a
+pin, or added a test the slice itself then deleted, skipped, or gutted (or ran
 under armed TDD-ordering guards and a new test reaches into internals the mock
 policy fences off), also apply the matching lens from
 `.claude/commands/REVIEW_LENSES.md`; otherwise skip that file. **Each applied lens

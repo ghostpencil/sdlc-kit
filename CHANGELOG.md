@@ -10,6 +10,62 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+CONTRACT (`FEATURE_PLAN.md` §56–§57, owner-ruled 2026-08-15): the product contract —
+the sixth field report's P0 answered. Report §§2–5 collapsed to one root cause: no
+artifact stated what the product currently does, so nothing downstream could be
+obligated to preserve it — a Phase-01 owner-ratified dashboard behavior was absent
+from the adopter's tree with every gate, test, and review green, and its only schema
+remnant was deleted by a later cleanup slice as an unconsumed artifact.
+
+### Added
+- **[adoption-only]** `templates/PRODUCT_CONTRACT.template.md` →
+  `spec/PRODUCT_CONTRACT.md` (project-owned, placeholder-free, seeds empty): the
+  current-truth statement of owner-ratified externally observable behavior — one
+  line per behavior, grouped by surface, each naming its ratifying decision
+  (`P<NN> D<M>`) and its enforcement (`pinned: <test>` | `claim-only (<date>)`,
+  invariant-14's grammar at product altitude). Current truths only: phase specs stay
+  the decision record; a behavior leaves the contract only by ratified retirement,
+  never by omission. A closing *Trust boundaries* section carries high-consequence
+  invariants (untrusted-data classifications, scheme/rendering policies).
+  `SDLC.template.md` gains the canonical *Product contract* section: read at phase
+  boundaries only (slices inherit entries via the phase spec — context minimization
+  untouched), the pinned-test rule, the deletion rule, and the mid-flight backfill.
+- **[installable]** `/plan-phase` gains the **preserved-contract sweep**: the
+  contract's entries on surfaces the phase touches are carried into the spec's new
+  *Preserved Behaviors* section with their pins; an entry the phase would remove or
+  alter is an owner question (halt 1/3), never a planning decision; when a touched
+  surface **consumes** data the contract classifies untrusted, those invariants are
+  re-read — the consumer-side blind spot the field report named.
+- **[installable]** `/end-phase`: halt 4 records a **per-item verdict** on the
+  acceptance checklist (met / deferred / dropped — an unmet item without a recorded
+  disposition is the halt not finished); the whole-arc review gains the
+  **preserved-contract check** (`preserved contract: <finding, file and line |
+  clean | n/a>` — each entry on a rewritten surface still names a pin that exists
+  and ran in this arc's gate); post-merge bookkeeping gains the **contract
+  reconcile** (met behaviors enter the contract, pins named; the one-time
+  owner-confirmed backfill offered where the contract is empty with merged phases
+  behind it).
+- **[installable]** `REVIEW_LENSES.md`: the unconsumed-artifact lens's fix path now
+  searches the contract and ratifying specs before any deletion — a hit is a spec
+  conflict (halt 3), not a cleanup (field specimen: a dead-artifact cleanup deleted
+  the remnant of a ratified behavior); the disposal-intent lens covers deleting or
+  gutting a contract-pinned test (retires only by contract edit). Trigger summaries
+  updated in `/end-slice` §4 and `SDLC.template.md` (slice-loop step 7 and phase-end
+  step 4).
+
+### Changed
+- **[installable]** `sdlc-setup.md` instantiates the contract in both modes; Existing
+  mode seeds it **empty by design** — backfill at setup would be invented facts; the
+  owner-confirmed backfill is `/end-phase`'s job at the first phase close.
+- **[installable]** `sdlc-update.md` and the root README carry the 0.23.0 transition
+  note (mirrored, per the update procedure's two-statement rule): the file arrives
+  by hand, the spec wins until the `SDLC.template.md` diff is folded, the contract
+  starts empty on purpose.
+- **[adoption-only]** `CLAUDE.template.md`'s spec-loading table gains the
+  contract's row (phase boundaries only — never per-slice).
+
 ## 0.22.0 — 2026-08-14
 
 VER.3 (`FEATURE_PLAN.md` §52, owner-approved 2026-08-13): the close-out checker's
