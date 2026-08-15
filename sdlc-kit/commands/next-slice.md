@@ -98,7 +98,8 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
   `spec/SDLC.md` *Shape* defines its path).
 - If the main branch has moved since the arc branched (a hotfix landed), merge it into
   the arc branch and re-run the gate (as `spec/SDLC.md` *Records* defines it, against
-  the recorded baseline) before starting the slice — drift is cheapest to
+  the recorded baseline — green in this session's shell, with CI authoritative on any
+  disagreement, as ever) before starting the slice — drift is cheapest to
   absorb here, one slice at a time, not at phase end.
 - If there is no arc branch yet, create one off the up-to-date main branch:
   `feat/phase-NN-<slug>` (BUILD) or `chore/cleanup-<arc-theme>` (STABILIZATION — name

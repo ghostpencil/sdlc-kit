@@ -193,7 +193,10 @@ spec-claims-against-the-tree sweep, the
 skills-listing check, the exit
 checks, the slice loop's mutation check, the coverage-floor establishment proof, the
 deploy verification, the preserved-contract check and the product-contract
-reconcile, the unconsumed-artifact lens's deletion-path contract search, the update
+reconcile, the unconsumed-artifact lens's deletion-path contract search, the
+retirement step's closing-marker re-read (an entry moved to
+`spec/PROJECT_INDEX_HISTORY.md` without its closing marker is pulled back — the
+visible failure), the update
 classifier, the release workflow's manifest
 verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.

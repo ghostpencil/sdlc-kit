@@ -27,15 +27,15 @@
 #              command step's failure is seen and quoted by the session, and a
 #              checker that silently passes on its own failure is not a checker.
 #              Exit codes: 0 complete, 1 incomplete, 2 cannot check.
-#   stop-check the stop-time backstop (agentStop / Stop hook; kit FEATURE_PLAN
-#              52). FAILS OPEN on its own errors: a hook that errors must not
+#   stop-check the stop-time backstop (agentStop on Copilot, Stop on Claude
+#              Code). FAILS OPEN on its own errors: a hook that errors must not
 #              block real work, so errors log to .git/sdlc-close-out/log and
 #              exit 0. Classifies every unpushed commit by the record grammar:
 #              a DEFECTIVE record (some keys present, but one missing / empty /
 #              duplicated) is an /end-slice escape and flags statelessly; a BARE
 #              commit (no keys at all) flags only when the TDD guard's state
 #              shows slice-loop evidence for this session, and bare-flagging is
-#              log-only until its own arming bar clears (52.2). Blocking for
+#              log-only by design on every install. Blocking for
 #              the defective class arms via .git/sdlc-close-out/deny-enabled;
 #              absent, verdicts are logged as WOULD-BLOCK. Stands down
 #              unconditionally when stop_hook_active is true.

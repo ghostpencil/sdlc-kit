@@ -236,7 +236,10 @@ review (`/end-phase`), where everything the arc built is finally visible at once
    grep for the artifact's identifier is the miss — read the contract whole (it is
    bounded) for the **surface the artifact serves**, then that surface's ratifying
    specs, and say what was read; this too is a search-absence claim, and the
-   paragraph below applies to it with the same force.
+   paragraph below applies to it with the same force. Where
+   `spec/PRODUCT_CONTRACT.md` does not exist the project predates it — say so and
+   search the ratifying phase specs alone, never report the missing file as a
+   clean search.
    The specimen is real: a status entity with no production writer was filed as
    dead and deleted, closing its backlog entry while moving the tree further from
    the owner-ratified decisions that required it. The search's negative case: run

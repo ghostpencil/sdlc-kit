@@ -134,8 +134,8 @@ Load a spec file ONLY for its trigger. If you open a spec, say which one.
 
 | File | Load only when |
 |---|---|
-| `spec/SDLC.md` | its *Records* section (the per-project facts — gate commands, baseline, coverage floor, hook/guard/checker notes, model policy) whenever a session command reads a recorded value; the rest of the file only for process questions or when a command seems to conflict with process |
-| `spec/PROJECT_INDEX_HISTORY.md` | never at session start — only when tracing a retired (closed) backlog entry, friction line, or gotcha |
+| `spec/SDLC.md` | its *Records* section whenever a command reads a gate, baseline, coverage-floor, hook/guard/checker-note, or model-policy value (a handful of values live at the step that uses them — *Records*' preamble names each); the rest of the file only for process questions or when a command seems to conflict with process |
+| `spec/PROJECT_INDEX_HISTORY.md` | never at session start — only when tracing a retired (closed) backlog entry or friction line, or in `/sdlc-retro`'s closed-item sweeps |
 | `spec/TESTING.md` | invoking the TDD skill (always read first); writing/modifying tests |
 | `spec/PHASE_NN_*.md` | working the current phase (pointer in PROJECT_INDEX) |
 | `spec/PRODUCT_CONTRACT.md` | phase boundaries only — `/plan-phase` and `/end-phase` read it; slices get its entries via the phase spec's *Preserved Behaviors*. One exception: `/end-slice`'s review opens it when the slice deleted, skipped, or gutted a test (the pin check) |

@@ -21,9 +21,9 @@ These are starting points. Always prefer the commands the project **already uses
 (check CI workflows, `Makefile`, `package.json` scripts) over these defaults — the gate
 must match CI, or the gate lies. That includes security checks CI already runs
 (dependency audit, secret scan, static analysis): fast ones join the local gate; slow
-or credentialed ones stay CI-only but are listed in the gate section of `spec/SDLC.md`
-so merge readiness includes them knowingly — the same placement logic as the coverage
-floor below, enforced in CI and recorded locally.
+or credentialed ones stay CI-only but are listed in `spec/SDLC.md` (*Records*, beside
+the gate) so merge readiness includes them knowingly — the same placement logic as the
+coverage floor below, enforced in CI and recorded locally.
 
 ## Hook template placeholders
 
@@ -277,8 +277,8 @@ Two dialects, one state machine: the Copilot pair
 Claude Code script (`tdd-guard-claude.template.py` →
 `.github/hooks/sdlc-tdd-guard.py`, hook blocks in `.claude/settings.json`). They share
 `.git/sdlc-tdd/` — state, log, and the `deny-enabled` flag, so arming deny arms every
-installed dialect. The Claude dialect's measured facts (probe 2026-08-12, kit
-FEATURE_PLAN §50): **green and red arrive on different events** — `PostToolUse` fires
+installed dialect. The Claude dialect's measured facts (hook-payload probe,
+2026-08-12): **green and red arrive on different events** — `PostToolUse` fires
 only when a command succeeds and carries no exit code; a failing command fires
 `PostToolUseFailure` with the code as a text header of its `error` field — so the
 guard reads the event split instead of an exit-code trailer; the shell tool's
@@ -426,7 +426,7 @@ line states which) by the same record grammar `/end-slice`'s command step runs:
   or a legitimate docs commit), so it flags only when the TDD guards are installed
   and their session state (`.git/sdlc-tdd/`) shows this session wrote production
   code or edited a test. **This class never blocks, armed or not** — log-only by
-  design until the kit's own field bar clears — and on a guard-less adoption the
+  design on every install — and on a guard-less adoption the
   generated `spec/SDLC.md` must say plainly: the backstop catches defective
   records, not silently absent ones.
 
@@ -652,9 +652,9 @@ rule proposed and never seen to fire is configuration that reads as enforcement.
 ## Coverage
 
 Keep the floor in CI, not in the local gate — local runs stay fast, CI stays
-authoritative. Record the current figure in the gate section of `spec/SDLC.md`
-(`{{COVERAGE_FLOOR}}`, `TBD from first CI run` until one exists) so sessions know it
-without reading CI config.
+authoritative. Record the current figure in `spec/SDLC.md` (*Records*, the
+`{{COVERAGE_FLOOR}}` line — `TBD from first CI run` until one exists) so sessions know
+it without reading CI config.
 
 **Never compute the floor, and never carry one over from another project.** *A remembered
 constant is not a measurement.* An aspirational floor fails every build from day one and

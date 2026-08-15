@@ -37,7 +37,7 @@ Also run whatever phase-level verification the phase spec calls for: the
 `change-verify` skill on the arc, plus any smoke test, end-to-end run, or manual script
 the spec names. Fix and re-run until green.
 
-`change-verify` is installed by `/sdlc-setup` into `.claude/skills/change-verify/` and
+`change-verify` is installed at `.claude/skills/change-verify/` and
 is available on both CLIs. It exercises the arc through the path a real caller takes
 rather than through the harness, which is the gap the gate cannot cover — a suite
 reaches the code through the test process, and the failures that survive a green suite
@@ -248,7 +248,12 @@ one at a time buried in the bullet that raised it.
   backlog as a risk, now that it is real rather than planned.
 - **Surface the backlog:** report the open deferred-entry count with a severity
   breakdown, flag the oldest untouched entries, and ask the owner once — convert (a
-  cleanup slice or the next phase's scope), defer knowingly, or drop. "A big enough
+  cleanup slice or the next phase's scope), defer knowingly, or drop. **Record each
+  verdict on the entry's own line as it is taken** — `— done (<fix commit>)` when a
+  slice closed it, `— dropped (owner, <date>)` on a drop ruling; a deferral leaves
+  the line unmarked. The line's marker is what the retirement bullet below reads;
+  a verdict that lives only in this conversation is one no later step can act on.
+  "A big enough
   pile becomes a cleanup slice" defers indefinitely when nothing ever presents the
   pile; this is the presentation point. One class is exempt from default deferral: an
   entry that contradicts a **ratified spec decision** is a spec conflict (halt 3),
@@ -311,28 +316,41 @@ one at a time buried in the bullet that raised it.
   state (next phase or STABILIZATION), fold deferred review findings into the backlog,
   refresh START HERE.
 - **Archive the closed phase's detail.** If the project accumulated per-slice write-ups
-  in PROJECT_INDEX during the arc, move them into that phase's own spec file — which
-  already exists and is already the historical home — leaving the Phase History row and
-  a short paragraph behind. The index's bounded sections (Phase, START HERE, the gate
-  baseline) are what a fresh session reads first; they stop working as an answer to
+  in PROJECT_INDEX during the arc, move them into that phase's own spec file where one
+  exists — the historical home. A STABILIZATION cleanup arc has no phase spec; say so
+  and leave its detail where the retirement bullet below can reach it. Leave the Phase
+  History row and
+  a short paragraph behind. The index's bounded sections (Phase, START HERE) are what
+  a fresh session reads first; they stop working as an answer to
   "what do I do next" once closed history sits above them, and one real adoption reached
   2,400 lines with the answer buried under five phases of merged detail. Nothing is
   deleted — the detail is simply not this file's job past the phase close.
 - **Retire closed items to `spec/PROJECT_INDEX_HISTORY.md`.** The archive bullet above
-  moves this phase's detail; this one is the growing sections' exit path
-  (`spec/SDLC.md`, *Bookkeeping rules*, states the rule). Move out of the index:
-  deferred-backlog entries marked done or dropped, Kit-friction lines flipped
-  `absorbed` more than one phase ago, and Environment gotchas whose fix is verified.
-  On first retirement create the file with a one-line header — "Retired from
-  `spec/PROJECT_INDEX.md` — closed items only; numbering preserved." — then, this
+  moves this phase's detail; this one is the exit path for the two growing record
+  sections (`spec/SDLC.md`, *Bookkeeping rules*, states the rule). Move out of the
+  index: deferred-backlog entries whose line carries a closing marker — `— done
+  (<fix commit>)` or `— dropped (owner, <date>)`, written by the backlog bullet
+  above or by the slice that closed them — and Kit-friction lines flipped
+  `absorbed` more than one phase ago. (Environment gotchas are a bounded section
+  with their own rule — delete when fixed — and never retire; Phase History stays,
+  one cheap row per phase.) On first retirement create the file with a one-line
+  header — "Retired from
+  `spec/PROJECT_INDEX.md` — closed items only." — then, this
   close and every close, append one dated section (`## Retired at Phase NN close —
-  <date>`) and move the entries **verbatim**, numbering and provenance intact, so a
-  `backlog #N` reference in an old commit, retro, or report still resolves. Open
-  items never move — an open entry in the history file is work hidden from every
-  session that acts on the index. Nothing is deleted, and no session reads the
-  history file at start: `CLAUDE.md`'s spec-loading table gives it its only trigger
-  (tracing a retired item), which is what keeps the index a dashboard without making
-  anything unfindable.
+  <date>`) and move the entries **verbatim** — any numbering, provenance tags, and
+  markers intact, so an old reference to an entry still resolves. Then the step's
+  own check, in the same pass: re-read the section just written — every entry moved
+  must carry its closing marker, and one without is pulled back into the index,
+  because an open entry in the history file is work hidden from every session that
+  acts on the index; the check fails visibly by producing a pulled-back entry.
+  Nothing is deleted, and no session reads the history file at start — its
+  spec-loading trigger belongs in `CLAUDE.md`'s table (the `CLAUDE.template.md`
+  row: never at session start, only tracing a retired item; `/sdlc-retro`'s
+  closed-item sweeps are the other sanctioned read). **Check that table now**: if
+  this project's `CLAUDE.md` lacks the row — an adoption updated rather than
+  re-instantiated — add it in this docs commit, or every retired item becomes
+  unfindable by the rule that was supposed to make retirement safe.
+- Trim/align the phase spec if the review changed behavior described there.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Suggest any durable lessons worth saving to auto-memory.
 - Offer `/sdlc-retro` — it extracts lessons from the phase just closed, while the

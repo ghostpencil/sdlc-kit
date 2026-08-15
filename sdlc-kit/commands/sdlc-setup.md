@@ -171,7 +171,7 @@ questionnaire.
   nothing.
 
   **Do not ask for a coverage floor and do not propose a number.** No CI run exists yet,
-  so any figure would be invented. Resolve `{{COVERAGE_FLOOR}}` (gate section of
+  so any figure would be invented. Resolve `{{COVERAGE_FLOOR}}` (*Records* in
   `spec/SDLC.md`) as `TBD from first CI run` and follow the procedure in
   `reference/GATE_RECIPES.md`.
 
@@ -491,8 +491,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `/end-slice` escape the command step cannot catch, a session that committed and
    ended without verifying. A commit with **no** record keys at all is flagged only
    when the TDD guards are installed and their state shows this session did
-   slice-loop work, and that class never blocks — it is log-only by design until
-   the kit's own field bar clears — so on a guard-less adoption say plainly: the
+   slice-loop work, and that class never blocks — it is log-only by design on
+   every install — so on a guard-less adoption say plainly: the
    backstop catches defective records, not silently absent ones. The cost is one
    more stop hook and a per-clone log. Default to offering, not to installing.
    If accepted:
@@ -595,7 +595,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    same recording rules as New mode Round 3 (`{{MODEL_POLICY}}` in `spec/SDLC.md`;
    `{{DEFAULT_MODEL}}` in `.claude/settings.json` or the line deleted; never into a
    command file). If CI already enforces a coverage floor,
-   resolve `{{COVERAGE_FLOOR}}` (gate section of `spec/SDLC.md`) with the existing
+   resolve `{{COVERAGE_FLOOR}}` (*Records* in `spec/SDLC.md`) with the existing
    number as-is — **after proving the claim**: confirm the enforcing step actually
    runs in the commands CI executes (a threshold bound to a build phase CI never
    reaches enforces nothing — `spec/SDLC.md`, *Coverage floor*, states the

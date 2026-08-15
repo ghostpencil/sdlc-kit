@@ -26,9 +26,11 @@ project's own. It never opens an issue, never pushes, and never sends anything a
 Read `spec/PROJECT_INDEX.md` (Phase History, deferred backlog, Environment gotchas,
 Notes) and `spec/SDLC.md` (*Records* — gate definition and recorded baseline — plus
 the kit version in its header). Where `spec/PROJECT_INDEX_HISTORY.md` exists, read
-its sections for the window too: closed items retire there at phase close, so a sweep
-that clusters the backlog or counts repeats from the index alone is sweeping a
-population with its closed half removed. The
+it too — **all its sections, not only the window's**: closed items retire there at
+phase close dated by the close that retired them, not by origin, and the questions
+this file's sweeps ask (the same finding three times, what sat unaddressed longest)
+are cross-phase by nature — a sweep that reads only the index, or only the window's
+section, is sweeping a population with its closed half removed. The
 window is the phase named in the argument, or the most recent Phase History row.
 
 **When the kit is co-developed alongside this project** — its home repository is on
@@ -55,8 +57,9 @@ Gather evidence before forming any view. These may run as parallel read-only swe
 none of them writes anything.
 
 - **Deferred-backlog provenance tags.** Entries are meant to record where they came from
-  (`(slice review, <date>)`, `(whole-arc review, PR #N)`). Cluster the ones that do —
-  and treat untagged entries as their own small finding. Ask: which review
+  (`(slice review, <date>)`, `(whole-arc review, PR #N)`) — retired entries in
+  `spec/PROJECT_INDEX_HISTORY.md` included, per step 1's read. Cluster the ones that
+  do — and treat untagged entries as their own small finding. Ask: which review
   stage produced the most findings, which findings repeat across slices, what has been
   sitting unaddressed longest. Repetition is the signal — the same finding three times
   is a process gap, not three mistakes.
@@ -233,7 +236,8 @@ ignored (normally byte-identical to upstream
 project holds); for a skill, vendored or kit-written, the installed
 `.claude/skills/<name>/SKILL.md`, cited as `skills/<name>/SKILL.md`; for a template,
 the instantiated file (`spec/SDLC.md`,
-`spec/TESTING.md`, `spec/PROJECT_INDEX.md`, `CLAUDE.md`), cited as its
+`spec/TESTING.md`, `spec/PROJECT_INDEX.md`, `spec/PRODUCT_CONTRACT.md`,
+`CLAUDE.md`), cited as its
 `templates/*.template.md` source with a note that the quote comes from the
 instantiated copy, placeholders resolved. Kit-repo paths are read directly only when
 step 1's co-development clause applies. Quote the implicated text with a section or

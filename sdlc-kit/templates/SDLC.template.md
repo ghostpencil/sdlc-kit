@@ -110,10 +110,13 @@ for the *owner* to follow.
 
 ## Records
 
-The per-project record: every value the daily commands read from this file lives in
-this one section — a command session loads these lines, not the rest of the file.
-Each record names the section whose rules govern it; everything else here is loaded
-for process questions, never for values.
+The per-project record the close-outs run on: the scope, the gate and its baseline
+and floor, the CI line, the hook and guard notes, and the model policy live in this
+one section — a command session reading those values loads these lines, not the rest
+of the file. Each record names the section whose rules govern it. A few values live
+at the step that uses them instead: the run command and acceptance surface (*Phase
+end*, halt 4), the deploy note (*Phase end*, step 6), the main branch (*Shape*), the
+kit version (the header) — each read where it is used, never re-derived.
 
 **Scope: {{SDLC_SCOPE}}**
 <!-- What this process governs and what is explicitly out of scope. "The whole repo" is
@@ -135,7 +138,7 @@ read it from here (rules: *Gate baseline*).
 
 The same checks run in CI ({{CI_DESCRIPTION}}). Merges to `{{MAIN_BRANCH}}` require the
 CI check green — via branch protection where it is configured, and as a process rule
-regardless.
+regardless (rules: *The Gate*).
 
 **Coverage floor:** {{COVERAGE_FLOOR}} (rules: *Coverage floor*)
 <!-- "TBD from first CI run" until one exists. Set just below the first green CI run's
@@ -427,7 +430,8 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    or **estimated** — the same distinction the deferred backlog draws about causes,
    applied where a number is first ratified. The spec stays lean enough to be read
    whole at every slice — decisions, behaviors, slices, and checklists are the spec;
-   bulk research and interview detail go to an appendix file the spec links, loaded
+   bulk research and interview detail go to an appendix file the spec links, with
+   its own spec-loading row in `CLAUDE.md` naming its trigger, loaded
    only when a slice needs it (`/next-slice` reads the phase spec at every slice).
 4. Owner approves the decisions + slice breakdown *(same halt, second checkpoint)*.
 5. Branch `feat/phase-NN-<slug>` created off `{{MAIN_BRANCH}}`; `spec/PROJECT_INDEX.md`
@@ -673,9 +677,9 @@ Run `/end-phase` when the last slice is done:
   with the date.
 - Deferred review findings go to the backlog, not into scope creep; a big enough pile
   becomes a cleanup slice by owner decision.
-- A slice that adds a tool, runtime, or service the gate now requires records it (the
-  gate section above; Environment gotchas in PROJECT_INDEX) and adds it to CI in the
-  same commit. A gate dependency discovered by a contributor's red run is a
+- A slice that adds a tool, runtime, or service the gate now requires records it
+  (*Records* → *The gate*; Environment gotchas in PROJECT_INDEX) and adds it to CI in
+  the same commit. A gate dependency discovered by a contributor's red run is a
   documentation bug.
 - **A gotcha recorded in three consecutive slices becomes a check, or is ratified
   unpreventable.** The third recurrence of the same environmental hazard buys a gate
@@ -690,17 +694,24 @@ Run `/end-phase` when the last slice is done:
   file). The bounded ones are what a fresh session reads first and are kept short;
   per-slice detail is archived into the phase spec at phase close rather than
   accumulating above them.
-- **Closed items retire out of the index at phase close.** The growing sections gain
-  entries at every slice close, and without an exit path they only grow — a real
+- **Closed items retire out of the index at phase close.** The two growing record
+  sections — the deferred backlog and the Kit friction log — gain entries at every
+  slice close, and without an exit path they only grow: a real
   adoption's index reached 1,820 lines, 69% of it deferred backlog, read by every
-  fresh session at start. At `/end-phase` post-merge bookkeeping, items that are
-  **closed** — backlog entries done or dropped, Kit-friction lines `absorbed` more
-  than one phase ago, Environment gotchas whose fix is verified — move verbatim to
+  fresh session at start. At `/end-phase` post-merge bookkeeping, items whose line
+  carries closing evidence — a backlog entry marked `— done (<fix commit>)` or
+  `— dropped (owner, <date>)` (the backlog presentation writes the marker as the
+  verdict is taken), a Kit-friction line flipped to its absorbed form
+  (`- <date> — <friction> — absorbed by retro <date>`) more
+  than one phase ago — move verbatim to
   `spec/PROJECT_INDEX_HISTORY.md` (created on first retirement), one dated section
-  per phase close, numbering and provenance preserved so an old `backlog #N`
-  reference still resolves. Open items never retire — an open entry in the history
-  file is work hidden from every session that acts on the index. Nothing is deleted;
-  and any sweep over **closed** items (a retro counting repeats, a deletion-rule
-  search) reads the history file too — retirement splits that population across two
+  per phase close, any numbering and all provenance preserved so an old reference
+  to an entry still resolves. (Environment gotchas are bounded — delete when fixed
+  — and never retire; Phase History stays, one row per phase.) An item without its
+  closing marker never retires — an open entry in the history file is work hidden
+  from every session that acts on the index, so the retirement step re-reads what
+  it just moved and pulls back any entry lacking the marker. Nothing is deleted;
+  and a retro's sweep over **closed** items (repeat counts, oldest-unaddressed)
+  reads the history file too — retirement splits that population across two
   files, and a sweep that reads only the index has a denominator it did not
   enumerate.

@@ -1090,3 +1090,71 @@ the Records fold MOVES recorded values verbatim, never re-derives; the history
 file is `/end-phase`'s to create; `CLAUDE.md`'s table diff arrives by hand.
 CHANGELOG's Unreleased now carries two labeled batches (CONTRACT, CONTEXT).
 Manifest regenerated same-commit. 0.23.0 tags with both batches.
+
+## 60. The second pre-0.23.0 `/kit-check` — run 2026-08-15 on the CONTEXT batch:
+## the pass catches the batch's own §58-class regression a third time running,
+## and the retirement rule is redesigned on four of its findings
+
+Full pass, §58's shape: the mechanical four in-session (inv 10 — 40 hashes match
+committed content, 40 = ls-files − 1; inv 4 — `{{` in `sdlc-setup.md` only (51),
+exit check names its exact scope; inv 6 — 83 refs, multiset byte-identical to the
+§58-verified state, zero renumbering (§58's "84" was a case-insensitive count);
+inv 9 — all 68 tracked files enumerated, one stale annotation), the eleven
+reading passes fanned to seven parallel agents. Clean outright: inv 7 (every
+derived mapping statement verified, both classifiers, both denominators), inv 11
+(seven vendored files all R100-only since verification; kit-written never
+described as vendored; notices exact), inv 3 (census 49, byte-identical across
+the commit, 49/49 resolved). Passes with findings: 1, 5, 8, 9, 12, 15. Fails,
+fixed: 2, 13, 14.
+
+**The headline (inv 2, blocking):** the retirement bullet's edit replaced the
+line it anchored on — `- Trim/align the phase spec…` — without re-emitting it,
+leaving phase-end's spec-cleanup step canonical in the template and executed
+nowhere. Third consecutive batch caught replacing its own anchor (§55, §58, now
+§59's edit); restored. **The design findings (inv 13/14/15, the retirement rule
+rebuilt on them):** the "done or dropped" predicate read a marker no step wrote
+— the backlog presentation now records each verdict on the entry line (`— done
+(<fix commit>)` / `— dropped (owner, <date>)`) and retirement keys on the
+marker; Environment gotchas were claimed as a growing section while marked
+*bounded* with their own delete-when-fixed rule — dropped from the population,
+which now names exactly the two growing record sections; "open items never
+move" was an assertion nothing could observe — the step now re-reads what it
+moved and pulls back any entry lacking its marker, the visible failure, added
+to inv 13's denominator in both homes; the retro's history read was
+window-scoped while repeat counts are cross-phase — rescoped to all sections.
+**The Records preamble overclaimed** ("every value" — while `{{RUN_COMMAND}}`,
+`{{DEPLOY_NOTE}}`, `{{ACCEPTANCE_SURFACE}}`, `{{MAIN_BRANCH}}`, kit version
+legitimately live at the steps that use them): scoped honestly in all four
+homes (template preamble, CLAUDE row, both transition notes), with the
+stay-put values named where they stay. **Inv 1 on the new text:** the "only
+trigger" sentence asserted the adopter's CLAUDE.md content — now a
+check-and-add step in the same docs commit; the `backlog #N` rationale assumed
+numbering the template never produces — softened to any-numbering-preserved;
+"installed by /sdlc-setup" (false for updated projects) → "installed at" ×5.
+**Pre-existing findings fixed the same session:** six stale "gate section"
+pointers → *Records* (setup ×2, GATE_RECIPES ×2, template, end-slice — the
+end-slice one a write target aimed at the value-free doctrine section);
+"(Phase, START HERE, the gate baseline)" named an index section the template
+forbids; the archive bullet's "which already exists" false for STABILIZATION
+arcs; REVIEW_LENSES' deletion-path search was the one contract caller with no
+absence clause; PROJECT_INDEX's coverage-floor tri-home line not widened for
+build-file enforcers; the retro's citation enumeration missing
+`spec/PRODUCT_CONTRACT.md`; the mirror homes' 0.23.0 notes diverging on five
+facts (aligned, README side); README step-5 enumeration missing the history
+file; the tree's "§1–§30" → "§1–§51"; and the inv-12 purity sweep's seven
+pre-existing kit-development leaks in shipped files — `kit FEATURE_PLAN`
+citations in `tdd-guard-claude.template.py` (×3), `close-out.template.sh`
+(×2, incl. the §52.2 arming clock — now "log-only by design on every
+install"), `GATE_RECIPES` §50, the "kit's own field bar" clauses (setup,
+GATE_RECIPES), and Dungeon Daddy named in SKILLS.md — all converted to plain
+field facts per §55's precedent. Sub-threshold, recorded not actioned: setup's
+kit-folder SKILLS.md pointer (§58's standing note), the floor comment's
+phrasing divergence from its doctrine (substance agrees), sdlc-update's
+classifier naming no shell (POSIX assumed — real, larger than this pass), the
+2,400-line vs 1,820-line history figures (different snapshots, both real).
+One agent finding refuted in triage: extending the deletion-rule search to the
+history file — the search's population is the contract and ratifying specs,
+which retirement never touches; the template's parenthetical naming it was the
+defect and is gone. Proof suites re-run after the two hook-template comment
+fixes; manifest regenerated, discrimination proven. 0.23.0 tags with §59 and
+this section in the tree.

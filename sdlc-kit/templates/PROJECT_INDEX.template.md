@@ -19,10 +19,12 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      that phase's own spec file at the close — a safety net, not the plan; nothing is
      deleted, but this file is a dashboard first and an archive never. A single source
      of truth nobody can find the answer in has stopped being one.
-     Growing sections also have an exit path: at every phase close, /end-phase retires
-     CLOSED items — backlog entries done or dropped, friction lines absorbed more than
-     a phase ago, gotchas whose fix is verified — into spec/PROJECT_INDEX_HISTORY.md,
-     one dated section per close, numbering preserved. Open items never retire. -->
+     The two growing record sections (Deferred backlog, Kit friction log) also have an
+     exit path: at every phase close, /end-phase retires items whose line carries a
+     closing marker — "— done (<fix commit>)" / "— dropped (owner, <date>)" on a
+     backlog entry, the absorbed form on a friction line more than a phase old — into
+     spec/PROJECT_INDEX_HISTORY.md, one dated section per close, numbering and
+     provenance preserved. An entry without its marker never retires. -->
 
 ## Phase — *bounded*
 
@@ -37,8 +39,9 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
       Coverage floor: <TBD from first CI run | the CI-enforced figure>."
      or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature.
      In every mode this block carries the coverage-floor line: /end-phase's post-merge
-     bookkeeping asserts it, spec/SDLC.md's recorded floor, and the CI workflow value
-     are identical at every phase close. -->
+     bookkeeping asserts it, spec/SDLC.md's recorded floor, and the enforced threshold
+     value (the CI workflow file, or the build file's check rule where the workflow
+     only invokes the check) are identical at every phase close. -->
 
 ## START HERE — Next work — *bounded*
 

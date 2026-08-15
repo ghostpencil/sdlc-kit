@@ -93,7 +93,8 @@ For each, read the named files in full — do not sample — and cite evidence p
   skills-listing check, the setup exit checks, the slice loop's mutation check, the
   coverage-floor establishment proof, the deploy verification, the
   preserved-contract check and the product-contract reconcile, the
-  unconsumed-artifact lens's deletion-path contract search, the update
+  unconsumed-artifact lens's deletion-path contract search, the retirement step's
+  closing-marker re-read, the update
   classifier, the release workflow's manifest verification, the `tools/` proof
   suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`

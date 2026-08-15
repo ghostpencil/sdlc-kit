@@ -239,7 +239,7 @@ FIELD_REPORT_2026-08-15.md           ← whole-project review of ai-news-dashboa
 CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN_HISTORY.md §11
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
 FEATURE_PLAN.md                      ← the live plan: standing decisions, clocks, active work
-FEATURE_PLAN_HISTORY.md              ← its retired sections §1–§30, numbering preserved
+FEATURE_PLAN_HISTORY.md              ← its retired sections §1–§51, numbering preserved
 KIT_INVARIANTS.md                    ← the invariant ledger /kit-check verifies
 sdlc-kit-process-flow.md             ← the process walkthrough: setup, the four daily
                                         commands, the halts, and where the hook guards fire
@@ -601,8 +601,9 @@ only as a hand-apply, and the per-version transition notes name each one.
    read at phase boundaries by the updated `/plan-phase` (preserved-contract sweep)
    and `/end-phase` (per-item acceptance verdicts, preserved-contract check,
    contract reconcile). The updated commands point at that file and at
-   `spec/SDLC.md` sections (*Product contract* and its phase-start/phase-end
-   additions) your un-re-instantiated spec does not yet carry — the spec wins until
+   `spec/SDLC.md` sections (*Product contract*; the phase-start, halt-4,
+   arc-review, and bookkeeping additions; the slice-loop trigger line) your
+   un-re-instantiated spec does not yet carry — the spec wins until
    you fold the template diff. Copy the template as-is; the contract starts empty
    on purpose — the one-time backfill over prior phases' ratified decisions is
    offered at your next `/end-phase`, owner-confirmed there, never inferred at
@@ -610,22 +611,32 @@ only as a hand-apply, and the per-version transition notes name each one.
 
    **0.23.0 also restructures `spec/SDLC.md` and gives the index an exit path —
    both arrive only by folding the `SDLC.template.md` diff.** A *Records* section
-   now holds every per-project value the commands read (gate commands, baseline,
-   coverage floor, the hook/guard/checker notes, model policy), so a command
+   now holds the per-project values the close-outs read (scope, gate commands,
+   baseline, coverage floor, CI line, the hook/environment line, the
+   guard/ledger/close-out notes, model policy — a handful of others stay at the
+   step that uses them, and the section's preamble names each), with the doctrine
+   sections below referencing it, so a command
    session loads one bounded section instead of the whole file; folding the diff
    **moves your recorded values verbatim** — never re-derive or re-type them from
    the template. Until it is folded, the updated commands' *(Records)* pointers
    degrade soft: the facts are the same lines at their old positions, and the spec
-   wins as ever. Separately, `/end-phase` now retires closed items
-   (done/dropped backlog entries, long-absorbed friction lines, verified-fixed
-   gotchas) to `spec/PROJECT_INDEX_HISTORY.md`, which that command creates on
+   wins as ever. Separately, `/end-phase` now retires closed items from the two
+   growing record sections — backlog entries whose line carries a closing marker
+   (`— done (<fix commit>)` / `— dropped (owner, <date>)`), friction lines
+   absorbed more than a phase ago — to `spec/PROJECT_INDEX_HISTORY.md`, which
+   that command creates on
    first retirement — nothing to create at update time. `CLAUDE.md`'s spec-loading
-   table diff (the *Records* row wording; the new history-file row) arrives by
-   hand too — `CLAUDE.md` is project-owned. The update command's 0.23.0 note
+   table changes arrive by hand too (its `spec/SDLC.md` row now names *Records*; a
+   new `spec/PROJECT_INDEX_HISTORY.md` row carrying its never-at-session-start
+   trigger) — `CLAUDE.md` is project-owned, so hand yourself the
+   `CLAUDE.template.md` table diff rather than letting an update edit the file;
+   `/end-phase`'s retirement bullet checks for the row at each close and adds it
+   in the docs commit if absent. The update command's 0.23.0 note
    states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
-   `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `spec/PRODUCT_CONTRACT.md`,
+   `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
+   `spec/PRODUCT_CONTRACT.md`,
    `CLAUDE.md`, `.claude/settings.json`,
    `.github/hooks/*.json` (other than `sdlc-close-out.json`, which is kit-owned),
    `.github/hooks/sdlc-gate.sh`,

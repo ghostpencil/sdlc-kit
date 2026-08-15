@@ -44,7 +44,7 @@ itself a finding (`spec/SDLC.md` states the rule).
 
 Run the `change-simplify` skill on the working diff: reuse, simplification, efficiency,
 and altitude, applied only where this slice introduced or worsened the condition. It is
-installed by `/sdlc-setup` into `.claude/skills/change-simplify/` and is available on
+installed at `.claude/skills/change-simplify/` and is available on
 both CLIs.
 
 It runs **here, before the review**, so the reviewer reads the code that will actually
@@ -77,7 +77,7 @@ this slice has already made on the branch — `git diff <main>...HEAD` if the sl
 commits). It reviews along two axes that fail independently and are reported side by
 side, never merged: **Spec** — does this implement the slice's exit criteria, and only
 those — and **Standards** — does it follow the conventions recorded in `CLAUDE.md`
-*Runtime Conventions*. The skill is installed by `/sdlc-setup` into
+*Runtime Conventions*. The skill is installed at
 `.claude/skills/diff-review/` and is available on both CLIs; it names no CLI-specific
 agent or model.
 
@@ -160,7 +160,7 @@ however far the conversation has moved on.
 For every **new guard, branch, or error path** this slice added (review fixes
 included): delete or invert it once, run the suite, and watch it fail on exactly the
 test that claims to pin it — then restore and confirm green. Use the mutation-testing
-skill (`mutation-testing`, installed by `/sdlc-setup`) for anything beyond a quick
+skill (`mutation-testing`, installed at `.claude/skills/mutation-testing/`) for anything beyond a quick
 delete-and-run. A check is only trustworthy once it has been made to disagree; a guard
 whose deletion leaves the suite green is untested code wearing a test's name, and this
 practice caught exactly that on a real project — twice — in guards whose tests could
@@ -178,7 +178,7 @@ message — not the test harness. The gate (step 2) is evidence about the suite;
 the only slice-level evidence about the **behavior**, and without it the first time
 anything runs the change outside the harness is phase end — a real adoption's ingestion
 break survived its slice's close-out exactly that way and surfaced at phase end, four
-fix commits later. The skill is installed by `/sdlc-setup` into
+fix commits later. The skill is installed at
 `.claude/skills/change-verify/` and is available on both CLIs; its own report contract
 applies (a transcript block per run — a pass not observed is not a pass).
 
@@ -233,8 +233,9 @@ loop already wrote down.
 Run the close-out checker on the commit just made — in **the agent's shell tool**,
 the same scope as the gate — with the invocation recorded in `spec/SDLC.md`
 (*Records*), taking the close-out checker note's line **for the CLI running this
-session** (where `sh` resolves in the agent's shell it is
-`sh .github/hooks/sdlc-close-out.sh check`), and quote its output in full in the
+session** — the note's line is the record, never a guessed form, however common
+(`sh .github/hooks/sdlc-close-out.sh check` is typical but measured wrong on some
+shells) — and quote its output in full in the
 hand-back — a pass not observed is not a pass. If `spec/SDLC.md` carries **no**
 such note, this project's process file predates the checker (`/sdlc-update`'s
 transition note names exactly this window): say so in the hand-back and have the
@@ -270,8 +271,8 @@ Update `spec/PROJECT_INDEX.md`:
 - Append deferred review findings to the backlog with rationale, provenance
   (e.g. "(slice review, <date>)"), and the cause marker from step 4's triage
   (**measured** / **suspected**).
-- If this slice added a tool, runtime, or service the gate now requires, record it (gate
-  section of `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and add it to CI in
+- If this slice added a tool, runtime, or service the gate now requires, record it
+  (*Records* → *The gate* in `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and add it to CI in
   the same commit — a gate dependency discovered by a contributor's red run is a
   documentation bug.
 - **Escalate a recurring gotcha instead of re-describing it.** Before appending to

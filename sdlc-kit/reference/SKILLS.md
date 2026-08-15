@@ -175,7 +175,7 @@ an optional Claude-Code-only deepening at phase end and is required by nothing.
 
 ## Custom skills
 
-Project-specific additions (Dungeon Daddy has `/ui-test` and `/assess-tests`) follow
+Project-specific additions (one real adoption added `/ui-test` and `/assess-tests`) follow
 the same split the kit's own files do: something the owner *types* is a command in
 `.claude/commands/`; something a session should reach for on its own is a skill
 directory in `.claude/skills/<name>/SKILL.md`. Both are project-scoped and shared via

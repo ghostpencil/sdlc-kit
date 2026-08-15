@@ -29,12 +29,19 @@ nothing ever removes a closed one; and every daily command loaded the whole ~40�
 ### Added (CONTEXT)
 - **[adoption-only + installable]** The index's exit path: `SDLC.template.md`
   *Bookkeeping rules* gains the closed-item retirement rule, and `/end-phase`
-  post-merge bookkeeping executes it — done/dropped backlog entries, friction lines
-  `absorbed` more than a phase ago, and verified-fixed environment gotchas move
+  post-merge bookkeeping executes it — from the two growing record sections,
+  backlog entries whose line carries a closing marker (`— done (<fix commit>)` /
+  `— dropped (owner, <date>)`, written by the backlog presentation as each verdict
+  is taken) and friction lines
+  `absorbed` more than a phase ago move
   **verbatim** to `spec/PROJECT_INDEX_HISTORY.md` (created by the command on first
   retirement, one dated section per phase close, numbering and provenance preserved
-  so old `backlog #N` references resolve). Open items never retire. Any sweep over
-  *closed* items reads the history file too (`/sdlc-retro`'s orient step says so) —
+  so old references resolve; Environment gotchas are bounded — delete when fixed —
+  and never retire). An entry without its marker never retires, and the step
+  re-reads what it moved and pulls back any entry lacking one — the visible
+  failure, now on invariant 13's list. The retro's closed-item sweeps read the
+  history file too, all sections, not only the window's (repeat counts are
+  cross-phase by nature) —
   retirement splits that population, and a sweep reading only the index has a
   denominator it did not enumerate. `CLAUDE.template.md`'s spec-loading table gives
   the history file its only trigger: never at session start.
