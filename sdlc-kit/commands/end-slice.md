@@ -13,8 +13,8 @@ moment to inspect the work first. If this command was reached without the owner 
 for it, stop.
 
 The review (step 4) is the analysis-heavy part; check the model policy recorded in
-`spec/SDLC.md` (`/model` to switch — on a CLI where routing is operator-performed, the
-policy names the moment to set it).
+`spec/SDLC.md` (*Records*; `/model` to switch — on a CLI where routing is
+operator-performed, the policy names the moment to set it).
 
 ## Workflow
 
@@ -27,14 +27,15 @@ policy names the moment to set it).
 
 ### 2. Run the gate
 
-Run the gate exactly as defined in `spec/SDLC.md` — the steps recorded there, in order.
+Run the gate exactly as recorded in `spec/SDLC.md` (*Records*) — the steps recorded
+there, in order.
 
 All steps must be green. If not, fix the failures first (TDD skill rules apply if tests
 change), then re-run. Do not proceed on red.
 
-Green means green **against the gate baseline recorded in `spec/SDLC.md`** — zero for a
-clean adoption, the recorded counts for a project adopted with a red baseline. Any
-increase is a regression and is fixed in this slice. Read the baseline from `spec/SDLC.md`;
+Green means green **against the gate baseline recorded in `spec/SDLC.md`** (*Records*)
+— zero for a clean adoption, the recorded counts for a project adopted with a red
+baseline. Any increase is a regression and is fixed in this slice. Read the baseline;
 never assume it is zero. And green here is green **in this session's shell** — where
 local and CI disagree about a measurement, CI is authoritative and the disagreement is
 itself a finding (`spec/SDLC.md` states the rule).
@@ -230,8 +231,8 @@ loop already wrote down.
 ### 8. Verify the record — structural, and quoted
 
 Run the close-out checker on the commit just made — in **the agent's shell tool**,
-the same scope as the gate — with the invocation recorded beside the gate in
-`spec/SDLC.md`, taking the close-out checker note's line **for the CLI running this
+the same scope as the gate — with the invocation recorded in `spec/SDLC.md`
+(*Records*), taking the close-out checker note's line **for the CLI running this
 session** (where `sh` resolves in the agent's shell it is
 `sh .github/hooks/sdlc-close-out.sh check`), and quote its output in full in the
 hand-back — a pass not observed is not a pass. If `spec/SDLC.md` carries **no**

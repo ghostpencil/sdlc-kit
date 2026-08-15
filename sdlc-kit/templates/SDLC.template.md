@@ -1,10 +1,5 @@
 # {{PROJECT_NAME}} — SDLC
 
-**Scope: {{SDLC_SCOPE}}**
-<!-- What this process governs and what is explicitly out of scope. "The whole repo" is
-     the common answer; a mixed repo (app + docs, app + infra, monorepo packages) names
-     the boundary here so no session has to guess it. -->
-
 Canonical description of the development process. The commands `/plan-phase`,
 `/next-slice`, `/end-slice`, and `/end-phase` (installed project-scoped by
 `/sdlc-setup`, so they travel with the repo) automate it; if
@@ -113,9 +108,21 @@ summary; it never replaces it and never interleaves with it. The rules elsewhere
 this file make the *agent's* output correct; this is the one that makes it possible
 for the *owner* to follow.
 
-## The Gate
+## Records
 
-"The gate" means all of the following, in order, all green:
+The per-project record: every value the daily commands read from this file lives in
+this one section — a command session loads these lines, not the rest of the file.
+Each record names the section whose rules govern it; everything else here is loaded
+for process questions, never for values.
+
+**Scope: {{SDLC_SCOPE}}**
+<!-- What this process governs and what is explicitly out of scope. "The whole repo" is
+     the common answer; a mixed repo (app + docs, app + infra, monorepo packages) names
+     the boundary here so no session has to guess it. -->
+
+### The gate
+
+All of the following, in order, all green (rules: *The Gate*):
 
 ```
 {{GATE_LINT_CMD}}        # lint
@@ -123,76 +130,19 @@ for the *owner* to follow.
 {{GATE_TEST_CMD}}        # full test suite
 ```
 
-### Gate baseline
-
-**Baseline: {{GATE_BASELINE}}**
-
-Green means green **against that baseline** — zero for a clean adoption, the recorded
-counts for a project adopted mid-flight. Any *increase* is a regression and is fixed in
-the slice that caused it, never accepted as a cost. The baseline only ever moves down, as
-the STABILIZATION backlog burns it toward zero; when it changes, it is re-recorded here in
-the same commit.
-
-A count can also hold still because the checker stopped looking: suppressions, skipped
-tests, and constructs that hide code from analysis (an unannotated decorator can type
-everything it wraps as `Any`) freeze the number while shrinking what it measures. A
-ceiling that stops measuring is worse than a high one — when the count will not move,
-check what the checker still reaches, not only what it reports.
-
-**The baseline moves by procedure, not by ambition.** At every phase close, post-merge
-bookkeeping reports the current count beside the recorded one and does one of three
-things: lowers the baseline here in the same docs commit, records an owner decision to
-lower it via a stabilization slice in the next phase, or records that the owner
-**ratified holding it** — with how many arcs it has been unchanged. A ceiling nobody is
-ever asked about is not a ratchet, and *"drive it down through the backlog"* is a wish
-until a step serves it.
-
-**Rendering:** an unchanged red baseline is reported as `N (unchanged for K arcs)`,
-never as `N (ceiling held)` or any other phrasing where a stall reads as an
-achievement. The same number twelve times is the finding, and it has to look like one.
-
-This is the single place the baseline is defined. Commands read it from here.
+**Baseline: {{GATE_BASELINE}}** — the single place the baseline is defined; commands
+read it from here (rules: *Gate baseline*).
 
 The same checks run in CI ({{CI_DESCRIPTION}}). Merges to `{{MAIN_BRANCH}}` require the
 CI check green — via branch protection where it is configured, and as a process rule
 regardless.
 
-**Coverage floor:** {{COVERAGE_FLOOR}}
+**Coverage floor:** {{COVERAGE_FLOOR}} (rules: *Coverage floor*)
 <!-- "TBD from first CI run" until one exists. Set just below the first green CI run's
      observed figure (printed, or read from that run's coverage report artifact where
      the check prints only pass/fail), using CI's exact invocation; it only ever
      raises. Lowering it to pass a build defeats its only purpose — existing coverage
      debt is a backlog item, not a merge blocker. -->
-
-The floor raises by procedure, not by rule alone — at phase end, where coverage is
-known: if the coverage measured for the merged branch rose over the arc, post-merge
-bookkeeping sets the threshold — in whichever artifact carries it: the CI workflow
-file, or the build file's check rule where the workflow only invokes the check — to
-just under the measured figure (in the same docs commit as the PROJECT_INDEX update),
-then asserts that the floor recorded here and in `spec/PROJECT_INDEX.md` is identical
-to that threshold value — the bookkeeping is not done until they are. The measured
-figure is read off the enforced run's own output: CI's printed number where the check
-prints one, else the coverage report artifact the same run produced — a check that
-prints only pass/fail yields no printed figure ever, and waiting for one leaves this
-leg inert. Reading that artifact is not computing the number locally; re-running
-coverage outside the enforced invocation to produce a different number is. The
-recorded number is a claim; the threshold value is the enforcement — a mismatch means
-the ratchet is not ratcheting, which is the only regression the floor exists to
-prevent.
-
-**When the floor is first established, prove it fires — once.** Set it above the
-observed number, run the gate's own commands (and CI's, if they differ), and watch
-the failure; then set the real value. Two homes agreeing on a number proves nothing
-about whether the enforcing step ever *runs* in the commands the gate executes — a
-floor bound to a build phase the gate never reaches passes every reconcile and
-enforces nothing. Same discipline as the edit-time hook's install proof: a check
-that has never been seen to fail is not yet a check.
-
-If local and CI disagree about a measurement — a pass/fail, an error count, a coverage
-figure — CI is authoritative. And the disagreement is itself a finding: work out *why*
-before adjusting any threshold, because the gap is usually a symptom (a git-ignored
-file, an environment difference, a test reaching a real service), not noise to average
-away.
 
 An edit-time hook ({{HOOK_CONFIG_PATH}}) runs the lint/typecheck steps on every edited
 source file, so most gate failures surface at edit time rather than at slice end.
@@ -300,7 +250,7 @@ setup: {{HOOK_ENVIRONMENT}}
 
 
 
-## Model policy
+### Model policy
 
 {{MODEL_POLICY}}
 <!-- Owner-confirmed at setup; adjust any time (re-record here when it changes). The
@@ -323,6 +273,69 @@ setup: {{HOOK_ENVIRONMENT}}
      executes is prose; naming the moment it is executed is what makes it a step. A
      tier the owner left on `auto` is recorded as `auto (ratified <date>)` with what
      that forfeits stated beside it. -->
+
+## The Gate
+
+The gate's commands, its baseline, and the coverage floor are *Records* entries above;
+this section carries the rules that govern them.
+
+Green means green **against the recorded baseline** — zero for a clean adoption, the
+recorded counts for a project adopted mid-flight. Any *increase* is a regression and is
+fixed in the slice that caused it, never accepted as a cost. The baseline only ever
+moves down, as the STABILIZATION backlog burns it toward zero; when it changes, it is
+re-recorded in *Records* in the same commit.
+
+A count can also hold still because the checker stopped looking: suppressions, skipped
+tests, and constructs that hide code from analysis (an unannotated decorator can type
+everything it wraps as `Any`) freeze the number while shrinking what it measures. A
+ceiling that stops measuring is worse than a high one — when the count will not move,
+check what the checker still reaches, not only what it reports.
+
+### Gate baseline
+
+**The baseline moves by procedure, not by ambition.** At every phase close, post-merge
+bookkeeping reports the current count beside the recorded one and does one of three
+things: lowers the baseline in *Records* in the same docs commit, records an owner
+decision to lower it via a stabilization slice in the next phase, or records that the
+owner **ratified holding it** — with how many arcs it has been unchanged. A ceiling
+nobody is ever asked about is not a ratchet, and *"drive it down through the backlog"*
+is a wish until a step serves it.
+
+**Rendering:** an unchanged red baseline is reported as `N (unchanged for K arcs)`,
+never as `N (ceiling held)` or any other phrasing where a stall reads as an
+achievement. The same number twelve times is the finding, and it has to look like one.
+
+### Coverage floor
+
+The floor raises by procedure, not by rule alone — at phase end, where coverage is
+known: if the coverage measured for the merged branch rose over the arc, post-merge
+bookkeeping sets the threshold — in whichever artifact carries it: the CI workflow
+file, or the build file's check rule where the workflow only invokes the check — to
+just under the measured figure (in the same docs commit as the PROJECT_INDEX update),
+then asserts that the floor recorded in *Records* and in `spec/PROJECT_INDEX.md` is
+identical to that threshold value — the bookkeeping is not done until they are. The
+measured figure is read off the enforced run's own output: CI's printed number where
+the check prints one, else the coverage report artifact the same run produced — a
+check that prints only pass/fail yields no printed figure ever, and waiting for one
+leaves this leg inert. Reading that artifact is not computing the number locally;
+re-running coverage outside the enforced invocation to produce a different number is.
+The recorded number is a claim; the threshold value is the enforcement — a mismatch
+means the ratchet is not ratcheting, which is the only regression the floor exists to
+prevent.
+
+**When the floor is first established, prove it fires — once.** Set it above the
+observed number, run the gate's own commands (and CI's, if they differ), and watch
+the failure; then set the real value. Two homes agreeing on a number proves nothing
+about whether the enforcing step ever *runs* in the commands the gate executes — a
+floor bound to a build phase the gate never reaches passes every reconcile and
+enforces nothing. Same discipline as the edit-time hook's install proof: a check
+that has never been seen to fail is not yet a check.
+
+If local and CI disagree about a measurement — a pass/fail, an error count, a coverage
+figure — CI is authoritative. And the disagreement is itself a finding: work out *why*
+before adjusting any threshold, because the gap is usually a symptom (a git-ignored
+file, an environment difference, a test reaching a real service), not noise to average
+away.
 
 ## Product contract
 
@@ -412,7 +425,10 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    point — CI on an arc branch, typically — is a planning defect), risks. Any decision
    carrying a number is tagged **measured** (naming the run, count, or query behind it)
    or **estimated** — the same distinction the deferred backlog draws about causes,
-   applied where a number is first ratified.
+   applied where a number is first ratified. The spec stays lean enough to be read
+   whole at every slice — decisions, behaviors, slices, and checklists are the spec;
+   bulk research and interview detail go to an appendix file the spec links, loaded
+   only when a slice needs it (`/next-slice` reads the phase spec at every slice).
 4. Owner approves the decisions + slice breakdown *(same halt, second checkpoint)*.
 5. Branch `feat/phase-NN-<slug>` created off `{{MAIN_BRANCH}}`; `spec/PROJECT_INDEX.md`
    flipped to BUILD with the spec pointer; docs committed. Then `/clear` and `/next-slice`.
@@ -534,8 +550,8 @@ Run `/end-slice` when the slice's exit criteria are met:
     and 9.
 11. Verify the record: run the close-out checker on the commit just made — **in the
     agent's shell tool**, the same scope as steps 5–9, using the invocation line the
-    close-out checker note beside the gate in this file records **for the CLI running
-    this session** (on a both-CLIs project the note carries one line each) — and
+    close-out checker note in this file's *Records* section records **for the CLI
+    running this session** (on a both-CLIs project the note carries one line each) — and
     quote its output in full — a pass not observed is not a pass. The
     checker verifies **structural presence only** — every evidence line there or
     carrying its stated-skip form, one line per key for `quality:`/`mutation:`/
@@ -640,7 +656,8 @@ Run `/end-phase` when the last slice is done:
    *Gate baseline* above); the backlog surfaced
    with severity counts for an owner decision (convert / defer / drop), PROJECT_INDEX
    Phase History row + status flip, deferred-pile consolidation, **closed-phase detail
-   archived out of PROJECT_INDEX into the phase spec**, spec cleanup, memory
+   archived out of PROJECT_INDEX into the phase spec**, **closed items retired to
+   `spec/PROJECT_INDEX_HISTORY.md`** (see *Bookkeeping rules*), spec cleanup, memory
    updates worth keeping.
 7. `/sdlc-retro` is **offered**, not required — it extracts the phase's lessons while
    the evidence is fresh, sorting each into a project lesson (into PROJECT_INDEX) or a
@@ -673,3 +690,17 @@ Run `/end-phase` when the last slice is done:
   file). The bounded ones are what a fresh session reads first and are kept short;
   per-slice detail is archived into the phase spec at phase close rather than
   accumulating above them.
+- **Closed items retire out of the index at phase close.** The growing sections gain
+  entries at every slice close, and without an exit path they only grow — a real
+  adoption's index reached 1,820 lines, 69% of it deferred backlog, read by every
+  fresh session at start. At `/end-phase` post-merge bookkeeping, items that are
+  **closed** — backlog entries done or dropped, Kit-friction lines `absorbed` more
+  than one phase ago, Environment gotchas whose fix is verified — move verbatim to
+  `spec/PROJECT_INDEX_HISTORY.md` (created on first retirement), one dated section
+  per phase close, numbering and provenance preserved so an old `backlog #N`
+  reference still resolves. Open items never retire — an open entry in the history
+  file is work hidden from every session that acts on the index. Nothing is deleted;
+  and any sweep over **closed** items (a retro counting repeats, a deletion-rule
+  search) reads the history file too — retirement splits that population across two
+  files, and a sweep that reads only the index has a denominator it did not
+  enumerate.

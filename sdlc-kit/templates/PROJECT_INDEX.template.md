@@ -18,7 +18,11 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      message, not here. If detail collects here anyway, /end-phase archives it into
      that phase's own spec file at the close — a safety net, not the plan; nothing is
      deleted, but this file is a dashboard first and an archive never. A single source
-     of truth nobody can find the answer in has stopped being one. -->
+     of truth nobody can find the answer in has stopped being one.
+     Growing sections also have an exit path: at every phase close, /end-phase retires
+     CLOSED items — backlog entries done or dropped, friction lines absorbed more than
+     a phase ago, gotchas whose fix is verified — into spec/PROJECT_INDEX_HISTORY.md,
+     one dated section per close, numbering preserved. Open items never retire. -->
 
 ## Phase — *bounded*
 

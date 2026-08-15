@@ -16,7 +16,7 @@ Optional argument to skip candidate selection: `/plan-phase 12` or
 `/plan-phase user accounts`.
 
 This command is analysis-heavy; check the model policy recorded in `spec/SDLC.md`
-(`/model` to switch).
+(*Records*; `/model` to switch).
 
 ## Workflow
 
@@ -173,6 +173,14 @@ Slices must each be one-session-sized, with exit criteria a named observer can v
 at the point they are claimed — a test, the gate, CI on the main branch, or the
 acceptance checklist (step 4's testability sweep is the check). Behaviors map onto
 slices — no behavior left unassigned.
+
+**Keep the spec lean enough to be read whole at every slice.** Decisions, behaviors,
+slices, and checklists are the spec; interview transcripts, survey output, and other
+bulk research go to an appendix file the spec links
+(`spec/PHASE_NN_<SLUG>_NOTES.md`), loaded only when a slice needs it — add it a
+spec-loading row in `CLAUDE.md` with that trigger. `/next-slice` reads the phase spec
+at every slice: a real adoption's 173 KB phase spec taxed every session of its arc
+with detail no single slice used.
 
 ### 6. Approval — owner halt
 

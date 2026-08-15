@@ -142,8 +142,8 @@ questionnaire.
   decision, or the mapping lies. Do not build the policy on per-agent model pinning —
   `COPILOT.md` records what is and is not verified about `model:` frontmatter there.
 
-  Record the confirmed policy as `{{MODEL_POLICY}}` (*Model policy* section of
-  `spec/SDLC.md`). On Copilot CLI the policy text is **operator-facing** — the
+  Record the confirmed policy as `{{MODEL_POLICY}}` (*Model policy*, under *Records*
+  in `spec/SDLC.md`). On Copilot CLI the policy text is **operator-facing** — the
   template's comment states the shape: it names which commands run at which tier and
   the moment the routing is executed (set `/model` in-session, or `COPILOT_MODEL` for
   a scripted run, **before** a High-tier command), because a tier policy nobody

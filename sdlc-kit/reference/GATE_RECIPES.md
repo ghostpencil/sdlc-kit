@@ -150,7 +150,7 @@ bash -c 'echo "shell: $0"; uname -a; pwd; command -v python || command -v python
 Run it from the CLI **launched the way this project's operator actually launches
 it** (the answer is per-launcher, above; a team with two launch habits probes both).
 Read four things off it, and record them in `spec/SDLC.md`
-beside the gate, the launch route first:
+(*Records*, beside the gate), the launch route first:
 
 1. **Which shell answered** — `uname` naming WSL/Linux on a Windows project is the
    hazard above, and means the hooks are running somewhere the project does not exist.

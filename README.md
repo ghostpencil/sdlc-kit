@@ -608,6 +608,22 @@ only as a hand-apply, and the per-version transition notes name each one.
    offered at your next `/end-phase`, owner-confirmed there, never inferred at
    update time. The update command's 0.23.0 note states the same procedure.
 
+   **0.23.0 also restructures `spec/SDLC.md` and gives the index an exit path —
+   both arrive only by folding the `SDLC.template.md` diff.** A *Records* section
+   now holds every per-project value the commands read (gate commands, baseline,
+   coverage floor, the hook/guard/checker notes, model policy), so a command
+   session loads one bounded section instead of the whole file; folding the diff
+   **moves your recorded values verbatim** — never re-derive or re-type them from
+   the template. Until it is folded, the updated commands' *(Records)* pointers
+   degrade soft: the facts are the same lines at their old positions, and the spec
+   wins as ever. Separately, `/end-phase` now retires closed items
+   (done/dropped backlog entries, long-absorbed friction lines, verified-fixed
+   gotchas) to `spec/PROJECT_INDEX_HISTORY.md`, which that command creates on
+   first retirement — nothing to create at update time. `CLAUDE.md`'s spec-loading
+   table diff (the *Records* row wording; the new history-file row) arrives by
+   hand too — `CLAUDE.md` is project-owned. The update command's 0.23.0 note
+   states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/TESTING.md`, `spec/PRODUCT_CONTRACT.md`,
    `CLAUDE.md`, `.claude/settings.json`,

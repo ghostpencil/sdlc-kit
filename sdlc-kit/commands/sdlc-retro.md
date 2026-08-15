@@ -24,7 +24,11 @@ project's own. It never opens an issue, never pushes, and never sends anything a
 ### 1. Orient and set the window
 
 Read `spec/PROJECT_INDEX.md` (Phase History, deferred backlog, Environment gotchas,
-Notes) and `spec/SDLC.md` (gate definition, recorded gate baseline, kit version). The
+Notes) and `spec/SDLC.md` (*Records* — gate definition and recorded baseline — plus
+the kit version in its header). Where `spec/PROJECT_INDEX_HISTORY.md` exists, read
+its sections for the window too: closed items retire there at phase close, so a sweep
+that clusters the backlog or counts repeats from the index alone is sweeping a
+population with its closed half removed. The
 window is the phase named in the argument, or the most recent Phase History row.
 
 **When the kit is co-developed alongside this project** — its home repository is on

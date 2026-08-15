@@ -10,8 +10,8 @@ which halts like everywhere else. Process reference: `spec/SDLC.md`.
 `/end-phase` — after the last slice of the phase has been through `/end-slice`.
 
 This command is review-heavy; check the model policy recorded in `spec/SDLC.md`
-(`/model` to switch — on a CLI where routing is operator-performed, the policy names
-the moment to set it).
+(*Records*; `/model` to switch — on a CLI where routing is operator-performed, the
+policy names the moment to set it).
 
 ## Workflow
 
@@ -23,11 +23,12 @@ the moment to set it).
 
 ### 2. Run the gate
 
-Run the gate exactly as defined in `spec/SDLC.md` — the steps recorded there, in order.
+Run the gate exactly as recorded in `spec/SDLC.md` (*Records*) — the steps recorded
+there, in order.
 
-Green means green **against the gate baseline recorded in `spec/SDLC.md`** — zero for a
-clean adoption, the recorded counts for a project adopted with a red baseline. Any
-increase is a regression. Read the baseline from `spec/SDLC.md`; never assume it is zero.
+Green means green **against the gate baseline recorded in `spec/SDLC.md`** (*Records*)
+— zero for a clean adoption, the recorded counts for a project adopted with a red
+baseline. Any increase is a regression. Read the baseline; never assume it is zero.
 Green here is green **in this session's shell**; where local and CI disagree about a
 measurement, CI is authoritative and the disagreement is itself a finding
 (`spec/SDLC.md` states the rule) — step 6's merge halt reads CI's own checks.
@@ -317,7 +318,21 @@ one at a time buried in the bullet that raised it.
   "what do I do next" once closed history sits above them, and one real adoption reached
   2,400 lines with the answer buried under five phases of merged detail. Nothing is
   deleted — the detail is simply not this file's job past the phase close.
-- Trim/align the phase spec if the review changed behavior described there.
+- **Retire closed items to `spec/PROJECT_INDEX_HISTORY.md`.** The archive bullet above
+  moves this phase's detail; this one is the growing sections' exit path
+  (`spec/SDLC.md`, *Bookkeeping rules*, states the rule). Move out of the index:
+  deferred-backlog entries marked done or dropped, Kit-friction lines flipped
+  `absorbed` more than one phase ago, and Environment gotchas whose fix is verified.
+  On first retirement create the file with a one-line header — "Retired from
+  `spec/PROJECT_INDEX.md` — closed items only; numbering preserved." — then, this
+  close and every close, append one dated section (`## Retired at Phase NN close —
+  <date>`) and move the entries **verbatim**, numbering and provenance intact, so a
+  `backlog #N` reference in an old commit, retro, or report still resolves. Open
+  items never move — an open entry in the history file is work hidden from every
+  session that acts on the index. Nothing is deleted, and no session reads the
+  history file at start: `CLAUDE.md`'s spec-loading table gives it its only trigger
+  (tracing a retired item), which is what keeps the index a dashboard without making
+  anything unfindable.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Suggest any durable lessons worth saving to auto-memory.
 - Offer `/sdlc-retro` — it extracts lessons from the phase just closed, while the

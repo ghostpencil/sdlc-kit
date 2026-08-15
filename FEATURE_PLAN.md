@@ -1032,3 +1032,61 @@ Proof suite re-run after the checker's comment fix: 21 unit + 15 stop cases, 16
 mutations all caught. Manifest regenerated, discrimination proven — exactly the
 eleven fix-touched files changed hash. The release is unblocked; 0.23.0 tags
 with this section in the tree.
+
+## 59. CONTEXT — two pre-release evaluations owner-directed 2026-08-15, both
+## grounded against the adopter trees, shipped into the untagged 0.23.0: the
+## index gets an exit path, the SDLC file gets a Records section
+
+The owner asked two questions before tagging: does PROJECT_INDEX need a
+retire-to-history rule, and is the kit's installed markdown doing smart context
+engineering. Both answered by measurement, not reading: TFit's index
+(kit 0.11.0) is 143.6 KB / 1,820 lines with the Deferred backlog at 1,257 lines
+(69%) — read by every fresh session, ~36k tokens of bookkeeping before any work
+— while ai-news-dashboard (0.22.0) sits at 13.7 KB after four phases: the
+0.22.0-era discipline prose flattens the curve but nothing removes a closed
+item, so the curve is the same. Root cause ruled: growing sections gain entries
+at every slice close and closed items have no destination — the one archival
+rule (`/end-phase` → phase spec) targets per-slice write-ups, and a done
+backlog entry belongs to no phase spec. On the second question the layering
+verified sound (instantiation strips template comments — measured zero in both
+adopters; skills expose frontmatter only; REVIEW_LENSES trigger-gated) with one
+structural defect: every daily command reads a handful of one-line facts out of
+`spec/SDLC.md` (gate commands ~l.120, baseline l.128, floor l.160, checker note
+l.267, model policy l.305 pre-restructure), so "read the baseline" loads the
+whole 676-line file — ~8–10k tokens per command invocation for five lines of
+record. Third finding, smaller: `/next-slice` reads the phase spec whole every
+slice and the kit said nothing about spec size (TFit Phase 06: 172.8 KB).
+
+Shipped as three deliverables, one recommendation explicitly held. (1) The
+retirement rule: closed items only (done/dropped backlog entries, friction
+lines `absorbed` >1 phase, verified-fixed gotchas) move verbatim at `/end-phase`
+post-merge bookkeeping to `spec/PROJECT_INDEX_HISTORY.md` — single file over
+the owner-floated dated-files folder, mirroring the kit's own
+FEATURE_PLAN → FEATURE_PLAN_HISTORY precedent (numbering preserved, one
+load-table row), dated sections per close giving both shapes at once. Open
+items never retire. Denominator rulings taken with the rule (the lineage's own
+lesson — a retirement splits a population): `/sdlc-retro`'s orient step now
+reads the history file for the window; the deletion-rule search and the
+unactioned sweep verified unaffected (they read contract/specs and `open`
+lines respectively). (2) The Records section: `SDLC.template.md` restructured
+so every per-project value (scope, gate commands, baseline + single-place
+sentence, coverage floor, CI line, hook/environment, the three notes, model
+policy as a `###` under it) sits in one bounded leading section; doctrine
+unchanged below under its old headings (*The Gate*, *Gate baseline*,
+*Coverage floor* — the latter promoted from bold lead-in to real heading,
+resolving §58's sub-threshold citation note). Executed as a move-the-doctrine
+restructure so the three high-density instantiation comments never left their
+lines. The four daily commands, retro, setup (model-policy pointer), and
+GATE_RECIPES point at *Records*; pointers degrade soft on an unfolded spec
+(same lines, old positions — the 0.15.0 disagreement direction, stated in the
+transition note). (3) `/plan-phase` step 5 + phase-start step 3: the spec stays
+lean enough to read whole per slice; bulk research to a linked appendix file
+with its own spec-loading row. Held: the template↔command dedup (the slice
+loop's ~40-line review paragraph exists in both homes) — real, but it thins
+the canon invariant 2 arbitrates by, and it is a batch of its own if ever;
+recorded here so the decision is a ruling, not an omission. Transition notes
+extended in both mirrored homes (`sdlc-update.md` 0.23.0 bullet + root README):
+the Records fold MOVES recorded values verbatim, never re-derives; the history
+file is `/end-phase`'s to create; `CLAUDE.md`'s table diff arrives by hand.
+CHANGELOG's Unreleased now carries two labeled batches (CONTRACT, CONTEXT).
+Manifest regenerated same-commit. 0.23.0 tags with both batches.

@@ -520,6 +520,24 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   purpose** — the one-time backfill over prior phases' ratified decisions is
   offered at the next `/end-phase`, owner-confirmed there, never inferred at
   update time.
+- **0.23.0 also restructures `spec/SDLC.md` and gives the index an exit path — both
+  arrive only by the owner folding the `SDLC.template.md` diff.** The restructure: a
+  *Records* section now holds every per-project value the commands read (scope, gate
+  commands, baseline, coverage floor, CI line, the hook/environment line, the
+  guard/ledger/close-out notes, model policy), with the doctrine sections below
+  referencing it — so a command session loads one bounded section, not the whole
+  file. Folding it **moves the project's recorded values verbatim**: the baseline
+  counts, the proven invocations, the measured hook environments are project facts
+  this update must never re-derive or re-type from the template. Until the diff is
+  folded, the updated commands' *(Records)* pointers degrade soft — the facts are
+  the same lines at their old positions, and the spec wins as ever. The exit path:
+  `/end-phase` now retires closed items (done/dropped backlog entries, long-absorbed
+  friction lines, verified-fixed gotchas) to `spec/PROJECT_INDEX_HISTORY.md`,
+  created by that command on first retirement — nothing to create at update time.
+  `CLAUDE.md`'s spec-loading table changes arrive by hand the same way (its
+  `spec/SDLC.md` row now names *Records*; a new `spec/PROJECT_INDEX_HISTORY.md` row
+  with its only trigger), and `CLAUDE.md` is project-owned — hand the owner the
+  `CLAUDE.template.md` table diff, never edit it.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

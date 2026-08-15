@@ -19,7 +19,49 @@ obligated to preserve it — a Phase-01 owner-ratified dashboard behavior was ab
 from the adopter's tree with every gate, test, and review green, and its only schema
 remnant was deleted by a later cleanup slice as an unconsumed artifact.
 
-### Added
+CONTEXT (`FEATURE_PLAN.md` §59, owner-directed 2026-08-15): two context-engineering
+fixes grounded in adopter measurements. A real adoption's `spec/PROJECT_INDEX.md`
+reached 143.6 KB / 1,820 lines — 69% of it deferred backlog — read by every fresh
+session at start, because growing sections gain entries at every slice close and
+nothing ever removes a closed one; and every daily command loaded the whole ~40–50 KB
+`spec/SDLC.md` to read a handful of one-line facts scattered through its doctrine.
+
+### Added (CONTEXT)
+- **[adoption-only + installable]** The index's exit path: `SDLC.template.md`
+  *Bookkeeping rules* gains the closed-item retirement rule, and `/end-phase`
+  post-merge bookkeeping executes it — done/dropped backlog entries, friction lines
+  `absorbed` more than a phase ago, and verified-fixed environment gotchas move
+  **verbatim** to `spec/PROJECT_INDEX_HISTORY.md` (created by the command on first
+  retirement, one dated section per phase close, numbering and provenance preserved
+  so old `backlog #N` references resolve). Open items never retire. Any sweep over
+  *closed* items reads the history file too (`/sdlc-retro`'s orient step says so) —
+  retirement splits that population, and a sweep reading only the index has a
+  denominator it did not enumerate. `CLAUDE.template.md`'s spec-loading table gives
+  the history file its only trigger: never at session start.
+- **[installable]** `/plan-phase` step 5 (and `SDLC.template.md` phase-start step 3):
+  the phase spec stays lean enough to be read whole at every slice — bulk research
+  and interview detail go to a linked appendix file with its own spec-loading row
+  (a real adoption's 173 KB phase spec taxed every session of its arc).
+
+### Changed (CONTEXT)
+- **[adoption-only]** `SDLC.template.md` restructured around a *Records* section:
+  every per-project value the commands read (scope, gate commands, baseline,
+  coverage floor, CI line, hook/environment line, the guard/ledger/close-out notes,
+  model policy) now lives in one bounded section — a command session loads those
+  lines, not the doctrine — with the governing rules unchanged below it (*The Gate*,
+  *Gate baseline*, *Coverage floor* keep their headings and text). The values moved;
+  no rule changed.
+- **[installable]** The four daily commands, `/sdlc-retro`, and `CLAUDE.template.md`'s
+  spec-loading table point their `spec/SDLC.md` reads at *Records* (gate, baseline,
+  checker invocation, model policy). On a spec not yet restructured the pointers
+  degrade soft — the facts are the same lines at their old positions.
+- **[installable]** `sdlc-update.md` and the root README carry the second half of the
+  0.23.0 transition note (mirrored): the *Records* fold moves recorded values
+  verbatim — never re-derived from the template; the history file is created by
+  `/end-phase`, nothing to create at update time; `CLAUDE.md`'s table diff arrives
+  by hand.
+
+### Added (CONTRACT)
 - **[adoption-only]** `templates/PRODUCT_CONTRACT.template.md` →
   `spec/PRODUCT_CONTRACT.md` (project-owned, placeholder-free, seeds empty): the
   current-truth statement of owner-ratified externally observable behavior — one
@@ -55,7 +97,7 @@ remnant was deleted by a later cleanup slice as an unconsumed artifact.
   updated in `/end-slice` §4 and `SDLC.template.md` (slice-loop step 7 and phase-end
   step 4).
 
-### Changed
+### Changed (CONTRACT)
 - **[installable]** `sdlc-setup.md` instantiates the contract in both modes; Existing
   mode seeds it **empty by design** — backfill at setup would be invented facts; the
   owner-confirmed backfill is `/end-phase`'s job at the first phase close.
