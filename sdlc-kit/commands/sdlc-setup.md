@@ -190,7 +190,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    test; run lint + typecheck + tests per `GATE_RECIPES.md`. Do not proceed red.
 3. Instantiate templates (resolve every `{{PLACEHOLDER}}`): `CLAUDE.md` (the
    spec-loading table's `{{EXTRA_SPEC_ROWS}}` resolves empty for a new project —
-   delete the placeholder line), `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status:
+   delete the placeholder line), `README.md` (from `README.template.md` — the human
+   entry point: Round 1's name and one-liner, Round 3's owner-verified run and stop
+   commands — the same resolved values as `CLAUDE.md`'s Commands block, the stop
+   line deleted under the same rule; a README already present — New mode tolerates
+   docs — is never overwritten: make Existing mode's step 2 offer instead),
+   `spec/SDLC.md`, `spec/PROJECT_INDEX.md` (status:
    PRE-PHASE-1; START HERE points at `/plan-phase` for the first phase; Phase History
    has no rows yet and Notes starts `- (none)` — empty is a resolved value, stated,
    never a placeholder left behind), `spec/PRODUCT_CONTRACT.md` (copied as-is — the
@@ -590,7 +595,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    (offer to rename the pre-existing file; if the owner keeps both names, record the
    disambiguation in PROJECT_INDEX's Environment gotchas — the command decides nothing
    here), spec set to generate, and how existing docs will be treated (merge plan for an existing CLAUDE.md —
-   preserve-and-extend, shown as a diff before writing). Interview in rounds for what
+   preserve-and-extend, shown as a diff before writing). **The README offer** rides in
+   the same halt — step 1 read the repo's README or found none: absent → offer to
+   instantiate `README.template.md`, the human entry point (what the app is, how to
+   run it, where the process docs live — links, never a second home for process
+   truth; its run command is the one the owner verified above, in their own shell);
+   present → it stays the project's, unwritten — but read its documented run command
+   against the owner-verified one, and a disagreement is an owner finding at this
+   halt, never a silent edit (the recorded specimen: a documented run command that
+   died at import for the owner while every agent-side run passed).
+   Interview in rounds for what
    analysis could not determine: whether this process governs the whole repo or a
    subset, and what is explicitly out of scope (step 1's survey of what else the repo
    holds seeds this question); acceptance-review surface and run command (and stop
@@ -644,6 +658,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      **Do not backfill it at setup:** entries seeded from inference are invented
      facts, and the one-time owner-confirmed backfill is `/end-phase`'s job at the
      first phase close (`spec/SDLC.md`, *Product contract*, states the rule).
+   - `README.md` — only on step 2's accepted offer (the no-README case): instantiate
+     from `README.template.md` with the interview's resolved values. An existing
+     README is never rewritten by setup; a run-command disagreement stays the owner
+     finding step 2 surfaced, not an edit.
    - Commands, the eight kit skills (five vendored, three kit-written), and
      `reference/REVIEW_LENSES.md` installed
      per New mode step 5 — the destinations depend on the confirmed target CLI; hook
@@ -677,8 +695,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
 ### 3. Close-out (both modes)
 
-1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
-   plus the instantiated gate-hook script for the target CLI —
+1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty —
+   plus `README.md` in the grep when this setup instantiated it (New mode's scaffold,
+   or Existing mode's accepted offer; a README setup did not write is not setup's to
+   scan) — plus the instantiated gate-hook script for the target CLI —
    `.github/hooks/sdlc-gate-claude.sh` on Claude Code, `.github/hooks/sdlc-gate.sh`
    on Copilot, both on a both-CLIs project — and, when step
    6's guards were accepted, the instantiated guard dialect(s):

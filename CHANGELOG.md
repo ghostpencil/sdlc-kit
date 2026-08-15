@@ -10,6 +10,42 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.25.0 — 2026-08-15
+
+README (`FEATURE_PLAN.md` §56.3 (e), owner-ruled 2026-08-15; built §62): the sixth
+field report's §8 answered. `/sdlc-setup` neither created nor checked a human README
+in either mode — New mode's scaffold list had no README entry, Existing mode read one
+only as analysis evidence — so an adopted project's only human-facing run
+instructions sat in PROJECT_INDEX's environment-gotchas section. Deliberately
+lightweight, as measured: a minimal human entry point (what the app is, how to run
+it, where the process docs live) — links, never a second home for process truth.
+
+### Added
+- **[adoption-only]** `templates/README.template.md` → `README.md` — name and
+  one-liner, a Run block, and links to `spec/PROJECT_INDEX.md`, `spec/SDLC.md`, and
+  `CLAUDE.md`, with the precedence comment (a spec file wins on disagreement; run
+  detail longer than a command belongs in Environment gotchas). **Zero new
+  placeholders**: it reuses Round 1's `{{PROJECT_NAME}}`/`{{PROJECT_ONE_LINER}}` and
+  Round 3's owner-shell-verified `{{RUN_COMMAND}}`/`{{STOP_COMMAND}}`, resolved with
+  the same values as `CLAUDE.md`'s Commands block.
+- **[installable]** `sdlc-setup.md`: New mode's scaffold instantiates it beside
+  `CLAUDE.md` (a pre-existing README is never overwritten — the Existing-mode offer
+  applies instead); Existing mode's feedback halt gains the offer — absent → offer
+  the template, present → the file stays the project's, but its documented run
+  command is read against the owner-verified one and a disagreement is an owner
+  finding at the halt (the recorded specimen: a documented run command that died at
+  import for the owner while every agent-side run passed). The close-out exit check
+  gains `README.md` when this setup instantiated it — a README setup did not write
+  is not setup's to scan (invariant 4's scoping rule, ledger updated). The
+  instantiated `README.md` is **project-owned** from that moment: both ownership
+  tables carry it, and no update ever touches it.
+
+### Repo (not shipped in the bundle)
+- `KIT_INVARIANTS.md`: invariant 4 restated with the conditional scope; the
+  invariant-13 denominator list gains the Existing-mode README run-command read
+  (mirrored in `/kit-check`, now "as of 0.25.0"). Root `CLAUDE.md`'s flow diagram
+  and exit-check quote, and the root README's file tree, updated to match.
+
 ## 0.24.0 — 2026-08-15
 
 PIN (`FEATURE_PLAN.md` §61, owner-directed 2026-08-15): the Claude hook-pin finding,

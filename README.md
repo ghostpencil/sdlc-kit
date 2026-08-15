@@ -191,6 +191,9 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
 │   ├── PRODUCT_CONTRACT.template.md → spec/PRODUCT_CONTRACT.md (current-truth product
 │   │                                   contract — seeds empty, placeholder-free)
+│   ├── README.template.md           → README.md            (human entry point: what the
+│   │                                   app is, how to run it, where the process docs
+│   │                                   live; New mode when absent, offered in Existing)
 │   ├── settings.template.json       → .claude/settings.json (Claude Code hook config: bare
 │   │                                   launcher lines only — no "shell" keys, measured 2026-08-15)
 │   ├── claude-gate.template.sh      → .github/hooks/sdlc-gate-claude.sh (edit-time gate hook,
@@ -288,7 +291,7 @@ The whole procedure rests on this split:
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
 | `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; the one `.sh` in that directory the kit owns — its neighbors are project-owned. |
 | `.github/hooks/sdlc-close-out.json` (Copilot, offered from 0.22.0: the checker's stop-time backstop wiring — present only where accepted) | **kit** | Same rule — compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes your accept; the update never adds or removes it. |
-| `CLAUDE.md`, `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
+| `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
 Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names

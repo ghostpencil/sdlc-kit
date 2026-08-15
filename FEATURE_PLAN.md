@@ -1370,3 +1370,47 @@ end-phase's CLAUDE.md-row check at retirement had no echo in the canonical
 template — one clause added to the retirement bullet. Proof suite re-run OK after
 the template-header edit; manifest 42/42 against staged content. The tree is
 release-ready pending the tag.
+
+## 62. README built — the §56.3 (e) ruling executed: one template, zero new
+## placeholders, and an offer that reads before it writes
+
+Built 2026-08-15, same day as the 0.24.0 release and both adopter updates; the
+ruling ("after CONTRACT") was satisfied at 0.23.0. Scope exactly as ruled:
+`templates/README.template.md` + New-mode scaffold entry + Existing-mode offer.
+The report-§8 measurement is the design bound — links, never a second home for
+process truth — so the template carries only Round 1's identity, Round 3's
+owner-verified run block, and the three spec links, with the precedence comment
+(spec wins; run detail longer than a command belongs in Environment gotchas).
+
+Decisions worth recording:
+
+- **Zero new placeholders** (inv 3 at zero cost): `{{PROJECT_NAME}}`,
+  `{{PROJECT_ONE_LINER}}`, `{{RUN_COMMAND}}`, `{{STOP_COMMAND}}` — all already
+  interviewed, resolved with the same values as `CLAUDE.md`'s Commands block, the
+  stop line deleted under the same rule.
+- **The exit check's scope extension is conditional** (inv 4, ledger + root
+  CLAUDE.md + setup all restated): `README.md` joins the `{{` grep only when this
+  setup instantiated it. A pre-existing README is project prose the check has no
+  business scanning — the same scoping logic that keeps the installed
+  `sdlc-setup.md` out.
+- **The present-README case writes nothing but reads one thing**: the documented
+  run command against the one the owner just verified in their own shell. A
+  disagreement is an owner finding at the feedback halt — the specimen (a
+  documented run command that died at import for the owner while every agent-side
+  run passed) is the exact defect class. New check → inv 13's denominator list
+  extended in both homes (ledger + `/kit-check`, now "as of 0.25.0") in the same
+  batch, per the §61.6 lesson.
+- **The instantiated `README.md` is project-owned from the moment it exists**:
+  both ownership tables (root README + `sdlc-update.md`, inv 8 mirrored) gain it
+  in the project row; the flow diagram and the root file tree carry the template
+  (inv 7's §61.6 lesson — trees updated *and* ownership tables, same batch). The
+  update classifier is untouched: README.md appears in no pathspec, which is the
+  correct shape for a never-classified project file.
+- **No update-time offer, by scope discipline**: the ruling named New-mode entry +
+  Existing-mode offer only. An already-adopted project without a README reaches
+  the template through `sdlc-update.md`'s standing adoption-only rule (raise as a
+  manual follow-up where it matters) — no 0.25.0 transition note, because nothing
+  arrives by hand and no process loop changed.
+
+MANIFEST 43/43 regenerated same-commit. Unreleased pending the next tag; the
+CHANGELOG entry is dated 2026-08-15 — re-date if the release slips.

@@ -40,7 +40,7 @@ way they read once the folder is sitting in a target project.
 
 ```
 sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
-  templates/*.template.*                     CLAUDE.md, spec/*.md
+  templates/*.template.*                     CLAUDE.md, README.md (when absent), spec/*.md
                                              (Claude Code: .claude/settings.json — bare
                                               launchers only — plus .github/hooks/
                                               sdlc-gate-claude.sh, sdlc-tdd-guard.py,
@@ -102,7 +102,8 @@ them. The six below are the working summary; on disagreement the ledger wins.
 
 1. **The placeholder contract.** Templates carry `{{PLACEHOLDER}}` markers; setup must
    resolve every one, and its exit check is
-   `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` — scoped to the instantiated
+   `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` (plus `README.md` when setup
+   instantiated it) — scoped to the instantiated
    files, because the installed `sdlc-setup.md` legitimately names placeholders.
    Adding a placeholder to a template without teaching `sdlc-setup.md` to ask for it
    breaks that check. Current set spans `templates/` and the hook recipe in

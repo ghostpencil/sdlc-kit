@@ -61,8 +61,9 @@ positives out of 32 — a plausible-looking check that was uniformly wrong.
 
 ## 4. The exit check covers exactly the instantiated files
 
-Setup's close-out check is `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` — the
-files setup instantiates, no more. The installed `sdlc-setup.md` is the **only**
+Setup's close-out check is `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` — plus
+`README.md` when setup instantiated it (the 0.25.0 human entry point; a pre-existing
+README is not setup's to scan) — the files setup instantiates, no more. The installed `sdlc-setup.md` is the **only**
 installed file permitted to carry literal `{{` (it must name placeholders to teach their
 resolution); every other installed file stays `{{`-free.
 
@@ -193,7 +194,10 @@ setup proof step, the checker's stop-time backstop with its fire-first proof and
 logging-to-deny ramp, the retro's ledger-alive precheck and its
 spec-claims-against-the-tree sweep, the
 skills-listing check, the exit
-checks, the slice loop's mutation check, the coverage-floor establishment proof, the
+checks, the Existing-mode README run-command read (0.25.0 — a present README's
+documented run command read against the owner-verified one; the disagreement surfaced
+at the halt is its visible failure), the slice loop's mutation check, the
+coverage-floor establishment proof, the
 deploy verification, the preserved-contract check and the product-contract
 reconcile, the unconsumed-artifact lens's deletion-path contract search, the
 retirement step's closing-marker re-read (an entry moved to
