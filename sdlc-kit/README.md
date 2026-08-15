@@ -54,11 +54,12 @@ skills/                  ← TDD skill set + the three kit-written passes
                            (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup; seven are
+templates/               ← instantiated into the project by /sdlc-setup; eight are
                            copied verbatim instead (the explore agent profile, the TDD
                            guards' hook JSON, the gate hook's launcher JSON, the
                            skill-ledger hook JSON, and the close-out backstop's hook
-                           JSON — all Copilot-side — plus the close-out evidence
+                           JSON — all Copilot-side — plus the Claude-side skill-ledger
+                           script, the close-out evidence
                            checker, both CLIs, and the product-contract seed →
                            spec/PRODUCT_CONTRACT.md, every adoption; none takes values)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
@@ -75,11 +76,13 @@ close-out evidence checker with its optional stop-hook wiring
 on a Copilot project that accepted the backstop offer — verbatim copies holding no
 project values) are **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything else `/sdlc-setup` writes into your project
-(`CLAUDE.md`, `spec/*.md`, the gate hook — `.claude/settings.json` on Claude Code,
+(`CLAUDE.md`, `spec/*.md`, the gate hook — `.github/hooks/sdlc-gate-claude.sh` +
+its launcher block in `.claude/settings.json` on Claude Code,
 `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` on Copilot CLI — the optional
 TDD-ordering guards,
 `.github/hooks/sdlc-tdd-guard.*`, and the optional skill-activation ledger hook,
-`.github/hooks/sdlc-skill-ledger.json`) is **project-owned** and is never
+`.github/hooks/sdlc-skill-ledger.json` on Copilot or `.sh` beside it on Claude
+Code) is **project-owned** and is never
 overwritten by an update — it holds your recorded gate baseline, owner decisions, and
 gotchas. The trade-off is worth knowing: a fix to a *recipe* in a later release reaches
 those files only as a changelog entry you apply by hand.

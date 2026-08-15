@@ -19,11 +19,11 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Kit commands (7) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
 | Kit skills (8: 5 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
-| Gate hook | `.claude/settings.json`, `PostToolUse` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
+| Gate hook | `.github/hooks/sdlc-gate-claude.sh` + a bare launcher block in `.claude/settings.json`, `PostToolUse` (split 0.24.0 — the per-hook `"shell"` pin was measured never firing on Claude Code 2.1.231) | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
 | TDD-ordering guards (optional, per dialect since 0.21.0) | `.github/hooks/sdlc-tdd-guard.py` + four hook blocks in `.claude/settings.json` — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` |
-| Skill-activation ledger (optional, logging-only) | the `"Skill"`-matcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
+| Skill-activation ledger (optional, logging-only) | `.github/hooks/sdlc-skill-ledger.sh` + the `"Skill"`-matcher launcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
 | Close-out evidence checker (always; a command step run by `/end-slice`, not a hook) | `.github/hooks/sdlc-close-out.sh`, invoked `sh …` from the Bash tool | the same file — but the shell tool resolves no `sh` (measured 2026-08-10, and its PATH's `bash` is WSL's, the corrupting route), so the invocation derives sh from the git on its PATH and `spec/SDLC.md` records the proven literal form |
-| Close-out stop-time backstop (optional, offered from 0.22.0; the same script's `stop-check` mode) | a `Stop` block in `.claude/settings.json` behind the `"shell": "bash"` pin (measured 2026-08-13: holds on `Stop`, runs Git Bash, stdin delivered) | `.github/hooks/sdlc-close-out.json`, `agentStop`, the guard JSON's `cat \| sh …` wrapper shape |
+| Close-out stop-time backstop (optional, offered from 0.22.0; the same script's `stop-check` mode) | a launcher-neutral `sh -c` `Stop` block in `.claude/settings.json` — no `"shell"` pin, which was measured never firing on 2.1.231 (GATE_RECIPES, *The hook environment*) | `.github/hooks/sdlc-close-out.json`, `agentStop`, the guard JSON's `cat \| sh …` wrapper shape |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |

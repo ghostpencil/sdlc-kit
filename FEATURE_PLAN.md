@@ -116,6 +116,10 @@ re-denominated form, and every clock in this section was already counted in arcs
   within two arcs a phase touching a contract surface must demonstrably encounter
   its entries. No confirmed catch after two field arcs → deletion candidate like
   any rule.
+- **PIN — opened 2026-08-15, owner-directed, targeted at the next release** (§61):
+  the Claude-dialect hook rewiring. Field-measured at the TFit 0.23.0 update: hooks
+  behind `"shell": "bash"` never fire on Claude Code 2.1.231 — the adopter's gate
+  hook had been silently inert. Design pre-registered in §61; decisions owed there.
 - **Standing input:** a TFit field report (Phase 07), whenever it arrives.
 - **The Copilot bench is still standing** (§29.3): fixture repo
   `D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot
@@ -1158,3 +1162,151 @@ which retirement never touches; the template's parenthetical naming it was the
 defect and is gone. Proof suites re-run after the two hook-template comment
 fixes; manifest regenerated, discrimination proven. 0.23.0 tags with §59 and
 this section in the tree.
+
+## 61. PIN opened — the Claude hook-pin finding: `"shell": "bash"` hooks never
+## fire on Claude Code 2.1.231, the TFit gate hook was silently inert, and the
+## Claude dialect gets the 0.18.0 launcher split — 2026-08-15
+
+Owner-directed 2026-08-15, same day as the finding ("I do want to address any
+Claude Code friction in the next kit release"), during the TFit 0.11.0 → 0.23.0
+update (their PR #17, merged 0ae7005 with CI green).
+
+### 61.1 The finding, with routes named
+
+Instantiating the 0.23.0 `settings.template.json` on TFit, the new Stop backstop
+block never wrote a log line while the guard's Stop block (a shell-neutral
+`python …` launcher) fired in the same sessions. Bench-isolated on a scratch repo,
+Claude Code 2.1.231, Windows, headless (`claude -p`) route, two probes:
+
+- **Stop:** a `"shell": "bash"` hook wrote nothing; an unpinned twin fired.
+- **PostToolUse:** same split — the pinned probe never ran, the unpinned
+  `sh -c` twin fired, `shutil.which('sh')` from the hook shell resolved
+  `C:\DevelopmentTools\Git\usr\bin\sh.EXE`, and stdin delivered the payload
+  (636 bytes measured).
+
+Consequence on the adopter: their edit-time gate hook — pinned `"shell": "bash"`
+since adoption, per the then-current template — **had been silently inert**, with
+no way to say since when: a pinned hook that never runs produces no error, no log,
+and no feedback, which is the 0.16.0 silent-failure shape recurring one layer up,
+in the dispatch layer no hook body can see. Their `spec/SDLC.md` hook-environment
+note and Kit friction log carry the field record; every TFit hook now runs
+launcher-neutral (logic in `.github/hooks/`, bare `sh <script>` / `python
+<script>` command lines, no `shell` key), and under that wiring every proof
+passed on the real dispatch route — gate framed exit-2 on a deliberate lint
+error, ledger line read back from a real `Skill` dispatch, backstop and guard
+stop lines from real session stops.
+
+**The contradiction to reconcile honestly:** `reference/GATE_RECIPES.md` records
+the pin as *"load-bearing and measured (2026-08-13: the pin holds on `Stop`, runs
+Git Bash … delivers the payload on stdin)"*, and the 2026-08-14 deny ramp
+exercised that block live. Both statements can be true: the 08-13/08-14 bench ran
+the interactive route, the 08-15 bench ran headless — or the CLI moved underneath
+(2.1.231 measured on 08-15; the bench version was not recorded, which is itself a
+finding for the bench discipline). The batch does not need the tiebreak: the fix
+is route-independent, and the recipe's claims get re-stated as two dated
+measurements with their routes named (inv 15's form) instead of one
+"measured, holds".
+
+### 61.2 The design, pre-registered — the 0.18.0 split, applied to the dialect
+### that skipped it
+
+The kit already learned this lesson on the Copilot side (0.18.0: "bare launcher
+lines in JSON, logic in script files that never cross the boundary") and the
+Claude guard dialect already ships it (`python <file> <mode>`, chosen in §50
+"the shell being unknowable"). The gate hook, ledger block, and stop backstop
+are the three Claude-side bodies that still depend on the pin. The batch:
+
+1. **`templates/claude-gate.template.sh`** (new) — the gate-hook body, verbatim
+   from today's `settings.template.json` command string, carrying
+   `{{SOURCE_GLOB}}`, `{{HOOK_LINT_CMD}}`, `{{HOOK_TYPECHECK_BLOCK}}` →
+   installed as project-owned `.github/hooks/sdlc-gate-claude.sh`;
+   `settings.template.json`'s block becomes the bare launcher
+   `sh .github/hooks/sdlc-gate-claude.sh` (`{{HOOK_STATUS_MESSAGE}}` stays in
+   the JSON).
+2. **`templates/skill-ledger-claude.template.sh`** (new, no placeholders) — the
+   ledger body → `.github/hooks/sdlc-skill-ledger.sh`, launcher
+   `sh .github/hooks/sdlc-skill-ledger.sh`; same offer/decline handling as
+   today (setup removes the block on decline; the script is not installed on a
+   decline).
+3. **The Stop backstop block** — inline rewrap, no new file (the body takes no
+   project values): `sh -c "if [ -d .git ] && [ -f
+   .github/hooks/sdlc-close-out.sh ]; then sh .github/hooks/sdlc-close-out.sh
+   stop-check; fi"`. Field-proven at TFit in exactly this form.
+4. **All three `"shell"` keys deleted** from `settings.template.json`; the proof
+   suite pins the launcher lines bare (the 0.18.0 "cannot be silently
+   re-cleverified" discipline), and `tools/gate-hook-check.py` reads the Claude
+   body from its new template home.
+5. **`GATE_RECIPES.md`**: the pin claims at the backstop wiring, the ledger
+   Claude paragraph, and the hook-environment section are re-stated as dated
+   per-route measurements (08-13/14 interactive-bench, 08-15 headless 2.1.231);
+   the hook-environment probe gains the dispatch check — a pinned-vs-unpinned
+   probe pair, since a hook that never fires is invisible to every body-level
+   probe the recipe has; bench runs record the CLI version from now on.
+6. **`sdlc-setup.md`** step 6: instantiate/copy the new script(s) per CLI;
+   install-list, README file trees, MANIFEST, THIRD_PARTY_NOTICES untouched
+   otherwise; placeholder census moves with the body (inv 4: the three hook
+   placeholders' template home changes; GATE_RECIPES documents them — keep in
+   step).
+7. **`sdlc-update.md` + root README** (mirrored, the two-statement rule): the
+   0.24.0 transition note — `.claude/settings.json` is project-owned, so
+   existing Claude adoptions get the rewire only by hand: three blocks
+   re-wired, two script files arriving, and the plain consequence stated: until
+   they land, on any CLI version/route where the pin does not fire, the gate
+   hook, ledger, and backstop have never been running. TFit already carries the
+   shape (field-proven 2026-08-15); ai-news is Copilot-side and unaffected.
+
+Everything new enters the §16 audit clock, counted in field arcs, as ever.
+
+### 61.3 Owner decisions owed before the build
+
+- **(a) The split shape.** Recommended: script files for the two bodies with
+  content (gate, ledger) + inline `sh -c` for the value-free backstop — the
+  0.18.0 precedent, and byte-for-byte what TFit now runs. Alternative: inline
+  `sh -c` wrapping for all three (no new files, but the gate body carries both
+  quote types and the wrap is exactly the "clever quoting" the 0.18.0 suite
+  pins against).
+- **(b) The interactive-route re-measure.** The 08-13 claim may be
+  route-specific. Not blocking (the new wiring works on both measured routes),
+  but a two-minute owner-shell check — one interactive session in the bench
+  repo with a pinned probe, read the marker — would settle whether the pin
+  regressed with a CLI version or never held headless. Recommended: run it
+  once before the release notes state the reconciliation.
+
+### 61.4 Rulings and the build — same day: both recommendations approved, the
+### batch built, and the proof tool's own decay caught in the doing
+
+Owner rulings 2026-08-15: **(a) the split shape as recommended** (script files for
+the gate and ledger bodies, inline `sh -c` for the value-free backstop); **(b) the
+interactive re-measure as recommended** — one owner-shell probe run, owed before
+the release notes state the reconciliation; the bench sits ready (below).
+
+Built the same day, per §61.2, all seven items: the two new templates
+(`claude-gate.template.sh` carrying the three hook placeholders,
+`skill-ledger-claude.template.sh` value-free), `settings.template.json` down to
+bare launchers with zero `"shell"` keys, GATE_RECIPES re-stated per-route with the
+probe's new item 4 (the dispatch check: a pinned-vs-unpinned probe pair, markers
+read back, CLI version recorded from now on), setup's per-CLI pair install +
+widened exit-check scope, the mirrored 0.24.0 transition notes (update command +
+root README, with the 0.22.0 notes' pin sentence pointed forward — the
+0.16.0→0.18.0 crossing precedent), COPILOT.md's three mapping rows, both READMEs'
+trees (root: two new template rows; bundle: verbatim-copy count 7→8, ownership
+sentence naming the new pair), MANIFEST regenerated (42 entries, 42/42 verified,
+python-hashed — the Git Bash `*`-prefix trap sidestepped again).
+
+**The build's own catch (inv 13 class):** `tools/gate-hook-check.py`'s Claude
+suite read `PostToolUse[0]` — an index 0.21.0's guard blocks silently re-pointed
+at the observe-test launcher, so from 0.21.0 until today the suite passed while
+driving the wrong block and **the Claude gate hook was unproven** — the software
+twin of the field finding (a proof that certifies the wrong artifact is a hook
+that never fires, one meta-level up). The suite now locates every block by
+matcher, reads the body from the new template home, and pins the bare-launcher
+and no-`"shell"`-key properties; run after the change: both dialects green under
+both parsers, wiring cases included.
+
+Adopter state: TFit already carries the exact shipped shape (field-proven at
+their update — the wiring this batch canonizes); ai-news is Copilot-side and
+unaffected. Release: the CHANGELOG entry is written; the tag waits on the owner's
+(b) probe and the pre-release `/kit-check`. The probe bench is staged at the
+scratch `stopbench` repo — a pinned Stop hook and an unpinned twin, each writing
+a marker — and the owner's two-minute part is: open Claude Code interactively in
+that directory, send one message, exit, and hand back the marker listing.

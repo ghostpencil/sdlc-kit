@@ -191,7 +191,10 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── TESTING.template.md          → spec/TESTING.md     (TDD + mock policy)
 │   ├── PRODUCT_CONTRACT.template.md → spec/PRODUCT_CONTRACT.md (current-truth product
 │   │                                   contract — seeds empty, placeholder-free)
-│   ├── settings.template.json       → .claude/settings.json (edit-time gate hook, Claude Code dialect)
+│   ├── settings.template.json       → .claude/settings.json (Claude Code hook config: bare
+│   │                                   launcher lines only — no "shell" keys, measured 2026-08-15)
+│   ├── claude-gate.template.sh      → .github/hooks/sdlc-gate-claude.sh (edit-time gate hook,
+│   │                                   Claude Code dialect: the logic, holding its placeholders)
 │   ├── copilot-hook.template.sh     → .github/hooks/sdlc-gate.sh (the same hook, Copilot dialect:
 │   │                                   the logic, holding every placeholder)
 │   ├── copilot-hook.template.json   → .github/hooks/sdlc-gate.json (its bare launcher; no values)
@@ -202,6 +205,8 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   │                                   dialect: event-split observation, shell-neutral launcher)
 │   ├── skill-ledger.template.json   → .github/hooks/sdlc-skill-ledger.json (optional, logging-only:
 │   │                                   the skill-activation ledger, Copilot dialect; no values)
+│   ├── skill-ledger-claude.template.sh → .github/hooks/sdlc-skill-ledger.sh (the same ledger,
+│   │                                   Claude Code dialect: the logic; no values)
 │   ├── close-out.template.sh        → .github/hooks/sdlc-close-out.sh (both CLIs, always: the
 │   │                                   close-out evidence checker /end-slice runs; no values)
 │   ├── close-out-hook.template.json → .github/hooks/sdlc-close-out.json (optional: the checker's
@@ -587,7 +592,10 @@ only as a hand-apply, and the per-version transition notes name each one.
    it, but the wiring is optional and per-CLI: `.github/hooks/sdlc-close-out.json`
    on Copilot (kit-owned verbatim, present only where you accept),
    a `Stop` block in `.claude/settings.json` on Claude Code (project-owned, by
-   hand — its `"shell": "bash"` key is load-bearing). A checker note predating
+   hand — and crossing 0.24.0 in the same update, install it in that release's
+   launcher-neutral form, not this one's pinned form: the `"shell": "bash"` key
+   this note originally called load-bearing was later measured never firing —
+   the 0.24.0 note below). A checker note predating
    0.22.0 says nothing about the backstop, so the choice is put now as setup would
    (logging mode only, fire-first proof per setup step 6; blocking is armed later via
    `.git/sdlc-close-out/deny-enabled`, and the bare-commit class stays log-only on
@@ -633,6 +641,28 @@ only as a hand-apply, and the per-version transition notes name each one.
    `/end-phase`'s retirement bullet checks for the row at each close and adds it
    in the docs commit if absent. The update command's 0.23.0 note
    states the same procedure.
+
+   **0.24.0 rewires every Claude-dialect hook launcher-neutral, and none of it
+   arrives by updating — `.claude/settings.json` and the hook scripts are
+   project-owned.** Measured 2026-08-15 (Claude Code 2.1.231): a hook carrying the
+   per-hook `"shell": "bash"` key never fired — `Stop` and `PostToolUse` alike, no
+   error, no log — while an unpinned twin fired; the same pinned block had measured
+   working 2026-08-13 on the interactive route, so the dispatch answer moves
+   between routes or CLI versions and nothing the kit ships depends on it anymore.
+   On a Claude Code project the consequence is stated plainly: **until the rewire
+   lands by hand, your gate hook, skill ledger, and stop backstop may never have
+   been running on some routes.** Hand-applies, the 0.18.0 shape: instantiate
+   `templates/claude-gate.template.sh` → `.github/hooks/sdlc-gate-claude.sh` with
+   the values read out of your current settings-file hook body, make the
+   `Edit|Write` block its bare launcher (`sh .github/hooks/sdlc-gate-claude.sh`);
+   where installed, `templates/skill-ledger-claude.template.sh` →
+   `.github/hooks/sdlc-skill-ledger.sh` (verbatim) with its block as
+   `sh .github/hooks/sdlc-skill-ledger.sh`, and the backstop block as the
+   launcher-neutral `sh -c "…stop-check…"` form; remove every `"shell"` key (the
+   guard blocks' `python …` lines were always neutral). Then re-run the hook proof
+   and the hook-environment probe **with its new dispatch check** (GATE_RECIPES,
+   *The hook environment*, item 4 — pinned-vs-unpinned probe pair, CLI version
+   recorded). The update command's 0.24.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,

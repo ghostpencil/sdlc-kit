@@ -5,12 +5,17 @@ Per-language commands for the two places tooling is configured during `/sdlc-set
 1. **The gate** (`spec/SDLC.md`) — lint, typecheck, full test suite; run at every
    `/end-slice` and `/end-phase`.
 2. **The edit-time hook** — the same lint/typecheck run on the single file just edited,
-   so failures surface immediately. Two dialects, one per target CLI: Claude Code's
-   (`.claude/settings.json`, from `templates/settings.template.json`) and Copilot CLI's
-   pair (`.github/hooks/sdlc-gate.sh` holding the logic, from
+   so failures surface immediately. Two dialects, one per target CLI, both split the
+   same way — logic in a script file, a bare launcher line in the config: Claude
+   Code's pair (`.github/hooks/sdlc-gate-claude.sh` holding the logic, from
+   `templates/claude-gate.template.sh`, launched by the `Edit|Write` block in
+   `.claude/settings.json`, from `templates/settings.template.json`) and Copilot
+   CLI's pair (`.github/hooks/sdlc-gate.sh` holding the logic, from
    `templates/copilot-hook.template.sh`, plus `sdlc-gate.json` as its bare launcher,
-   from `templates/copilot-hook.template.json` — split so nothing rich crosses the
-   launcher boundary, *the hook environment* below). The
+   from `templates/copilot-hook.template.json`). The Copilot split (2026-08-07)
+   exists because nothing rich survives the WSL launcher boundary; the Claude split
+   (2026-08-15) because the per-hook `"shell"` pin its inline body depended on was
+   measured never firing — both in *the hook environment* below. The
    owner confirms the target CLI at setup; *Hook dialects* below states what differs.
 
 A third section, *Runtime-standards rules*, lists per-linter rule sets for the
@@ -117,9 +122,23 @@ exist, and in which the project's Windows-installed linter, type checker and tes
 are all absent. Both documented failure modes were observed in one run: a cold WSL start
 blew the 10-second `timeoutSec` and **failed open** (the tool call proceeded unguarded),
 and a warm run errored and, on `preToolUse`, **failed closed** (the call was denied).
-Claude Code states its own answer instead of leaving it to `PATH` — its docs specify Git
-Bash on Windows, with a per-hook `"shell"` key — so this is a Copilot-side hazard, not a
-universal one.
+Claude Code documents its own answer — Git Bash on Windows, with a per-hook `"shell"`
+key — **but the key cannot be trusted: measured 2026-08-15, Claude Code 2.1.231 on
+Windows 11 (headless route, an adopter update's bench), a hook carrying
+`"shell": "bash"` never fired at all, on `Stop` and on `PostToolUse` alike, while an
+unpinned twin beside it fired** — no error, no log, no feedback, and the adopter's
+pinned gate hook had been silently inert for an unknown span. (The same pinned block
+had been measured working on this bench 2026-08-13 — the interactive route, CLI
+version unrecorded; both measurements stand with their routes named, and the shipped
+wiring no longer depends on which was the variable.) Every Claude-dialect hook the
+kit ships is therefore launcher-neutral — bare `sh <script>` / `python <script>`
+command lines, no `"shell"` key — and in the shell those resolve on the measured
+machine, `sh` was Git's (`<git-install>\usr\bin\sh.EXE`) and stdin delivered the
+payload intact (636 bytes measured). **The probe below includes the dispatch check —
+a pinned probe hook and an unpinned twin, each writing a marker — and every bench
+measurement records the CLI version from now on**: a hook that never fires is
+invisible to every body-level probe, so no environment answer is complete without
+asking whether the hook ran at all.
 
 **Sharpened 2026-08-07, Copilot CLI 1.0.78, same machine — the answer is per-launcher,
 not per-machine.** The `PATH` the hook resolves against is the **launching shell's**:
@@ -163,6 +182,17 @@ Read four things off it, and record them in `spec/SDLC.md`
 3. **Whether the project's own gate commands resolve there** — run the actual
    `{{HOOK_LINT_CMD}}`. A hook that finds its file and then cannot run the linter is
    the same silent pass by a different route.
+4. **Whether a hook fires at all — the dispatch check.** Everything above probes the
+   shell a hook would run in; none of it proves the CLI dispatches the hook. Measured
+   2026-08-15 (Claude Code 2.1.231): a hook carrying a per-hook `"shell"` key never
+   fired while an unpinned twin beside it did — no error anywhere, invisible to every
+   body-level probe. In a scratch repo, register two markers-only probe hooks on the
+   event you depend on (one in the exact wiring shape you will ship, one minimal
+   `sh -c "echo fired > probe.txt"` twin), trigger the event once, and read the
+   markers back. A wiring shape whose probe never fires is not installed pending
+   investigation — it is replaced with the shape whose probe fired. Record the CLI
+   version beside the result: the dispatch answer has been measured to move between
+   versions or routes with nothing else changing.
 
 If the answer is the WSL one, the honest options are to install the toolchain inside
 that environment, or to accept that the Copilot-side hooks do not run on this machine
@@ -185,8 +215,8 @@ wrapper differs. Resolve the same `{{HOOK_*}}` placeholders either way.
 
 | | Claude Code | Copilot CLI |
 |---|---|---|
-| Template | `templates/settings.template.json` | `templates/copilot-hook.template.sh` (logic) + `.json` (launcher, takes no values) |
-| Instantiates to | `.claude/settings.json` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` |
+| Template | `templates/claude-gate.template.sh` (logic) + the `Edit\|Write` block in `settings.template.json` (launcher, takes only `{{HOOK_STATUS_MESSAGE}}`) | `templates/copilot-hook.template.sh` (logic) + `.json` (launcher, takes no values) |
+| Instantiates to | `.github/hooks/sdlc-gate-claude.sh` + the block in `.claude/settings.json` | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json` |
 | Event | `PostToolUse` | `postToolUse` |
 | Matcher | `Edit\|Write` (substring) | `edit\|create\|apply_patch` (anchored `^(?:…)$`) |
 | Failure channel | stderr + `exit 2` | JSON `additionalContext` on stdout |
@@ -434,15 +464,20 @@ line states which) by the same record grammar `/end-slice`'s command step runs:
 (verbatim from `templates/close-out-hook.template.json`), `agentStop`, the same
 `cat | sh …` wrapper shape as the guard JSON; the block schema
 (`{"decision":"block","reason":…}`) was measured on the bench 2026-08-05. Claude
-Code: a `Stop` block in `.claude/settings.json` whose `"shell": "bash"` key is
-**load-bearing and measured** (2026-08-13: the pin holds on `Stop`, runs Git Bash
-— not the PowerShell default, not WSL — and delivers the payload on stdin to a
-bare `sh .github/hooks/sdlc-close-out.sh stop-check` line); the same block schema
-was measured honored there too (2026-08-14, the pre-registered deny ramp): the
-blocked session received the reason, amended the commit with the stated-skip form
-rather than fabricating evidence, and the next stop stood down on
-`stop_hook_active` — the same sequence the Copilot dialect produced on the same
-bench.
+Code: a `Stop` block in `.claude/settings.json` carrying the **launcher-neutral**
+form — `sh -c "if [ -d .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh
+.github/hooks/sdlc-close-out.sh stop-check; fi"`, no `"shell"` key. Two dated
+measurements sit behind that shape, routes named: 2026-08-13 (interactive-route
+bench, CLI version unrecorded) the pinned `"shell": "bash"` block fired and
+delivered the payload on stdin; 2026-08-15 (headless route, Claude Code 2.1.231,
+an adopter update's bench) the same pinned block **never fired** while the
+launcher-neutral form did, on a real session stop with the classification line
+read back — see *The hook environment*, which is why no shipped hook depends on
+the pin. The block schema (`{"decision":"block","reason":…}`) was measured
+honored 2026-08-14 (the pre-registered deny ramp): the blocked session received
+the reason, amended the commit with the stated-skip form rather than fabricating
+evidence, and the next stop stood down on `stop_hook_active` — the same sequence
+the Copilot dialect produced on the same bench.
 
 **Fail direction — the inverse of the command step, on purpose.** `check` fails
 closed because a command step's failure is seen and quoted; `stop-check` fails
@@ -458,8 +493,9 @@ and disarmed by deleting it — the owner's call, after reading a few real sessi
 of the log, and the `{{CLOSE_OUT_CHECK_NOTE}}` line in `spec/SDLC.md` is updated
 in the same breath. Prove it by firing it — in a scratch session of each installed
 CLI, **launched the way this project's operator actually launches it**, since the
-Copilot hook shell is per-launcher (the Claude block pins `"shell": "bash"` per
-hook, so no launcher boundary is crossed there): end the session on an unpushed
+Copilot hook shell is per-launcher and the Claude dispatch layer itself has been
+measured route-sensitive (*The hook environment*: the pinned form fired on one
+route and never on another): end the session on an unpushed
 commit missing one record key and read the would-block line back; no line means
 the hook is not firing.
 
@@ -510,10 +546,14 @@ the hook process's working directory instead (measured: the session's cwd, in th
 executing shell's own path flavour), which adds one stated contract: **sessions start
 at the repo root**, and a session started elsewhere gets the loud line, not a silent
 miss. Claude Code: the `"Skill"`-matcher block in `.claude/settings.json` (part of
-`settings.template.json`; setup removes the block if the ledger is declined — the
-*record* of the decline lives in `spec/SDLC.md`, never here). That dialect may use
-`$(cat)` and `\n` freely: its shell is stated per-hook (`"shell": "bash"`, Git Bash on
-Windows), so no launcher boundary is crossed. Both dialects are **loud when they
+`settings.template.json`) is a bare launcher, `sh .github/hooks/sdlc-skill-ledger.sh`,
+with the body in that script file (from `templates/skill-ledger-claude.template.sh`,
+no placeholders) — split 2026-08-15 with the gate hook, because the per-hook
+`"shell": "bash"` pin the inline body depended on was measured never firing (*The
+hook environment*). The script may use `$(cat)` and `\n` freely — it is read by `sh`,
+never re-parsed on a launcher boundary. Setup removes the settings block and skips
+the script install if the ledger is declined — the *record* of the decline lives in
+`spec/SDLC.md`, never here. Both dialects are **loud when they
 cannot write**: a ledger that silently stopped recording would read as "no skill ever
 activated", which is precisely the false negative it exists to prevent.
 

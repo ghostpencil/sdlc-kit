@@ -10,6 +10,63 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.24.0 — 2026-08-15
+
+PIN (`FEATURE_PLAN.md` §61, owner-directed 2026-08-15): the Claude hook-pin finding,
+field-measured the same day at an adopter's 0.23.0 update. On Claude Code 2.1.231
+(Windows, headless route) a hook carrying the per-hook `"shell": "bash"` key **never
+fired** — on `Stop` and on `PostToolUse` alike, no error, no log, no feedback — while
+an unpinned twin beside it fired; the adopter's pinned gate hook had been silently
+inert for an unknown span. The same pinned block had measured working 2026-08-13 on
+the interactive-route bench (CLI version unrecorded), so the dispatch answer moves
+between routes or versions — and nothing the kit ships depends on it anymore. This is
+the 0.18.0 launcher lesson recurring on the dialect that skipped the split, one layer
+down: not the shell mangling the body, but the dispatch layer never running it.
+
+### Changed
+- **[adoption-only]** **Every Claude-dialect hook is launcher-neutral — the 0.18.0
+  split, applied.** `templates/claude-gate.template.sh` (new) holds the gate-hook
+  body with its placeholders (`{{SOURCE_GLOB}}`, `{{HOOK_LINT_CMD}}`,
+  `{{HOOK_TYPECHECK_BLOCK}}`) → project-owned `.github/hooks/sdlc-gate-claude.sh`;
+  `templates/skill-ledger-claude.template.sh` (new, no values) holds the ledger body
+  → `.github/hooks/sdlc-skill-ledger.sh`; the close-out backstop block becomes an
+  inline launcher-neutral `sh -c "… stop-check …"` (value-free, no file needed).
+  `settings.template.json` now carries bare launcher lines only and **no `"shell"`
+  key anywhere** — the guard blocks' `python …` lines were always neutral. The
+  shipped wiring is byte-for-byte the shape field-proven on the adopter 2026-08-15:
+  gate framed exit-2 on a deliberate lint error, ledger line read back from a real
+  `Skill` dispatch, backstop classification logged from a real session stop.
+- **[adoption-only]** **The hook-environment probe gains the dispatch check, and
+  bench measurements record the CLI version.** `GATE_RECIPES.md` *The hook
+  environment*: everything the probe measured was about the shell a hook would run
+  in; none of it proved the CLI dispatches the hook, and a hook that never fires is
+  invisible to every body-level probe. Item 4 now registers a pinned-vs-unpinned
+  probe pair and reads the markers back. The recipe's pin claims (backstop wiring,
+  ledger paragraph, prove-by-firing) are re-stated as dated per-route measurements;
+  `COPILOT.md`'s mapping rows updated to the split artifacts.
+- **[installable]** `sdlc-setup.md`: the Claude gate hook installs as a pair
+  (script instantiated, settings block a bare launcher); the ledger accept installs
+  the script beside the block, and a decline installs neither; the backstop block
+  is the launcher-neutral form; the close-out exit check's scope gains
+  `.github/hooks/sdlc-gate-claude.sh`.
+- **[installable]** `sdlc-update.md` and the root README carry the 0.24.0
+  transition note (mirrored): none of this arrives by updating — the settings file
+  and hook scripts are project-owned — and until the rewire lands by hand, a Claude
+  project's gate hook, ledger, and backstop **may never have been running on some
+  routes**. The 0.22.0 note's "load-bearing pin" sentence now points forward
+  (crossing both releases installs the 0.24.0 form directly, the 0.16.0→0.18.0
+  precedent).
+
+### Repo (not shipped in the bundle)
+- `tools/gate-hook-check.py` — the Claude suite reads the body from its new
+  template home and locates every wiring block **by matcher, never by array
+  index**: through 0.23.0 it read `PostToolUse[0]`, which 0.21.0's guard blocks
+  had silently re-pointed at the observe-test launcher — the Claude gate hook was
+  **unproven from 0.21.0 until 2026-08-15**, the suite passing while testing the
+  wrong block. New wiring cases pin the bare launcher lines and the
+  no-`"shell"`-key property so the measured-dead pin cannot be silently
+  reintroduced. Both dialects green under both parsers after the change.
+
 ## 0.23.0 — 2026-08-15
 
 CONTRACT (`FEATURE_PLAN.md` §56–§57, owner-ruled 2026-08-15): the product contract —

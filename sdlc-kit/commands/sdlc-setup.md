@@ -272,7 +272,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 6. Install the edit-time hook, in the dialect the target CLI speaks — *Hook dialects*
    in `reference/GATE_RECIPES.md` names the templates, the destinations, and what
    differs.
-   Claude Code: `settings.template.json` → `.claude/settings.json`. Copilot CLI, a
+   Claude Code, a pair: `claude-gate.template.sh` → `.github/hooks/sdlc-gate-claude.sh`
+   (instantiated — the hook's placeholders live here) and `settings.template.json` →
+   `.claude/settings.json` (its `Edit|Write` block is the bare launcher,
+   `sh .github/hooks/sdlc-gate-claude.sh`; only `{{HOOK_STATUS_MESSAGE}}` and
+   `{{DEFAULT_MODEL}}` resolve in the settings file, and no hook block may gain a
+   `"shell"` key — measured 2026-08-15, a pinned hook can silently never fire).
+   Copilot CLI, a
    pair: `copilot-hook.template.sh` → `.github/hooks/sdlc-gate.sh` (instantiated —
    every placeholder lives here) and `copilot-hook.template.json` →
    `.github/hooks/sdlc-gate.json` (the bare launcher — it takes no values; copy it
@@ -423,16 +429,19 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    Default to offering, not to installing. If accepted:
    - Copilot side: `skill-ledger.template.json` → `.github/hooks/sdlc-skill-ledger.json`,
      copied verbatim — it takes no values; do not edit it.
-   - Claude Code side: the `"Skill"`-matcher block already in the instantiated
-     `.claude/settings.json` stays (Copilot-only adoptions have no such file and skip
-     this bullet).
+   - Claude Code side, a pair: `skill-ledger-claude.template.sh` →
+     `.github/hooks/sdlc-skill-ledger.sh` (copied verbatim — no placeholders), and the
+     `"Skill"`-matcher block already in the instantiated `.claude/settings.json` stays
+     as its bare launcher (Copilot-only adoptions have no such file and skip this
+     bullet).
    - Prove it per the recipe: invoke any installed skill in a session of each installed
      CLI — launched the way this project's operator actually launches it — and read the
      ledger's last line back. No line → the hook is not firing; check
      the matcher spelling and the hook environment before trusting it.
 
    **On a decline, the artifacts must actually be absent**: do not write the Copilot
-   ledger JSON, and remove the `"Skill"`-matcher block from the settings file you
+   ledger JSON, do not install `.github/hooks/sdlc-skill-ledger.sh`, and remove the
+   `"Skill"`-matcher block from the settings file you
    write — the record of the decline lives in the note below, never as dead config; a
    removed hook with an "installed" note, or the reverse, is exactly the contradiction
    `/sdlc-update` is told to report.
@@ -442,8 +451,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    so a decline still has to fill it or the close-out `{{` check fires with nothing to
    write (this sentence sits outside the accepted-only list above for exactly that
    reason). Installed: which CLIs, **the hook artifact that makes it true** —
-   `.github/hooks/sdlc-skill-ledger.json` on Copilot, the `"Skill"`-matcher block in
-   `.claude/settings.json` on Claude Code — the ledger path, that `.git/` is
+   `.github/hooks/sdlc-skill-ledger.json` on Copilot; the `"Skill"`-matcher block in
+   `.claude/settings.json` plus its body `.github/hooks/sdlc-skill-ledger.sh` on
+   Claude Code — the ledger path, that `.git/` is
    per-clone so the ledger describes one machine, and that it records
    tool-dispatched activations only, so a missing line for a slash-invocable
    command is no signal either way. Say in the same breath that adding
@@ -499,9 +509,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - Copilot CLI: `close-out-hook.template.json` → `.github/hooks/sdlc-close-out.json`,
      copied verbatim — it takes no values; do not edit it.
    - Claude Code: the `sdlc-close-out.sh stop-check` Stop block already in the
-     instantiated `.claude/settings.json` stays — its `"shell": "bash"` key is
-     load-bearing and measured (2026-08-13: the pin holds on Stop, runs Git Bash,
-     delivers the payload on stdin); do not strip it. **If the backstop is
+     instantiated `.claude/settings.json` stays — the launcher-neutral
+     `sh -c "…"` form, **never a `"shell"` key** (measured 2026-08-15, Claude Code
+     2.1.231: a pinned hook silently never fires — *The hook environment* in
+     `reference/GATE_RECIPES.md`). **If the backstop is
      declined, or the project runs no Claude Code, REMOVE that block** — the same
      two-state handling as the guard and ledger blocks, recorded the same way.
    - It installs in **logging mode** and stays there: never create
@@ -509,8 +520,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      owner after reading `.git/sdlc-close-out/log` across a few real sessions.
    - Prove it by seeing it fire: in a scratch session of each installed CLI —
      **launched the way this project's operator actually launches it**, since the
-     Copilot hook shell is per-launcher (the Claude block pins `"shell": "bash"`
-     per hook, so no launcher boundary is crossed there) — end a
+     Copilot hook shell is per-launcher and the Claude dispatch layer has been
+     measured route-sensitive (the pinned form fired on one route and never on
+     another — the hook environment's dispatch check) — end a
      session in a repo whose `HEAD` is an unpushed commit missing a record key and
      confirm the log holds `stop: WOULD-BLOCK - defective record` naming the
      commit; a clean stop logs `stop: clean`. No line → the hook is not firing;
@@ -658,13 +670,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 ### 3. Close-out (both modes)
 
 1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
-   plus `.github/hooks/sdlc-gate.sh` when the target CLI is Copilot, and — when step
-   6's guards were accepted — the instantiated guard dialect(s):
+   plus the instantiated gate-hook script for the target CLI —
+   `.github/hooks/sdlc-gate-claude.sh` on Claude Code, `.github/hooks/sdlc-gate.sh`
+   on Copilot, both on a both-CLIs project — and, when step
+   6's guards were accepted, the instantiated guard dialect(s):
    `.github/hooks/sdlc-tdd-guard.sh` on Copilot, `.github/hooks/sdlc-tdd-guard.py`
    on Claude Code, both on a both-CLIs project (the gate's
    and the guard's `.json` launchers take no values, and neither do the
-   skill-ledger's, the backstop's (`sdlc-close-out.json`), or
-   `.github/hooks/sdlc-close-out.sh` — all copied verbatim — so none of the five is
+   skill-ledger's — `sdlc-skill-ledger.json` and `sdlc-skill-ledger.sh` alike — the
+   backstop's (`sdlc-close-out.json`), or
+   `.github/hooks/sdlc-close-out.sh` — all copied verbatim — so none of the six is
    in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,

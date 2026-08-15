@@ -492,8 +492,11 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   mode arrives with the file), but the *wiring* is optional and per-CLI:
   `.github/hooks/sdlc-close-out.json` on Copilot (kit-owned verbatim, present only
   where accepted), a `Stop` block in `.claude/settings.json` on Claude Code
-  (project-owned, arrives by hand, and its `"shell": "bash"` key is load-bearing —
-  measured 2026-08-13). Read the backstop half of the close-out checker note
+  (project-owned, arrives by hand — **a project crossing 0.24.0 in the same update
+  installs that block in the 0.24.0 launcher-neutral form, not this release's
+  pinned one**: the `"shell": "bash"` key this note originally called load-bearing
+  was later measured never firing on Claude Code 2.1.231 — the 0.24.0 note below).
+  Read the backstop half of the close-out checker note
   line in `spec/SDLC.md` with the 0.16.0 two-state rule: a recorded decline is
   settled; a line that predates 0.22.0 says nothing about the backstop, so put the
   choice now as setup would (logging mode, never create
@@ -544,6 +547,37 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   hand the owner the
   `CLAUDE.template.md` table diff, never edit it; `/end-phase`'s retirement bullet
   checks for the row at each close and has the owner's session add it if absent.
+- **0.24.0 rewires every Claude-dialect hook launcher-neutral, and none of it
+  arrives by updating — `.claude/settings.json` and the hook scripts are
+  project-owned.** The finding (measured 2026-08-15, Claude Code 2.1.231, an
+  adopter's update bench): a hook carrying the per-hook `"shell": "bash"` key
+  **never fired** — on `Stop` and on `PostToolUse` alike, no error, no log — while
+  an unpinned twin fired; the same pinned block had been measured working
+  2026-08-13 on the interactive route, so the dispatch answer moves between routes
+  or CLI versions, and no shipped wiring depends on it anymore. On a Claude Code
+  project, state the consequence plainly at the halt: **until the rewire lands by
+  hand, the gate hook, the skill ledger, and the stop backstop may never have been
+  running on some routes — a pinned hook that does not fire looks exactly like a
+  clean edit.** The hand-applies, per the 0.18.0 shape (logic in scripts, bare
+  launchers in JSON): (a) `templates/claude-gate.template.sh` →
+  `.github/hooks/sdlc-gate-claude.sh`, instantiated with the values read out of the
+  current settings-file hook body before replacing it; the `Edit|Write` block
+  becomes the bare launcher `sh .github/hooks/sdlc-gate-claude.sh`. (b) Where the
+  ledger is installed: `templates/skill-ledger-claude.template.sh` →
+  `.github/hooks/sdlc-skill-ledger.sh` (verbatim), the `"Skill"` block becomes
+  `sh .github/hooks/sdlc-skill-ledger.sh`. (c) Where the backstop is installed: the
+  `Stop` block becomes the launcher-neutral
+  `sh -c "if [ -d .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh
+  .github/hooks/sdlc-close-out.sh stop-check; fi"`. (d) Every `"shell"` key in the
+  settings file is removed — the guard blocks' `python …` lines were always
+  neutral and are untouched. Then re-run the hook proof (a deliberate lint error
+  must produce the framed exit-2 feedback) **and the hook-environment probe with
+  its new dispatch check** (`reference/GATE_RECIPES.md`, *The hook environment*,
+  item 4: a pinned-vs-unpinned probe pair, markers read back, CLI version
+  recorded) — the standing at-every-hook-crossing rule, and this release is why it
+  now asks whether the hook fires at all. Update the hook line and
+  `{{HOOK_ENVIRONMENT}}`-derived text in `spec/SDLC.md` with the owner as the
+  facts move — never silently.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

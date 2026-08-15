@@ -4,10 +4,19 @@
 Covers the Copilot pair (`templates/copilot-hook.template.sh` holding the logic, with
 `copilot-hook.template.json` as its bare launcher - split 2026-08-07 because the WSL
 launcher boundary corrupts any rich command line, FEATURE_PLAN.md 38) and the Claude
-Code dialect in `templates/settings.template.json`, each under **both** JSON parser
+Code pair (`templates/claude-gate.template.sh` holding the logic, with the Edit|Write
+block in `templates/settings.template.json` as its bare launcher - split 2026-08-15,
+FEATURE_PLAN.md 61, after the per-hook "shell": "bash" pin was measured never firing
+on Claude Code 2.1.231), each under **both** JSON parser
 dialects the hooks detect at run time (python and node). A dialect that is never
 exercised is a dialect that is not proven, so the suite pins PATH to one parser at a
 time and requires identical behaviour from each.
+
+The Claude wiring is located by MATCHER, never by array index: through 0.23.0 this
+suite read `PostToolUse[0]`, which 0.21.0's guard blocks had silently re-pointed at
+the observe-test launcher - the Claude gate hook was unproven from 0.21.0 until this
+was caught 2026-08-15. The wiring cases below also pin the no-"shell"-key property,
+so the measured-dead pin cannot be silently reintroduced.
 
 Every case drives the instantiated template rather than a hand-copied approximation.
 Payload shapes come from the bench captures (FEATURE_PLAN.md 31.7) - including
@@ -27,6 +36,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPILOT_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.json")
 COPILOT_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.sh")
 CLAUDE_TPL = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json")
+CLAUDE_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "claude-gate.template.sh")
 
 LINTER = ("#!/bin/sh\nif grep -q BAD \"$1\" 2>/dev/null; then\n"
           "  echo \"E001 bad token in $1\"; exit 1\nfi\nexit 0\n")
@@ -218,8 +228,23 @@ def copilot_suite(parser, check):
 
 def claude_suite(parser, check):
     """Claude Code dialect: feedback is stderr + exit 2."""
-    hook = json.load(io.open(CLAUDE_TPL, encoding="utf-8"))
-    body = instantiate(hook["hooks"]["PostToolUse"][0]["hooks"][0]["command"])
+    tpl = json.load(io.open(CLAUDE_TPL, encoding="utf-8"))
+    post = {g.get("matcher"): g["hooks"][0] for g in tpl["hooks"]["PostToolUse"]}
+    check("gate launcher is the bare split line (located by matcher, not index)",
+          post.get("Edit|Write", {}).get("command")
+          == "sh .github/hooks/sdlc-gate-claude.sh",
+          repr(post.get("Edit|Write", {}).get("command")))
+    check("ledger launcher is the bare split line",
+          post.get("Skill", {}).get("command")
+          == "sh .github/hooks/sdlc-skill-ledger.sh",
+          repr(post.get("Skill", {}).get("command")))
+    check("stop backstop invokes the checker's stop-check without the pin",
+          any("sdlc-close-out.sh stop-check" in h["command"]
+              for g in tpl["hooks"]["Stop"] for h in g["hooks"]))
+    check("no hook anywhere carries a 'shell' key (pin measured dead 2026-08-15, "
+          "Claude Code 2.1.231, Stop and PostToolUse)",
+          '"shell"' not in json.dumps(tpl))
+    body = instantiate(io.open(CLAUDE_SH_TPL, encoding="utf-8").read())
     base = tempfile.mkdtemp(prefix="gatehook-cc-")
     try:
         pj = Project(base, body)
