@@ -3,9 +3,10 @@
 # .claude/settings.json is a bare launcher (`sh .github/hooks/sdlc-gate-claude.sh`)
 # and all logic lives here, never crossing the launcher boundary - the same split
 # the Copilot dialect got in 0.18.0 (copilot-hook.template.sh), applied to this
-# dialect in 0.24.0 after a field measurement: on Claude Code 2.1.231 a hook
-# carrying the per-hook "shell": "bash" pin never fired (Stop and PostToolUse,
-# bench-probed 2026-08-15), so the pinned inline body this file replaces could be
+# dialect in 0.24.0 after a field measurement: a hook carrying the per-hook
+# "shell": "bash" pin never fired (Stop and PostToolUse, bench-probed 2026-08-15
+# on both routes - 2.1.231 headless, 2.1.233 interactive), so the pinned inline
+# body this file replaces could be
 # silently inert with no error, no log, and no feedback. A bare `sh <file>` line
 # runs identically under the default hook shell and any POSIX one.
 #
@@ -13,8 +14,10 @@
 # file named, expectation stated) so the model can act, and is LOUD for every
 # case it cannot check - no parser, no path, missing file, unusable
 # CLAUDE_PROJECT_DIR - because a silently green gate is indistinguishable from a
-# clean edit (the 0.16.0 lesson). Proof: tools/gate-hook-check.py in the kit
-# repo drives this template under both parsers, every silent case run dirty.
+# clean edit (the 0.16.0 lesson). This template is driven by a proof suite under
+# both parsers, every silent case also run dirty; the suite lives with the kit's
+# development tooling, not in the bundle - an adopter proves the instantiated
+# copy per the setup step, not this file.
 i=$(cat); JP=""; JN=""; for c in python python3; do if command -v "$c" >/dev/null 2>&1; then JP=$c; break; fi; done; if [ -z "$JP" ] && command -v node >/dev/null 2>&1; then JN=node; fi; jr(){ if [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null | tr -d "\r"; elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null | tr -d "\r"; else return 127; fi; }; if [ -z "$JP" ] && [ -z "$JN" ]; then echo "SDLC gate hook did NOT run: no JSON parser (python or node) on the PATH of the shell Claude Code runs hooks in. The gate did not check this file." >&2; exit 2; fi; o=$(printf '%s' "$i" | jr '
 import sys,json
 d=json.loads(sys.stdin.buffer.read().decode("utf-8","replace"))

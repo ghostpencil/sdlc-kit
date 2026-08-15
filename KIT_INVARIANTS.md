@@ -185,7 +185,9 @@ installed a kit-development command into every adopting project (plan, B6 hand-o
 ## 13. Every check states its negative case
 
 Any check this kit specifies or ships — the isolation harness, the edit-time hook, the
-hook-environment probe, the TDD-ordering guards' proof step and their logging-to-deny
+hook-environment probe and its dispatch check (the pinned-vs-unpinned probe pair,
+CLI version recorded — added 0.24.0 after a wiring shape was measured silently never
+firing), the TDD-ordering guards' proof step and their logging-to-deny
 ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
 setup proof step, the checker's stop-time backstop with its fire-first proof and
 logging-to-deny ramp, the retro's ledger-alive precheck and its

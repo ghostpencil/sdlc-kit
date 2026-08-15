@@ -277,7 +277,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `.claude/settings.json` (its `Edit|Write` block is the bare launcher,
    `sh .github/hooks/sdlc-gate-claude.sh`; only `{{HOOK_STATUS_MESSAGE}}` and
    `{{DEFAULT_MODEL}}` resolve in the settings file, and no hook block may gain a
-   `"shell"` key — measured 2026-08-15, a pinned hook can silently never fire).
+   `"shell"` key — measured 2026-08-15 on Claude Code 2.1.231 headless and 2.1.233
+   interactive, a pinned hook can silently never fire).
    Copilot CLI, a
    pair: `copilot-hook.template.sh` → `.github/hooks/sdlc-gate.sh` (instantiated —
    every placeholder lives here) and `copilot-hook.template.json` →
@@ -303,8 +304,14 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    measures the wrong environment, and a team with two launch habits probes both. What it reports resolves `{{HOOK_ENVIRONMENT}}` in
    `spec/SDLC.md` — **which launcher the probe ran from**, which shell answered,
    **which JSON parser it offers (`python` or
-   `node`; the hook needs one and picks it at run time)**, and whether the project's own
-   lint command runs there. Record what that shell offered, not what the machine has
+   `node`; the hook needs one and picks it at run time)**, whether the project's own
+   lint command runs there, **the dispatch check's verdict** (the recipe's item 4:
+   which probe wiring fired and which did not — a shell answer means nothing if the
+   CLI never dispatches the hook), and **the CLI version the measurement ran on**,
+   read from the CLI's own version output (`claude --version` / `copilot --version`)
+   in the same session — the record is a dated claim about that version, because the
+   dispatch answer has been measured moving under an auto-update with nothing else
+   changing. Record what that shell offered, not what the machine has
    installed: they are different questions, and only the first one governs the hook. Do
    not ask the owner which interpreter to use — a preference cannot answer a question
    about an environment neither of you is standing in. If the parser or the toolchain is

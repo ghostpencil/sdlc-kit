@@ -482,7 +482,8 @@ line read back; 2026-08-15 again (interactive, 2.1.233 — the CLI auto-updated
 between the same-day benches) the pin dead on that route too — version drift,
 not a route artifact; see *The hook environment*, which is why no shipped hook
 depends on the pin. The block schema (`{"decision":"block","reason":…}`) was measured
-honored 2026-08-14 (the pre-registered deny ramp): the blocked session received
+honored 2026-08-14 (the pre-registered deny ramp; CLI version unrecorded — the
+record-the-version rule postdates it): the blocked session received
 the reason, amended the commit with the stated-skip form rather than fabricating
 evidence, and the next stop stood down on `stop_hook_active` — the same sequence
 the Copilot dialect produced on the same bench.
@@ -492,7 +493,8 @@ closed because a command step's failure is seen and quoted; `stop-check` fails
 open — its own errors log to `.git/sdlc-close-out/log` and exit 0 — because a
 hook that errors must not block real work. It also stands down unconditionally
 under `stop_hook_active` (the documented consecutive-block cap, measured at 8 on
-both dialects, is never fought).
+both dialects — versions unrecorded; those benches predate the
+record-the-version rule — is never fought).
 
 **Logging first, always.** It installs logging-only: verdicts appear as
 `stop: WOULD-BLOCK` lines in `.git/sdlc-close-out/log`, and nothing is blocked.

@@ -158,8 +158,12 @@ source file, so most gate failures surface at edit time rather than at slice end
 
 A hook runs in the shell the agent CLI resolves, which is not necessarily the one you
 type in — if it cannot reach this project's toolchain it cannot check anything, and a
-hook that checks nothing still reads as a gate. What the hook environment measured at
-setup: {{HOOK_ENVIRONMENT}}
+hook that checks nothing still reads as a gate; and the dispatch layer itself can
+change under an auto-updating CLI, so the record below names the CLI version it
+measured and is a dated claim about that version, re-proven at every hook-touching
+update. What the hook environment measured at
+setup (launch route, shell, JSON parser, lint reachability, the dispatch check's
+verdict, CLI version): {{HOOK_ENVIRONMENT}}
 
 {{TDD_GUARD_NOTE}}
 <!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
@@ -207,8 +211,11 @@ setup: {{HOOK_ENVIRONMENT}}
      2026-08-11 — four phases of slash-typed slice closes, zero ledger lines), so the
      note must also say that a missing line for a slash-invocable command is no
      signal either way. The note names the hook
-     artifact that makes "installed" true (the Copilot hook JSON, the settings-file
-     block on Claude Code — adding or removing either later means updating this line,
+     artifact that makes "installed" true (the Copilot hook JSON; on Claude Code the
+     pair — the settings-file launcher block AND its body script
+     `.github/hooks/sdlc-skill-ledger.sh`, since a launcher with no script errors and
+     a script with no block never fires — adding or removing any of them later means
+     updating this line,
      because nothing else will), names the ledger
      file, and says in the same breath that `.git/` is per-clone: the ledger records
      this machine's sessions only, and a retro citing it must say whose clone it read.
@@ -710,7 +717,12 @@ Run `/end-phase` when the last slice is done:
   — and never retire; Phase History stays, one row per phase.) An item without its
   closing marker never retires — an open entry in the history file is work hidden
   from every session that acts on the index, so the retirement step re-reads what
-  it just moved and pulls back any entry lacking the marker. Nothing is deleted;
+  it just moved and pulls back any entry lacking the marker. The step also checks
+  that `CLAUDE.md`'s spec-loading table carries the history file's row (its
+  never-at-session-start trigger — canonical in the CLAUDE template's table); on a
+  project updated rather than re-instantiated the row can be missing, and it is
+  added in the same docs commit, because a retired item nothing points at is
+  unfindable by the rule that made retiring it safe. Nothing is deleted;
   and a retro's sweep over **closed** items (repeat counts, oldest-unaddressed)
   reads the history file too — retirement splits that population across two
   files, and a sweep that reads only the index has a denominator it did not

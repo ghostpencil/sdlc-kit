@@ -1327,3 +1327,46 @@ its own exhibit for the probe's new record-the-CLI-version rule. All four hedged
 homes sharpened to the verdict (GATE_RECIPES ×3 + probe item 4, setup's
 fire-proof clause, the update note, the README mirror, the CHANGELOG preamble).
 Remaining before the tag: the pre-release `/kit-check`.
+
+### 61.6 The pre-0.24.0 `/kit-check` — run 2026-08-15 on the PIN batch: the
+### mechanical four plus eleven reading passes fanned to seven agents; ten
+### findings, all fixed in-session, and the theme is §58's a third time with a
+### new twist — the batch left its own ledger stale
+
+Mechanical: inv 9 clean (70 tracked, all covered); inv 6 step-ref multiset
+byte-identical to the 0.23.0-verified state, semantic read clean (84 refs); inv 4
+one FAIL — the 0.24.0 transition note wrote a literal `{{HOOK_ENVIRONMENT}}` into
+the installed `sdlc-update.md` (fixed; and the fix was then eaten by a `git stash`
+the inv-6 check itself ran and never popped — caught because the census was re-run
+after the manifest regen, re-fixed, stash dropped); inv 10 one FAIL — the §61.5
+commit edited three bundle files without regenerating the manifest (regenerated;
+42/42, discrimination shown on exactly the edited files). Clean outright: inv 1
+(the PIN text the best-behaved: every claim dated and versioned), inv 3 (49/49
+placeholders, the moved trio's resolver and exit-check both moved with them), inv
+5 (377 pointers, 0 dangling), inv 8, inv 9, inv 11 (all seven vendored R100-only).
+
+**Inv 7 FAIL (three findings, one lineage):** the batch updated the bundle README,
+COPILOT.md, and the file trees but not the two ownership tables (both homes'
+project rows now name `sdlc-gate-claude.sh` and `sdlc-skill-ledger.sh`), the
+"unlike its two `.sh` neighbors" claims (three homes reworded — the checker is now
+"the one `.sh` the kit owns"), or root CLAUDE.md's flow diagram (Claude column
+rebuilt, and its universal `.claude/settings.json` line scoped per-CLI — the
+pre-existing note fixed in passing). **Inv 13 FAIL:** the dispatch check is a new
+check and the ledger's denominator sentence did not name it — extended in both
+homes (ledger + kit-check.md, now "as of 0.24.0"), the invariant's own named
+failure mode, caught by its own rule. **Inv 14 FAIL (two):** the probe's new
+records had no writer — setup's `{{HOOK_ENVIRONMENT}}` enumeration gains the
+dispatch verdict and the CLI version with its source named (the CLI's own version
+output), and the template's preamble now names all six record fields; the
+`{{SKILL_LEDGER_NOTE}}` comment named half the Claude artifact — now the
+block-plus-script pair with the why (launcher without script errors; script
+without block never fires). **Inv 12 (one):** the claude-gate template header
+named `tools/gate-hook-check.py` — the first kit-repo `tools/` path ever in a
+shipped file — converted to the GATE_RECIPES generic form. **Inv 15 (four
+minor):** the batch's own routes-and-versions standard applied to its stragglers
+(template header now routed, setup's early citation versioned, the 08-14 deny-ramp
+entry marked version-unrecorded, the 8-cap likewise). **Inv 2 (one borderline):**
+end-phase's CLAUDE.md-row check at retirement had no echo in the canonical
+template — one clause added to the retirement bullet. Proof suite re-run OK after
+the template-header edit; manifest 42/42 against staged content. The tree is
+release-ready pending the tag.

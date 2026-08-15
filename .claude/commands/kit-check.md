@@ -84,8 +84,9 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.23.0 that list is: the isolation
-  harness spec, the edit-time hook verification, the hook-environment probe, the
+  this invariant that goes stale silently. As of 0.24.0 that list is: the isolation
+  harness spec, the edit-time hook verification, the hook-environment probe and its
+  dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
   close-out evidence checker and its setup proof step, the checker's stop-time
   backstop with its fire-first proof and logging-to-deny ramp, the retro's

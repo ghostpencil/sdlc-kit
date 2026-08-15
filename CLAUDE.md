@@ -40,9 +40,12 @@ way they read once the folder is sitting in a target project.
 
 ```
 sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
-  templates/*.template.*                     CLAUDE.md, spec/*.md, .claude/settings.json
+  templates/*.template.*                     CLAUDE.md, spec/*.md
+                                             (Claude Code: .claude/settings.json — bare
+                                              launchers only — plus .github/hooks/
+                                              sdlc-gate-claude.sh, sdlc-tdd-guard.py,
+                                              sdlc-skill-ledger.sh where accepted)
                                              (Copilot: .github/hooks/, .github/agents/)
-                                             (Claude Code: .github/hooks/sdlc-tdd-guard.py)
                                              (both CLIs: .github/hooks/sdlc-close-out.sh)
   commands/*.md                              .claude/commands/*.md
                                              (Copilot: .github/skills/<name>/SKILL.md)
