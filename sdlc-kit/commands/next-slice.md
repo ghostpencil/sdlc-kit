@@ -60,6 +60,12 @@ shell; a failed reproduction from a different environment downgrades the entry t
 Either way, when the cause does not hold where it was claimed to hold, correct the
 entry in place and re-scope the slice against what is actually true.
 
+**An entry whose fix deletes a record-shaped artifact adds one check to its
+re-derivation:** the deletion rule's contract-and-specs search (`spec/SDLC.md`,
+*Product contract*) runs before the slice is scoped — a hit is a spec conflict
+(halt 3), not a cleanup, and a real cleanup slice once deleted the only remnant of
+a ratified behavior on the strength of a dead-artifact entry alone.
+
 **The same rule covers an `estimated` number this slice implements.** If the slice
 builds to a decision in the phase spec whose number is tagged **estimated**, derive it
 before starting: run the count, the query, or the measurement the plan could not take

@@ -188,7 +188,8 @@ Any check this kit specifies or ships — the isolation harness, the edit-time h
 hook-environment probe, the TDD-ordering guards' proof step and their logging-to-deny
 ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
 setup proof step, the checker's stop-time backstop with its fire-first proof and
-logging-to-deny ramp, the retro's ledger-alive precheck, the
+logging-to-deny ramp, the retro's ledger-alive precheck and its
+spec-claims-against-the-tree sweep, the
 skills-listing check, the exit
 checks, the slice loop's mutation check, the coverage-floor establishment proof, the
 deploy verification, the preserved-contract check and the product-contract

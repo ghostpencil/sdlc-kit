@@ -67,7 +67,9 @@ THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-p
                            redistribution status unverified — the notices say so)
 ```
 
-`commands/`, `skills/`, the installed `reference/REVIEW_LENSES.md`, and the
+`commands/`, `skills/`, the installed `reference/REVIEW_LENSES.md`, the Copilot
+read-only sweep profile (`.github/agents/explore.agent.md`, a verbatim template
+copy), and the
 close-out evidence checker with its optional stop-hook wiring
 (`.github/hooks/sdlc-close-out.sh` on both CLIs, `.github/hooks/sdlc-close-out.json`
 on a Copilot project that accepted the backstop offer — verbatim copies holding no

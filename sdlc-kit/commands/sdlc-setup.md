@@ -658,8 +658,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 ### 3. Close-out (both modes)
 
 1. Exit check: `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` → must be empty,
-   plus `.github/hooks/sdlc-gate.sh` when the target CLI is Copilot, and
-   `.github/hooks/sdlc-tdd-guard.sh` when step 6's guards were accepted (the gate's
+   plus `.github/hooks/sdlc-gate.sh` when the target CLI is Copilot, and — when step
+   6's guards were accepted — the instantiated guard dialect(s):
+   `.github/hooks/sdlc-tdd-guard.sh` on Copilot, `.github/hooks/sdlc-tdd-guard.py`
+   on Claude Code, both on a both-CLIs project (the gate's
    and the guard's `.json` launchers take no values, and neither do the
    skill-ledger's, the backstop's (`sdlc-close-out.json`), or
    `.github/hooks/sdlc-close-out.sh` — all copied verbatim — so none of the five is

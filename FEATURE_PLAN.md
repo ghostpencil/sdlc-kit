@@ -957,3 +957,78 @@ step's body, so no project notes go stale this release. Unreleased: the full
 the owner's. The §16 clock on the whole mechanism starts with the first field
 arc that runs under it; the adopter's pending STABILIZATION arc is the seed
 case (§56.3 (f) — the filing session and contract seeding land together).
+
+## 58. The pre-0.23.0 `/kit-check` — run 2026-08-15 on the CONTRACT batch:
+## sixteen findings, all fixed in-session, one refuted — and the headline is the
+## batch's own edit decapitating the coverage-floor bullet
+
+Full pass, §55's shape: the mechanical four in-session (inv 10 — 40 hashes match
+committed content, 40 = ls-files − 1; inv 4 — `{{` in `sdlc-setup.md` only, exit
+check names its exact scope; inv 9 — both new files in the tree, no deletions
+since the §55 pass; inv 6 — 84 refs, all 23 in batch-touched files verified, no
+renumbering), the eleven reading passes fanned to seven parallel agents, each
+reporting the violation it hunted. Clean outright: inv 3 (49/49 placeholders
+resolved semantically — the denominator has grown from B0's 32; the new template
+confirmed placeholder-free), inv 11 (7 vendored files / 5 directories, no
+divergence introduced, kit-written never described as vendored). Passes with
+findings: 1, 5, 7, 12. Fails, fixed: 2, 13, 14, 15.
+
+**The headline (inv 2/13/14, blocking):** the CONTRACT build's reconcile edit
+replaced the line it anchored on — `- **Coverage floor — bump the enforcement,
+then reconcile:** if the coverage measured` — without re-emitting it, leaving the
+ratchet's ~23 lines (two-homes assertion, prove-it-fires proof) headless and
+unconditional inside the new bullet. The step the kit's own inv-14 specimen is
+about was itself un-stepped by the batch that cited it. Restored, with the §55
+lesson re-sharpened: the same-session batch's wreckage is exactly what the
+pre-release pass exists to catch, and it caught the same class twice running.
+
+**The design gaps in the new text, all fixed in both homes (inv 14/15):**
+`claim-only` defined where introduced (the explicit unenforced state — halt-4
+evidence only, never reported clean, re-presented at each touching reconcile);
+the check/reconcile population aligned to the sweep's (**touched**, not rewrote —
+the narrowing was unstated and read-only consumer surfaces are where the trust
+rationale says the risk lives); the pin predicate sharpened (**itself passed**,
+not gate-green — a pin skipped or failing inside a recorded red baseline is a
+finding); the deletion-path search got its method (entries are behavior prose,
+so an identifier grep is the miss — read the bounded contract whole for the
+artifact's surface, say what was read, *verify the denominator* applies); and
+the three-site contradiction between the slice-level pin trigger and
+"read at phase boundaries only" resolved by a stated narrow exception (the
+disposal-intent lens opens the contract only when a test was deleted, skipped,
+or gutted — *Preserved Behaviors* is a strict subset, so pointing the trigger
+there would blind it to untouched-surface pins), with the absence branch added
+(a project predating the file says so rather than reporting `no lens
+triggered`). The deletion rule now also names its second caller — a cleanup
+slice acting on a backlog entry — and `next-slice.md`'s re-derivation carries
+the search, closing the reverse-direction gap (the rule's own specimen was a
+stabilization slice no arc lens ever saw).
+
+**The rest:** inv 1 — the pin trigger's missing absence clause (fixed above);
+inv 5 — same contradiction from the pointer side, plus two pre-existing citation
+notes recorded, not actioned; inv 7 — the bundle README's kit-owned list omitted
+`.github/agents/explore.agent.md` (pre-existing; added); inv 12 — the shipped
+checker's bare-flagging comment gated on the kit's own arming clock ("kit
+FEATURE_PLAN 52.2…"), converted to the plain field fact per §55's precedent;
+inv 13 — the retro's spec-claims-against-the-tree sweep was on neither
+denominator list (added to ledger and command copy, which also re-aligned their
+one wording divergence); inv 3's mirror image — the exit check named the guard's
+`.sh` dialect but not the instantiated `.py`, so a Claude-only guard acceptance
+shipped three placeholders no grep covered (per-dialect scope now stated); and
+`sdlc-update.md`'s exhaustive write clause gained the contract file as its
+second stated exception. One reported finding refuted on verification: the
+"backslash path" in `REVIEW_LENSES.md` does not exist in the tree — the
+reporter's own rendering.
+
+Sub-threshold notes recorded, not actioned: the *Coverage floor* citation
+resolves to a bold lead-in rather than a heading (self-consistent house form);
+setup's closing handoff names a kit-folder path with the durable fallback beside
+it; the preserved-contract check's evidence predates the arc's post-batch gate
+(the reconcile re-checks pin-exists, not pin-green); both new checks state
+negative cases no step schedules (consistent with several standing checks); the
+met-verdict → entry direction has no second home to drift; inv 3's standing
+sub-threshold set unchanged.
+
+Proof suite re-run after the checker's comment fix: 21 unit + 15 stop cases, 16
+mutations all caught. Manifest regenerated, discrimination proven — exactly the
+eleven fix-touched files changed hash. The release is unblocked; 0.23.0 tags
+with this section in the tree.

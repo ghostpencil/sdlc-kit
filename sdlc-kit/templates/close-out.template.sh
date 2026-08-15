@@ -146,9 +146,9 @@ if [ "$MODE" = "stop-check" ]; then
     else defective="$defective $C($probs )"; fi
   done
 
-  # Bare-flagging is LOG-ONLY by design until its arming bar clears (kit
-  # FEATURE_PLAN 52.2: zero false candidates across the trial and the first
-  # field arc) - it never blocks in this version, armed or not.
+  # Bare-flagging is LOG-ONLY by design - it never blocks in this version,
+  # armed or not: a docs commit made in the same session as slice work is a
+  # real false-block shape, so this class logs until proven never to flag one.
   if [ -n "$bare_flagged" ]; then
     slog "stop: WOULD-BLOCK (bare, log-only by design) - no close-out record on$bare_flagged while this session shows slice-loop evidence"
   fi

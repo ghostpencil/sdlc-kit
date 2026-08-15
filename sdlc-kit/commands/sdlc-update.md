@@ -574,10 +574,12 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   recorded URL is where `/sdlc-retro` will submit.
   **These lines are the only project-owned content an update may write** —
   and the latter two only when absent, never to overwrite an answer already recorded —
-  **with one stated exception**: the artifacts an accepted re-offer installs (the
+  **with two stated exceptions**: the artifacts an accepted re-offer installs (the
   TDD-guard pair; the ledger's Copilot JSON, or its `"Skill"` block merged into the
   existing `.claude/settings.json` the way setup's Existing mode merges hooks), each
-  written only on the owner's word at that halt, following setup's own step.
+  written only on the owner's word at that halt, following setup's own step; and the
+  empty `spec/PRODUCT_CONTRACT.md` the 0.23.0 note creates — a verbatim template
+  copy, only when absent, never content.
   Do them last, so an aborted update never claims a version it does not hold.
   **Two more lines join them only when this update actually put an offer to the
   owner** — the TDD-guard offer and the skill-ledger offer (step 5's re-offer clauses)

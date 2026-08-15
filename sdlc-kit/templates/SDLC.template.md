@@ -337,9 +337,18 @@ ratified behavior can vanish with every gate, test, and review green.
 - **Read at phase boundaries only.** `/plan-phase` carries the entries on surfaces
   the phase touches into the phase spec (*Preserved Behaviors*), so slices inherit
   them from the spec they already read — the context-minimization rule is untouched.
+  One narrow exception: a slice review that saw a test deleted, skipped, or gutted
+  opens this file to ask whether that test is a pin (the disposal-intent lens) —
+  *Preserved Behaviors* carries only this phase's touched surfaces, and a deleted
+  pin can belong to an untouched one.
 - **Written at phase close.** `/end-phase`'s contract reconcile enters each
   acceptance-checklist behavior recorded **met**, with its pinning test named (or
   `claim-only`, dated). Anywhere else, the file changes only by owner decision.
+- **`claim-only` is the explicit unenforced state.** The entry has no pinning
+  test: its only evidence is the owner exercising the behavior at halt 4, nothing
+  reconciles it between phases, and the preserved-contract check never reports it
+  clean. The date shows the debt's age; each phase-close reconcile that touches
+  its surface re-asks whether it can now be pinned.
 - **A behavior leaves only by ratified retirement.** A superseding decision replaces
   its line and the superseding phase spec records why; omission is never retirement.
   A planned change that would remove or alter an entry is an owner question at
@@ -350,7 +359,14 @@ ratified behavior can vanish with every gate, test, and review green.
 - **The deletion rule.** A record-shaped artifact (an entity, a column, a config key)
   is not deleted as dead until this file and the ratifying phase specs have been
   searched for it — a hit is a spec conflict (halt 3: build the consumer, or retire
-  the decision), not a cleanup. The rule exists because a real cleanup deleted the
+  the decision), not a cleanup. The search's method matters: entries here are
+  behavior prose, not symbol names, so a grep for the artifact's identifier is the
+  miss — read this file whole (it is bounded) for the surface the artifact serves,
+  then that surface's ratifying specs, and say what was read (a search-absence
+  claim, so the *verify the denominator* lens applies). The rule binds whichever
+  step decides the deletion — the whole-arc unconsumed-artifact lens, or a cleanup
+  slice acting on a backlog entry, where the search joins the entry's
+  re-derivation. It exists because a real cleanup deleted the
   only remnant of a ratified-but-undelivered behavior, closing a backlog entry while
   moving the tree further from the spec that required it.
 - **Trust boundaries ride here.** The file's closing section carries high-consequence
@@ -358,8 +374,10 @@ ratified behavior can vanish with every gate, test, and review green.
   rules). `/plan-phase` re-reads it whenever a touched surface **consumes** data
   classified untrusted there — the consumer side inherits the producer's boundary
   rules, which otherwise live in a phase spec no later phase reads.
-- **Adopted mid-flight:** a contract still empty while Phase History shows merged
-  phases (an adoption or update predating this file) gets a **one-time backfill
+- **Adopted mid-flight:** a contract still empty — or missing outright, on a
+  project updated from a pre-contract kit that has not yet created it (the update
+  procedure names the window) — while Phase History shows merged
+  phases gets a **one-time backfill
   offer** at the next phase close — an owner-confirmed pass over the prior phase
   specs' ratified decisions, never an inference; a decline is recorded in the file
   with the date, so the offer is not re-made at every close.
@@ -578,9 +596,13 @@ Run `/end-phase` when the last slice is done:
    positioned to ask — reported by name with its verdict
    (`unconsumed artifact: <finding, file and line | clean>`), per the lens file's
    contract: an unnamed lens verdict cannot be credited to the lens. Beside it runs
-   the **preserved-contract check**: for every surface the arc rewrote, the product
-   contract's entries on that surface still hold — each named pin exists and ran
-   green in this arc's gate — reported as `preserved contract: <finding, file and
+   the **preserved-contract check**: for every surface the arc touched (the
+   preserved-contract sweep's own population), the product
+   contract's entries on that surface still hold — each named pin exists and
+   **itself passed** in this arc's gate run (a pin skipped or failing inside a
+   recorded red baseline is a finding, not green), a claim-only entry reporting
+   `claim-only — halt 4 evidence only` rather than clean — reported as
+   `preserved contract: <finding, file and
    line | clean | n/a — no entries on touched surfaces>`; a violation that turns out
    deliberate is halt 3, because a ratified behavior is retired by the owner or not
    at all. Verify each finding against the source
@@ -607,8 +629,9 @@ Run `/end-phase` when the last slice is done:
    itself (newly-live controls recorded in the same Notes cell; one without an
    independent off switch goes to the backlog as a risk); the **product-contract
    reconcile** (halt 4's met behaviors enter `spec/PRODUCT_CONTRACT.md` with their
-   pins named; entries on rewritten surfaces re-affirmed against pins that exist —
-   the record is not done until entry and pin agree; the one-time backfill offered
+   pins named; entries on touched surfaces re-affirmed against pins that exist —
+   the record is not done until entry and pin agree; claim-only entries on touched
+   surfaces re-presented — can one now be pinned?; the one-time backfill offered
    where the *Product contract* section above says it is owed); the coverage-floor ratchet
    (set the threshold where it lives — workflow file or build-file check rule — from
    the enforced run's figure, then reconcile

@@ -141,10 +141,18 @@ contract — an
 unnamed lens verdict cannot be credited to the lens.
 
 Beside it runs the **preserved-contract check** (its subject is the contract, not
-the diff): for every surface the arc rewrote, read `spec/PRODUCT_CONTRACT.md`'s
+the diff): for every surface the arc touched — the sweep's own population, so the
+carried set and the checked set cannot drift apart — read
+`spec/PRODUCT_CONTRACT.md`'s
 entries on that surface and confirm each still holds — the named pin exists in the
-tree and ran green in this arc's gate (step 2's run; that is the environment the
-claim is about). Report `preserved contract: <finding, file and line | clean |
+tree and **itself passed** in this arc's gate run (step 2's run; that is the
+environment the claim is about — and passed as a test, not merely inside a gate
+green against a recorded baseline: on a red-baseline adoption a pin skipped or
+failing inside the baseline is a finding, not clean). A **claim-only** entry has
+no pin to run and is never reported clean on the strength of a test that does not
+exist — report it `claim-only — halt 4 evidence only`; its verification is the
+owner's acceptance pass, not the gate. Report
+`preserved contract: <finding, file and line | clean |
 n/a — no entries on touched surfaces>`. Its negative case: pointed at an entry
 whose pinning test was renamed or deleted, it must flag that entry — a run that
 cannot fail that way is not this check. A violation that turns out deliberate is
@@ -252,15 +260,19 @@ one at a time buried in the bullet that raised it.
   (<date>)`); **deferred** items go to the backlog, not the contract; **dropped**
   items leave it, with the amended decision recorded in the phase spec. Then
   reconcile the direction nothing else checks: every entry on a surface this arc
-  rewrote still names a pin that exists in the tree — the preserved-contract check
+  touched still names a pin that exists in the tree — the preserved-contract check
   read that at review time; this is the write-side mirror, and the bullet is not
   done until entry and pin agree (an entry naming a test the tree does not hold
   fails this reconcile — that visible failure is the check's negative case).
+  Re-present any **claim-only** entries on touched surfaces while here: can one
+  now be pinned? An owner question, never a default — a dated claim-only line is
+  a debt, and this is its only recurring presentation point.
   **One-time backfill:** if the contract is empty while Phase History shows merged
   phases — an adoption or update predating the file — offer the backfill now: walk
   the prior phase specs' ratified decisions with the owner and enter only what they
   confirm as still-current, never an inference. A decline is recorded in the
   contract file with the date, so the offer is not re-made at every close.
+- **Coverage floor — bump the enforcement, then reconcile:** if the coverage measured
   for the merged branch rose this arc, set the threshold — in whichever artifact
   carries it: the CI workflow file, or the build file's check rule where the workflow
   only invokes the check (a Maven adoption's number lives in the build file; the

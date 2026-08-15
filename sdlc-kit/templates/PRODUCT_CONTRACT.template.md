@@ -11,7 +11,9 @@ behavior. `spec/SDLC.md` (*Product contract*) states the rules; the short form:
   ratified retirement deletes it. A behavior never leaves this file by omission.
 - **Written at phase close** by `/end-phase`'s contract reconcile, and by owner decision
   anywhere else. **Read at phase boundaries only** — `/plan-phase` carries the relevant
-  entries into the phase spec's *Preserved Behaviors*, so slices never load this file.
+  entries into the phase spec's *Preserved Behaviors*, so slices never load this file —
+  with one narrow exception: a slice review that saw a test deleted, skipped, or
+  gutted opens it to ask whether that test is a pin.
 - **Contract altitude.** An entry is a truth a user could observe or an invariant the
   owner ratified — never a restating of a spec sentence-by-sentence.
 
