@@ -109,6 +109,13 @@ re-denominated form, and every clock in this section was already counted in arcs
   both CLIs; fixed rubric, forced verdict-plus-quotation; logging ramp; §16 clock
   from day one). VER.1 exists, so its precondition is met; it opens only when the
   owner schedules it.
+- **CONTRACT — built 2026-08-15, unreleased; clock armed, not started** (§57.5):
+  the product-contract mechanism runs the §16 clock from the first field arc under
+  it. Value criterion pre-registered in §56.2: seeding the adopter's contract must
+  surface P01's D6/D22/D23 as scheduled work or explicit owner retirement, and
+  within two arcs a phase touching a contract surface must demonstrably encounter
+  its entries. No confirmed catch after two field arcs → deletion candidate like
+  any rule.
 - **Standing input:** a TFit field report (Phase 07), whenever it arrives.
 - **The Copilot bench is still standing** (§29.3): fixture repo
   `D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot
