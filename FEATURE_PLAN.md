@@ -579,3 +579,329 @@ executability gap, not a stated fact — future work, not this release).
 Proof suites re-run after the comment-touching fixes: guard dialect 33 cases +
 12/12 mutations, close-out 21 + 15 cases + 16/16 mutations, all green. The
 release is unblocked; 0.22.0 tags with this section in the tree.
+
+## 56. The sixth field report triaged — the whole-project review of
+## ai-news-dashboard: the contract-erosion class is real, and the tree says the
+## mechanism is worse than the report's — 2026-08-15
+
+Ingested verbatim as `FIELD_REPORT_2026-08-15.md`. Unlike the five before it this is
+not an arc retro: it is a whole-project review of the second adopter (four merged
+phases, Copilot CLI) against 0.22.0 main, filed explicitly as planning input, and it
+prescribes its own discipline (§13 there: re-verify everything against both trees,
+mark each finding measured / suspected / already-addressed, collapse symptoms to root
+causes). That discipline was applied before this section was written — two
+verification sweeps, one per tree, plus targeted git archaeology on the adopter.
+
+### 56.1 The verdicts, finding by finding
+
+**Report §2 — cross-phase product-contract erosion: MEASURED, mechanism corrected.**
+All five Phase 01 ratifications stand in the adopter's `spec/PHASE_01_*.md` and no
+later spec, retro, or backlog entry amends any of them: D6 (empty state shows last
+refresh status), D23 (per-source `OK`/`WARN` panel with reason), D22 (detail view
+with authors/tags and full sanitized content), the B-rows and acceptance checklist
+restating them, and the application-owned URL/content safety rule. All five absences
+confirmed in the current tree: `DashboardController` depends only on the three item
+repositories, neither template carries any status element, the empty state is bare
+`No news items yet`, the detail view shows no authors or tags, and
+`NewsItem.summaryBasis` hard-truncates at 4,096 characters with no marker — so
+"full sanitized feed content" is structurally unsatisfiable. The correction: the
+report tells a Phase-02-rewrote-it-away story, but `git log -S "status"` over the
+templates directory is empty for the repo's entire history — **the status panel
+never rendered in any commit**. Phase 01 was accepted at halt 4 with at least two
+checklist items unmet and no recorded deviation (the 2026-08-05 retro, the later
+specs, and every backlog revision are silent). Then the 2026-08-06 external audit
+filed the orphaned `SourceRefreshStatus` entity as a dead artifact, and Phase 03 S6
+(`523844e`) closed that backlog entry **by deleting the entity and its repository** —
+a cleanup that moved the tree further from the ratified spec, while `end-phase.md`'s
+one prior-phase reach ("an entry that contradicts a ratified spec decision is a spec
+conflict — halt 3") never fired, because it relies on the entry naming the conflict
+and nothing in context knew D6/D23 existed. So the class has **two entry paths, not
+one**: ratified-but-never-delivered surviving acceptance, and
+delivered-then-rewritten. Both end identically — ratified behavior absent, every
+gate, test, and review green, no owner decision recorded anywhere — and a fix must
+sit where both paths pass through: phase planning and phase close, not slice
+implementation.
+
+**Report §3 — tests do not preserve old ratified behavior: MEASURED.** The dashboard
+tests pin the Phase 02 surface thoroughly (empty-state text, cards, tags, batch
+loading, pagination bounds) and nothing pins refresh status; `RefreshOutcome`
+appears only in the JSON `POST /refresh` path's tests. Kit-side, the sweep found
+**no mechanism at all** for durable regression obligations or test retirement:
+"retire" occurs only about kit files, the disposal-intent lens is within-slice
+(added-then-deleted in the same slice), and `change-verify`'s neighbouring-behavior
+step is per-change, code-path-scoped. Same root as §2 — the missing input is the
+obligation, not more tests.
+
+**Report §4 — trust-boundary decay: MEASURED, both halves.** Adopter: feed-provided
+URLs flow verbatim (`HackerNewsAdapter` takes `node.get("url")` as-is; the RSS path
+checks only non-blank) into persistence and out through raw `th:href` in both
+templates; the only scheme check in the repo is test infrastructure
+(`TestIsolationConfig`). Phase 01's ratified "application-owned URL and content
+safety checks" exists as Jsoup text-sanitization of bodies only — URLs are never
+touched. Kit: the untrusted-input lens triggers only when a slice adds or changes an
+ingress point, and `/plan-phase`'s trust-boundary interview and sweep are scoped to
+*this phase's* behaviors; the per-phase spec's Trust Boundaries section is never
+re-read by later phases. A consumer-side rewrite of stored hostile data triggers
+nothing. Real gap, same shape as §2: a ratified constraint with no durable home.
+
+**Report §5 — arc review is phase-complete, not regression-complete: MEASURED.**
+`/end-phase` checks the arc against the current phase's exit criteria and takes the
+acceptance checklist from the current phase's spec; its stated blind spot is
+inter-slice seams, not inter-phase ones. Confirmed a design limitation, and the §2
+specimen is its negative case. Same root; folds into Investigation A below.
+
+**Report §6 — historical dead artifacts: MEASURED example, minimal disposition.**
+`SourceRegistry.enabled` is persisted, seeded `true`, and has **no getter at all** —
+no consumer is possible without recompiling the entity. The report's own test
+("would STABILIZATION naturally surface it?") answers **no**: `/plan-phase` contains
+zero STABILIZATION content, and stabilization work flows only from the deferred
+backlog and the red-gate baseline — both write-once channels an unused column never
+enters. Even the 2026-08-06 whole-tree audit missed this one while catching its two
+siblings. But one harmless column is thin evidence for new mandatory machinery, and
+the report agrees. Disposition: **no new sweep.** The load-bearing half joins
+Investigation A instead — the `523844e` specimen shows the dangerous case is not the
+artifact that lingers but the one that gets *deleted* without checking ratified
+decisions; the deletion path is where the check belongs.
+
+**Report §7 — owner comprehension visualization: PREMISE REFUTED.** The report
+treats a "planned Understand Anything integration" as an existing commitment. It
+does not exist: zero occurrences in this plan, the history file, or any document in
+this repo. The underlying observation (a structural CHANGED/REMOVED footprint could
+surface surprises prose hand-backs miss) is recorded here as **considered and held**
+(§37.6's shape) — with the report's own caveat adopted as the reason: a visualizer
+can expose a surprise, but the process still needs an authoritative statement of
+what must be preserved, which is Investigation A's job. Resolved at the §56.3
+ruling: the plan exists in a separate file outside this repo (owner statement,
+2026-08-15); it stays held until after the improvement batches, then gets its own
+triage against whatever that file actually says.
+
+**Report §8 — human onboarding: MEASURED, small.** `/sdlc-setup` neither creates
+nor checks a project README in either mode — New mode's scaffold list has no README
+entry, Existing mode reads one only as analysis evidence, and the close-out never
+asks. The adopter's only human-facing run instructions sit in PROJECT_INDEX's
+environment-gotchas section. Real gap, deliberately lightweight fix: a minimal
+human entry point (what the app is, how to run it, where the process docs live) —
+links, never a second home for process truth.
+
+**Report §9 — harness-specific enforcement: ALREADY ADDRESSED in substance.** The
+report itself concedes the specific failures were absorbed (0.19–0.22: guard
+dialects, split events, shell pins, spoken refusals, the ledger's no-signal rule).
+Its residue — "define required harness semantics before adding a harness" — is what
+the §31.12 probe protocol and the bench already do de facto. Recorded as a standing
+gate rather than built: **no third harness (Cursor or otherwise) gets an adapter
+until its semantics are benched against the report's §9 checklist** (discovery,
+shell, hook payloads, failed-command observability, stop behavior, deny mechanism,
+instruction loading, owner-typed observability, model routing, MCP). No work now;
+no Cursor work is planned.
+
+**Report §10 — process cost: ALREADY THE STANDING REGIME.** Field-arc clocks,
+deletion candidates, attributed catches, trial-first enforcement — all live in the
+clocks section above; the report explicitly endorses the direction and asks for
+nothing new. Its one usable pressure — "recurring human friction is a cost, not
+user error" — is already R4.6's writer plus the retro sweep. Nothing to do.
+
+**Report §11 — the non-weaknesses: ADOPTED AS CONSTRAINTS.** Fresh context per
+slice, one-phase-one-PR, TDD/mutation rigor, the whole-arc review's existence, the
+five-halt model (no sixth), and harness delegation are all load-bearing and stay.
+Every mechanism below is bound by them.
+
+### 56.2 The root cause, and Investigation A's design brief
+
+Report §§2–5 collapse to one sentence: **no artifact states what the product
+currently does, so nothing downstream can be obligated to preserve it.** Phase specs
+are per-phase deltas and historical decision records — correctly so; PROJECT_INDEX
+is a dashboard and carries phase status, not behavior; and every process step reads
+the current phase only. The kit already owns the fix's pattern: invariant 14 ("a
+recorded value names its enforcing artifact") is exactly this rule at process
+altitude. Investigation A is that invariant applied at product altitude.
+
+Proposed shape, to be designed and pre-registered as its own batch (CONTRACT)
+before any build — proposed, not ruled:
+
+- **One new artifact** — a compact, surface-grouped statement of owner-ratified,
+  externally observable product truths (the report's §2 sketch, re-derived), one
+  line per behavior, each line naming its enforcing test or marked claim-only
+  (inv 14's grammar). Phase specs remain the decision record; this becomes the one
+  authoritative statement of *current* behavior — today no artifact holds that
+  role, so this adds a source of truth without duplicating one.
+- **Four touchpoints, all inside existing steps and halts:** `/end-phase` phase
+  close reconciles the arc against it (new behaviors enter; behaviors the arc
+  removed or left undelivered become explicit halt-4/halt-3 questions — the §2
+  specimen's both entry paths die here); `/plan-phase` checks candidate behaviors
+  against entries on the surfaces the phase touches, so a planned rewrite
+  *encounters* what it must preserve; the whole-arc review gains the preserved-
+  contract question for rewritten surfaces; and any deletion of a record-shaped
+  artifact (the unconsumed-artifact lens's fix path) first checks the contract and
+  ratified decisions (`523844e`'s lesson). Trust-boundary invariants ride in the
+  same artifact as their own short section (Investigation B folded in — no
+  parallel security-contract system), re-read by `/plan-phase` whenever a touched
+  surface consumes data an earlier phase classified untrusted.
+- **Test linkage, not test inflation:** entries pin behaviors at contract altitude;
+  retiring a named test is a contract edit, and a contract edit is an owner
+  decision through the existing halt-3 channel. No one-test-per-sentence rule.
+- **Bounded by construction:** entries are current truths only — superseded lines
+  are replaced, not accumulated; the artifact is read at phase boundaries, never
+  per-slice, so context minimization at slice level is untouched.
+- **Setup and update:** New mode instantiates it empty (grown at each phase
+  close); Existing mode seeds it in the interview like every other spec fact —
+  never inferred silently. `sdlc-update` carries the transition note.
+
+**Value criterion, pre-registered now (the §5 trial-protocol rule):** the report's
+§14 scenario, live. Seeding the adopter's contract must force D6/D22/D23 to become
+either scheduled work or an explicit owner retirement — outcome B or C of §14,
+where today's outcome is the unacceptable D. Then, across the next two field arcs,
+any phase touching a contract surface must demonstrably encounter the relevant
+entries before implementation (outcome A/B/C). The §16 audit clock applies from day
+one: no confirmed catch after two field arcs makes the mechanism a deletion
+candidate like any other rule.
+
+### 56.3 Dispositions put to the owner
+
+- **(a) Open CONTRACT as the next kit batch** — design pre-registered in the §52
+  shape (design section → owner rulings → build), covering the artifact, the four
+  touchpoints, and the §14 validation scenario. Recommended.
+- **(b) Trust boundaries ride in the contract artifact** (Investigation B folded
+  into A), not a parallel system. Recommended.
+- **(c) Report §6:** no new dead-artifact sweep; the deletion-side check ships
+  inside CONTRACT. Recommended.
+- **(d) Report §7:** held unless the owner names where the "Understand Anything"
+  plan lives — nothing in this repo does.
+- **(e) README:** approve as its own small batch (a `README.template.md` +
+  New-mode scaffold entry + Existing-mode offer), independent of CONTRACT.
+  Recommended, after CONTRACT.
+- **(f) Adopter-side filings owed** (their backlog is the canonical record, the
+  2026-08-06 convention): the URL-scheme gap (report §4 — a real, current
+  rendering path for feed-controlled `href`s), the D6/D22/D23 absences (which for
+  them are halt-3 spec conflicts, not mere backlog entries), and
+  `SourceRegistry.enabled`. An adopter-session action, with each claim re-verified
+  at filing time; it would also make their next STABILIZATION arc the CONTRACT
+  seed case.
+
+**Ruled 2026-08-15 — all six taken as recommended**, with (d) resolved rather than
+held blind: the visualization plan lives in a separate file outside this repo and is
+addressed after the improvement batches (the §56.1 entry records it). Order of work:
+CONTRACT (design §57, then build on its rulings), then the README batch (e), with
+the adopter filing session (f) scheduled against their STABILIZATION arc so the
+contract seed case and the filings land together.
+
+## 57. CONTRACT opened — the product-contract mechanism designed: one bounded
+## statement of current truths, four touchpoints inside existing halts,
+## pre-registered before any build — 2026-08-15
+
+§56.3's rulings opened this batch. What follows is the design, proposed not
+built: the owner rules on 57.6 before anything is written into the kit (§37.7's
+rule), and the value criterion stands as pre-registered in §56.2, restated
+operationally in 57.5. The §11 constraints from the report bind throughout:
+context minimization per slice, five halts and no sixth, phase specs stay
+historical decision records, one authoritative source per fact.
+
+### 57.1 The artifact
+
+`spec/PRODUCT_CONTRACT.md`, instantiated from
+`templates/PRODUCT_CONTRACT.template.md` — placeholder-free (headers and inline
+guidance only), so inv 3's placeholder set is untouched. Structure: one section
+per user-facing surface (the report §2 sketch's shape, re-derived from the
+verified evidence), one line per behavior, each line carrying inv 14's grammar
+at product altitude:
+
+    - <externally observable truth, one line> (P<NN> D<M>) —
+      pinned: <test or mechanical check> | claim-only (<date>)
+
+The decision pointer (`P01 D23`) keeps phase specs the sole decision record; the
+contract states only what is currently true and ratified. A superseding decision
+replaces the line and the superseding phase spec records why; a retirement
+deletes it, same rule. History lives in specs, current truth lives here — a role
+no artifact holds today (§56.2's finding), so this adds a source of truth
+without duplicating one. A closing `## Trust boundaries` section carries
+high-consequence invariants (data classifications, scheme/rendering policies,
+authority rules) in the same grammar. Bounded by construction: current truths
+only, contract altitude only — a truth a user could observe or an invariant the
+owner ratified, never a restating of specs sentence-by-sentence — and read at
+phase boundaries, never per-slice.
+
+### 57.2 The four touchpoints — existing steps, existing halts
+
+1. **`/plan-phase` — the contract pass.** Read the contract whole (it is
+   bounded); list entries on surfaces the candidate phase touches; carry them
+   into the phase spec under a new `## Preserved behaviors` section of the
+   embedded spec template. Slices then inherit them from the current phase spec,
+   so `/next-slice` and the context-minimization rule are untouched. An entry
+   the phase would remove or alter is put to the owner at the phase-scope halt
+   (halt 1) or as a design question (halt 3) — never decided by the plan. The
+   existing trust-boundary sweep additionally re-reads the contract's trust
+   section whenever a touched surface consumes data an earlier phase classified
+   untrusted — the consumer-side blind spot §56.1's §4 names.
+2. **`/end-phase` — per-item acceptance verdicts (halt 4).** Every acceptance-
+   checklist item is recorded met or owner-dispositioned: deferred (backlog
+   entry, does not enter the contract) or dropped (ratified in the spec). An
+   unmet item can no longer pass silently — the never-delivered path (Phase
+   01's D6/D23) dies at its source. Not a sixth halt: this sharpens what halt 4
+   already is, and the verdicts land in the phase spec's checklist itself.
+3. **`/end-phase` — the contract reconcile and the preserved-contract
+   question.** After acceptance, met behaviors enter or update the contract
+   with their pinning tests named (or claim-only, dated) — the inv 14 reconcile,
+   performed in the same pass that writes the record. The whole-arc review asks,
+   for every surface the arc rewrote, whether that surface's contract entries
+   still hold: the named pins still exist and ran green in the arc's gate
+   (environment named per inv 15 — the gate run, not a claim). Preserved
+   behaviors the arc left unimplemented are checklist items like any other and
+   meet touchpoint 2.
+4. **The deletion path.** The unconsumed-artifact lens gains one rule on its fix
+   path: before a record-shaped artifact is deleted as dead, search the contract
+   and the ratifying specs for it — a hit is a spec conflict (halt 3), not a
+   cleanup (`523844e` is the specimen). The disposal-intent lens gains the
+   mirror clause: deleting, skipping, or gutting a test the contract names as a
+   pin is a contract edit, and a contract edit is an owner decision.
+
+### 57.3 Setup, update, and the adoption seam
+
+New mode instantiates the template beside the other spec files; it grows at each
+phase close. Existing mode and `/sdlc-update` seed it per owner decision (b)
+below. `sdlc-update.md` and the root README's update section carry the same
+transition note (inv 8); the install list, both file trees, and the ownership
+tables gain the template's row (inv 5, 7, 9); `COPILOT.md` needs no new mapping
+row — spec files are CLI-neutral.
+
+### 57.4 Cost named up front
+
+Files: new `templates/PRODUCT_CONTRACT.template.md`; `SDLC.template.md` (the
+canonical statements — the artifact's role, the reconcile, per-item verdicts,
+the deletion rule; inv 2's both-sides rule covers every command mirror below);
+`commands/plan-phase.md` (contract pass + the spec template's `## Preserved
+behaviors`); `commands/end-phase.md` (halt-4 verdicts, reconcile step,
+arc-review question); `reference/REVIEW_LENSES.md` (two lens clauses);
+`commands/sdlc-setup.md`; `commands/sdlc-update.md` + root README update
+section; both README trees; CHANGELOG; manifest regenerated same-commit
+(inv 10). The reconcile and the deletion-path search are checks: each joins
+inv 13's denominator sentence in the same batch with a stated negative case.
+Everything new enters the §16 audit clock, counted in field arcs.
+
+### 57.5 Value criterion, operational — and the clock
+
+Unchanged from §56.2: (1) seeding the adopter's contract must force D6/D22/D23
+to become scheduled work or an explicit owner retirement — report §14's outcome
+B or C, where today's outcome is the unacceptable D; (2) across the next two
+field arcs, a phase touching a contract surface demonstrably encounters the
+relevant entries before implementation (outcome A, B, or C). The §16 clock runs
+from the first arc under the mechanism; a contract pass with no confirmed catch
+after two field arcs is a deletion candidate like any other rule.
+
+### 57.6 Owner decisions owed before the build
+
+- **(a) Home and name:** `spec/PRODUCT_CONTRACT.md` from its own template
+  (recommended — PROJECT_INDEX stays a bounded dashboard; the contract is
+  slow-growing and load-bearing), or a PROJECT_INDEX section.
+- **(b) Existing-adoption seeding:** seed empty with a scaffolded note — grown
+  at the next phase close, with a one-time backfill offered as that close's
+  first reconcile (recommended — no invented facts, cost lands at a halt that
+  already exists), or a full backfill interview at update/setup time.
+- **(c) Per-item acceptance verdicts at halt 4:** approve as designed
+  (recommended — it is the existing halt sharpened, and the §2 specimen's first
+  entry path closes nowhere else).
+
+**All three taken as recommended, 2026-08-15** — home is
+`spec/PRODUCT_CONTRACT.md` from its own template; existing adoptions seed empty
+with the one-time backfill offered at their next phase-close reconcile; halt 4
+gains per-item verdicts. This section is committed before the build (§31.9's
+pre-registration-by-commit-ordering precedent); the edit map below is derived
+mechanically at build time per §4a, with §57.4 as the floor, not the list.

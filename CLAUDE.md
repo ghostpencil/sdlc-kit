@@ -174,6 +174,18 @@ never failed. `FEATURE_PLAN_HISTORY.md` §15 records the triage: nine of ten fin
 SIMP, the simplification pass (v0.10.0), then R4, the ten-rule fix batch (v0.11.0,
 §17).
 
+`FIELD_REPORT_2026-08-15.md` is the sixth — not an arc retro but a whole-project review
+of ai-news-dashboard (four merged phases, Copilot CLI) against 0.22.0, filed as planning
+input. Its theme moves the lineage up a level: **the process supervises the work in
+front of it, and no artifact carries the accumulated product contract** — Phase 01
+owner-ratified dashboard behaviors are absent from the current tree with every gate,
+test, and review green, and the one schema remnant was deleted by a later cleanup slice
+as an unconsumed artifact. `FEATURE_PLAN.md` §56 records the triage: the P0 findings
+verified with a sharpened mechanism (the behavior was never delivered — acceptance
+passed anyway), one premise relocated (the visualization integration lives in a file
+outside this repo, held until after the improvement batches), the rest already absorbed
+or held. All six dispositions were ruled 2026-08-15; the CONTRACT design is §57.
+
 ## Writing conventions for these files
 
 Command files are prompts, not documentation. The established shape is: a title, a
