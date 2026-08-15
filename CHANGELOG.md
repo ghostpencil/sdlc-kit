@@ -10,7 +10,7 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.23.0 — 2026-08-15
 
 CONTRACT (`FEATURE_PLAN.md` §56–§57, owner-ruled 2026-08-15): the product contract —
 the sixth field report's P0 answered. Report §§2–5 collapsed to one root cause: no
