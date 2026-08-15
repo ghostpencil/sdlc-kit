@@ -552,9 +552,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   project-owned.** The finding (measured 2026-08-15, Claude Code 2.1.231, an
   adopter's update bench): a hook carrying the per-hook `"shell": "bash"` key
   **never fired** — on `Stop` and on `PostToolUse` alike, no error, no log — while
-  an unpinned twin fired; the same pinned block had been measured working
-  2026-08-13 on the interactive route, so the dispatch answer moves between routes
-  or CLI versions, and no shipped wiring depends on it anymore. On a Claude Code
+  an unpinned twin fired; the interactive route re-measured dead the same day (on
+  2.1.233 — the CLI auto-updated between the benches), and the same pinned block
+  had measured working 2026-08-13 on an unrecorded version: version drift under an
+  auto-updating CLI, and no shipped wiring depends on the pin anymore. On a Claude Code
   project, state the consequence plainly at the halt: **until the rewire lands by
   hand, the gate hook, the skill ledger, and the stop backstop may never have been
   running on some routes — a pinned hook that does not fire looks exactly like a

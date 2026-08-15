@@ -127,10 +127,14 @@ key — **but the key cannot be trusted: measured 2026-08-15, Claude Code 2.1.23
 Windows 11 (headless route, an adopter update's bench), a hook carrying
 `"shell": "bash"` never fired at all, on `Stop` and on `PostToolUse` alike, while an
 unpinned twin beside it fired** — no error, no log, no feedback, and the adopter's
-pinned gate hook had been silently inert for an unknown span. (The same pinned block
-had been measured working on this bench 2026-08-13 — the interactive route, CLI
-version unrecorded; both measurements stand with their routes named, and the shipped
-wiring no longer depends on which was the variable.) Every Claude-dialect hook the
+pinned gate hook had been silently inert for an unknown span. **The interactive
+route re-measured the same day: pin dead there too** (a driven interactive TUI
+session on 2.1.233 — the CLI had auto-updated between the two same-day benches —
+wrote the unpinned marker and not the pinned one on a real turn's Stop). The same
+pinned block had measured working on this bench 2026-08-13 with the CLI version
+unrecorded, so the verdict is **version drift, not a route artifact**: a dispatch
+behavior the config depends on moved underneath an auto-updating CLI, silently —
+which is why the probe below records the version. Every Claude-dialect hook the
 kit ships is therefore launcher-neutral — bare `sh <script>` / `python <script>`
 command lines, no `"shell"` key — and in the shell those resolve on the measured
 machine, `sh` was Git's (`<git-install>\usr\bin\sh.EXE`) and stdin delivered the
@@ -184,15 +188,17 @@ Read four things off it, and record them in `spec/SDLC.md`
    the same silent pass by a different route.
 4. **Whether a hook fires at all — the dispatch check.** Everything above probes the
    shell a hook would run in; none of it proves the CLI dispatches the hook. Measured
-   2026-08-15 (Claude Code 2.1.231): a hook carrying a per-hook `"shell"` key never
+   2026-08-15 (Claude Code 2.1.231 headless, 2.1.233 interactive — both routes): a
+   hook carrying a per-hook `"shell"` key never
    fired while an unpinned twin beside it did — no error anywhere, invisible to every
    body-level probe. In a scratch repo, register two markers-only probe hooks on the
    event you depend on (one in the exact wiring shape you will ship, one minimal
    `sh -c "echo fired > probe.txt"` twin), trigger the event once, and read the
    markers back. A wiring shape whose probe never fires is not installed pending
    investigation — it is replaced with the shape whose probe fired. Record the CLI
-   version beside the result: the dispatch answer has been measured to move between
-   versions or routes with nothing else changing.
+   version beside the result: the same pinned shape measured working 2026-08-13 on
+   an unrecorded version and dead two days later on both routes, and the CLI
+   auto-updated twice inside the measuring day itself.
 
 If the answer is the WSL one, the honest options are to install the toolchain inside
 that environment, or to accept that the Copilot-side hooks do not run on this machine
@@ -466,14 +472,16 @@ line states which) by the same record grammar `/end-slice`'s command step runs:
 (`{"decision":"block","reason":…}`) was measured on the bench 2026-08-05. Claude
 Code: a `Stop` block in `.claude/settings.json` carrying the **launcher-neutral**
 form — `sh -c "if [ -d .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh
-.github/hooks/sdlc-close-out.sh stop-check; fi"`, no `"shell"` key. Two dated
-measurements sit behind that shape, routes named: 2026-08-13 (interactive-route
-bench, CLI version unrecorded) the pinned `"shell": "bash"` block fired and
-delivered the payload on stdin; 2026-08-15 (headless route, Claude Code 2.1.231,
-an adopter update's bench) the same pinned block **never fired** while the
-launcher-neutral form did, on a real session stop with the classification line
-read back — see *The hook environment*, which is why no shipped hook depends on
-the pin. The block schema (`{"decision":"block","reason":…}`) was measured
+.github/hooks/sdlc-close-out.sh stop-check; fi"`, no `"shell"` key. Three dated
+measurements sit behind that shape, routes and versions named: 2026-08-13
+(interactive-route bench, CLI version unrecorded) the pinned `"shell": "bash"`
+block fired and delivered the payload on stdin; 2026-08-15 (headless, Claude Code
+2.1.231, an adopter update's bench) the same pinned block **never fired** while
+the launcher-neutral form did, on a real session stop with the classification
+line read back; 2026-08-15 again (interactive, 2.1.233 — the CLI auto-updated
+between the same-day benches) the pin dead on that route too — version drift,
+not a route artifact; see *The hook environment*, which is why no shipped hook
+depends on the pin. The block schema (`{"decision":"block","reason":…}`) was measured
 honored 2026-08-14 (the pre-registered deny ramp): the blocked session received
 the reason, amended the commit with the stated-skip form rather than fabricating
 evidence, and the next stop stood down on `stop_hook_active` — the same sequence
@@ -493,9 +501,9 @@ and disarmed by deleting it — the owner's call, after reading a few real sessi
 of the log, and the `{{CLOSE_OUT_CHECK_NOTE}}` line in `spec/SDLC.md` is updated
 in the same breath. Prove it by firing it — in a scratch session of each installed
 CLI, **launched the way this project's operator actually launches it**, since the
-Copilot hook shell is per-launcher and the Claude dispatch layer itself has been
-measured route-sensitive (*The hook environment*: the pinned form fired on one
-route and never on another): end the session on an unpushed
+Copilot hook shell is per-launcher and the Claude dispatch layer has been measured
+moving under an auto-updating CLI (*The hook environment*: the pinned form worked
+on one version and silently never fired on the next): end the session on an unpushed
 commit missing one record key and read the would-block line back; no line means
 the hook is not firing.
 

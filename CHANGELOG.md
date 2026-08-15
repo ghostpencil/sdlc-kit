@@ -13,13 +13,15 @@ to an already-adopted project.
 ## 0.24.0 — 2026-08-15
 
 PIN (`FEATURE_PLAN.md` §61, owner-directed 2026-08-15): the Claude hook-pin finding,
-field-measured the same day at an adopter's 0.23.0 update. On Claude Code 2.1.231
-(Windows, headless route) a hook carrying the per-hook `"shell": "bash"` key **never
-fired** — on `Stop` and on `PostToolUse` alike, no error, no log, no feedback — while
-an unpinned twin beside it fired; the adopter's pinned gate hook had been silently
-inert for an unknown span. The same pinned block had measured working 2026-08-13 on
-the interactive-route bench (CLI version unrecorded), so the dispatch answer moves
-between routes or versions — and nothing the kit ships depends on it anymore. This is
+field-measured the same day at an adopter's 0.23.0 update. On Claude Code a hook
+carrying the per-hook `"shell": "bash"` key **never fired** — on `Stop` and on
+`PostToolUse` alike, no error, no log, no feedback — while an unpinned twin beside it
+fired, measured on **both routes** (2.1.231 headless; 2.1.233 interactive, driven
+via winpty — the CLI auto-updated between the same-day benches); the adopter's
+pinned gate hook had been silently inert for an unknown span. The same pinned block
+had measured working 2026-08-13 with the CLI version unrecorded: **version drift
+under an auto-updating CLI**, not a route artifact — and nothing the kit ships
+depends on the pin anymore. This is
 the 0.18.0 launcher lesson recurring on the dialect that skipped the split, one layer
 down: not the shell mangling the body, but the dispatch layer never running it.
 

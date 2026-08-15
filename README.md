@@ -644,11 +644,13 @@ only as a hand-apply, and the per-version transition notes name each one.
 
    **0.24.0 rewires every Claude-dialect hook launcher-neutral, and none of it
    arrives by updating — `.claude/settings.json` and the hook scripts are
-   project-owned.** Measured 2026-08-15 (Claude Code 2.1.231): a hook carrying the
-   per-hook `"shell": "bash"` key never fired — `Stop` and `PostToolUse` alike, no
-   error, no log — while an unpinned twin fired; the same pinned block had measured
-   working 2026-08-13 on the interactive route, so the dispatch answer moves
-   between routes or CLI versions and nothing the kit ships depends on it anymore.
+   project-owned.** Measured 2026-08-15 (Claude Code 2.1.231 headless, 2.1.233
+   interactive — the CLI auto-updated between the same-day benches): a hook
+   carrying the per-hook `"shell": "bash"` key never fired on either route —
+   `Stop` and `PostToolUse` alike, no error, no log — while an unpinned twin
+   fired; the same pinned block had measured working 2026-08-13 on an unrecorded
+   version. Version drift under an auto-updating CLI, and nothing the kit ships
+   depends on the pin anymore.
    On a Claude Code project the consequence is stated plainly: **until the rewire
    lands by hand, your gate hook, skill ledger, and stop backstop may never have
    been running on some routes.** Hand-applies, the 0.18.0 shape: instantiate

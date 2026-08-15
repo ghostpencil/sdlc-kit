@@ -1310,3 +1310,20 @@ unaffected. Release: the CHANGELOG entry is written; the tag waits on the owner'
 scratch `stopbench` repo — a pinned Stop hook and an unpinned twin, each writing
 a marker — and the owner's two-minute part is: open Claude Code interactively in
 that directory, send one message, exit, and hand back the marker listing.
+
+### 61.5 The (b) probe run — the pin is dead on the interactive route too, and
+### the verdict is version drift, 2026-08-15
+
+The owner delegated the interactive re-measure to the session; it ran as a driven
+interactive TUI (winpty `-Xallow-non-tty`, real console, the trust dialog and
+welcome screen observed — not headless `-p`). Result: on a real turn's Stop, the
+unpinned probe wrote its marker and the pinned probe did not — **and the capture
+showed v2.1.233, the CLI having auto-updated between the morning's headless bench
+(2.1.231) and the afternoon's interactive one.** So the 2026-08-13 "pin holds"
+measurement was version drift, not a route artifact: the pin is dead on both
+routes on current versions, and a dispatch behavior the config depended on moved
+underneath an auto-updating CLI silently — twice-in-one-day version churn being
+its own exhibit for the probe's new record-the-CLI-version rule. All four hedged
+homes sharpened to the verdict (GATE_RECIPES ×3 + probe item 4, setup's
+fire-proof clause, the update note, the README mirror, the CHANGELOG preamble).
+Remaining before the tag: the pre-release `/kit-check`.

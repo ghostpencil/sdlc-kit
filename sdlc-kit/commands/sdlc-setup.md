@@ -521,8 +521,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - Prove it by seeing it fire: in a scratch session of each installed CLI —
      **launched the way this project's operator actually launches it**, since the
      Copilot hook shell is per-launcher and the Claude dispatch layer has been
-     measured route-sensitive (the pinned form fired on one route and never on
-     another — the hook environment's dispatch check) — end a
+     measured moving under an auto-updating CLI (the hook environment's dispatch
+     check exists because a wiring shape worked on one version and silently never
+     fired on the next) — end a
      session in a repo whose `HEAD` is an unpushed commit missing a record key and
      confirm the log holds `stop: WOULD-BLOCK - defective record` naming the
      commit; a clean stop logs `stop: clean`. No line → the hook is not firing;
