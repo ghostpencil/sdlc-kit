@@ -396,7 +396,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      environment above before adjusting anything else.
    - Record the outcome as `{{TDD_GUARD_NOTE}}` in `spec/SDLC.md`: installed or not,
      which CLI they run on, logging or deny mode, and the proof you just ran. **When
-     installed, the note also states the three rules the guards impose on a coding
+     installed, the note also states the four rules the guards impose on a coding
      session** — a test run registers only as a single bare command (no `;`, `&` or
      `|`; flags and single-test selectors are fine); the stop guard's green is
      any counted green, full-suite assurance being the end-slice gate's job; and a
@@ -405,7 +405,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      the cycle, not only at close-out)
      is licensed without a fresh red by declaring it, one line naming the step and
      move to `.git/sdlc-tdd/refactor-license`, valid only behind a counted green and
-     revoked by the next test edit (*The TDD-ordering guards* in
+     revoked by the next test edit; and the guards see **only files inside the
+     repository** — an absolute path outside the repo root is neither licensed nor
+     denied (0.25.0), so a scratch script under a session temp directory is not a
+     production write and costs no license, while a relative path always is one
+     (*The TDD-ordering guards* in
      `reference/GATE_RECIPES.md` is the full recipe) — because the note is the
      proactive statement of them: the guard's own messages say them only reactively,
      at the refusal or counted run itself, and a session that meets them first as an

@@ -412,6 +412,38 @@ version matched `node test…` as adjacent words and was blind to `node .\test-x
 `.\` prefix sat between them. Wildcards spanning the runner and the word `test`
 (`*node*test*`) match every invocation form; a pattern anchored on a path does not.
 
+**The patterns above are matched against the command with quoted arguments
+removed** — both guard dialects strip `"…"` and `'…'` before the `case`, so the
+table's substring shape stays as written and needs no anchoring. It exists because a
+substring pattern matched against the raw string fires on any command whose *text*
+mentions the runner: measured on a Java adoption, a `git commit -m` whose body quoted
+the RED run commands, plus two appends writing a RED record — three spurious notices
+in one phase (`FIELD_REPORT_2026-08-17b.md` finding 2), on a control whose refusals
+have to be believed. Quoted text is data, never what the shell runs. **The known
+cost, stated rather than hidden:** a runner reachable only inside a quoted argument
+(`bash -c "pytest"`) no longer counts — run it bare, which the compound-command rule
+already requires. The compound check deliberately still reads the raw command: a
+stripping bug there would admit a genuine compound and record a false green, so that
+check stays conservative.
+
+**A file outside the repository is never production source.** Both dialects reduce
+the write path to a repo-relative one and skip an absolute path that is not under the
+root. `SOURCE_GLOB` is extension-only, so before this a session scratchpad —
+`…/Temp/<session>/scratchpad/mutate_s5.py`, never committed, never on the gate's path
+— was classified production and cost the same refactor license as an edit to the
+module guarding an adoption's authoritative database. Measured over one arc: 13
+denials, 5 of them on scratchpad files, 12 writes licensed for a mandated `/end-phase`
+verification step that the command's own text never mentions a license for
+(`FIELD_REPORT_2026-08-17.md` finding 3; owner ruling: a control that cannot tell
+those two acts apart charges the same price for both, which is how a license stops
+meaning anything). A **relative** path stays in scope — it can only be relative to
+the root the guard resolved, and skipping it would be a hole rather than a scoping
+fix. The reduction also fixed a live misclassification in the shell dialect, which
+never attempted it: an absolute path to `tests/conftest.py` matched neither
+`TEST_PATH_PATTERN` form (`tests/*` cannot match a full Windows path, and the
+basename looks nothing like a test) and fell through to `SOURCE_GLOB`, so a test edit
+was charged as a production write and licensed nothing.
+
 **The ramp is not optional.** The guards install in **logging mode**, where they write to
 `.git/sdlc-tdd/guard.log` and never deny. Deny is armed by creating the flag file
 `.git/sdlc-tdd/deny-enabled` and disarmed by deleting it. Read a few real sessions of the

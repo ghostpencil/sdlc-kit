@@ -580,6 +580,32 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   now asks whether the hook fires at all. Update the hook line and
   the hook-environment record in `spec/SDLC.md` with the owner as the
   facts move — never silently.
+- **0.25.0 fixes both of the TDD guard's classifiers, in both dialects, and neither
+  fix arrives by updating — the instantiated guard is project-owned.** Both are
+  false-positive fixes: the guard was speaking about acts that never happened, which
+  is the failure mode that teaches an operator to route around a control rather than
+  respect it. (a) **A file outside the repository is no longer production source.**
+  An absolute path not under the repo root kept its absolute form, failed
+  `TEST_PATH_PATTERN`, matched the extension-only `SOURCE_GLOB`, and was charged the
+  same refactor license as an edit to the project's most sensitive module — measured
+  over one arc as 13 denials, 5 of them on a session scratchpad, and 12 writes
+  licensed for a mandated `/end-phase` verification step whose own text never
+  mentions a license (`FIELD_REPORT_2026-08-17.md` finding 3). Relative paths still
+  count: they can only be relative to the resolved root. (b) **The test-command
+  pattern is matched with quoted arguments stripped**, so a `git commit -m` whose
+  body quotes the RED command no longer registers as a test run — three spurious
+  notices in one phase on a Java adoption (`FIELD_REPORT_2026-08-17b.md` finding 2).
+  Apply each as a template diff against the project's instantiated copy, the way the
+  0.19.x fixes were — `templates/tdd-guard-claude.template.py` (pre-write path
+  handling and the `observe-test` match) or `templates/tdd-guard.template.sh` (the
+  same two), keeping the project's three placeholder values. The `.json` launchers and
+  the settings blocks are unchanged. **The shell dialect carries one extra
+  consequence worth stating at the halt:** it never reduced the path at all, so an
+  absolute path to a file like `tests/conftest.py` was being charged as a production
+  write — a *test* edit that licensed nothing. A project on that dialect may have
+  friction in its log that this release explains. After applying, confirm from
+  `guard.log` on the next real session that scratchpad writes no longer appear and
+  that the project's own test runs still register.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

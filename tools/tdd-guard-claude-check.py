@@ -101,6 +101,18 @@ def write(root, rel, sid=SID, tool="Edit"):
             "tool_name": tool, "tool_input": {"file_path": win(root, rel)}}
 
 
+def write_abs(root, abspath, sid=SID, tool="Edit"):
+    """A write whose target is an absolute path NOT under the repo root."""
+    return {"session_id": sid, "cwd": root, "hook_event_name": "PreToolUse",
+            "tool_name": tool, "tool_input": {"file_path": abspath.replace("/", "\\")}}
+
+
+def write_rel(root, rel, sid=SID, tool="Edit"):
+    """A write whose target arrives repo-relative rather than absolute."""
+    return {"session_id": sid, "cwd": root, "hook_event_name": "PreToolUse",
+            "tool_name": tool, "tool_input": {"file_path": rel}}
+
+
 def green(root, cmd, sid=SID):
     # PostToolUse fires only on success; tool_response has NO exit-code field.
     return {"session_id": sid, "cwd": root, "hook_event_name": "PostToolUse",
@@ -158,6 +170,31 @@ def unit(guard_src, verbose=True, counter=None):
         out = b.run("pre-write", write(b.root, "notes.md"))
         case("3 a non-source file is ignored", b.loglines() == [] and out == "")
 
+        # --- pre-write: scope (FIELD_REPORT_2026-08-17.md finding 3) ---------
+        # A file outside the repository cannot be production source. Before this,
+        # such a path kept its absolute form, failed TEST_PATH_PATTERN, matched the
+        # extension-only SOURCE_GLOB, and was charged the price of a source edit.
+        outside = os.path.join(tempfile.gettempdir(), "sdlc-scratch", "mutate_s5.py")
+        b.reset_state()
+        out = b.run("pre-write", write_abs(b.root, outside))
+        case("3b an absolute path outside the repo is not production source",
+             out == "" and not b.state_has("prod-write-observed")
+             and any("outside the repository" in l for l in b.loglines()))
+
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write_abs(b.root, outside))
+        case("3c ...and armed, it is not denied either", out == "")
+
+        # The other direction, and the reason the fix is a containment test rather
+        # than a bare else: a relative path is relative to the resolved root, so it
+        # stays in scope. Skipping it would be a hole in the guard, not a scoping fix.
+        b.reset_state()
+        out = b.run("pre-write", write_rel(b.root, "pay.py"))
+        case("3d a repo-relative path stays in scope",
+             "VIOLATION production write" in b.tail()
+             and b.state_has("prod-write-observed"))
+
         # --- pre-write: deny mode -------------------------------------------
         b.reset_state()
         b.arm_deny()
@@ -192,6 +229,24 @@ def unit(guard_src, verbose=True, counter=None):
              b.state_has("red-observed") and "RED observed (exit 1)" in b.tail())
         case("7b the spoken RED claims the license it earned",
              "now licensed" in out)
+
+        # --- observe-test: the command, not its text (…-17b.md finding 2) ----
+        # TEST_CMD_PATTERN is substring-shaped, so matching it against the raw
+        # string counted any command whose TEXT mentioned the runner. Measured:
+        # a `git commit -m` quoting the RED command, twice an append writing a
+        # RED record - three spurious notices in one phase.
+        b.reset_state()
+        b.run("pre-write", write(b.root, "tests/test_pay.py"))
+        time.sleep(0.05)
+        out = b.run("observe-test",
+                    red(b.root, 'git commit -m "RED: pytest tests/test_pay.py"'))
+        case("7c a runner named only inside a quoted argument counts nothing",
+             not b.state_has("red-observed") and out == "")
+
+        # The other direction: quoting an ARGUMENT must not hide a real run.
+        out = b.run("observe-test", red(b.root, 'pytest -k "pay and not slow"'))
+        case("7d a real run with a quoted argument still counts",
+             b.state_has("red-observed"))
         out = b.run("pre-write", write(b.root, "pay.py"))
         case("8 red-after-test-edit licenses the production write",
              "OK production write (red observed since last test edit)" in b.tail())
@@ -366,6 +421,18 @@ MUTATIONS = [
      "test files)",
      'if match_any(rel, TEST_PATH_PATTERN) or match_any(base, TEST_PATH_PATTERN):',
      'if False and (match_any(rel, TEST_PATH_PATTERN) or match_any(base, TEST_PATH_PATTERN)):'),
+    ("charge out-of-repo writes as production (a session scratchpad costs the "
+     "same license as an edit to the module guarding the database)",
+     'elif os.path.isabs(p):',
+     'elif False:'),
+    ("skip relative paths as out-of-repo (a real production write escapes the "
+     "guard entirely - the hole the containment test exists to avoid)",
+     'rel = n[2:] if n.startswith("./") else n',
+     'sys.exit(0)'),
+    ("match the runner against the raw command text (a commit message quoting "
+     "the RED command counts as a test run)",
+     'if not cmd or not match_any(probe, TEST_CMD_PATTERN):',
+     'if not cmd or not match_any(cmd, TEST_CMD_PATTERN):'),
     ("trust any cwd when no root is given (state written to unrelated dirs)",
      'if os.path.isdir(".git"):\n        return os.getcwd()',
      'return os.getcwd()\n    if os.path.isdir(".git"):\n        return os.getcwd()'),

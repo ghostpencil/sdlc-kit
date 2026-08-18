@@ -195,8 +195,25 @@ if MODE == "pre-write":
     root_n = ROOT.replace("\\", "/").rstrip("/")
     if n.lower().startswith(root_n.lower() + "/"):
         rel = n[len(root_n) + 1:]
+    elif os.path.isabs(p):
+        # An absolute path outside the repository is not this project's source: a
+        # session scratchpad, a temp file, another checkout. It used to keep its
+        # absolute form as `rel`, fail TEST_PATH_PATTERN, match the extension-only
+        # SOURCE_GLOB, and be charged as production - so a throwaway mutation runner
+        # under Temp/ cost the same license as an edit to the module guarding the
+        # project's authoritative database. A control that cannot tell those two
+        # acts apart charges the same price for both, which is how a license stops
+        # meaning anything. Measured over one arc: 13 denials, 5 of them on a
+        # session scratchpad, and a mandated /end-phase verification step that could
+        # not be executed as written (FIELD_REPORT_2026-08-17.md finding 3; owner
+        # ruling: a file outside the repository cannot be production source).
+        log("write outside the repository - not production source: %s" % p)
+        sys.exit(0)
     else:
-        rel = n
+        # A relative path can only be relative to the root the guard resolved, so it
+        # stays in scope. Skipping it here would be a hole in the guard, not a
+        # scoping fix - the Copilot dialect measured both path shapes arriving.
+        rel = n[2:] if n.startswith("./") else n
     base = rel.rsplit("/", 1)[-1]
     if match_any(rel, TEST_PATH_PATTERN) or match_any(base, TEST_PATH_PATTERN):
         # A test edit invalidates any earlier red and revokes any refactor
@@ -259,7 +276,20 @@ if MODE == "pre-write":
 
 if MODE == "observe-test":
     cmd = (TOOL_INPUT.get("command") or "").replace("\n", " ")
-    if not cmd or not match_any(cmd, TEST_CMD_PATTERN):
+    # Classify on the command with quoted arguments removed. TEST_CMD_PATTERN is
+    # substring-shaped by design (`*pytest*`, `*mvn*test*`), so matching it against
+    # the raw string fired on any command whose TEXT merely mentioned the runner: a
+    # `git commit -m` whose body quotes the RED command, an append writing a RED
+    # record. Measured: three spurious notices in one phase, on a control whose
+    # refusals have to be believed (FIELD_REPORT_2026-08-17b.md finding 2). Quoted
+    # text is data, never what the shell runs. Known cost, stated rather than
+    # hidden: a runner reachable ONLY inside a quoted argument (`bash -c "pytest"`)
+    # no longer counts - run it bare, which is what the compound rule below asks for
+    # anyway. The compound check deliberately keeps reading the RAW command: a
+    # stripping bug there would admit a genuine compound and record a false GREEN,
+    # so that check stays conservative and this one does not feed it.
+    probe = re.sub(r'"[^"]*"|\'[^\']*\'', " ", cmd)
+    if not cmd or not match_any(probe, TEST_CMD_PATTERN):
         sys.exit(0)
 
     def speak(text):

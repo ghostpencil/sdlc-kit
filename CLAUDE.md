@@ -190,6 +190,22 @@ passed anyway), one premise relocated (the visualization integration lives in a 
 outside this repo, held until after the improvement batches), the rest already absorbed
 or held. All six dispositions were ruled 2026-08-15; the CONTRACT design is §57.
 
+`FIELD_REPORT_2026-08-17.md` and `FIELD_REPORT_2026-08-17b.md` are the **seventh and
+eighth**, filed the same day by both adopters against 0.24.0 — the first arc retro from
+the first adopter (Phase 07, BUILD, `sdlc-kit#7`, anonymized: do not de-anonymize it or
+its filename) and the second adopter's Phase 05 (`sdlc-kit#8`). `FEATURE_PLAN.md` §63
+records the triage: all ten findings stand, three with corrections, and two are worse
+than reported — the TDD guard's path defect exists in **both** dialects (the Copilot
+shell guard never attempts ROOT-relativization at all), and the contract-adjudication
+gap is permanent rather than per-arc (the backfill is one-time, and the
+preserved-contract check's population cannot reach a behavior that never became an
+entry). Their shared theme continues the lineage and names it most sharply yet: **every
+step in the kit verifies that an act occurred, and no step verifies that a count still
+holds** — the backlog said 101 with a shipped entry inside it, the gate baseline said
+676 against a measured 678, the bookkeeping rule said one line against a measured 58,
+and the product contract said current with three ratified behaviors absent. §63.3 sorts
+the ten into two classes; §63.4 reads the two arcs against the standing clocks.
+
 ## Writing conventions for these files
 
 Command files are prompts, not documentation. The established shape is: a title, a

@@ -207,9 +207,14 @@ recognizing the project's own test runs.
   any point in the cycle — refactors, `change-simplify` moves, mutation-testing
   edits). The declaration
   is one line naming the step and move; every write under it is logged, a test edit
-  revokes it, and it survives reds on purpose.
+  revokes it, and it survives reds on purpose. **"Production source" means a file
+  inside the repository** — an absolute path outside the root is neither licensed nor
+  denied (0.25.0), so a scratch script under a session temp directory costs no
+  license, while a relative path always counts.
 - **observe-test** (post-shell): records RED or GREEN from a test command's exit
-  code — bare single commands only. A compound (`;`, `&`, `|`) is refused *out loud*,
+  code — bare single commands only, matched against the command with **quoted
+  arguments stripped** (0.25.0), so a `git commit -m` whose body quotes the RED
+  command is not mistaken for a test run. A compound (`;`, `&`, `|`) is refused *out loud*,
   with what is allowed stated, because its exit code is not the test's. Counted runs
   are spoken too: each RED/GREEN observation is echoed back as the state fact it
   produced (the write license earned — or that the red licenses nothing yet, absent

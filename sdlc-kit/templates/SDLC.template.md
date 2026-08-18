@@ -168,7 +168,7 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
 {{TDD_GUARD_NOTE}}
 <!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
      are installed, which CLI they run on, and whether they are in logging or deny mode.
-     When installed, the note also states the three rules the guards impose on a coding
+     When installed, the note also states the four rules the guards impose on a coding
      session — the note is the proactive statement; the guard's own messages state them
      only reactively, at a refusal or a counted run (field, 2026-08-08 — before the
      guard spoke, a session that met them first as unexplained refusals thrashed and
@@ -181,7 +181,10 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      close-out — is licensed without a fresh red by declaring it:
      one line naming the step and move to `.git/sdlc-tdd/refactor-license`, valid only
      behind a counted green, revoked by the next test edit, every write under it
-     logged. The stop guard is session-scoped (owner-decided
+     logged; and the guards see only files INSIDE the repository — an absolute path
+     outside the repo root is neither licensed nor denied (0.25.0), so a scratch
+     script under a session temp directory is not a production write and costs no
+     license, while a relative path always is one. The stop guard is session-scoped (owner-decided
      2026-08-08): it binds only a session that wrote production code or edited a test,
      so a planning, docs, or bookkeeping session stops clean by construction. The note
      also names the artifact that decides the mode (`.git/sdlc-tdd/deny-enabled`,

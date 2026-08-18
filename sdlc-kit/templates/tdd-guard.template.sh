@@ -214,6 +214,28 @@ case "$MODE" in
       # patterns work. Test check runs FIRST: SOURCE_GLOB is extension-only, so it
       # matches test files just as readily as production ones.
       n=$(printf '%s' "$p" | tr '\\' '/')
+      # Reduce to a repo-relative path first, and drop anything that is not in the
+      # repository at all. This dialect never attempted the reduction: it classified
+      # on the full path and the basename, so an absolute path outside the root
+      # matched the extension-only SOURCE_GLOB and was charged as production source -
+      # a session scratchpad costing the same license as an edit to the module
+      # guarding the project's authoritative data. Measured in the Claude dialect
+      # over one arc (13 denials, 5 on a scratchpad, one mandated /end-phase step
+      # unexecutable as written - FIELD_REPORT_2026-08-17.md finding 3); this dialect
+      # reaches the same end by a shorter route and only escaped notice because that
+      # adopter's SOURCE_GLOB does not match its scratch files. Owner ruling: a file
+      # outside the repository cannot be production source. Compared case-insensitively
+      # because Windows hands back either case for the same directory.
+      nl=$(printf '%s' "$n" | tr '[:upper:]' '[:lower:]')
+      rr=$(printf '%s' "$SDLC_REPO_ROOT" | tr '\\' '/'); rr=${rr%/}
+      rl=$(printf '%s' "$rr" | tr '[:upper:]' '[:lower:]')
+      case "$nl" in
+        "$rl"/*) n=$(printf '%s' "$n" | cut -c $((${#rr} + 2))-) ;;
+        /*|?:/*)
+          log "write outside the repository - not production source: $p"
+          continue ;;
+        ./*) n=${n#./} ;;
+      esac
       b=${n##*/}
       case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
       case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
@@ -267,7 +289,20 @@ PATHLIST
 
   observe-test)
     [ -n "$CMD" ] || exit 0
-    case "$CMD" in
+    # Classify on the command with quoted arguments removed. TEST_CMD_PATTERN is
+    # substring-shaped by design (`*pytest*`, `*mvn*test*`), so matching it against
+    # the raw string fired on any command whose TEXT merely mentioned the runner: a
+    # `git commit -m` whose body quotes the RED command, an append writing a RED
+    # record. Measured: three spurious notices in one phase, on a control whose
+    # refusals have to be believed (FIELD_REPORT_2026-08-17b.md finding 2). Quoted
+    # text is data, never what the shell runs. Known cost, stated rather than hidden:
+    # a runner reachable ONLY inside a quoted argument (`bash -c "pytest"`) no longer
+    # counts - run it bare, which is what the compound rule below asks for anyway.
+    # The compound check deliberately keeps reading the RAW command: a stripping bug
+    # there would admit a genuine compound and record a false GREEN, so that check
+    # stays conservative and this one does not feed it.
+    PROBE=$(printf '%s' "$CMD" | sed -e 's/"[^"]*"/ /g' -e "s/'[^']*'/ /g")
+    case "$PROBE" in
       {{TEST_CMD_PATTERN}}) ;;
       *) exit 0 ;;
     esac

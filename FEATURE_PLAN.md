@@ -120,7 +120,11 @@ re-denominated form, and every clock in this section was already counted in arcs
   the Claude-dialect hook rewiring. Field-measured at the TFit 0.23.0 update: hooks
   behind `"shell": "bash"` never fire on Claude Code 2.1.231 — the adopter's gate
   hook had been silently inert. Design pre-registered in §61; decisions owed there.
-- **Standing input:** a TFit field report (Phase 07), whenever it arrives.
+- **Standing input — ARRIVED 2026-08-17, triaged in §63.** Both adopters closed a
+  phase the same day and filed: the first adopter's Phase 07 (`sdlc-kit#7`, the
+  seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
+  all standing; the clock evidence each arc carries is read in §63.4 and the rulings
+  are owed there.
 - **The Copilot bench is still standing** (§29.3): fixture repo
   `D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot
   CLI; neither is tracked, reversal steps recorded there. The ENF, OBS, VER.2, and
@@ -1414,3 +1418,439 @@ Decisions worth recording:
 
 MANIFEST 43/43 regenerated same-commit. Unreleased pending the next tag; the
 CHANGELOG entry is dated 2026-08-15 — re-date if the release slips.
+
+---
+
+## 63. The seventh and eighth field reports triaged — two adopters, two arcs, ten
+## findings, and one class under all three of the high ones: every step verifies that
+## an act occurred, and none verifies that a number still holds — 2026-08-17
+
+Both arrived the same day and are ingested verbatim: `FIELD_REPORT_2026-08-17.md`
+(the **seventh** — [sdlc-kit#7](https://github.com/ghostpencil/sdlc-kit/issues/7),
+the first adopter's Phase 07, BUILD, 7 slices, anonymized copy) and
+`FIELD_REPORT_2026-08-17b.md` (the **eighth** —
+[sdlc-kit#8](https://github.com/ghostpencil/sdlc-kit/issues/8), the second adopter's
+Phase 05, STABILIZATION cleanup, 4 slices, Copilot CLI). Both are written against
+**0.24.0**: they are the first two arcs run anywhere under the PIN release, and the
+first two under CONTRACT.
+
+Every finding below was verified against the kit tree at HEAD (`0c5f588`, the
+unreleased 0.25.0) before this section was written, per §56's discipline. **Line
+numbers cited here are the kit's own**, not the adopters' installed copies — the
+reports quote the installed files, which is correct for them and not directly usable
+here.
+
+**All ten stand.** Three carry corrections, and two of those come out *worse* than
+reported: the guard defect exists in both dialects rather than one, and the
+contract-adjudication gap is permanent rather than per-arc.
+
+### 63.1 Report seven, finding by finding
+
+**7.1 — the backlog is counted without being reconciled against the arc that closed
+it: CONFIRMED, and the two homes are asymmetric.** `commands/end-phase.md:249-255`
+matches the report's quotation word for word: the bullet is correct about the
+mechanism (record `— done (<fix commit>)` / `— dropped (owner, <date>)` on the
+entry's own line) and silent about the population — it says to write a verdict *"as
+it is taken"*, and for an entry a slice closed three days ago no verdict is being
+taken at that moment. The canonical twin is **thinner and lives in two places**:
+`templates/SDLC.template.md:667` carries only *"the backlog surfaced with severity
+counts for an owner decision (convert / defer / drop)"*, and the marker rule the
+retirement step keys on sits separately in *Bookkeeping rules* at `:709-711`. So a
+fix touches three anchors, not two, and the template's phase-end bullet is the one
+that currently says least. The half-delivered case the owner raised (their #68) is
+real grammar debt: today an entry is `— done`, `— dropped`, or unmarked, and
+half-done silently takes the *unmarked* branch, which is indistinguishable from
+untouched.
+
+**7.2 — "status only, one line" has no observer: CONFIRMED, and the proposed home
+exists.** The rule stands in both places the report names (`commands/end-slice.md`
+§9 and the template's *Bookkeeping rules*), and the measurement — 404 index lines
+across seven close-outs against a rule that says one, net +225 after both mitigations
+fired correctly — is the strongest single number in either report. The fix's cheapest
+form is available: `templates/close-out.template.sh` already has a `stop-check` mode
+(`:30`, `:44`, `:72`) and an established log-only class, so a docs-diff budget check
+has a shipped mechanism to join rather than a new artifact to invent. The second
+option the report offers — restate "one line" as a *number* a checker can compare —
+is the part that makes the first one possible, and should be decided first.
+
+**7.3 — the guard classifies writes by path and the path class is wrong: CONFIRMED,
+and it is BOTH dialects, with Copilot's worse.** Claude:
+`templates/tdd-guard-claude.template.py:194-199` is exactly as quoted — a path
+outside `ROOT` falls to `else: rel = n`, keeps its absolute form, fails
+`TEST_PATH_PATTERN`, matches the extension-only `SOURCE_GLOB`, and is charged as
+production source. Copilot: `templates/tdd-guard.template.sh:216-222` never attempts
+ROOT-relativization **at all** — it classifies on the normalized full path and the
+basename, so the same scratchpad file is production source there too, by a shorter
+route. The second adopter did not feel it only because their `SOURCE_GLOB` is
+`*.java` and their scratch files are not; that is luck, not scope. The owner's ruling
+in the report — *a file outside the repository cannot be production source* — is the
+right shape and lands in both templates. **This is not a Claude-dialect fix**, and
+treating it as one would repeat the defect §61 was built to stop.
+
+**7.3b — `/end-phase` never mentions the refactor license: CONFIRMED, zero
+occurrences.** `grep -ic licen commands/end-phase.md` returns `0`. Step 1 mandates the
+`change-verify` pass on the arc, `change-verify` §3 requires driving the thing
+through its own front door, and on a real project that means throwaway scripts —
+every one of which the guard denies, with no license concept anywhere in the command
+that mandated the work. Note the dependency: **if 7.3 lands, most of 7.3b evaporates**
+(the scratchpad class is what was being licensed), and what remains is the narrower
+question of in-repo verification scripts. Order matters here; do not build both
+independently.
+
+**7.4a — `mutation-testing`'s revert step names no mechanism: CONFIRMED, and the file
+is VENDORED.** `skills/mutation-testing/SKILL.md:68` is mechanism-free as quoted, and
+`:43` (*"revert the mutation before doing anything else"*) has the same shape. The
+constraint the report cannot see: `reference/SKILLS.md:116-121` records this file as
+an MIT-licensed condensed derivative of an upstream repo — so editing it **diverges
+it from upstream and invariant 3 requires the divergence be recorded in
+`reference/SKILLS.md` in the same batch**, not silently. Four working-tree
+corruptions in one arc, all from `write_text(read_text())` on Windows, is ample
+justification; the bookkeeping is what must not be forgotten.
+
+**7.4b — the skill was never dispatched: ACCEPTED as reported, not independently
+verifiable here.** The evidence is the adopter's own ledger (33 activations in the
+window, siblings recording faithfully, `mutation-testing` at zero) against ~100
+mutations actually run. That is as strong as a negative gets and it is theirs to
+measure, not this repo's. The kit-side fact is confirmed:
+`commands/end-slice.md:162-163` names the skill in prose and nothing observes whether
+it ran. The report's own framing is the right decision to put — **is this a skill to
+dispatch or a recipe to inline?** — and it interacts with 7.4a: if the byte-safe
+revert is what matters, inlining the recipe delivers it without depending on
+relevance-based activation.
+
+**7.5 — RED has no shape for a characterization slice: CONFIRMED.**
+`commands/next-slice.md:115-120` is quoted exactly, and `commands/end-slice.md` step
+5's mutation trigger is scoped to *"every new guard, branch, or error path this slice
+added"* — which a characterization slice also has none of. So both steps point away
+from the one check that carries signal, and the arc's highest-risk slice (129 tests
+pinning the module that guards a non-regenerable database) recorded the same evidence
+class a README edit would. The report's fix names both anchors correctly.
+
+**7.6 — `change-verify` records the environment without constraining it: CONFIRMED,
+including the ordering.** §3 (*"Reach it the way something real does"*) precedes §5
+(*"Record the environment the result came from"*), so the only environment step is
+post-hoc, exactly as reported. The specimen — a verification run minting a live OAuth
+token and reading the real calendar because the data dir was redirected and the
+credentials were not — is the same half-built-isolation defect that adopter had
+already solved for its test suite in July. `change-verify` is **kit-written**
+(invariant 3), so this edit carries no provenance cost.
+
+**7.7 — the Records table drifted again: CONFIRMED as a class, PREMISE CORRECTED.**
+The kit ships **no test-count row**. `{{GATE_BASELINE}}` is resolved by
+`commands/sdlc-setup.md:211` and `:677-684` as a *failure-count* line (`green — 0
+lint / 0 type / 0 test failures (measured <date>, <shell>)`), and
+`templates/SDLC.template.md:136` is its single home. The drifted `676 tests` row is
+the adopter's own elaboration of that record. **This makes the finding stronger, not
+weaker**: the kit invites projects to write numbers into *Records* and then supplies
+row-by-row reconcile procedures naming only the rows it shipped (the coverage floor
+at `commands/end-phase.md:281`, the red baseline in step 6), so any row an adoption
+adds is structurally unreconciled from birth. The report's fix — reconcile the *whole*
+table against a fresh measurement rather than two named rows — is the only form that
+covers rows the kit never authored.
+
+### 63.2 Report eight, finding by finding
+
+**8.1 — ratified-but-absent behaviors have no adjudication step: CONFIRMED, and the
+mechanism is worse than reported. This is §56's unbuilt half, now field-measured.**
+The backfill bullet at `commands/end-phase.md:275-281` walks prior ratified decisions
+and enters *"only what they confirm as still-current, never an inference"* — one
+direction only, exactly as reported. Two facts sharpen it:
+
+1. **The backfill is one-time.** It is offered at the first close after adoption and a
+   decline is recorded so it is never re-made. A behavior omitted from that single
+   pass is therefore invisible **permanently** — no later step re-walks prior phase
+   specs.
+2. **The preserved-contract check cannot cover the gap**, because its population is
+   (entries already in the contract) × (surfaces this arc touched) —
+   `commands/end-phase.md:144-160` and `templates/SDLC.template.md:626-632`. A
+   behavior that never became an entry is outside both factors.
+
+So the erosion path §56 diagnosed ("a fix must sit where both paths pass through:
+phase planning and phase close") got its **storage** in CONTRACT and never got its
+**adjudication**, and the first arc to run the backfill demonstrated precisely that:
+the draft omitted P01 D6/D22/D23, the owner confirmed the draft, and only a
+co-development read of `FIELD_REPORT_2026-08-15.md` — a kit document no adopter
+process reads — stopped ratification-by-omission. Owner ruling in-report: restore.
+This is the highest-value finding in either report and the one with the longest paper
+trail.
+
+**8.2 — the test-command matcher fires on any command text mentioning the runner:
+CONFIRMED, and it is not Java-specific.** `reference/GATE_RECIPES.md:407` is exactly
+`*mvn*test*|*gradlew*test*`, instantiated at `templates/tdd-guard.template.sh:271` as
+`{{TEST_CMD_PATTERN}}) ;;` — substring-anywhere against the whole command string.
+**Every row of that table has the same shape, including the default `*pytest*` at
+`:44`**, so a `git commit -m` whose body quotes the RED command counts as a test run
+on any stack, not just Java. Three spurious notices in one phase is the measured cost;
+the real cost is message fatigue against a control whose refusals must be believed.
+The fix (anchor to the first token, or strip quoted-string content before matching)
+belongs in the recipe table and in both guard templates.
+
+**8.3 — acceptance items can be unexercisable live: CONFIRMED, and the sweep's own
+escape hatch creates the class.** `commands/plan-phase.md:122-126` requires every
+behavior to be *"pinnable by a deterministic test, **or explicitly assigned to the
+acceptance-review checklist**"* — and that assignment is **terminal**. Nothing
+downstream asks how an assigned item is reached by a real caller; `:172-175` then
+cites the sweep as the check that exit criteria have an observer, which closes the
+loop on paper. The specimen (a malformed-feed-item behavior with no fixture seam,
+which passed on three adapter pins plus an owner ruling and was honestly reported
+"not exercised live" at halt 3) is the escape hatch working as written. The fix is one
+line at the point of assignment: name the path a real caller reaches it by, or flag it
+test-only **at plan time**, not at the halt.
+
+### 63.3 The convergence — two classes, not ten findings
+
+**Class A: no step re-derives a recorded number.** 7.1 (the backlog said 101 when at
+least one entry was shipped and deployed), 7.7 (the baseline said 676 when the suite
+was 678), 7.2 (the rule said one line when the arc wrote fifty-eight), and 8.1 (the
+contract said current when three ratified behaviors were absent) are all one defect.
+The seventh report names it exactly: *every step in the kit verifies that an act
+occurred — was the test watched to fail, was the guard mutated, did the reviewer
+return — and no step verifies that a count still holds.* The lineage supports it: the
+kit has patched this class **four** times, always one row at a time and always after
+the damage — the coverage-floor reconcile (2026-07-22), the type-ceiling procedure
+(0.9.0), the marker-keyed retirement (0.23.0, which this arc promptly starved of
+markers), and CONTRACT's storage (0.23.0, whose first run is 8.1). A fifth row-shaped
+patch is the wrong answer; the shape that fits is **one reconcile pass at phase close
+whose subject is every recorded number and every carried claim, reported as
+recorded-vs-measured, before the owner is asked to decide anything on the strength of
+one.**
+
+**Class B: the guard's classifiers match text, not the artifact.** 7.3 (a path string
+that is not a repo path is treated as one) and 8.2 (command text that merely mentions
+the runner is treated as a run) are the same error twice, in the two classifiers that
+decide when the guard speaks. Both are S-effort, both land in both dialects, and both
+directly reduce the false-positive load that trains operators to route around the
+control. This is the cheapest real safety win in either report.
+
+The remainder (7.4a/b, 7.5, 7.6, 8.3) are independent single-anchor fixes, each with a
+named home and a specimen.
+
+### 63.4 What these two arcs say about machinery already on the clock
+
+The arcs are field evidence against the standing clocks; each of these is an owner
+ruling, not a fact this section settles.
+
+- **PIN (0.24.0) — held.** The first adopter's guard log carries 656 lines across the
+  window and the second reports the edit-time hook running all phase. No inert-hook
+  symptom in either report. The launcher-neutral rewiring works in the field.
+- **The three STD lenses (`logging and swallowed errors`, `untrusted input`, `secrets
+  and exposure`) — arc one of two, no catch.** The seventh report's only lens-named
+  catch is `unconsumed artifact` (it found a `close()` with no production consumer),
+  which is **not one of the three on the clock**. The eighth report's evidence table
+  has **no lens row at all**, so whether that arc counts toward the denominator is a
+  ruling owed. On the strict reading the clock is at 1 of 2 with zero catches, and one
+  more clean arc deletes all three with their conventions' enforcement lines
+  re-pointed in the same batch.
+- **`change-simplify` — catches on both arcs.** 12 moves applied on the first (10 more
+  proposed and dropped with reasons), 6 on the second across three slices. Whether
+  "moves applied" clears a clock worded as *one confirmed catch in the next two field
+  arcs* is the ruling owed; the §53 redirect's founding miss was a duplicated test
+  helper, and the second adopter's `diff-review` — not `change-simplify` — is again
+  what caught a test-helper defect this arc (S1's `LogCaptor` level-restore
+  narrowing). That is the same division of labour the redirect was built to end, and
+  it argues for reading the moves conservatively.
+- **CONTRACT — first arc under it, and its pre-registered value criterion was NOT met
+  by the mechanism.** §57.5/§56.2 pre-registered: *seeding the adopter's contract must
+  surface P01's D6/D22/D23 as scheduled work or explicit owner retirement.* They were
+  surfaced — by a human reading the kit's own field report mid-close, against a draft
+  that had omitted them. The mechanism produced the draft that omitted them. The
+  honest reading is that the criterion failed on its first arc **and named its own
+  repair** (8.1), which is a better outcome than a silent pass; the ruling owed is
+  whether that counts as the clock's first arc spent or as a defect to fix before the
+  clock starts.
+- **R3.8's aging rule — still unexercised, but no longer starved on both sides.** The
+  first adopter closed the arc with 3 friction entries left open; those are the first
+  that can age past one phase, so the carry rule finally has a population coming.
+- **The bare-flagging arming bar (§52.2)** — needs the false-candidate count from both
+  arcs' close-out logs, which neither report states. Unresolved; ask before arming.
+
+### 63.5 Decisions owed
+
+1. **Sequencing — RULED 2026-08-17: fold Class B into 0.25.0.** The release carries
+   the README batch (§62) plus CLASSIFY; `/kit-check` runs on the combined scope before
+   the tag.
+2. **Batch shape — RULED 2026-08-17: RECON + CLASSIFY + independents**, as proposed.
+   **CLASSIFY** (Class B — 7.3, 8.2, with 7.3b resolved as a consequence rather than
+   built) is built: §64. **RECON** (Class A — 7.1, 7.2, 7.7, 8.1 — one reconcile pass
+   at phase close plus the half-done marker grammar and the contract's absent-behavior
+   direction) is next and unopened. The four independents (7.4a+b, 7.5, 7.6, 8.3)
+   follow, distributed by effort.
+3. **7.4b's question** — dispatch or inline — must be answered before 7.4a is built,
+   because inlining a byte-safe recipe into `end-slice.md` and editing the vendored
+   skill are alternative deliveries of the same fix, and only one of them incurs the
+   invariant-3 divergence note.
+4. **The clock rulings in 63.4**, each on its own evidence.
+
+---
+
+## 64. CLASSIFY built — the guard's two classifiers stop matching text and start
+## matching the artifact: out-of-repo writes, and runners named inside quotes
+
+Owner-ruled 2026-08-17 at the §63.5 halt: Class B folds into 0.25.0 beside the README
+batch; RECON and the four independents follow. Built the same day. Both fixes land in
+**both dialects** — the §61 version-and-route standard, and §63.1 measured that the
+Copilot dialect had the path defect too, by a shorter route than the Claude one.
+
+**(a) A file outside the repository is not production source.** Claude
+(`tdd-guard-claude.template.py`): the `else: rel = n` fall-through becomes a
+containment test — an **absolute** path not under `ROOT` logs and exits 0. Copilot
+(`tdd-guard.template.sh`): the dialect never attempted the reduction at all, so it
+gains one — lowercased prefix compare (Windows hands back either case), `cut` to the
+relative form, and the same skip for an absolute path outside.
+
+**(b) The test-command pattern is matched with quoted arguments stripped.** One line
+in each dialect (`re.sub` / `sed -e 's/"[^"]*"/ /g' -e "s/'[^']*'/ /g"`), matching on
+the stripped probe while every message still quotes the real command.
+
+Decisions worth recording:
+
+- **Quote-stripping was chosen over the report's other option, first-token
+  anchoring** — both were offered in `FIELD_REPORT_2026-08-17b.md` finding 2. Anchoring
+  means rewriting the pattern grammar (`*mvn*test*` → something that spans a first
+  token and a later word), which invalidates **every instantiated guard already in the
+  field**: those files are project-owned and never rewritten by an update, so the
+  pattern an adopter holds would have to be hand-edited before the guard worked at
+  all. Stripping leaves the table's substring shape exactly as written, needs no
+  pattern change anywhere, and states the same idea more directly: quoted text is
+  data, never what the shell runs. It is also the same sentence as fix (a) — match
+  the artifact, not the text — which is what made them one batch.
+- **The known cost is documented rather than hidden**, in both guards, the recipe, and
+  both transition notes: a runner reachable **only** inside a quoted argument
+  (`bash -c "pytest"`) no longer counts. It is a real regression in coverage and it is
+  small, because the compound-command rule already requires bare invocations.
+- **The compound check deliberately still reads the RAW command.** Feeding it the
+  stripped probe would be more precise (a quoted `;` inside a `-k` expression is not a
+  compound), but a stripping bug there would admit a genuine compound and record a
+  **false GREEN** — the exact hazard that rule exists for. Precision on the deny side,
+  conservatism on the counting side; the direction is stated in both guards' comments
+  so a later session does not "fix" it.
+- **Relative paths stay in scope, and that is a containment test rather than a bare
+  else.** A relative path can only be relative to the root the guard resolved, so
+  skipping it would open a hole in the guard while wearing the costume of a scoping
+  fix. Both suites pin it, and one of the six new mutations is exactly that mistake.
+- **7.3b (`/end-phase` never mentions the refactor license) is resolved as a
+  consequence, not built** — per §63.5's ruling and §63.1's dependency note. The
+  scratchpad class *was* the 12 licensed writes; with (a) in, a mandated
+  `change-verify` pass that drives the app through throwaway scripts needs no license
+  at all. **The residue, recorded so it is not lost:** an in-repo verification script
+  (a fixture, a seeded harness committed under the repo) is still a production write
+  under an `/end-phase` step that mentions no license. That is a RECON-adjacent
+  question about what `/end-phase` step 1 owes the operator, and it is deliberately
+  left open rather than half-answered here.
+
+**An extra catch the fix produced, not predicted by either report.** Reducing the path
+in the shell dialect closed a live misclassification: an absolute path to a test file
+whose **basename** does not look like a test — `tests/conftest.py` is the specimen —
+matched neither `TEST_PATH_PATTERN` form (`tests/*` cannot match a full Windows path;
+the basename matches no `test_*.py`/`*_test.py`) and fell through to the
+extension-only `SOURCE_GLOB`. So a **test** edit was charged as a production write and
+licensed nothing. Pinned as its own case (`2d`) and its own mutation. Adopters on that
+dialect may have friction already logged that this release explains, which is why the
+transition note says so at the halt rather than only in the changelog.
+
+**Proof coverage — six new mutations, and every fix has its negative case.** The rule
+this repo holds itself to is that a suite surviving its own mutations is not testing
+what it claims (invariant 13), so each fix ships with the mistake that would undo it:
+
+| Dialect | New cases | New mutations |
+|---|---|---|
+| Claude (`tools/tdd-guard-claude-check.py`) | `3b` out-of-repo not production, `3c` not denied when armed, `3d` relative still in scope, `7c` quoted-only counts nothing, `7d` quoted argument still counts | charge out-of-repo as production; skip relative paths (the hole); match the raw command text |
+| Copilot (`tools/tdd-guard-check.py`) | `2b` out-of-repo not production, `2c` absolute-inside still production, `2d` `tests/conftest.py` is a test edit, `5c` quoted-only counts nothing, `5d` quoted argument still counts | drop the out-of-repo skip; drop the reduction (the `conftest.py` regression); match the raw command text |
+
+Both suites green, both dialects, unit and mutation passes, **measured not assumed**:
+the shell suite reports 110 unit cases (55 × two parser dialects), 0 failures, **20
+mutations, 20 caught, 0 survivors, 0 stale**; the Claude suite likewise, with each of
+its three new mutations caught by the case written for it. The Claude suite runs in
+seconds; **the shell suite takes ~35 minutes on this machine** — every case spawns
+`sh`, measured at ~1.5–2 s per spawn under Windows, across 22 suite runs (2 parser
+dialects + 20 mutations). That is not a hang, and a 120-second tool timeout reads
+exactly like one; run it in the background and let it finish.
+
+**Homes touched beyond the two guards:** `reference/GATE_RECIPES.md` (both rules
+beneath the pattern table, each with its measured specimen and its stated cost);
+`commands/sdlc-setup.md` (the guard note's rule list goes from three to four — scope
+is a user-visible rule, and the note exists precisely to state the rules proactively
+rather than let a session meet them as an unexplained refusal); `commands/sdlc-update.md`
+and the root README (the 0.25.0 transition note, mirrored — the instantiated guard is
+project-owned, so neither fix arrives by updating); `CHANGELOG.md` (0.25.0 restructured as two
+batches and re-dated **twice** under §62's re-date instruction — 2026-08-15 →
+2026-08-17 when CLASSIFY joined the release, then → **2026-08-18**, the day the tag
+actually went out; the build dates in this section and §65 are 2026-08-17 and stay
+that way, because they record when the work happened, not when it shipped).
+
+---
+
+## 65. The pre-0.25.0 `/kit-check` — run 2026-08-17 on the combined README+CLASSIFY
+## scope: two findings, both fixed in-session, and both are the batch's own derived
+## statements going stale for the fourth pass running
+
+Scope, stated because a scoped run must say what it skipped: the **full** mechanical
+set (invariants 4, 6, 9, 10) plus reading passes over this release's two batches —
+§62's README work, which shipped after the last pass and had never been checked, and
+§64's CLASSIFY — and over every statement derived from them. The full-corpus reading
+of invariants 1, 2, 14 and 15 across all seven commands and every template is carried
+forward from the pre-0.24.0 pass (§61.6); nothing in this release touched the process
+steps those passes read.
+
+**Mechanical results, with denominators rather than "matches":** `{{` census — hits in
+`sdlc-setup.md` only (53), and setup's close-out check names `CLAUDE.md spec/
+.claude/settings.json` plus the conditional `README.md`, the conditional gate-hook
+script, and the accepted guard dialects. Step references — 88 across `commands/`, none
+renumbered by either batch (both edits landed inside existing steps). README tree — 71
+tracked files, every one present, the two new field reports added, no tree entry
+without a file. Manifest — 43 entries against 43 tracked bundle files minus the
+manifest, every hash matching **index** content, no missing and no extra.
+
+### The two findings
+
+**1 — `SDLC.template.md`'s guard-note comment still said "the three rules"
+(invariant 2).** CLASSIFY gave the guards a fourth user-visible rule (a file outside
+the repository is not production source) and taught `sdlc-setup.md` to write it into
+`{{TDD_GUARD_NOTE}}` — and left the template's comment, which is the *canonical*
+specification of what that note must contain, enumerating three. The template wins on
+disagreement, so for the duration of the batch the kit's canonical file and its setup
+command contradicted each other about how many rules the guard imposes. Fixed: four,
+with the scope rule written into the enumeration in the same words setup uses.
+
+**2 — `sdlc-kit-process-flow.md` described both classifiers in their pre-0.25.0 form
+(invariant 1, derived-statement half).** The root walkthrough's G1 bullet defined a
+production-source write without the containment test, and its observe-test bullet
+described the matcher without the quote-stripping. Not a shipped file, and exactly the
+kind of derived statement §61.6 made a standing check. Fixed: both bullets carry the
+new behavior with its release stamp.
+
+**Both findings are the same defect, and it is the fourth consecutive pass to find
+it** — §55, §58, §60 and §61.6 each caught a batch leaving its own derived statements
+stale, and §58's was the sharpest (the batch's own edit decapitated the coverage-floor
+bullet). The pattern is now stable enough to name as a rule rather than a recurring
+surprise: **a batch that changes a behavior must enumerate every file that describes
+that behavior before it enumerates the files that implement it.** CLASSIFY's edit map
+was derived mechanically for the *implementing* files (§4a, and it found the second
+dialect that way) and by memory for the *describing* ones — which is precisely where
+both findings landed.
+
+### Passes worth recording with what they looked for
+
+- **Invariant 8** — the two 0.25.0 transition notes (`sdlc-update.md` and the root
+  README's *Updating an adopted project*) agree claim for claim: both fixes named,
+  both template files named, `.json` launchers unchanged in both, the shell dialect's
+  `tests/conftest.py` consequence in both, the `guard.log` confirmation step in both,
+  the relative-path caveat in both. The violation looked for was the one the
+  invariant was created for — a note stated in one home and not the other.
+- **Invariant 13** — both denominator homes (ledger and `/kit-check`) carry the same
+  21 items, both stamped "as of 0.25.0". CLASSIFY adds **no new check**: it fixes two
+  classifiers inside an already-enumerated one (the TDD-guard proof step), whose
+  suites gained six mutations. The violation looked for was a check added without
+  being added to the list — the failure mode this invariant says goes stale silently.
+- **Invariant 10** — the manifest matched the index, which is the trap rather than the
+  all-clear: six bundle files are edited in the working tree, so the manifest is stale
+  the moment they are committed. Regeneration from index content is a release step
+  below, and the release workflow *verifies* rather than regenerates — a stale manifest
+  fails the tag push after the tag is public.
+- **Invariant 11** — no `skills/` file touched, so both provenance regimes are
+  untouched. Recorded forward because it will not stay true: **7.4a proposes editing
+  `mutation-testing/SKILL.md`, which `reference/SKILLS.md:116-121` records as an MIT
+  condensed derivative.** That edit diverges it from upstream and the divergence must
+  be recorded in `reference/SKILLS.md` in the same batch — or the alternative delivery
+  (inline the byte-safe recipe into `end-slice.md`) avoids the provenance cost
+  entirely, which is §63.5's decision 3 and why it must be answered first.

@@ -10,7 +10,15 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## 0.25.0 — 2026-08-15
+## 0.25.0 — 2026-08-18
+
+Two batches. **CLASSIFY** (`FEATURE_PLAN.md` §63.3 Class B, §64; owner-ruled
+2026-08-17 into this release): both of the TDD guard's classifiers match *text*
+rather than the artifact they name — a path string that is not a repo path, and
+command text that merely mentions the runner. Both dialects, both false-positive
+fixes, both field-measured in the seventh and eighth field reports filed the same
+day. The cost they impose is the one that matters for a control: a guard that speaks
+about acts that never happened teaches the operator to route around it.
 
 README (`FEATURE_PLAN.md` §56.3 (e), owner-ruled 2026-08-15; built §62): the sixth
 field report's §8 answered. `/sdlc-setup` neither created nor checked a human README
@@ -40,11 +48,55 @@ it, where the process docs live) — links, never a second home for process trut
   instantiated `README.md` is **project-owned** from that moment: both ownership
   tables carry it, and no update ever touches it.
 
+### Changed
+- **[adoption-only]** **A file outside the repository is no longer production
+  source** — `templates/tdd-guard-claude.template.py` and
+  `templates/tdd-guard.template.sh`. An absolute path not under the repo root kept
+  its absolute form, failed `TEST_PATH_PATTERN`, matched the extension-only
+  `SOURCE_GLOB`, and was charged the same refactor license as an edit to the module
+  guarding an adoption's authoritative database. Measured over one arc: 13 denials, 5
+  of them on a session scratchpad, and 12 writes licensed for `/end-phase` step 1's
+  mandated `change-verify` pass — a command whose own text mentions no license
+  anywhere (`FIELD_REPORT_2026-08-17.md` finding 3). A **relative** path stays in
+  scope: it can only be relative to the resolved root, and skipping it would be a
+  hole, not a scoping fix. The shell dialect never attempted the reduction at all, so
+  this also closes a live misclassification there — an absolute path to
+  `tests/conftest.py` matched neither `TEST_PATH_PATTERN` form and fell through to
+  `SOURCE_GLOB`, charging a *test* edit as a production write.
+- **[adoption-only]** **The test-command pattern is matched with quoted arguments
+  stripped** — both guard dialects. `TEST_CMD_PATTERN` is substring-shaped by design
+  (`*pytest*`, `*mvn*test*`), so against the raw string it fired on any command whose
+  text mentioned the runner: a `git commit -m` quoting the RED command, an append
+  writing a RED record — three spurious notices in one phase
+  (`FIELD_REPORT_2026-08-17b.md` finding 2). Not Java-specific: every row of the
+  recipe table has the shape, the `*pytest*` default included. Known cost, stated in
+  both guards and the recipe: a runner reachable only inside a quoted argument
+  (`bash -c "pytest"`) no longer counts. The compound-command check deliberately
+  still reads the raw command — a stripping bug there would admit a genuine compound
+  and record a false green.
+- **[adoption-only]** `GATE_RECIPES.md`: the pattern table keeps its substring shape
+  and gains the two rules above beneath it, each with its measured specimen and its
+  stated cost.
+- **[installable]** `sdlc-update.md` and the root README carry the 0.25.0 transition
+  note (mirrored): neither fix arrives by updating — the instantiated guard is
+  project-owned — with the shell dialect's extra consequence stated at the halt, and
+  a `guard.log` read on the next real session as the confirmation step.
+
 ### Repo (not shipped in the bundle)
 - `KIT_INVARIANTS.md`: invariant 4 restated with the conditional scope; the
   invariant-13 denominator list gains the Existing-mode README run-command read
   (mirrored in `/kit-check`, now "as of 0.25.0"). Root `CLAUDE.md`'s flow diagram
   and exit-check quote, and the root README's file tree, updated to match.
+- `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py`: both classifier
+  fixes pinned in both dialects, each with the negative case that keeps the fix from
+  becoming a hole (a relative path still in scope; an absolute path inside the repo
+  still production; a real run with a quoted argument still counted) and each with
+  its own mutation, so the suites fail if either fix is reverted. The shell suite
+  additionally pins `tests/conftest.py` by absolute path as a test edit — the
+  misclassification the reduction closed.
+- `FIELD_REPORT_2026-08-17.md` and `FIELD_REPORT_2026-08-17b.md` ingested (the
+  seventh and eighth), triaged in `FEATURE_PLAN.md` §63; root `CLAUDE.md`'s report
+  roster and the README file tree updated.
 
 ## 0.24.0 — 2026-08-15
 

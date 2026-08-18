@@ -244,6 +244,8 @@ FIELD_REPORT_2026-07-22.md           ← findings from the third arc — first f
 FIELD_REPORT_2026-08-01.md           ← findings from a 5th phase (sdlc-kit#1) — triaged in FEATURE_PLAN_HISTORY.md §12
 FIELD_REPORT_2026-08-02.md           ← findings from the 6th phase (sdlc-kit#2) — triaged in FEATURE_PLAN_HISTORY.md §15
 FIELD_REPORT_2026-08-15.md           ← whole-project review of ai-news-dashboard — triaged in FEATURE_PLAN.md §56
+FIELD_REPORT_2026-08-17.md           ← findings from a 7th phase (sdlc-kit#7) — triaged in FEATURE_PLAN.md §63
+FIELD_REPORT_2026-08-17b.md          ← ai-news-dashboard Phase 05 (sdlc-kit#8) — triaged in FEATURE_PLAN.md §63
 CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN_HISTORY.md §11
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
 FEATURE_PLAN.md                      ← the live plan: standing decisions, clocks, active work
@@ -670,6 +672,29 @@ only as a hand-apply, and the per-version transition notes name each one.
    and the hook-environment probe **with its new dispatch check** (GATE_RECIPES,
    *The hook environment*, item 4 — pinned-vs-unpinned probe pair, CLI version
    recorded). The update command's 0.24.0 note states the same procedure.
+
+   **0.25.0 fixes both of the TDD guard's classifiers, in both dialects, and
+   neither fix arrives by updating — your instantiated guard is project-owned.**
+   Both are false-positive fixes; a control that speaks about acts that never
+   happened is one you learn to route around. (a) **A file outside the repository
+   is no longer production source.** An absolute path not under your repo root
+   used to fail `TEST_PATH_PATTERN`, match the extension-only `SOURCE_GLOB`, and
+   cost the same refactor license as an edit to your most sensitive module —
+   measured over one arc as 13 denials, 5 of them on a session scratchpad, and 12
+   writes licensed for a mandated `/end-phase` step whose own text never mentions
+   a license. Relative paths still count. (b) **The test-command pattern is
+   matched with quoted arguments stripped**, so a `git commit -m` whose body
+   quotes your RED command no longer registers as a test run. Apply each as a
+   template diff against your instantiated copy, keeping your three placeholder
+   values: `templates/tdd-guard-claude.template.py` (pre-write path handling and
+   the `observe-test` match) or `templates/tdd-guard.template.sh` (the same two).
+   The `.json` launchers and settings blocks are unchanged. **On the shell dialect
+   there is one extra consequence:** it never reduced the path at all, so an
+   absolute path to a file like `tests/conftest.py` was charged as a production
+   write — a test edit that licensed nothing, which may explain friction already
+   in your log. After applying, confirm from `guard.log` on the next real session
+   that scratchpad writes no longer appear and your own test runs still register.
+   The update command's 0.25.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,

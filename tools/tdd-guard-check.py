@@ -148,6 +148,37 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         check("2  non-source file -> silent",
               not any("VIOLATION" in l for l in b.loglines()[before:]))
 
+        # Scope: a file outside the repository cannot be production source. This
+        # dialect never reduced to a repo-relative path at all - it classified on the
+        # full path and the basename, so an absolute path outside the root matched
+        # the extension-only SOURCE_GLOB and was charged as production
+        # (FIELD_REPORT_2026-08-17.md finding 3, measured in the Claude dialect;
+        # this dialect reached the same end by a shorter route).
+        outside = os.path.join(tempfile.gettempdir(), "sdlc-scratch", "mutate_s5.py")
+        before = len(b.loglines())
+        out = b.run("pre-write", write(R, [("Update", outside)]))
+        check("2b absolute path outside the repo -> not production source",
+              not any("VIOLATION" in l for l in b.loglines()[before:])
+              and any("outside the repository" in l for l in b.loglines()[before:])
+              and out == "", b.tail())
+
+        # ...and the containment test must not become a hole.
+        before = len(b.loglines())
+        b.run("pre-write", write(R, [("Update", os.path.join(R, "payments.py"))]))
+        check("2c absolute path INSIDE the repo is still production source",
+              any("VIOLATION" in l for l in b.loglines()[before:]), b.tail())
+
+        # The reduction also closes a live misclassification in this dialect: an
+        # absolute path to a test file whose BASENAME does not look like a test
+        # (tests/conftest.py) failed both TEST_PATH_PATTERN checks - `tests/*` cannot
+        # match a full Windows path - and fell through to SOURCE_GLOB, so a test edit
+        # was charged as a production write and licensed nothing.
+        before = len(b.loglines())
+        b.run("pre-write", write(R, [("Update", os.path.join(R, "tests", "conftest.py"))]))
+        check("2d absolute path to tests/conftest.py is a test edit, not production",
+              any("test edit recorded" in l for l in b.loglines()[before:])
+              and not any("VIOLATION" in l for l in b.loglines()[before:]), b.tail())
+
         b.run("pre-write", write(R, [("Add", "tests/test_payments.py")]))
         check("3  test edit recorded", "test edit recorded" in b.tail(), b.tail())
 
@@ -184,6 +215,22 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
               "RED counted (exit 1)" in (j.get("additionalContext") or "")
               and "write is now licensed" in (j.get("additionalContext") or ""),
               repr(out))
+
+        # The command, not its text (FIELD_REPORT_2026-08-17b.md finding 2).
+        # TEST_CMD_PATTERN is substring-shaped, so matching it against the raw string
+        # counted any command whose TEXT mentioned the runner - measured on a Java
+        # adoption as a `git commit -m` quoting the RED command plus two appends
+        # writing a RED record: three spurious notices in one phase, on a control
+        # whose refusals have to be believed.
+        before = len(b.loglines())
+        out = b.run("observe-test",
+                    shell(R, 'git commit -m "RED: python -m pytest exit 1"', 0))
+        check("5c a runner named only inside a quoted argument counts nothing",
+              b.loglines()[before:] == [] and out == "", b.tail())
+        # The other direction: quoting an ARGUMENT must not hide a real run.
+        b.run("observe-test", shell(R, 'python -m pytest -k "pay and not slow"', 1))
+        check("5d a real run with a quoted argument still counts",
+              "RED observed" in b.tail(), b.tail())
 
         b.run("pre-write", write(R, [("Update", "payments.py")]))
         check("6  prod write after red -> OK", "OK production write" in b.tail(), b.tail())
@@ -473,6 +520,21 @@ MUTATIONS = [
          '[ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && '
          '[ "$S/red-observed" -nt "$S/last-test-edit" ]',
          '[ -f "$S/red-observed" ]')),
+    ("charge out-of-repo writes as production (a session scratchpad costs the same "
+     "license as an edit to the module guarding the database)",
+     lambda s: s.replace(
+         '        /*|?:/*)\n'
+         '          log "write outside the repository - not production source: $p"\n'
+         '          continue ;;\n',
+         '')),
+    ("drop the repo-relative reduction (an absolute path to tests/conftest.py is "
+     "charged as a production write - this dialect's live misclassification)",
+     lambda s: s.replace(
+         '        "$rl"/*) n=$(printf \'%s\' "$n" | cut -c $((${#rr} + 2))-) ;;',
+         '        "$rl"/*) : ;;')),
+    ("match the runner against the raw command text (a commit message quoting the "
+     "RED command counts as a test run)",
+     lambda s: s.replace('    case "$PROBE" in', '    case "$CMD" in')),
     ("trust any cwd when SDLC_REPO_ROOT is unset (state written to unrelated dirs)",
      lambda s: s.replace('  [ -d .git ] || exit 0\n', '')),
     ("re-silence the compound refusal (the 2026-08-08 field defect: the session "
