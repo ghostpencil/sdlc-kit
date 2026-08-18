@@ -120,6 +120,16 @@ re-denominated form, and every clock in this section was already counted in arcs
   the Claude-dialect hook rewiring. Field-measured at the TFit 0.23.0 update: hooks
   behind `"shell": "bash"` never fire on Claude Code 2.1.231 — the adopter's gate
   hook had been silently inert. Design pre-registered in §61; decisions owed there.
+- **IMPACT — opened 2026-08-18, design §66; ruled same day, queued behind
+  RECON.** The §56.3 (d) hold resolved: the owner's visualization spec is
+  ingested at the root (`FEATURE_SPEC_IMPACT.md`) and triaged — a deterministic
+  Understand Anything impact adapter, eight deltas adopted. All five §66.7
+  rulings taken 2026-08-18: RECON builds first, TFit-Foundation is the trial
+  project (its `.ua/knowledge-graph.json` verified on disk), install path
+  `.github/hooks/sdlc-impact.py`. Still gating the build: RECON, and one
+  observed dashboard read of a `diff-overlay.json` before the adapter's read
+  path freezes. Its clock is pre-registered in §66.6 and counts only field
+  arcs run with a usable graph.
 - **Standing input — ARRIVED 2026-08-17, triaged in §63.** Both adopters closed a
   phase the same day and filed: the first adopter's Phase 07 (`sdlc-kit#7`, the
   seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
@@ -1854,3 +1864,205 @@ both findings landed.
   be recorded in `reference/SKILLS.md` in the same batch — or the alternative delivery
   (inline the byte-safe recipe into `end-slice.md`) avoids the provenance cost
   entirely, which is §63.5's decision 3 and why it must be answered first.
+
+## 66. IMPACT opened — the §56.3 (d) hold resolved: the owner's visualization spec
+## arrives and is triaged; a deterministic impact adapter for Understand Anything,
+## proposed not built — 2026-08-18
+
+§56.3 (d) held the owner-comprehension visualization until after the improvement
+batches, "then gets its own triage against whatever that file actually says." The
+file arrived 2026-08-18 (`FEATURE_OWNER_CHANGE_IMPACT_VISUALIZATION.md`) and is
+ingested verbatim at the root as `FEATURE_SPEC_IMPACT.md` — the field-report
+convention: the source document is never edited; this section records the triage
+and the deltas. The design below is proposed, not built: the owner rules on 66.7
+before anything is written into the kit (§37.7's rule). The report-§11 constraints
+bind throughout, and the spec's own §25 restates them — five halts and no sixth,
+context minimization per slice, no second source of truth, TDD and gate semantics
+untouched.
+
+### 66.1 What the spec proposes, and what stands as proposed
+
+One kit-owned adapter (`sdlc-impact`) that derives, mechanically, the architecture
+footprint of a slice or phase: git change set → Understand Anything knowledge
+graph → changed nodes → one-hop affected nodes → UA's own `diff-overlay.json`,
+plus a compact printed summary (`SDLC IMPACT: COMPLETE | PARTIAL | UNAVAILABLE |
+ERROR`) that the daily commands quote at surfaces that already exist — the
+slice-ready hand-back, the end-slice hand-back, and `/end-phase`'s acceptance and
+merge hand-backs. A comprehension aid for the owner, explicitly not verification;
+nothing about it enters gate truth.
+
+Triaged against the kit's own lineage, the spec's core is sound in exactly the
+places the field reports punish:
+
+- **Deterministic selection** (spec §4.2, §6) — the adapter computes the overlay;
+  the model only quotes it. No LLM decides what belongs in the picture.
+- **Loud incompleteness with denominators** (spec §4.4, §12) — changed / mapped /
+  unmatched counts printed together; the second report's lesson applied correctly.
+- **The four-state taxonomy** satisfies inv 13, and "a check that cannot run must
+  not appear to have passed" is the spec's own §14.
+- **No new halt, runtime discovery, no placeholders** (spec §4.5, §19) — inv 1, 3
+  and 4 untouched; ships verbatim like the close-out checker.
+- **Trial-first with a pre-registered failure criterion** (spec §24) — the §16
+  regime, arriving already in the kit's grammar.
+- **No provider abstraction before a second provider exists** (spec §18) — §37.6's
+  restraint, self-applied.
+
+### 66.2 The triage — eight findings, adopted as deltas to the spec
+
+Two are blockers, six are corrections. The spec file stays verbatim; these deltas
+are the build's authority wherever they and the spec disagree.
+
+**(a) BLOCKER — the schema contract is asserted, not verified.** The spec asserts
+the graph location, node `filePath`, `edge.source`/`edge.target`, layer and
+freshness metadata, the overlay schema, and the dashboard's read path — and
+Understand Anything exists nowhere findable on this machine (searched 2026-08-18:
+the course tree to depth four, the common dev directories, both drive roots).
+CLASSIFY (§64) is one release old and its whole lesson is that a checker matches
+the artifact, not the prose describing it. The adapter's read path is not frozen
+until a real `knowledge-graph.json` and one observed dashboard read of a
+`diff-overlay.json` have been inspected; the proof fixtures derive from that real
+artifact, never invented. The owner has offered to install Understand Anything
+(2026-08-18) — ruling (b) names what the build needs from that.
+
+**(b) BLOCKER — the trial population is currently empty.** Spec §24's own bar: "a
+trial that only proves the integration is safe is insufficient." Neither adopter
+carries a `.ua/` graph today; without a designated project the feature ships inert
+in every adopter and its clock starts with zero possible catches — the SIMP
+precedent argues against shipping that. Resolved by ruling (c).
+
+**(c) The overlay write collides with the kit's clean-tree rules.** `/end-phase`
+step 1 requires a clean tree and step 5 re-asserts it as load-bearing; writing
+`<UA_DIR>/diff-overlay.json` between the gate and the merge dirties the tree at
+exactly the checked moments unless the UA directory is git-ignored. The spec says
+"respect ignored files" but never handles this interaction. Delta: the adapter
+runs `git check-ignore` on the UA directory first; not ignored → the summary still
+prints but the overlay is not written, stated explicitly (`overlay: not written —
+.ua/ is not git-ignored`). The same path rule excludes UA's own files from the
+changed-file denominator mechanically (spec §7.2 asks for the exclusion; the delta
+names the mechanism).
+
+**(d) One verbatim script, no dialect fork.** The adapter is command-invoked, not
+a hook — the PIN class (§61) never applies. One stdlib-only Python file, shipped
+verbatim with zero placeholders, launched shell-neutrally (`python`, the same
+rationale the settings template records for the guard launchers). The real cost is
+the install surface (66.5), which is the strongest argument for exactly one file.
+
+**(e) Slice-base capture is conditional, worktree-safe, and self-checking.** Spec
+§7.1 captures unconditionally; delta: `/next-slice` records the base only when a
+UA graph is detected, so the footprint is exactly zero for a non-UA adopter — a
+stronger reading of the spec's own §4.1, at the honest cost that a graph installed
+mid-slice waits one slice. The path comes from `git rev-parse --git-dir`, never a
+literal `.git/` (worktrees), and the record is branch name + SHA, so a base
+recorded on a different branch is detectably the "ambiguous or stale" case the
+spec's §8.3 requires to fail loudly.
+
+**(f) A missing interpreter is UNAVAILABLE, not ERROR.** Spec §21 records ERROR as
+kit friction; an adopter without a `python` launcher is absence of an optional
+capability's environment, not adapter failure. The message names the environment
+(inv 15's grammar). Only a crash given a readable graph and a working interpreter
+is ERROR.
+
+**(g) Freshness is v1-simplified.** Spec §13's monorepo distinction needs a
+project path scope nothing in the contract supplies. v1: graph metadata carries a
+build commit → diff it against the slice/phase base and report `may be stale — N
+project files changed since graph commit`; no metadata → `freshness unknown —
+<reason>`. The monorepo refinement waits for a monorepo adopter — spec §18's
+restraint applied to its own §13.
+
+**(h) End-slice ordering, and the checker's key set is untouched.** The final
+regeneration runs after the slice commit and the record check (steps 7–8), lands
+in the step-10 hand-back beside the changed-from-preview statement, and clears the
+slice base in the same pass. The impact summary never enters the commit body's
+evidence keys — it is explicitly not evidence, and the close-out checker's
+denominator does not change.
+
+### 66.3 The adapter
+
+`templates/sdlc-impact.template.py` → installed verbatim (ruling (d) of 66.7 names
+the path). Modes `slice` and `phase <base-ref>`; stdlib only. Responsibilities, in
+order: resolve the UA directory (legacy `.understand-anything/` when present, else
+`.ua/`); establish the change set (committed since base + staged + unstaged +
+untracked non-ignored, UA directory excluded by path); map changed files to every
+node carrying them; one hop through edges, deduplicated, changed nodes never
+re-listed as affected (spec §23's cases 5–7); layer report where the graph carries
+membership; unmatched files listed with the full denominator; v1 freshness per
+(g); overlay written behind the check-ignore guard per (c); the spec-§15 output
+contract printed last. The dashboard is never launched (spec §16).
+
+### 66.4 The touchpoints — existing steps, existing hand-backs
+
+`SDLC.template.md` gains one short *Architecture impact view (optional)* section —
+the canonical statement (inv 2), with three command mirrors as its automation,
+each a few lines that run the adapter and quote its printed output rather than
+restating its behavior:
+
+1. **`/next-slice`** — step 3, after branch preparation: if a UA graph is
+   detected, record branch + SHA per (e). Step 5: run `slice` mode; the summary
+   joins the slice-ready hand-back, absence stated when absent (spec §4.1's
+   non-silent rule).
+2. **`/end-slice`** — after steps 7–8 per (h): regenerate, state whether the
+   footprint changed from the preview, clear the base, report in step 10.
+3. **`/end-phase`** — after step 2: run `phase <main>` (the branch the project's
+   own records name — never assumed); the summary joins the acceptance hand-back.
+   After step 5's fix commits: regenerate before the merge halt, any
+   post-acceptance footprint change stated. No new halt anywhere — spec §4.5 and
+   the five-halt constraint hold.
+
+### 66.5 Cost named up front
+
+Files: new `templates/sdlc-impact.template.py`; new `tools/impact-check.py` (every
+shipped script artifact has its proof; fixtures derived per 66.2 (a), covering
+spec §23's thirteen negative cases plus (c)'s not-ignored case and (e)'s
+wrong-branch case); `SDLC.template.md` + the three command mirrors;
+`sdlc-setup.md` New-mode step 5 (the inv 7 single source — install unconditional
+and verbatim, inert without a graph, like the close-out checker) and the
+Existing-mode column; `sdlc-update.md` + the root README's update section (inv 8,
+same note both homes); `reference/COPILOT.md` mapping row; both README trees
+(inv 9); `CHANGELOG.md`; `VERSION`; manifest regenerated same-commit with
+discrimination proven (inv 10 — the text-mode trap is on record). The adapter's
+proof joins inv 13's denominator in ledger and `/kit-check` copy in the same
+batch. And per the §65 rule — the describing files are enumerated before the
+implementing ones — the derived-statement sweep at build time covers
+`sdlc-kit-process-flow.md` and both READMEs' prose, not only the trees.
+
+### 66.6 Value criterion, pre-registered — spec §24 adopted with the kit's
+### denominator
+
+Hypothesis (spec §24): a deterministic visual map of changed and graph-connected
+components lets the owner understand and challenge AI-generated work with less
+line-level inspection. Evidence collected per arc, in the retro/field-report
+channel that already exists: did the owner open the dashboard; did the view cause
+a question that would not otherwise have been asked; did it surface an unexpected
+subsystem; unmatched-file and staleness rates; generation friction; any ERROR
+state (kit friction per spec §21, R4.6's writer). **The clock: across the next
+two field arcs run with a usable graph, at least one owner-reported comprehension
+event — a question asked, a surprise surfaced, or an owner-stated faster read of
+the change. None → the integration is a deletion candidate like any rule; spec
+§24's own failure criterion, in the §16 grammar. An arc without a usable graph
+cannot exercise the feature and does not count against it.**
+
+### 66.7 Owner decisions owed before the build
+
+All five ruled 2026-08-18, each as recommended:
+
+- **(a) Queue position — RULED: RECON first, IMPACT immediately after.** §63.5's
+  ruling stands un-re-ruled; IMPACT's owner-side blockers resolved in parallel
+  (see (b) and (c)) and the build slots in behind RECON's.
+- **(b) The real artifact — RULED: adopted as stated.** Half satisfied at ruling
+  time: `TFit-Foundation/.ua/knowledge-graph.json` exists and was verified
+  against the tree (with `config.json`, `fingerprints.json`, `meta.json`
+  beside it). The observed dashboard read of a `diff-overlay.json` is still
+  outstanding — no such file exists anywhere under `.ua/` yet — and the
+  adapter's read path does not freeze until it happens. This was blocker 66.2
+  (a)'s only exit; the proof fixtures derive from the real graph.
+- **(c) Trial project — RULED: TFit-Foundation.** Its graph already sits on
+  disk, so the trial costs no new graph generation; ai-news-dashboard (Copilot
+  CLI) joins later only if the owner elects to pay for a second graph.
+- **(d) Install path — RULED: `.github/hooks/sdlc-impact.py`.** The directory
+  is already the kit's script home in adopter repos despite its name; a new
+  directory would widen every mapping for no gain.
+- **(e) The eight deltas of 66.2 — RULED: adopted.** They are the build's
+  authority wherever they and `FEATURE_SPEC_IMPACT.md` disagree.
+
+What still gates the build, post-rulings: RECON ships first (a), and the
+`diff-overlay.json` observed read lands (b). Everything else is decided.
