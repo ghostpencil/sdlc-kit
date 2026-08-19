@@ -131,6 +131,13 @@ re-denominated form, and every clock in this section was already counted in arcs
   TFit pair (snapshotted, git-ignored `impact-fixture-source/`). Only RECON
   gates the build now. Its clock is pre-registered in §66.6 and counts only
   field arcs run with a usable graph.
+- **RECON — opened 2026-08-19, design §67; decisions owed §67.6.** The §63.5-ruled
+  next batch: Class A (7.1, 7.2, 7.7, 8.1) built as **one reconcile pass** opening
+  `/end-phase` step 7 — every recorded number and carried claim reported
+  recorded-vs-measured before any owner question — plus the half-done split rule,
+  the contract's per-close absent-behavior direction, and the one-line rule's
+  log-only budget observer in the close-out checker. Four rulings owed; the build
+  follows them, and IMPACT builds immediately after per §66.7 (a).
 - **Standing input — ARRIVED 2026-08-17, triaged in §63.** Both adopters closed a
   phase the same day and filed: the first adopter's Phase 07 (`sdlc-kit#7`, the
   seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
@@ -2076,3 +2083,126 @@ All five ruled 2026-08-18, each as recommended:
 What still gates the build, post-rulings: RECON ships first (a) — nothing else.
 The `diff-overlay.json` observed read landed 2026-08-19; (b) is fully satisfied
 and every other decision is taken.
+
+---
+
+## 67. RECON opened — one reconcile pass at phase close: every recorded number and
+## carried claim, recorded-vs-measured, before any owner decision reads one
+
+Opened 2026-08-19 per §63.5's ruling (RECON next) and §66.7 (a) (IMPACT builds
+immediately after). Scope is Class A — findings 7.1, 7.2, 7.7, 8.1 — plus the two
+riders §63.5 named with it: the half-done marker grammar and the contract's
+absent-behavior direction. §63.3's diagnosis is the design's spine: the kit has
+patched this class four times, always one row at a time, always after the damage;
+the fifth patch must be the pass, not another row.
+
+### 67.1 The reconcile pass (7.1 + 7.7 + 8.1's per-close direction)
+
+A new opening bullet for `/end-phase` step 7 (post-merge bookkeeping), run **before
+any bullet that asks the owner anything**: re-derive every recorded number and
+carried claim from the tree and this close's own gate evidence, and report each as
+`recorded X / measured Y` — divergences first, agreements collapsed to one line.
+Its subjects, in order:
+
+1. **The backlog, reconciled before it is counted.** Walk this arc's slice commits
+   and the phase spec; mark `— done (<commit>)` on every entry they closed; only
+   then report the open count, stating how many the pass itself just closed. The
+   convert/defer/drop question is asked of the *reconciled* number. (Report 7's fix
+   verbatim — the count describes the future instead of mixing it with the past.)
+2. **The whole Records table, not two named rows.** Every row the table holds —
+   including rows the adoption authored, which are structurally unreconciled from
+   birth (7.7's sharpened premise) — checked against this close's gate run, each
+   reported recorded-vs-measured. The coverage-floor and red-baseline bullets keep
+   their decision procedures; this pass is the *detector* they and every unnamed
+   row now share. No new gate run: step 2's evidence is the measurement, the merge
+   having come from a clean tree.
+3. **The contract's absent direction (8.1).** For every ratified decision in prior
+   phase specs that has neither a contract entry nor a recorded drop, ask: is the
+   behavior in the tree? Absent → surface for an explicit restore/drop ruling; a
+   drop amends the source phase spec, so every decision reaches a terminal state
+   and later walks shrink toward zero. This is per-close, not one-time — the §63.2
+   sharpening (backfill runs once; the preserved-contract check's population can
+   never reach a behavior that never became an entry) is exactly what this closes.
+   The one-time backfill bullet gains the same direction for its single run.
+
+### 67.2 The marker grammar rider (7.1's second shape)
+
+Owner already ruled it in-report: **split it**. A half-delivered entry closes its
+delivered half with the ordinary `— done (<commit>)` marker so it retires, and
+opens a new numbered entry for the remainder with fresh provenance. One sentence in
+the backlog-presentation bullet and one in *Bookkeeping rules*; the grammar stays
+three-valued (done / dropped / unmarked) with unmarked now meaning only untouched.
+
+### 67.3 The one-line observer (7.2)
+
+The rule stays "one line" as the norm; the checker compares a **number** (report
+7's second option is what makes its first possible). `close-out.template.sh` gains
+a `docs-check` reading `git show --numstat` for the index file on close-out docs
+commits, flagging when added lines exceed a stated budget — log-only, joining the
+established bare-commit class. The file stays **verbatim** (no new placeholder;
+invariant 1 untouched): the index path is canonical (`spec/PROJECT_INDEX.md`) and
+the budget is an in-file constant. The budget must accommodate what legitimately
+lands at slice close — one status line plus new backlog/friction entries — while
+flagging the measured 44–87-line pattern; proposed default **25**. Proof rows join
+`tools/close-out-check.py` (corpus + mutations, per the shipped-script rule).
+
+### 67.4 Cost named up front
+
+`commands/end-phase.md` (step 7 opening bullet; backfill direction; split
+sentence); `templates/SDLC.template.md` (*Phase end* step 6 mirror, *Bookkeeping
+rules* ×2 — invariant 2 says template first); `commands/end-slice.md` §9 (budget
+number named beside the rule); `templates/close-out.template.sh` + its transition
+note in `sdlc-update.md` + `tools/close-out-check.py` fixtures;
+`templates/PRODUCT_CONTRACT.template.md` (entry-grammar comment gains the absent
+direction); both READMEs untouched (no new files) unless (c) below adds one.
+
+### 67.5 Clock, pre-registered
+
+RECON's confirmed catch is a reconcile pass whose recorded-vs-measured report
+shows a divergence that **changes an owner decision at that close** (a count
+corrected before convert/defer/drop, a Records row caught drifted, an absent
+behavior ruled restore/drop). Two field arcs with no catch and no divergence →
+the pass earns its keep as cheap insurance only if it stays under ~10 lines of
+hand-back; otherwise it is a SIMP candidate like any rule.
+
+### 67.6 Owner decisions owed before the build
+
+- **(a) The budget number.** 25 added index lines per close-out docs commit,
+  log-only (recommended — accommodates status + legitimate entries, flags the
+  measured 44–87 pattern), or another number, or refuse the checker and keep
+  prose-only.
+- **(b) The absent-direction population.** Full walk of all prior phase specs'
+  ratified decisions, filtered to those with no contract entry and no drop record
+  (recommended — converges to near-zero per close as decisions reach terminal
+  states), or scope it to phases whose surfaces the arc touched (cheaper per
+  close, permanently blind to untouched-surface erosion — the class 8.1 measured).
+- **(c) The §64 residue.** In-repo verification scripts under `/end-phase` step 5
+  still have no license. Fold into RECON as one sentence — verification scripts
+  belong outside the repo (the 7.3 (a) class, already free); an in-repo
+  verification artifact is a production write and takes the ordinary TDD path —
+  (recommended), or hold it for the independents batch.
+- **(d) Release shape.** RECON ships alone as 0.26.0 with the four independents
+  following (recommended — matches §63.5's "follow, distributed by effort"), or
+  one combined release.
+
+### 67.7 Ruled 2026-08-19 — all four, plus the question the fourth pulled forward
+
+- **(a) Budget — RULED: 25**, log-only, as recommended.
+- **(b) Population — RULED: full walk, filtered**, as recommended.
+- **(c) §64 residue — RULED: fold**, the one-sentence license as recommended.
+- **(d) Release shape — RULED: COMBINED, against the recommendation.** 0.26.0
+  carries RECON **and** the four independents (7.4a+b, 7.5, 7.6, 8.3) in one
+  release. The consequence §63.5 decision 3 named was taken in the same sitting:
+  **7.4b — RULED: inline the recipe.** The byte-safe revert goes into
+  `end-slice.md`'s mutation step directly; the vendored `mutation-testing` skill
+  stays untouched, so no invariant-3 divergence note is owed. The zero-activation
+  ledger measurement is the evidence: a fix delivered by relevance-based dispatch
+  is a fix delivered never.
+
+Combined scope adds to 67.4's cost list: `commands/end-slice.md` (7.4a's inlined
+recipe beside §67.3's budget line; 7.5's mutation-trigger scope), 
+`commands/next-slice.md` (7.5's RED shape for characterization slices),
+`skills/change-verify/SKILL.md` (7.6 — kit-written, constraint before §3's drive,
+no provenance cost), `commands/plan-phase.md` (8.3 — the assignment names the
+path a real caller reaches it by, or flags test-only at plan time). Nothing else
+is open; the build can start.
