@@ -126,10 +126,11 @@ re-denominated form, and every clock in this section was already counted in arcs
   Understand Anything impact adapter, eight deltas adopted. All five §66.7
   rulings taken 2026-08-18: RECON builds first, TFit-Foundation is the trial
   project (its `.ua/knowledge-graph.json` verified on disk), install path
-  `.github/hooks/sdlc-impact.py`. Still gating the build: RECON, and one
-  observed dashboard read of a `diff-overlay.json` before the adapter's read
-  path freezes. Its clock is pre-registered in §66.6 and counts only field
-  arcs run with a usable graph.
+  `.github/hooks/sdlc-impact.py`. The observed dashboard read landed
+  2026-08-19 — (b) fully satisfied, the read path frozen against the real
+  TFit pair (snapshotted, git-ignored `impact-fixture-source/`). Only RECON
+  gates the build now. Its clock is pre-registered in §66.6 and counts only
+  field arcs run with a usable graph.
 - **Standing input — ARRIVED 2026-08-17, triaged in §63.** Both adopters closed a
   phase the same day and filed: the first adopter's Phase 07 (`sdlc-kit#7`, the
   seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
@@ -2048,13 +2049,21 @@ All five ruled 2026-08-18, each as recommended:
 - **(a) Queue position — RULED: RECON first, IMPACT immediately after.** §63.5's
   ruling stands un-re-ruled; IMPACT's owner-side blockers resolved in parallel
   (see (b) and (c)) and the build slots in behind RECON's.
-- **(b) The real artifact — RULED: adopted as stated.** Half satisfied at ruling
-  time: `TFit-Foundation/.ua/knowledge-graph.json` exists and was verified
-  against the tree (with `config.json`, `fingerprints.json`, `meta.json`
-  beside it). The observed dashboard read of a `diff-overlay.json` is still
-  outstanding — no such file exists anywhere under `.ua/` yet — and the
-  adapter's read path does not freeze until it happens. This was blocker 66.2
-  (a)'s only exit; the proof fixtures derive from the real graph.
+- **(b) The real artifact — RULED: adopted as stated. SATISFIED 2026-08-19.**
+  At ruling time `TFit-Foundation/.ua/knowledge-graph.json` existed and was
+  verified against the tree (with `config.json`, `fingerprints.json`,
+  `meta.json` beside it); the next day the owner ran `/understand-diff` (UA
+  plugin 2.9.4), it wrote `.ua/diff-overlay.json` (base `main`, 11 changed
+  files, 8 changed nodes, ~80 one-hop affected), and the owner confirmed the
+  dashboard rendered it. The overlay matches the spec's schema field-for-field.
+  The adapter's read path is frozen against that observed pair, snapshotted
+  with provenance in the git-ignored `impact-fixture-source/` (adopter
+  internals — never committed; build-time fixtures derive from it, minimized).
+  The real instance carries the build's best test case: seven changed files
+  (incl. `usage_pricing.py`, new tests, `.claude/settings.json`) have no
+  matching node because the graph predates them — spec responsibilities 6
+  (unmatched files) and 7 (freshness) observed in the wild, not invented.
+  This was blocker 66.2 (a)'s only exit.
 - **(c) Trial project — RULED: TFit-Foundation.** Its graph already sits on
   disk, so the trial costs no new graph generation; ai-news-dashboard (Copilot
   CLI) joins later only if the owner elects to pay for a second graph.
@@ -2064,5 +2073,6 @@ All five ruled 2026-08-18, each as recommended:
 - **(e) The eight deltas of 66.2 — RULED: adopted.** They are the build's
   authority wherever they and `FEATURE_SPEC_IMPACT.md` disagree.
 
-What still gates the build, post-rulings: RECON ships first (a), and the
-`diff-overlay.json` observed read lands (b). Everything else is decided.
+What still gates the build, post-rulings: RECON ships first (a) — nothing else.
+The `diff-overlay.json` observed read landed 2026-08-19; (b) is fully satisfied
+and every other decision is taken.
