@@ -136,8 +136,11 @@ re-denominated form, and every clock in this section was already counted in arcs
   `/end-phase` step 7 — every recorded number and carried claim reported
   recorded-vs-measured before any owner question — plus the half-done split rule,
   the contract's per-close absent-behavior direction, and the one-line rule's
-  log-only budget observer in the close-out checker. Four rulings owed; the build
-  follows them, and IMPACT builds immediately after per §66.7 (a).
+  log-only budget observer in the close-out checker. All rulings taken same day
+  (§67.7) — including COMBINED release shape, so 0.26.0 carries the four
+  independents (7.4a+b, 7.5, 7.6, 8.3) with 7.4b resolved as inline-the-recipe.
+  Nothing is open; the build can start, and IMPACT builds immediately after per
+  §66.7 (a).
 - **Standing input — ARRIVED 2026-08-17, triaged in §63.** Both adopters closed a
   phase the same day and filed: the first adopter's Phase 07 (`sdlc-kit#7`, the
   seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
@@ -2200,7 +2203,7 @@ hand-back; otherwise it is a SIMP candidate like any rule.
   is a fix delivered never.
 
 Combined scope adds to 67.4's cost list: `commands/end-slice.md` (7.4a's inlined
-recipe beside §67.3's budget line; 7.5's mutation-trigger scope), 
+recipe beside §67.3's budget line; 7.5's mutation-trigger scope),
 `commands/next-slice.md` (7.5's RED shape for characterization slices),
 `skills/change-verify/SKILL.md` (7.6 — kit-written, constraint before §3's drive,
 no provenance cost), `commands/plan-phase.md` (8.3 — the assignment names the
