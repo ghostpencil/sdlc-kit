@@ -131,7 +131,8 @@ re-denominated form, and every clock in this section was already counted in arcs
   TFit pair (snapshotted, git-ignored `impact-fixture-source/`). Only RECON
   gates the build now. Its clock is pre-registered in §66.6 and counts only
   field arcs run with a usable graph.
-- **RECON — opened 2026-08-19, design §67; decisions owed §67.6.** The §63.5-ruled
+- **RECON — BUILT 2026-08-19 (§68), shipping as 0.26.0; design §67, rulings §67.7.**
+  The §63.5-ruled
   next batch: Class A (7.1, 7.2, 7.7, 8.1) built as **one reconcile pass** opening
   `/end-phase` step 7 — every recorded number and carried claim reported
   recorded-vs-measured before any owner question — plus the half-done split rule,
@@ -139,8 +140,11 @@ re-denominated form, and every clock in this section was already counted in arcs
   log-only budget observer in the close-out checker. All rulings taken same day
   (§67.7) — including COMBINED release shape, so 0.26.0 carries the four
   independents (7.4a+b, 7.5, 7.6, 8.3) with 7.4b resolved as inline-the-recipe.
-  Nothing is open; the build can start, and IMPACT builds immediately after per
-  §66.7 (a).
+  Built the same day, all of it: the reconcile pass, the split rule, the `docs-check`
+  observer (log-only, budget 25, 7 proof cases + 6 mutations — suite 21+7+15 cases,
+  22 mutations, 0 survivors), the four independents, and the §64 license sentence.
+  `/kit-check` run pre-tag (§69): six findings, all fixed in-session. **IMPACT builds
+  next**, per §66.7 (a) — RECON no longer gates it.
 - **Standing input — ARRIVED 2026-08-17, triaged in §63.** Both adopters closed a
   phase the same day and filed: the first adopter's Phase 07 (`sdlc-kit#7`, the
   seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
@@ -2208,4 +2212,172 @@ recipe beside §67.3's budget line; 7.5's mutation-trigger scope),
 `skills/change-verify/SKILL.md` (7.6 — kit-written, constraint before §3's drive,
 no provenance cost), `commands/plan-phase.md` (8.3 — the assignment names the
 path a real caller reaches it by, or flags test-only at plan time). Nothing else
-is open; the build can start.
+is open; the build can start. **Built 2026-08-19 — see §68**, with the pre-tag
+`/kit-check` at §69.
+
+
+---
+
+## 68. RECON built, combined with the four independents and the §64 residue —
+## 0.26.0's whole scope in one pass, 2026-08-19
+
+Built the same day §67 was opened and ruled. The owner's (d) ruling — COMBINED,
+against the recommendation — is what makes this one section rather than two: RECON
+plus 7.4a/7.4b, 7.5, 7.6, 8.3, plus the license sentence §64 left recorded and open.
+
+### 68.1 The reconcile pass, as designed
+
+`/end-phase` step 7 opens with it, before any bullet asks the owner anything, and the
+canonical statement went into `SDLC.template.md` *Phase end* step 6 first (invariant
+2). Its report shape is `recorded X / measured Y` — divergences first, each named with
+the file that holds it, agreements collapsed to one line. Two decisions worth
+recording beyond §67.1's design:
+
+- **No new gate run, stated as a reason rather than a saving.** Step 2's run is the
+  measurement because the merge came from a clean tree; re-running at step 7 would
+  measure a *different* tree than the one the records describe. That is the same
+  environment discipline invariant 15 asks for, pointed at a step that could easily
+  have been written as "re-measure".
+- **A row this close produces no evidence about reports `recorded X / not measured
+  this close`, never as agreement.** Without that third verdict the pass would report
+  a clean sweep over rows it never actually looked at — the all-`UNCHANGED`
+  classification specimen (invariant 10), one layer up.
+
+### 68.2 The observer (7.2)
+
+`close-out.template.sh` gained a third mode, `docs-check`, and the file stays verbatim
+— no new placeholder, the index path canonical, `BUDGET=25` an in-file constant. Its
+seat is deliberate: **log-only on every install**, exiting 0 even on its own errors,
+which puts it in the bare-commit class rather than the check mode's. The reason is the
+rule it watches, not timidity — a close-out docs commit legitimately carries one
+status line *plus* however many backlog and friction entries the slice really
+produced, so a number cannot distinguish an honest heavy close from a write-up. `OVER`
+is a question for the hand-back; "more entries than usual, here is why" is a complete
+answer to it.
+
+**Invariant 14 caught a defect in the first draft**, at the `/kit-check` below: the
+budget had four prose homes (`end-slice.md`, the template, `sdlc-update.md`, the
+README) and one enforcing constant, with nothing naming which was authoritative —
+the exact shape 7.7 filed. Both process homes now say the number is a copy and the
+script's `BUDGET` is the enforcing home, adding that the mode's own output quotes the
+budget it used, so the value to believe is the one that was actually applied.
+
+**Proof:** seven docs cases and six mutations joined `tools/close-out-check.py`
+(under budget, exactly at it — 25 is not over — over it, an untouched index, a
+retirement commit that only deletes, an explicit ref, and a bad ref that still exits
+0). Full suite measured, not assumed: **21 unit + 7 docs + 15 stop cases, 22
+mutations, 22 caught, 0 survivors**, slowest docs invocation 427 ms against the 1000 ms
+budget. Each docs mutation is caught by a docs case, which is what makes the seven
+cases evidence rather than decoration.
+
+### 68.3 The four independents and the residue
+
+- **7.4a + 7.4b — inlined, per §67.7's ruling.** The byte-safe revert is stated in
+  `end-slice.md` §5 and the template's step 8: `git checkout -- <path>`, then
+  `git status --short` clean, never a whole-file read-then-write (which normalizes
+  line endings, trailing newline, and encoding — four corrupted working trees in one
+  arc). The vendored `mutation-testing` skill is **untouched**, verified against the
+  diff, so no invariant-3 divergence note is owed and `reference/SKILLS.md` needed no
+  edit.
+- **7.5 — both anchors, and the trigger inverts rather than widening.** A slice that
+  added tests but no guard mutates *the production code each new test pins*. Sampling
+  is allowed and must be stated (`mutation: 6 of 129 characterization pins`) — an
+  unstated sample is the same blank the exemption left. RED gets the matching shape:
+  manufactured and still observed (assert the wrong value first, watch it fail, then
+  assert what the code does), never the zero-form, which belongs to a slice with no
+  behavior batches at all.
+- **7.6 — the constraint goes *before* §3's drive**, which was the whole finding: the
+  only environment step ran after the run. Enumerate what the path reaches on its way
+  out — credentials, data directory, outbound calls, queue, clock — point each
+  somewhere disposable or confirm it inert, and state the isolation with the result.
+  The sentence that carries it: **half-isolated is not isolated**, because the half
+  nobody redirected is the half that reaches production.
+- **8.3 — the assignment stops being terminal** (`plan-phase.md`, mirrored into the
+  template's *Phase start* step 3): name the path a real caller reaches the behavior
+  by, or flag it test-only **at plan time**, with what would create the seam.
+- **The §64 residue folded in**, one sentence at `end-phase.md` step 2 and the
+  template's *Phase end* step 1 — a verification script's license depends on where it
+  lives, and the default is outside. Note the correction: §67.6 (c) placed it at
+  "step 5" and §64 at "step 1"; the phase-level verification it is about is
+  **`end-phase.md` step 2** (the template's *Phase end* step 1), which is where it
+  went. The ruling's substance was unambiguous; only the step number was wrong.
+
+### 68.4 Cost, measured against §67.4's estimate
+
+Eleven bundle files (VERSION, four commands touched by RECON, two more by the
+independents, `change-verify`, and three templates), plus `tools/close-out-check.py`,
+the root README, `CHANGELOG.md`, `KIT_INVARIANTS.md`, and `.claude/commands/kit-check.md`
+— the last two from the `/kit-check` findings below. §67.4 predicted every bundle file
+correctly and named neither ledger file, which is the standing lesson (§55, §58, §60,
+§65) landing for a **fifth** pass: a batch's cost estimate covers what it implements
+and misses what *describes* what it implements.
+
+**Dates.** The build and the `/kit-check` both happened **2026-08-19** and those dates
+stay, because they record when the work happened; the `CHANGELOG.md` entry carries
+**2026-08-21**, the day the tag went out, under §62's re-date instruction — the same
+split §64 recorded for 0.25.0.
+
+---
+
+## 69. The pre-0.26.0 `/kit-check` — run 2026-08-19 on the combined RECON +
+## independents scope: six findings, all fixed in-session, and for the first time in
+## five passes the stale-description class was caught by an invariant rather than by
+## a reader
+
+Mechanical checks first, then the reading passes, then the fixes. The pass ran against
+the full ledger; nothing was scoped out.
+
+### The six findings
+
+1. **Invariant 2, mirror direction — the §64 license sentence lived only in
+   `end-phase.md`.** A rule a command enforces must appear in `SDLC.template.md`, and
+   this one did not. Fixed: *Phase end* step 1 carries it.
+2. **Invariant 2 — 8.3's rule lived only in `plan-phase.md`.** The template's *Phase
+   start* step 3 described exit criteria naming their observer and said nothing about
+   an acceptance assignment naming its caller path. Fixed.
+3. **Invariant 2 — `change-verify`'s isolation constraint had no template home.** The
+   skill carries the method, but *constrain before you drive* is a process rule and
+   the template describes the step twice. Fixed at slice-loop step 9.
+4. **Invariant 14 — the budget number named no enforcing artifact.** Four prose homes,
+   one constant, nothing saying which wins. Fixed in both process homes (see §68.2) —
+   and this is the finding the batch would most have deserved, since 7.7 is *exactly*
+   this defect and RECON is its fix.
+5. **Invariant 15 — `docs-check` did not name the shell it runs in.** Every sibling
+   step does (`the agent's shell tool`, the gate's own scope). Fixed in the command
+   and the template.
+6. **Invariant 13 — the new observer was not in the denominator.** A check added
+   without being added to invariant 13's enumeration is one the next pass will not
+   think to look for; the invariant says so about itself. Fixed in `KIT_INVARIANTS.md`
+   and `.claude/commands/kit-check.md`, whose "As of 0.25.0 that list is" also moved
+   to 0.26.0. The entry states the observer's negative case honestly: **log-only, so
+   it has no arming ramp and no fire-proof at setup** — its negative case is the docs
+   corpus and its six mutations, which is where a budget that stopped discriminating
+   would show.
+
+Findings 4, 5 and 6 are the interesting ones: all three were caught by invariants the
+kit wrote for itself after earlier misses, and none by re-reading the prose. That is
+the first pass where the stale-description class was caught **mechanically-in-spirit**
+rather than by a careful reader noticing.
+
+### Passes worth recording with what they looked for
+
+- **Invariant 9 (README tree):** every tracked file's basename located in the root
+  README. No new files this batch, so the negative case (an added file absent from the
+  tree) had nothing to fire on — recorded as such rather than as a pass with evidence.
+- **Invariant 10 (manifest):** regenerated from the **index**, not the working tree,
+  and verified twice — 43 entries against `git ls-files sdlc-kit` minus one, `sha256sum
+  -c` 43/43, **zero `*` prefixes** (the text-mode trap that has now bitten twice), and
+  the discrimination check reporting **exactly 11** changed rows, matching the eleven
+  edited bundle files and nothing else.
+- **Invariant 4 (`{{` census):** hits in `sdlc-setup.md` only (53). The verbatim
+  close-out script was re-checked at zero, which the proof harness also asserts on
+  every run.
+- **Invariant 6 (step references):** all six references added by this batch read and
+  confirmed against their targets — `end-phase` steps 2 and 5, `end-slice` steps 8
+  (×3) and 9.
+- **Invariant 11 (provenance, two regimes):** the diff confirms `mutation-testing/` is
+  untouched, which is what the 7.4b ruling was for; `change-verify` is kit-written, so
+  its edit carries no provenance cost and `reference/SKILLS.md` needed nothing.
+- **Invariant 1 (no project facts):** one softening — *the guards see only files
+  inside the repository* became *where the guards are installed, they see only…*,
+  since a project can decline them.

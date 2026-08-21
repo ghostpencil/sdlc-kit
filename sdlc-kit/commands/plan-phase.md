@@ -120,8 +120,20 @@ subagent ever interacts with the owner.
   fixture data, and the live-data question: what happens to existing saves/databases/
   configs created before this feature? Preserve-and-extend; never break existing data.
 - **Testability sweep** — every behavior must be pinnable by a deterministic test, or
-  explicitly assigned to the acceptance-review checklist. "Feels right" is not an exit
-  criterion. Each slice's exit criteria name **what observes them and when** — a local
+  explicitly assigned to the acceptance-review checklist. **An assignment to the
+  checklist is not terminal: it names the path a real caller reaches the behavior by,
+  or it is flagged test-only here and now.** Write the path down — the input that
+  triggers it, the surface it appears on, what the owner will do at halt 4 to make it
+  happen. If no real caller can reach it in this phase — there is no seam to inject
+  the malformed input, the failure needs a service nobody can break on demand — say so
+  in the spec **at plan time**, with what would create the seam, so the halt inherits
+  a known limit instead of discovering one. Assignment used to end the question:
+  nothing downstream asked how the item was reached, and the sweep was then cited as
+  proof that every exit criterion had an observer. A real phase closed with a
+  malformed-feed behavior that passed three adapter pins plus an owner ruling and was
+  honestly reported *not exercised live* at halt 3 — the escape hatch working exactly
+  as written. "Feels right" is not an exit criterion. Each slice's exit criteria
+  name **what observes them and when** — a local
   command, the gate, CI on the main branch, or the owner. A criterion naming an
   observer that does not run at that point is a planning defect, not a slice problem;
   the kit's own former ratchet phrasing is the recorded exposure — "raise the

@@ -246,6 +246,11 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      this line is a claim about the machine and CLIs setup ran on: the proven path
      describes that machine (a teammate's clone re-proves before trusting it), and
      adding a CLI later means adding its proven line — nothing else will.
+     THE SAME NOTE's invocation serves the script's `docs-check` mode too — same
+     line, `docs-check` in place of `check` — so nothing extra is proven or
+     recorded for it. That mode is log-only on every install, exits 0 even on its
+     own errors, and is read at slice step 12; it is not part of what the note
+     proves, because a mode that cannot fail a step cannot lie about one.
      THE SAME NOTE also records the stop-time backstop's state — the same script's
      `stop-check` mode wired at agentStop (Copilot, `.github/hooks/sdlc-close-out.json`)
      / Stop (Claude Code, the settings-file block), offered separately and OPTIONAL
@@ -377,6 +382,17 @@ ratified behavior can vanish with every gate, test, and review green.
   its surface re-asks whether it can now be pinned.
 - **A behavior leaves only by ratified retirement.** A superseding decision replaces
   its line and the superseding phase spec records why; omission is never retirement.
+- **And it never stays out by omission either — the absent direction.** Every phase
+  close, the reconcile pass at the head of post-merge bookkeeping walks prior phase
+  specs for ratified decisions holding **neither** an entry here **nor** a recorded
+  drop, and asks whether the behavior is in the tree. Each absent one takes an
+  explicit owner ruling — restore, or drop and amend the ratifying decision in its
+  source spec — so every decision reaches a terminal state and the walk shrinks close
+  by close. Every other check on this file reads entries that exist: the
+  preserved-contract check's population is (entries here) × (surfaces this arc
+  touched), and the backfill below runs once. A behavior that never became an entry
+  is outside all of them, which is how three ratified behaviors left a real product
+  with every gate, test, and review green.
   A planned change that would remove or alter an entry is an owner question at
   planning (halt 1 or halt 3), never a decision the plan makes on its own.
 - **A pinned test is contract-bound.** Deleting, skipping, or gutting a test this
@@ -406,7 +422,11 @@ ratified behavior can vanish with every gate, test, and review green.
   phases gets a **one-time backfill
   offer** at the next phase close — an owner-confirmed pass over the prior phase
   specs' ratified decisions, never an inference; a decline is recorded in the file
-  with the date, so the offer is not re-made at every close.
+  with the date, so the offer is not re-made at every close. That single run takes
+  the **absent direction** above as well: a decision confirmed still-current whose
+  behavior is not actually in the tree is put up for a restore/drop ruling, never
+  entered as current and never silently left out — the first real backfill omitted
+  three, and only a human reading a document no adopter process reads caught it.
 
 ## Phase start
 
@@ -435,7 +455,11 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    see *Product contract* above), user-visible
    surface + acceptance-review checklist, slices with exit criteria that name **what
    observes them and when** (a criterion naming an observer that does not run at that
-   point — CI on an arc branch, typically — is a planning defect), risks. Any decision
+   point — CI on an arc branch, typically — is a planning defect), risks. A behavior
+   assigned to the acceptance checklist rather than pinned by a test **names the path
+   a real caller reaches it by, or is flagged test-only here** — the assignment is not
+   terminal, and an item nothing downstream asks about reaches halt 4 as a checklist
+   line nobody can exercise. Any decision
    carrying a number is tagged **measured** (naming the run, count, or query behind it)
    or **estimated** — the same distinction the deferred backlog draws about causes,
    applied where a number is first ratified. The spec stays lean enough to be read
@@ -478,7 +502,14 @@ Run `/next-slice` in a **fresh session**:
    recorded as it happens — the exact test command, the failing test's line, the exit
    code — in a running record the session keeps for `/end-slice`, which writes it into
    the slice commit body. An observed red cannot be reconstructed at close-out; a red
-   never recorded reads later as a red never run. Design questions halt *(halt 3)*.
+   never recorded reads later as a red never run. **A characterization test — one
+   written against behavior that already exists — has no natural red, and passing on
+   its first run is not evidence that it pins anything.** Its red is manufactured and
+   still observed: assert the wrong value first (or break the behavior for one run),
+   watch it fail for the expected reason, then assert what the code actually does.
+   It is recorded in the ordinary shape, marked as characterization — never with the
+   zero-form, which belongs to a slice with no behavior batches at all. Design
+   questions halt *(halt 3)*.
 
 `/next-slice` ends at the slice-ready hand-back — the executive summary per the
 hand-back standard — and **the owner runs `/end-slice`**. Close-out is never chained
@@ -536,14 +567,29 @@ Run `/end-slice` when the slice's exit criteria are met:
    (mutation-testing skill for anything beyond a quick delete-and-run; the runs happen
    in the session's shell, the gate's own scope). A check is
    trustworthy only once it has been made to disagree; the step is done when every new
-   guard has been seen to fail on exactly its own test. The one-line outcome
-   (`mutation: <N guards, each seen to fail | none — no new guards>`) is recorded in
-   the slice commit body.
+   guard has been seen to fail on exactly its own test. **A slice that added tests but
+   no guard — a characterization pass, a coverage backfill — reads the trigger the
+   other way round rather than skipping the step:** what is new is the tests, so the
+   production code each one pins is what gets mutated, sampled where the count is
+   large and the sample stated. Nothing else in the close-out carries signal about
+   such a slice. **The mutation is undone by reverting the file** (`git checkout --
+   <path>`, then `git status --short` clean), never by writing its text back through
+   a whole-file read-then-write: that normalizes line endings, trailing newline, and
+   encoding, and it corrupted one arc's working tree four times. The one-line outcome
+   (`mutation: <N guards, each seen to fail | N of M characterization pins, each seen
+   to fail | none — no new guards>`) is recorded in the slice commit body.
 9. Slice verification, **optional** (the `change-verify` skill on a nontrivial slice):
    exercise the changed behavior through the path its real caller takes rather than
    through the test harness — the gate is evidence about the suite; this is the only
    slice-level evidence about the behavior, and without it nothing runs the change
-   outside the harness before phase end. Skipping it is a legitimate choice on a small
+   outside the harness before phase end. **Constrain the run before starting it, not
+   after:** it drives production code paths with production wiring, so everything the
+   path reaches on its way out — credentials, the data directory, outbound calls, the
+   queue, the clock — is pointed somewhere disposable or confirmed inert first, and
+   the isolation established is stated with the result. Redirecting some of them is
+   the failure mode: one run redirected the data directory, left the credentials
+   alone, and minted a live token against a real account.
+   Skipping it is a legitimate choice on a small
    or mechanical slice; skipping it silently is not — the skip and its reason are
    stated in the hand-back, and the one-line outcome (`verify: ran — <verdicts,
    naming the shell they ran in>` / `verify: skipped — <reason>`) is recorded in the
@@ -580,8 +626,19 @@ Run `/end-slice` when the slice's exit criteria are met:
     detail lives in the phase spec and the commit message), deferred items appended,
     and any friction with the process itself written to the Kit friction log now,
     while the evidence is still accurate, in the log's one-line shape
-    (`- <date> — <friction> — open`) — then commit the docs change. Push the
-    branch (no PR — that is phase end).
+    (`- <date> — <friction> — open`) — then commit the docs change. That rule
+    carries a **budget of 25 added index lines** for this commit — the status line
+    plus whatever backlog, gotcha, and friction entries the slice genuinely produced
+    — and the close-out checker's `docs-check` mode counts them and reports against
+    it: run it on the docs commit, in the agent's shell like the record check above,
+    and quote its line. The number here is a copy; the enforcing home is that
+    script's own `BUDGET` constant, and the mode's output quotes the budget it used.
+    **Log-only**, always: it
+    never fails the step and never blocks, because a number cannot tell a heavy but
+    honest close from a per-slice write-up, so `OVER` is a question the hand-back
+    answers rather than a verdict. It exists because *status only, one line* was in
+    force the whole time an adoption wrote 404 index lines across seven close-outs;
+    a rule with no observer is a wish. Push the branch (no PR — that is phase end).
 13. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end
@@ -597,7 +654,14 @@ Run `/end-phase` when the last slice is done:
    here is reported as unverified rather than assumed, because the alternative spends
    halt 4's credibility on a check that never ran. Like its slice-level twin, this
    step runs in the agent's shell and does not stand in for halt 4 — the owner's run
-   is the next step, and it is the one that runs in the owner's shell.
+   is the next step, and it is the one that runs in the owner's shell. **A
+   verification script's license depends on where it lives, and the default is
+   outside:** a throwaway driver under a session temp directory is not a production
+   write at all (where the guards are installed, they see only files inside the
+   repository), so it needs no
+   refactor license; committing one under the repo makes it production source, and it
+   takes the ordinary red-green path. Neither is an exemption, and wanting one is the
+   signal the script belonged outside the repo.
 2. **Owner acceptance review** *(halt 4)* — owner runs `{{RUN_COMMAND}}` and verifies the
    phase's visible behavior against the spec's checklist. **Every checklist item —
    the phase's own and any *Preserved Behaviors* entry — gets a recorded per-item
@@ -646,7 +710,36 @@ Run `/end-phase` when the last slice is done:
    that ran is named in the hand-back, because a review nobody can tell the depth of
    is a review nobody can weigh.
 5. **Merge approval** *(halt 5)*, then merge.
-6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`: the deploy question (does this phase
+6. Post-merge bookkeeping on `{{MAIN_BRANCH}}`. It **opens with the reconcile pass**,
+   which runs before any bullet below asks the owner anything: every recorded number
+   and carried claim re-derived from the tree and from this close's own gate evidence,
+   each reported as `recorded X / measured Y` — divergences first, agreements collapsed
+   to one line. A decision taken against a stale number is taken twice. No new gate run
+   is needed: step 1's evidence **is** the measurement, the merge having come from a
+   clean tree. Three subjects, in order:
+   - **The backlog, reconciled before it is counted.** Walk this arc's slice commits
+     and the phase spec; mark `— done (<commit>)` on every entry they closed; only
+     then report the open count, stating how many the pass itself just closed. The
+     convert/defer/drop question below is asked of the **reconciled** number — a count
+     still carrying entries this arc delivered describes the future instead of mixing
+     it with the past.
+   - **The whole *Records* table, not the two rows that have bullets of their own.**
+     Every row the table holds is checked against this close's gate run and reported
+     recorded-vs-measured — including rows the adoption authored, which are
+     structurally unreconciled from birth, nothing having ever been written to
+     reconcile them. The coverage-floor and red-baseline bullets below keep their own
+     decision procedures; this pass is the **detector** they and every unnamed row now
+     share.
+   - **The contract's absent direction.** For every ratified decision in prior phase
+     specs that has neither a contract entry nor a recorded drop, ask the question no
+     other check asks: is the behavior in the tree? Absent → surface it for an explicit
+     restore/drop ruling; a drop amends the source phase spec, so every decision
+     reaches a terminal state and later walks shrink toward zero. This runs at **every**
+     close, not once: the one-time backfill runs once by definition, and the
+     preserved-contract check's population — entries on touched surfaces — can never
+     reach a behavior that never became an entry.
+
+   Then the decisions and the records themselves: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;
    {{DEPLOY_NOTE}}) closed with a **verified outcome** — when the project deploys, the
    deployed artifact is checked against the platform's own record (the deploy run's
@@ -683,6 +776,15 @@ Run `/end-phase` when the last slice is done:
 - `spec/PROJECT_INDEX.md` is the single source of truth for phase/slice status, the
   deferred backlog, and START HERE. It is updated at every slice end and phase end —
   never left for "later".
+- **A recorded number is reconciled before it is read.** Every number and carried
+  claim in these records — the backlog count, each row of the *Records* table, the
+  floor, the baseline, the contract's coverage — is re-derived from the tree at phase
+  close and reported `recorded X / measured Y` **before** any decision reads it
+  (*Phase end*, step 6). Recording a number is an act, and the act does not keep the
+  number true; a rule that fires when a number is *written* is silent for every close
+  afterwards, which is why each number here has its own writing rule and none of them
+  caught a stale value. The detector is one pass over all of them, not another rule
+  per row.
 - Owner decisions are recorded where they were made (PROJECT_INDEX or the phase spec)
   with the date.
 - Deferred review findings go to the backlog, not into scope creep; a big enough pile
@@ -716,7 +818,14 @@ Run `/end-phase` when the last slice is done:
   than one phase ago — move verbatim to
   `spec/PROJECT_INDEX_HISTORY.md` (created on first retirement), one dated section
   per phase close, any numbering and all provenance preserved so an old reference
-  to an entry still resolves. (Environment gotchas are bounded — delete when fixed
+  to an entry still resolves. **A half-delivered entry is split, never half-marked:**
+  when an arc closes part of an entry and leaves the rest, the delivered part takes the
+  ordinary `— done (<commit>)` marker so it retires, and the remainder opens as a
+  **new numbered entry** whose provenance names the entry it came from. The grammar
+  stays three-valued — done, dropped, unmarked — and unmarked now means only
+  *untouched*; an entry partly delivered and left unmarked is counted as open work in
+  full, retires never, and describes neither what shipped nor what remains.
+  (Environment gotchas are bounded — delete when fixed
   — and never retire; Phase History stays, one row per phase.) An item without its
   closing marker never retires — an open entry in the history file is work hidden
   from every session that acts on the index, so the retirement step re-reads what

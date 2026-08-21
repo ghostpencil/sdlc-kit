@@ -37,6 +37,15 @@ Also run whatever phase-level verification the phase spec calls for: the
 `change-verify` skill on the arc, plus any smoke test, end-to-end run, or manual script
 the spec names. Fix and re-run until green.
 
+**A verification script's license depends on where it lives, and the default is
+outside.** A throwaway driver written under a session temp directory is not a
+production write at all — where the TDD guards are installed they see only files
+inside the repository — so it needs no refactor license and nothing about it is owed
+here. Committing one under the
+repo makes it production source like any other file, and it takes the ordinary
+red-green path: a test first, then the script. Neither case is a special exemption,
+and reaching for one is the signal that the script wanted to be outside the repo.
+
 `change-verify` is installed at `.claude/skills/change-verify/` and
 is available on both CLIs. It exercises the arc through the path a real caller takes
 rather than through the harness, which is the gap the gate cannot cover — a suite
@@ -216,8 +225,45 @@ This step asks the owner several decisions inside one conversation — the deplo
 question, the backlog disposition, the red-baseline call, the retro offer. Per the
 hand-back standard, present them **together, each numbered and explicitly marked**
 (`Decision 1: …`), after a plain-English summary of where the phase landed — never
-one at a time buried in the bullet that raised it.
+one at a time buried in the bullet that raised it. **The reconcile pass below runs
+first**, because every one of those decisions reads a recorded number, and a number
+read before it is reconciled is a decision taken twice.
 
+- **Reconcile every recorded number and carried claim — before any bullet below asks
+  the owner anything.** Re-derive each from the tree and from this close's own gate
+  evidence, and report it as `recorded X / measured Y`: divergences first, each named
+  with the file that holds it, then the agreements collapsed to one line (`N rows
+  reconciled, no divergence`). **No new gate run** — step 2's run is the measurement,
+  the merge having come from a clean tree; re-running here measures a different tree
+  than the one these records describe. Three subjects, in order:
+  1. **The backlog, reconciled before it is counted.** Walk this arc's slice commits
+     and the phase spec, and mark `— done (<fix commit>)` on every backlog entry they
+     closed. **Only then** report the open count — and say how many entries this pass
+     itself just closed. The backlog bullet below asks convert/defer/drop of that
+     reconciled number: a count still carrying entries this arc delivered describes
+     the future mixed together with the past, and one was measured at 101 with a
+     shipped entry sitting inside it.
+  2. **Every row of `spec/SDLC.md` *Records*, not only the two rows that have bullets
+     of their own.** Check each against this close's gate run and report it
+     recorded-vs-measured — the gate baseline and the coverage floor, which keep their
+     decision procedures in the bullets below, **and** every other row: the gate
+     commands, the CI line, the hook and guard notes, the model policy, and any row
+     this adoption authored. Adoption-authored rows are structurally unreconciled from
+     birth, nothing having ever been written to reconcile them, which is why this pass
+     is defined over the table rather than over a list of row names. A row this close
+     produces no evidence about is reported `recorded X / not measured this close` —
+     never as agreement.
+  3. **Ratified decisions the contract never received.** For every ratified decision in
+     prior phase specs that has **neither** a contract entry **nor** a recorded drop,
+     ask the question no other check asks: is the behavior in the tree? Present each
+     absent one for an explicit owner ruling — restore (a backlog entry or next-phase
+     scope) or drop, a drop amending the ratifying decision in its own phase spec
+     exactly as halt 4 does. Every decision then reaches a terminal state, so this walk
+     shrinks toward zero close by close. It runs at **every** close, not once: the
+     backfill below runs once by definition, and step 5's preserved-contract check
+     reads entries on touched surfaces, so neither can ever reach a behavior that never
+     became an entry. That is the gap three owner-ratified behaviors went missing
+     through, with every gate, test, and review green the whole way.
 - **Ask the deploy question, then record the verified outcome:** does this phase need
   a deploy for its changes to reach users, and has it happened? Merging is not
   shipping — a production fix sat unshipped behind exactly this missing question once.
@@ -253,6 +299,12 @@ one at a time buried in the bullet that raised it.
   slice closed it, `— dropped (owner, <date>)` on a drop ruling; a deferral leaves
   the line unmarked. The line's marker is what the retirement bullet below reads;
   a verdict that lives only in this conversation is one no later step can act on.
+  **A half-delivered entry is split, never half-marked:** close the delivered part
+  with its own `— done (<fix commit>)` so it retires, and open a **new numbered
+  entry** for the remainder, its provenance naming the entry it came from. The
+  grammar stays three-valued — done, dropped, unmarked — and unmarked now means only
+  *untouched*; an entry left unmarked because only part of it shipped counts as open
+  in full, retires never, and reports neither what shipped nor what remains.
   "A big enough
   pile becomes a cleanup slice" defers indefinitely when nothing ever presents the
   pile; this is the presentation point. One class is exempt from default deferral: an
@@ -277,7 +329,13 @@ one at a time buried in the bullet that raised it.
   phases — an adoption or update predating the file — offer the backfill now: walk
   the prior phase specs' ratified decisions with the owner and enter only what they
   confirm as still-current, never an inference. A decline is recorded in the
-  contract file with the date, so the offer is not re-made at every close.
+  contract file with the date, so the offer is not re-made at every close. The
+  backfill's single run takes the **same absent direction** as the reconcile pass
+  above: a decision the owner confirms as still-current whose behavior is not
+  actually in the tree is put up for a restore/drop ruling — never entered as
+  current on the owner's memory, and never quietly left out. A draft that omitted
+  three such decisions, caught only because a human happened to read the phase spec
+  beside it, is what bought this sentence.
 - **Coverage floor — bump the enforcement, then reconcile:** if the coverage measured
   for the merged branch rose this arc, set the threshold — in whichever artifact
   carries it: the CI workflow file, or the build file's check rule where the workflow

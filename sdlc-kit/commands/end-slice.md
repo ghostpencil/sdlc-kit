@@ -170,6 +170,34 @@ exactly its own test; a guard not yet seen to fail is not yet closed. The one-li
 outcome goes into the slice commit body (step 7) —
 `mutation: <N guards, each seen to fail | none — no new guards>`.
 
+**A characterization slice has no new guard, and is not exempt — its trigger reads the
+other way round.** When this slice's tests pin behavior that already existed — a
+characterization pass, a coverage backfill, a regression net thrown around code nobody
+wrote this week — what is new is the **tests**, so mutate the production code each one
+claims to pin and watch that test fail. Read the trigger this way whenever the slice
+added tests but no guard: nothing else in the close-out carries any signal about such
+a slice, and the exemption runs exactly opposite to the risk — on a real arc the
+highest-stakes slice of the phase, 129 tests pinning the module that guards a
+non-regenerable database, recorded the evidence a README edit would have recorded.
+Where the count is large, **sample instead of exhausting**: take the tests pinning the
+behaviors whose silent loss would cost most, and say in the record how many were
+checked out of how many (`mutation: 6 of 129 characterization pins, each seen to
+fail`) — a stated sample is evidence; an unstated one is the same blank the exemption
+left.
+
+**Restore by reverting the file, never by rewriting it.** The mutation is a tracked
+edit, so the tracked original is the byte-exact copy: undo it with
+`git checkout -- <path>` (or `git stash pop`, if that is how it was parked), then
+confirm `git status --short` shows the path clean before re-running the suite. Never
+restore by writing the file's text back through a whole-file read-then-write — one arc
+corrupted its working tree four times doing exactly that, because a read-modify-write
+normalizes whatever it round-trips (line endings, the trailing newline, an encoding a
+BOM implied) and a restore that should have been a no-op silently rewrote every line
+of the file. That is the whole recipe, stated here rather than left to the skill: a
+fix that arrives only when a skill happens to be dispatched is a fix that arrives
+never, and this one was measured at zero activations against roughly a hundred
+mutations actually run.
+
 ### 6. Slice verification — optional, and never silent
 
 Run the `change-verify` skill on a nontrivial slice: exercise the changed behavior
@@ -267,7 +295,15 @@ Update `spec/PROJECT_INDEX.md`:
   goes where it will live anyway — the phase spec — and the commit message is already
   the better record. A real adoption wrote 83–163 lines of per-slice detail into the
   index five times and paid an archiving step once per arc to move it back out; the
-  phase-close archival bullet stays as the safety net, not the plan.
+  phase-close archival bullet stays as the safety net, not the plan. **The rule now
+  carries a number: 25 lines added to the index by this close-out's docs commit**,
+  counting the status line plus whatever backlog, gotcha, and friction entries the
+  slice genuinely produced. It is a budget, not a limit — see the observer below. The
+  number stated here is a copy: the enforcing home is the `BUDGET` constant in
+  `.github/hooks/sdlc-close-out.sh`, and that file is kit-owned and copied verbatim,
+  so the two can only diverge across kit releases and never per project — the
+  observer's own output quotes the budget it actually used, which is the value to
+  believe.
 - Append deferred review findings to the backlog with rationale, provenance
   (e.g. "(slice review, <date>)"), and the cause marker from step 4's triage
   (**measured** / **suspected**).
@@ -303,6 +339,21 @@ Update `spec/PROJECT_INDEX.md`:
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).
 
+Then run the close-out checker's **`docs-check`** mode on that commit — in **the
+agent's shell tool**, the same scope as step 8 and the gate, using the invocation
+recorded in `spec/SDLC.md` (*Records*) with `docs-check` where step 8's line says
+`check` — and quote its line in the hand-back. It counts the lines the commit added to
+`spec/PROJECT_INDEX.md` and reports them against the budget. It is **log-only**: it
+never fails this step, never blocks, and exits 0 even on its own errors, because the
+payload it watches legitimately varies and a number cannot tell a genuine six-entry
+close from a write-up. `OVER` is a question for the hand-back — which shape was it? —
+and "more entries than usual, here is why" is a complete answer to it. What it exists
+to catch is the other shape, and the reason it exists at all is that the prose rule
+above said *one line* the whole time one adoption wrote 404 index lines across seven
+close-outs: a rule with no observer is a wish. A project whose `spec/SDLC.md` predates
+the mode (`/sdlc-update`'s transition note names the window) has no line to run — say
+so in the hand-back rather than guessing an invocation.
+
 ### 10. Hand back
 
 Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open with a
@@ -316,8 +367,9 @@ mutation-check outcome (N guards checked, each seen to fail), **RED evidence per
 behavior batch** (the command, the failing line, the exit code — with `not observed`
 stated, never omitted, same contract as the quality pass), **verification outcome**
 (the verdicts, or skipped with the reason), **the record check's quoted output**
-(step 8 — COMPLETE, or how an INCOMPLETE was remediated), any tool substituted for
-one this file names, and commit hashes. End with: **safe to `/clear`**.
+(step 8 — COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line**
+(step 9 — quoted, and an `OVER` answered rather than merely reported), any tool
+substituted for one this file names, and commit hashes. End with: **safe to `/clear`**.
 
 ## Notes
 

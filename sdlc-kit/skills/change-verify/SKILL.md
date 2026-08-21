@@ -82,7 +82,25 @@ a real one about the change rather than about the verification.
 
 ### 3. Reach it the way something real does — by actually running it
 
-**Execute.** Start the thing and drive it through its own front door: the CLI's argv,
+**First, decide what this run is allowed to touch — and make that true rather than
+intended.** Verification drives production code paths with production wiring; that is
+the whole point of the step, and it is exactly why an unconstrained run reaches
+production things. Before starting anything, enumerate what the path touches on its
+way out — credentials and tokens, the data directory or database, outbound calls, the
+queue, the clock, the filesystem it writes to — and for each one either point it at
+something disposable or confirm it is genuinely inert. **Redirecting some of them is
+the failure mode**, not a partial success: one real run redirected the data directory,
+left the credentials where they were, and minted a live OAuth token that read the
+owner's actual calendar. The half you did not redirect is the half that reaches
+production. Where the project already solved this for its test suite — a fixture
+profile, a sandbox config, a fake service — use that mechanism instead of inventing a
+second one here, since the second one is the one nobody maintains.
+
+State the isolation you established in the report, beside the environment record (§5):
+an isolation nobody wrote down is one nobody can check, and the next run rebuilds it
+from memory.
+
+**Then execute.** Start the thing and drive it through its own front door: the CLI's argv,
 the HTTP route, the queue message, the UI. Not the test harness, not the internal
 function. Capture the command, its output, and its exit code as you go — that captured
 text is the only thing the report is allowed to be built from.

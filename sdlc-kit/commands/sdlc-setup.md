@@ -508,6 +508,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the checker exists to catch, one layer up. The note is a claim about this
    machine and these CLIs: a teammate's clone re-proves before trusting it, and
    adding a CLI later means adding its proven line, because nothing else will.
+   **That one line serves the script's `docs-check` mode too** — same invocation,
+   `docs-check` in place of `check` — which `/end-slice` runs on its docs commit to
+   count the lines added to `spec/PROJECT_INDEX.md` against a budget of 25. Nothing
+   extra is proven, recorded, or offered for it: it is log-only on every install and
+   exits 0 even on its own errors, and a mode that cannot fail a step cannot lie
+   about one.
 
    **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
    optional where the checker itself is not.** The same script's `stop-check` mode,

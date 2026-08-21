@@ -191,7 +191,10 @@ CLI version recorded — added 0.24.0 after a wiring shape was measured silently
 firing), the TDD-ordering guards' proof step and their logging-to-deny
 ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
 setup proof step, the checker's stop-time backstop with its fire-first proof and
-logging-to-deny ramp, the retro's ledger-alive precheck and its
+logging-to-deny ramp, the checker's docs-budget observer (0.26.0 — log-only by
+design, so it has no arming ramp and no fire-proof at setup; its negative case is
+`tools/close-out-check.py`'s docs corpus and its six mutations, which is where a
+budget that stopped discriminating would show), the retro's ledger-alive precheck and its
 spec-claims-against-the-tree sweep, the
 skills-listing check, the exit
 checks, the Existing-mode README run-command read (0.25.0 — a present README's

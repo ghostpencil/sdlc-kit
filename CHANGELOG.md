@@ -10,6 +10,108 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.26.0 — 2026-08-21
+
+One release, combined by owner ruling (`FEATURE_PLAN.md` §67.7 (d), against the
+recommendation to ship RECON alone). **RECON** (`FEATURE_PLAN.md` §63.3 Class A, §67)
+answers the theme both adopters filed the same day: *every step in the kit verifies
+that an act occurred, and no step verifies that a count still holds.* The backlog said
+101 with a shipped entry inside it; the gate record said 676 against a measured 678;
+the bookkeeping rule said one line against a measured 58; the product contract read
+current with three ratified behaviors absent from the tree. The kit had patched that
+class four times, always one row at a time and always after the damage — so the fifth
+patch is a pass over every row rather than a fifth row. Beside it ship the **four
+independents** (§63.1 7.4a/7.4b, 7.5, 7.6; §63.2 8.3) and the §64 license residue.
+
+### Added
+- **[installable]** `end-phase.md` step 7 opens with a **reconcile pass**, before any
+  bullet asks the owner anything: every recorded number and carried claim re-derived
+  from the tree and this close's own gate evidence, reported `recorded X / measured Y`
+  — divergences first, agreements collapsed to one line. No new gate run; step 2's
+  evidence is the measurement. Three subjects: the **backlog reconciled before it is
+  counted** (mark `— done (<commit>)` on what this arc closed, then report the open
+  count and how many the pass itself just closed, so convert/defer/drop is asked of
+  the reconciled number); the **whole *Records* table**, not the two rows the kit
+  shipped procedures for — including rows an adoption authored, which are
+  structurally unreconciled from birth; and the **contract's absent direction** — for
+  every ratified decision in a prior phase spec with neither an entry nor a recorded
+  drop, is the behavior in the tree? Absent → an explicit restore/drop ruling, a drop
+  amending the source spec, so every decision reaches a terminal state and the walk
+  shrinks close by close. It runs at **every** close: the one-time backfill runs once
+  by definition, and the preserved-contract check's population — entries on touched
+  surfaces — can never reach a behavior that never became an entry.
+- **[adoption-only]** `close-out.template.sh` gains a third mode, **`docs-check`**:
+  `git show --numstat` for `spec/PROJECT_INDEX.md` on a close-out docs commit, reported
+  against an in-file budget of **25** added lines. **Log-only on every install** — it
+  exits 0 even on its own errors and can never fail a step — joining the bare-commit
+  class rather than the check mode, because the payload legitimately varies (one status
+  line plus the backlog and friction entries a slice really produced). The file stays
+  **verbatim**: no new placeholder, the index path canonical, the budget a constant.
+  Seven proof cases and six mutations join `tools/close-out-check.py` (21 unit + 7 docs
+  + 15 stop cases, 22 mutations, 0 survivors).
+
+### Changed
+- **[adoption-only]** `SDLC.template.md` — *Phase end* step 6 carries the reconcile
+  pass (invariant 2: the template is the canonical statement); *Bookkeeping rules*
+  gains **a recorded number is reconciled before it is read** and the **half-delivered
+  split**; slice-loop step 12 names the budget and its observer; the checker note
+  covers the third mode; step 8's mutation trigger and step 4's RED gain the
+  characterization shape; *Product contract* gains the absent direction, and the
+  backfill bullet inherits it.
+- **[installable]** The **half-done marker grammar is split, not half-marked**
+  (`end-phase.md`'s backlog bullet): the delivered part takes its own
+  `— done (<commit>)` and retires; the remainder opens as a new numbered entry with
+  fresh provenance. The grammar stays three-valued, and *unmarked* now means only
+  *untouched* — previously a half-delivered entry took the unmarked branch and was
+  indistinguishable from one nobody had touched.
+- **[installable]** `end-slice.md` §9 names the number beside the rule and runs
+  `docs-check` on the docs commit, quoting it in the hand-back (§10's detail list
+  gains the line).
+- **[installable]** **7.5 — the mutation check and RED reach a characterization
+  slice.** Both steps were scoped to what a slice *added* (`end-slice.md` §5,
+  `next-slice.md` §4), so a slice whose tests pin existing behavior triggered neither
+  and recorded the evidence a README edit records — measured on an arc's
+  highest-stakes slice, 129 tests over the module guarding a non-regenerable
+  database. The mutation trigger now reads the other way round for such a slice
+  (mutate the production code each new test pins, sample stated), and RED is
+  **manufactured and still observed** (assert the wrong value first, watch it fail,
+  then assert what the code does) rather than taking the zero-form.
+- **[installable]** **7.4a/7.4b — the byte-safe revert is inlined, not dispatched.**
+  `end-slice.md` §5 now states the mechanism: undo a mutation with
+  `git checkout -- <path>` and confirm `git status --short` clean, never by writing
+  the file's text back through a whole-file read-then-write, which normalizes line
+  endings, trailing newline, and encoding — four working-tree corruptions in one arc.
+  The vendored `mutation-testing` skill is **untouched**, so no invariant-3 divergence
+  note is owed; the ruling (§67.7) rests on the adopter's own ledger measuring zero
+  activations against roughly a hundred mutations run — a fix delivered by
+  relevance-based dispatch is a fix delivered never.
+- **[installable]** **7.6 — `change-verify` constrains the environment before it
+  drives anything.** §3 now opens by enumerating what the run touches (credentials,
+  data directory, outbound calls, queue, clock) and pointing each somewhere disposable
+  or confirming it inert, with the isolation stated in the report beside §5's
+  environment record. Recording the environment was previously the only environment
+  step and it ran *after* the run: the specimen redirected the data directory, left
+  the credentials alone, and minted a live OAuth token that read the owner's real
+  calendar. Half-isolated is not isolated.
+- **[installable]** **8.3 — an acceptance-checklist assignment is no longer
+  terminal** (`plan-phase.md`, testability sweep): it names the path a real caller
+  reaches the behavior by, or is flagged **test-only at plan time** with what would
+  create the seam. Nothing downstream asked how an assigned item was reached, and the
+  sweep was then cited as proof every exit criterion had an observer.
+- **[installable]** **The §64 residue is closed** (`end-phase.md` step 2): a
+  verification script's license depends on where it lives. A throwaway driver under a
+  session temp directory is not a production write at all (0.25.0), so it needs none;
+  committing one under the repo makes it production source and it takes the ordinary
+  red-green path. Neither case is an exemption, and reaching for one is the signal the
+  script wanted to be outside the repo.
+- **[installable]** `sdlc-update.md` and the root README carry the mirrored 0.26.0
+  transition note: the `docs-check` half arrives with the verbatim script, the
+  invocation line does not, and a first close after updating should expect the
+  reconcile pass to surface divergences accumulated under earlier releases.
+- **[installable]** `sdlc-setup.md` names the third mode where the checker note is
+  resolved — same line, nothing extra proven or offered, because a mode that cannot
+  fail a step cannot lie about one.
+
 ## 0.25.0 — 2026-08-18
 
 Two batches. **CLASSIFY** (`FEATURE_PLAN.md` §63.3 Class B, §64; owner-ruled

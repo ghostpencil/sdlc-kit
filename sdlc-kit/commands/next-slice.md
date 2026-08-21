@@ -118,6 +118,20 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
    `/end-slice`, which writes it into the slice commit body. An observed red cannot be
    reconstructed at close-out; a red never recorded reads later as a red never run,
    and the close-out states `not observed` rather than omitting the line.
+
+   **A characterization test has no natural red, and "green on first run" is not
+   evidence.** A test written against behavior that already exists passes
+   immediately — and a test that passes immediately may be pinning nothing at all:
+   the wrong object, a value the implementation never produces, an assertion that
+   would hold against any implementation whatsoever. Its red is **manufactured, and
+   still observed**: assert the wrong value first (or break the behavior under test
+   for one run), watch it fail *for the reason you expect*, then set the assertion to
+   what the code actually does and watch it pass. Record it in the ordinary shape,
+   marked for what it is — `RED: <command> — <test>:<line> — exit 1 (characterization:
+   asserted <wrong value> first)`. Without this the step has no shape for such a
+   slice and quietly takes the zero-form a docs edit takes: a real arc's 129-test
+   characterization slice, thrown around the module that guards a non-regenerable
+   database, recorded exactly the evidence a README edit would have.
 4. A spec conflict or owner-facing design decision HALTS with a question — never resolve
    one silently. State it per the hand-back standard: plain English, the decision
    numbered and marked, options with a recommendation.

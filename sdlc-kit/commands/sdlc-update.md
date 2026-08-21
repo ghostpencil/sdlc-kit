@@ -606,6 +606,37 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   friction in its log that this release explains. After applying, confirm from
   `guard.log` on the next real session that scratchpad writes no longer appear and
   that the project's own test runs still register.
+- **0.26.0 adds a third mode to the close-out checker, and that half arrives
+  automatically — the invocation line in `spec/SDLC.md` does not.** The script is
+  kit-owned and copied verbatim, so `docs-check` lands with the file: it counts the
+  lines a close-out docs commit added to `spec/PROJECT_INDEX.md` and reports them
+  against an in-file budget of 25. It is **log-only on every install** — it exits 0
+  even on its own errors and can never fail a step, which is why it is not offered,
+  armed, or declined like the stop-time backstop. Nothing in `.git/` and no new
+  placeholder is involved. What the project must do is one line of bookkeeping:
+  `/end-slice` now runs it after the docs commit, using the **close-out checker
+  note's own invocation with `docs-check` where it says `check`** — so a project
+  whose note predates the mode has a note that reads correctly but has never been
+  proven for it. It needs no separate proof (a log-only mode cannot lie about a step
+  it cannot fail); just confirm at the halt that the note's line exists, and if the
+  project has no such note at all, resolve it per the 0.20.0 entry above before the
+  new step can run. **The rule the mode observes is also newly numbered:** *status
+  only, one line* now carries a budget of 25 added index lines, which is a budget and
+  not a limit — a close with a genuinely large entry count answers `OVER` in the
+  hand-back rather than trimming the record to fit.
+- **0.26.0 also adds the phase-close reconcile pass, and it changes what
+  `/end-phase` asks before it asks anything else.** Post-merge bookkeeping now opens
+  by re-deriving every recorded number and carried claim — the backlog count, every
+  row of *Records* (not only the two the kit shipped procedures for), and every
+  ratified decision in prior phase specs with neither a contract entry nor a recorded
+  drop — reporting each `recorded X / measured Y` before any bullet asks the owner
+  for a decision. Two consequences worth stating at the halt: the **first** close
+  after updating will usually surface divergences that accumulated under earlier
+  releases (a backlog entry already shipped, an adoption-authored *Records* row
+  nothing ever reconciled, a ratified behavior absent from the tree) — that backlog
+  is the pass working, not a defect it introduced; and rulings it produces are
+  ordinary owner decisions, recorded where they are made. The command file carries
+  all of it, so this half arrives by updating with nothing to hand-apply.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

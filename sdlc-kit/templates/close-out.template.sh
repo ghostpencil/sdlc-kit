@@ -21,8 +21,8 @@
 #   mutation: the record. Zero lines or an empty payload fail: that is exactly the
 #   verify:   silent absence this script exists to catch.
 #
-# TWO MODES, OPPOSITE FAIL DIRECTIONS - deliberately, and each for the same
-# reason pointed at its own seat:
+# THREE MODES, AND THEIR FAIL DIRECTIONS DIFFER - deliberately, each for the
+# same reason pointed at its own seat:
 #   check      the /end-slice command step. FAILS CLOSED on its own errors: a
 #              command step's failure is seen and quoted by the session, and a
 #              checker that silently passes on its own failure is not a checker.
@@ -39,11 +39,18 @@
 #              the defective class arms via .git/sdlc-close-out/deny-enabled;
 #              absent, verdicts are logged as WOULD-BLOCK. Stands down
 #              unconditionally when stop_hook_active is true.
+#   docs-check the /end-slice bookkeeping step. LOG-ONLY, always exit 0: it
+#              counts lines added to spec/PROJECT_INDEX.md by a close-out docs
+#              commit and reports them against a budget. It observes a rule
+#              whose payload legitimately varies, so it reports a number and
+#              never a verdict - the bare class's seat, not the check mode's.
 #
-# Invocation:  sh .github/hooks/sdlc-close-out.sh check [<ref>]     (default HEAD)
-#              sh .github/hooks/sdlc-close-out.sh stop-check        (payload on stdin)
-# This file takes no per-project values - the four keys are fixed by the process -
-# so it is copied verbatim.
+# Invocation:  sh .github/hooks/sdlc-close-out.sh check [<ref>]      (default HEAD)
+#              sh .github/hooks/sdlc-close-out.sh docs-check [<ref>] (default HEAD)
+#              sh .github/hooks/sdlc-close-out.sh stop-check         (payload on stdin)
+# This file takes no per-project values - the four keys are fixed by the process,
+# the index path is canonical, and the budget is a constant below - so it is
+# copied verbatim.
 
 MODE=$1
 
@@ -170,9 +177,60 @@ if [ "$MODE" = "stop-check" ]; then
   exit 0
 fi
 
+if [ "$MODE" = "docs-check" ]; then
+  # ---- the docs-commit observer: LOG-ONLY on every install, fail-open on its
+  # own errors. It joins the bare class above rather than the check mode below,
+  # because the rule it watches has a legitimately variable payload: a close-out
+  # docs commit carries one status line PLUS however many backlog and friction
+  # entries the slice really produced. What it catches is the other shape - a
+  # slice writing its whole per-slice write-up into the index, measured at 44 to
+  # 87 added lines across five closes of one real adoption, each one paid for
+  # again by an archiving step at phase close. The prose rule said "one line"
+  # the whole time; prose cannot count, and this is the smallest thing that can.
+  # It reports a number and never a verdict: over budget is an observation for
+  # the hand-back, and "more entries than usual" is a fine answer to it.
+  REF=${2:-HEAD}
+  BUDGET=25                # added index lines per close-out docs commit
+  IDX=spec/PROJECT_INDEX.md
+
+  if ! command -v git >/dev/null 2>&1; then
+    printf 'docs budget: CANNOT CHECK - git is not on this shell PATH (log-only; nothing is blocked)
+'
+    exit 0
+  fi
+  if ! git rev-parse --verify --quiet "$REF^{commit}" >/dev/null 2>&1; then
+    printf 'docs budget: CANNOT CHECK - %s does not resolve to a commit (log-only)
+' "$REF"
+    exit 0
+  fi
+
+  # --numstat with an emptied --format prints one "added deleted path" row per
+  # changed path, and nothing at all when the commit never touched the index.
+  ADDED=$(git show --numstat --format= "$REF" -- "$IDX" 2>/dev/null | awk 'NR==1 { print $1 }')
+
+  if [ -z "$ADDED" ]; then
+    MSG="docs budget: n/a - $REF does not touch $IDX"
+  elif [ "$ADDED" = "-" ]; then
+    MSG="docs budget: n/a - $IDX counted as binary in $REF"
+  elif [ "$ADDED" -gt "$BUDGET" ]; then
+    MSG="docs budget: OVER - $ADDED lines added to $IDX against a budget of $BUDGET. The close-out writes one status line plus the backlog and friction entries this slice really produced; a per-slice write-up belongs in the phase spec, and the commit message is already the better record. Log-only - nothing is blocked. State in the hand-back which shape it was."
+  else
+    MSG="docs budget: OK - $ADDED lines added to $IDX against a budget of $BUDGET"
+  fi
+
+  printf '%s
+' "$MSG"
+  if [ -d .git ]; then
+    mkdir -p .git/sdlc-close-out 2>/dev/null
+    printf '%s %s
+' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$MSG" >> .git/sdlc-close-out/log 2>/dev/null
+  fi
+  exit 0
+fi
+
 REF=${2:-HEAD}
 
-[ "$MODE" = "check" ] || cannot "unknown mode '$MODE' (usage: sdlc-close-out.sh check [<ref>])"
+[ "$MODE" = "check" ] || cannot "unknown mode '$MODE' (usage: sdlc-close-out.sh check|docs-check [<ref>] | stop-check)"
 command -v git >/dev/null 2>&1 || cannot "git is not on this shell's PATH"
 git rev-parse --verify --quiet "$REF^{commit}" >/dev/null 2>&1 \
   || cannot "'$REF' does not resolve to a commit in this repository"

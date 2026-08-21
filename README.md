@@ -697,6 +697,29 @@ only as a hand-apply, and the per-version transition notes name each one.
    that scratchpad writes no longer appear and your own test runs still register.
    The update command's 0.25.0 note states the same procedure.
 
+   **0.26.0 adds a third close-out-checker mode and a reconcile pass at phase
+   close; both arrive by updating, and one line of bookkeeping does not.** The
+   checker is kit-owned and copied verbatim, so `docs-check` lands with the file:
+   it counts the lines a close-out docs commit added to `spec/PROJECT_INDEX.md` and
+   reports them against an in-file budget of 25. It is **log-only on every
+   install** — it exits 0 even on its own errors and can never fail a step — so
+   unlike the stop-time backstop it is not offered, armed, or declined, and it
+   touches nothing under `.git/` beyond the existing log. `/end-slice` now runs it
+   after the docs commit, using your close-out checker note's own invocation with
+   `docs-check` where it says `check`; if your `spec/SDLC.md` carries no such note,
+   resolve it per the 0.20.0 note above first. The rule it watches — *status only,
+   one line* — now carries that number, as a budget rather than a limit: a close
+   with a genuinely large entry count answers `OVER` in the hand-back instead of
+   trimming the record to fit. Separately, `/end-phase`'s post-merge bookkeeping now
+   **opens** by re-deriving every recorded number and carried claim — the backlog
+   count, every row of *Records* (not only the two the kit shipped procedures for),
+   and every ratified decision in a prior phase spec that has neither a contract
+   entry nor a recorded drop — reporting each `recorded X / measured Y` before any
+   bullet asks you to decide anything. Expect your **first** close after updating to
+   surface divergences that accumulated under earlier releases; that backlog is the
+   pass working, not damage it did. The update command's 0.26.0 note states the same
+   procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,

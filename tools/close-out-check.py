@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46, §52).
+"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46, §52, §67).
 
-Three passes, and the last is the point:
+Four passes, and the last is the point:
 
   1. a unit pass driving check mode over a fixture corpus of real commit bodies -
      every stated-skip form, the RED zero-form, each key missing / empty /
@@ -15,10 +15,15 @@ Three passes, and the last is the point:
      scope, the candidate cap, stand-down on stop_hook_active, both session-id
      casings, the armed block JSON, and fail-open on an empty payload - each
      through the script's real interface with the payload on stdin;
-  3. a mutation pass that breaks the checker - the count derived from the
+  3. a docs pass driving docs-check mode (the §67.3 observer) over per-case
+     bench repos with real file writes, since the observer counts lines a commit
+     actually added - under budget, exactly at it, over it, an index the commit
+     never touched, a retirement commit that only deletes, an explicit ref, and
+     a bad ref (which must still exit 0: log-only never fails a step);
+  4. a mutation pass that breaks the checker - the count derived from the
      MUTATIONS list at run time, never stated here - and requires pass 1 or 2
-     to notice each one. A suite that survives its own mutations is not testing
-     the thing it claims to (invariant 13).
+     to notice each one - pass 1, 2 or 3. A suite that survives its own
+     mutations is not testing the thing it claims to (invariant 13).
 
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/close-out-check.py
@@ -183,6 +188,14 @@ MUTATIONS = [
     ("cap_unbounded", "rev-list --abbrev-commit -n 20", "rev-list --abbrev-commit -n 9999"),
     ("scope_ignores_upstream", "-n 20 '@{u}..HEAD'", "-n 20 HEAD"),
     ("red_treated_singleton", 'pk RED "$red_n" "$red_e" ""', 'pk RED "$red_n" "$red_e" s'),
+    # --- docs-check (§67.3). Each models a plausible observer defect.
+    ("docs_budget_relaxed", "  BUDGET=25 ", "  BUDGET=9999 "),
+    ("docs_boundary_off_by_one", '[ "$ADDED" -gt "$BUDGET" ]', '[ "$ADDED" -ge "$BUDGET" ]'),
+    ("docs_counts_deletions", "NR==1 { print $1 }", "NR==1 { print $2 }"),
+    ("docs_ignores_ref_arg", "  REF=${2:-HEAD}", "  REF=HEAD"),
+    ("docs_untouched_index_not_detected", 'if [ -z "$ADDED" ]; then', 'if [ -z "not empty" ]; then'),
+    ("docs_pathspec_dropped", 'git show --numstat --format= "$REF" -- "$IDX"',
+     'git show --numstat --format= "$REF"'),
 ]
 
 
@@ -393,6 +406,137 @@ STOP_CASES = [
 ]
 
 
+class DocsBench(Bench):
+    """A per-case repo for docs-check: real file writes, because the observer
+    counts the lines a commit actually added - an --allow-empty bench commit
+    (what the unit pass uses) has no numstat at all."""
+
+    IDX = "spec/PROJECT_INDEX.md"
+
+    def write_index(self, lines):
+        path = os.path.join(self.root, "spec", "PROJECT_INDEX.md")
+        d = os.path.dirname(path)
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        io.open(path, "w", encoding="utf-8", newline="\n").write(
+            "".join(x + "\n" for x in lines))
+
+    def add_commit(self, message):
+        self.git("add", "-A")
+        p = self.git("commit", "--cleanup=verbatim", "-F", "-",
+                     input=message.encode("utf-8"))
+        assert p.returncode == 0, "bench commit failed: " + p.stderr.decode()
+
+    def log_text(self):
+        log = os.path.join(self.root, ".git", "sdlc-close-out", "log")
+        return io.open(log, encoding="utf-8").read() if os.path.exists(log) else ""
+
+
+def _d_seed(b, n=1):
+    b.write_index(["seed %d" % i for i in range(n)])
+    b.add_commit("chore: seed the index\n")
+
+
+def _d_under(b):
+    _d_seed(b)
+    b.write_index(["seed 0"] + ["backlog entry %d" % i for i in range(3)])
+    b.add_commit("docs: PROJECT_INDEX - S1 done; next up S2\n")
+    return ["docs-check"]
+
+def _d_at_budget(b):
+    # Exactly the budget is not over it: the observer flags growth PAST 25.
+    _d_seed(b)
+    b.write_index(["seed 0"] + ["entry %d" % i for i in range(25)])
+    b.add_commit("docs: PROJECT_INDEX - S1 done; a heavy but legitimate close\n")
+    return ["docs-check"]
+
+def _d_over(b):
+    # The measured shape: a per-slice write-up landing in the index.
+    _d_seed(b)
+    b.write_index(["seed 0"] + ["write-up line %d" % i for i in range(44)])
+    b.add_commit("docs: PROJECT_INDEX - S1 done\n")
+    return ["docs-check"]
+
+def _d_untouched(b):
+    _d_seed(b)
+    io.open(os.path.join(b.root, "other.md"), "w", newline="\n").write("x\n")
+    b.add_commit("chore: a commit that never touches the index\n")
+    return ["docs-check"]
+
+def _d_deletions_not_counted(b):
+    # The retirement commit's shape: 58 lines out, none in. Not a budget event.
+    _d_seed(b, 60)
+    b.write_index(["seed 0", "seed 1"])
+    b.add_commit("docs: retire closed items to PROJECT_INDEX_HISTORY.md\n")
+    return ["docs-check"]
+
+def _d_explicit_ref(b):
+    # HEAD is small, HEAD~1 is over: the named ref must be the one read.
+    _d_seed(b)
+    b.write_index(["seed 0"] + ["w %d" % i for i in range(44)])
+    b.add_commit("docs: the over-budget close\n")
+    b.write_index(["seed 0"] + ["w %d" % i for i in range(44)] + ["one more line"])
+    b.add_commit("docs: the small close\n")
+    return ["docs-check", "HEAD~1"]
+
+def _d_bad_ref(b):
+    _d_seed(b)
+    return ["docs-check", "no-such-ref"]
+
+
+# (name, setup(bench) -> argv, stdout must-contain, stdout must-NOT-contain)
+DOCS_CASES = [
+    ("docs_under_budget", _d_under,
+     ["docs budget: OK - 3 lines added"], ["OVER", "n/a"]),
+    ("docs_at_budget_is_not_over", _d_at_budget,
+     ["docs budget: OK - 25 lines added"], ["OVER"]),
+    ("docs_over_budget_flags", _d_over,
+     ["docs budget: OVER - 44 lines added", "against a budget of 25",
+      "Log-only - nothing is blocked"], ["OK -"]),
+    ("docs_index_untouched", _d_untouched,
+     ["docs budget: n/a", "does not touch spec/PROJECT_INDEX.md"], ["OVER", "OK -"]),
+    ("docs_deletions_are_not_additions", _d_deletions_not_counted,
+     ["docs budget: OK - 0 lines added"], ["OVER"]),
+    ("docs_explicit_ref_is_read", _d_explicit_ref,
+     ["docs budget: OVER - 44 lines added"], ["OK -"]),
+    ("docs_bad_ref_still_exits_zero", _d_bad_ref,
+     ["docs budget: CANNOT CHECK", "log-only"], ["OVER", "OK -"]),
+]
+
+
+def docs_pass(src, verbose):
+    """Runs every docs case in its own bench repo; returns (failures, slowest).
+
+    Every case asserts exit 0: this mode is log-only, so a non-zero exit would
+    fail an /end-slice step over a bookkeeping observation - the one thing the
+    §67.3 ruling forbids it to do."""
+    failures, slowest = [], 0.0
+    for name, setup, contains, absent in DOCS_CASES:
+        with tempfile.TemporaryDirectory() as base:
+            b = DocsBench(base, src)
+            argv = setup(b)
+            code, out, dt = b.run(argv)
+            slowest = max(slowest, dt)
+            problems = []
+            if code != 0:
+                problems.append("exit %d, expected 0 (docs-check is log-only)" % code)
+            for c in contains:
+                if c not in out:
+                    problems.append("output lacks %r" % c)
+            for c in absent:
+                if c in out:
+                    problems.append("output wrongly contains %r" % c)
+            # Whatever it printed, it also has to leave in the log - the record
+            # a later session reads is the log, not this session's scrollback.
+            if "CANNOT CHECK" not in out and out.strip() not in b.log_text():
+                problems.append("verdict not appended to .git/sdlc-close-out/log")
+            if problems:
+                failures.append((name, problems, out))
+            if verbose:
+                print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
+    return failures, slowest
+
+
 def stop_pass(src, verbose):
     """Runs every stop case in its own bench repo; returns (failures, {name: secs})."""
     failures, times = [], {}
@@ -489,6 +633,17 @@ def main():
         print("S2 FAILED: slowest invocation %.2f s" % slowest)
         sys.exit(1)
 
+    print("\n== docs pass (%d cases) ==" % len(DOCS_CASES))
+    failures, slowest = docs_pass(src, verbose=True)
+    print("slowest docs invocation: %.0f ms (S2 budget: 1000 ms)" % (slowest * 1000))
+    if failures:
+        for name, problems, out in failures:
+            print("\nFAILED %s: %s\n--- output ---\n%s" % (name, "; ".join(problems), out))
+        sys.exit(1)
+    if slowest >= 1.0:
+        print("S2 FAILED: slowest docs invocation %.2f s" % slowest)
+        sys.exit(1)
+
     print("\n== stop pass (%d cases) ==" % len(STOP_CASES))
     failures, times = stop_pass(src, verbose=True)
     # Two budgets, both against the 30 s hook timeout: typical sessions hold a
@@ -515,6 +670,9 @@ def main():
         broke, _ = unit_pass(mutated, verbose=False)
         where = "unit"
         if not broke:
+            broke, _ = docs_pass(mutated, verbose=False)
+            where = "docs"
+        if not broke:
             broke, _ = stop_pass(mutated, verbose=False)
             where = "stop"
         print("  %-38s %s" % (name, "caught (%d %s case%s)" % (len(broke), where, "s" if len(broke) != 1 else "") if broke else "SURVIVED"))
@@ -524,8 +682,8 @@ def main():
         print("\nMUTATIONS SURVIVED: %s - the corpus does not pin what it claims" % ", ".join(survivors))
         sys.exit(1)
 
-    print("\nall green: %d unit + %d stop cases, %d mutations caught"
-          % (len(CASES), len(STOP_CASES), len(MUTATIONS)))
+    print("\nall green: %d unit + %d docs + %d stop cases, %d mutations caught"
+          % (len(CASES), len(DOCS_CASES), len(STOP_CASES), len(MUTATIONS)))
 
 
 if __name__ == "__main__":
