@@ -111,6 +111,24 @@ the suite fakes, a route registered nowhere, a dependency the tests inject and
 production never constructs. Every one of those is invisible from inside the suite by
 construction.
 
+**When the front door is a process that never returns** — a server binding a socket, a
+worker consuming a queue, anything whose normal state is *still running* — "execute and
+capture the output" needs a different shape, and reaching for the obvious one costs two
+failed attempts before it works. Three traps, all measured:
+
+- `subprocess.run(…, timeout=N)` raises on the timeout and **discards the output it
+  was about to prove the pass with**. Use `Popen`, drive or wait for the thing you came
+  to see, then `terminate()` and `communicate()` — which returns what was buffered.
+- **A child attached to a pipe buffers its stdout**, so the banner or log line under
+  test never arrives no matter how long you wait. Set the language's unbuffered switch
+  in the child's environment (`PYTHONUNBUFFERED=1` and its equivalents). A buffered
+  child is the commonest reason expected output "does not appear", and it is not a
+  failure of the code under test.
+- **Printing the captured bytes can fail after the run succeeded** — captured output is
+  usually UTF-8 and a Windows console is usually cp1252, so echoing the evidence raises
+  an encoding error on a run that actually passed. Decode explicitly and write the
+  evidence to the report rather than through the console.
+
 Where the real path genuinely cannot be driven here — it needs credentials, a deploy, a
 device, another service — **do not substitute the nearest reachable thing and report a
 pass.** Say which path was exercised, which was not, and what remains unverified. A

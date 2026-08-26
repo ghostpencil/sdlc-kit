@@ -549,7 +549,9 @@ Run `/end-slice` when the slice's exit criteria are met:
    TDD-ordering guards, added a test reaching into internals the mock policy fences
    off — each applied lens reporting by name with its verdict,
    `<lens>: <finding, file and line | clean>`, and `no lens triggered`
-   when none did). The review is **read-only in the shared tree** —
+   when none did — the verdict recorded on the slice commit's `lenses:` line, since
+   the review hand-back is not retained and only a lens *finding* otherwise travels
+   under its own name). The review is **read-only in the shared tree** —
    the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
    fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that
@@ -572,10 +574,16 @@ Run `/end-slice` when the slice's exit criteria are met:
    other way round rather than skipping the step:** what is new is the tests, so the
    production code each one pins is what gets mutated, sampled where the count is
    large and the sample stated. Nothing else in the close-out carries signal about
-   such a slice. **The mutation is undone by reverting the file** (`git checkout --
-   <path>`, then `git status --short` clean), never by writing its text back through
-   a whole-file read-then-write: that normalizes line endings, trailing newline, and
-   encoding, and it corrupted one arc's working tree four times. The one-line outcome
+   such a slice. **The mutation is undone by inverting the edit that made it** — a
+   targeted edit of the same hunk, which is safe whether or not anything is committed.
+   This step runs before the slice commits, so the implementation is uncommitted
+   underneath the mutation and `git checkout -- <path>` restores the path to HEAD,
+   taking the slice with it — one arc lost a slice's work that way. A VCS restore is
+   available only where `git status --short <path>` was clean before the mutation, and
+   that is checked rather than assumed. Never write the file's text back through a
+   whole-file read-then-write either: that normalizes line endings, trailing newline,
+   and encoding, and it corrupted one arc's working tree four times. Mutate one thing
+   at a time, reverting between, so a red suite stays attributable. The one-line outcome
    (`mutation: <N guards, each seen to fail | N of M characterization pins, each seen
    to fail | none — no new guards>`) is recorded in the slice commit body.
 9. Slice verification, **optional** (the `change-verify` skill on a nontrivial slice):
@@ -606,17 +614,17 @@ Run `/end-slice` when the slice's exit criteria are met:
     record (one per behavior batch — command, failing line, exit code, with
     `not observed — <reason>` stated rather than omitted, and a slice with no
     behavior batches writing the zero-form `RED: none — no behavior batches this
-    slice`) and the `quality:`, `mutation:`, and `verify:` lines from steps 6, 8,
-    and 9.
+    slice`), the `quality:`, `mutation:`, and `verify:` lines from steps 6, 8, and 9,
+    and the `lenses:` line from step 7's review.
 11. Verify the record: run the close-out checker on the commit just made — **in the
     agent's shell tool**, the same scope as steps 5–9, using the invocation line the
     close-out checker note in this file's *Records* section records **for the CLI
     running this session** (on a both-CLIs project the note carries one line each) — and
     quote its output in full — a pass not observed is not a pass. The
     checker verifies **structural presence only** — every evidence line there or
-    carrying its stated-skip form, one line per key for `quality:`/`mutation:`/
-    `verify:` (a duplicate fails — nobody knows which line is the record), each key
-    at the start of its line — never truth; its own output says so. On
+    carrying its stated-skip form, one line per key for `quality:`/`lenses:`/
+    `mutation:`/`verify:` (a duplicate fails — nobody knows which line is the
+    record), each key at the start of its line — never truth; its own output says so. On
     INCOMPLETE, `git commit --amend` with the real outcome or the stated-skip form —
     never with invented evidence — and re-run; on CANNOT CHECK, fix what it names
     and re-run. The step is done only at COMPLETE, and it exists because the record
@@ -788,7 +796,16 @@ Run `/end-phase` when the last slice is done:
 - Owner decisions are recorded where they were made (PROJECT_INDEX or the phase spec)
   with the date.
 - Deferred review findings go to the backlog, not into scope creep; a big enough pile
-  becomes a cleanup slice by owner decision.
+  becomes a cleanup slice by owner decision. **A backlog entry's identifier is the next
+  integer above the file's current maximum, read from the file at the moment of the
+  append** — every other step addresses entries by number, and nothing downstream can
+  detect a collision. The phase close asserts the identifiers are unique before it
+  counts them.
+- **A check records its verdict whether or not it found anything.** A lens that ran
+  clean, a sweep that triggered on nothing — each writes its negative result where the
+  result outlives the session, because a check with no durable negative record cannot
+  be told apart from one that never ran, and every judgement about whether a check
+  earns its place needs that denominator.
 - A slice that adds a tool, runtime, or service the gate now requires records it
   (*Records* → *The gate*; Environment gotchas in PROJECT_INDEX) and adds it to CI in
   the same commit. A gate dependency discovered by a contributor's red run is a
@@ -797,8 +814,10 @@ Run `/end-phase` when the last slice is done:
   unpreventable.** The third recurrence of the same environmental hazard buys a gate
   step, a hook, or a test — not a fourth, better-worded note. If nothing can prevent
   it, the entry says so explicitly and carries its recurrence count. Those are the
-  hazard's only two closed states; a sharper note is neither. Prose in a status
-  document is not a control; describing a hazard more sharply each time is what a
+  hazard's only two closed states; a sharper note is neither, **and neither is having
+  been absorbed by a retro** — absorption records that the finding was transmitted
+  upstream, and the recurrence count keeps running until something changed. Prose in a
+  status document is not a control; describing a hazard more sharply each time is what a
   process does instead of stopping it. A control that hands the operator a remediation
   command scopes that command to the population the control actually flags — the
   failure message is the part acted on under time pressure.

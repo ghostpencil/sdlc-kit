@@ -141,8 +141,11 @@ edits through untouched, and the stop guard does not bind it (see *Session scopi
    only once it has been made to disagree.
 6. **Slice verification** — the `change-verify` skill, optional and never silent:
    exercise the changed behavior through its real caller's path, not the harness.
-7. **Commit** — the body carries the evidence: `RED:` lines per behavior, `quality:`,
-   `mutation:`, `verify:` outcomes.
+7. **Commit** — the body carries the evidence: `RED:` lines per behavior, and the
+   `quality:`, `lenses:`, `mutation:`, `verify:` outcomes. All five keys are
+   fail-closed at the record check — `lenses:` since 0.27.0, because a lens verdict
+   of `clean` had no durable home before it and so could not be told apart from a
+   lens that never ran.
 8. **Record** — PROJECT_INDEX updated (slice done in one line, backlog appended, kit
    friction logged now or never); docs committed separately; branch pushed, no PR.
 9. **Hand back** — outcomes named, discards included, ending "safe to `/clear`".

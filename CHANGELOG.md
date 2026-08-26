@@ -10,6 +10,133 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.27.0 — 2026-08-26
+
+The ninth field report's small batch (`FEATURE_PLAN.md` §70, ruled 2026-08-26). The
+report was written against 0.24.0 and filed five days after 0.26.0 shipped, so the
+triage is mostly about collisions with shipped work: six of its nine findings stand,
+three do not survive as filed, and **one of the three is a hazard 0.26.0 itself
+introduced**. That one leads the release. Its theme, one step past the eighth
+report's: *the kit verifies that a step ran; it does not verify that a step could
+have caught anything, or that a decision it recorded reached a terminal state.*
+
+### Fixed
+- **[installable]** **The mutation-restore recipe destroyed uncommitted work, and
+  0.26.0 had made it canonical.** `end-slice.md` §5 said *the mutation is a tracked
+  edit, so the tracked original is the byte-exact copy: undo it with
+  `git checkout -- <path>`*. But §5 runs before **§7 commits the slice**, so the
+  implementation is uncommitted by construction and that command restores the path to
+  **HEAD** — reverting the mutation *and* the slice. A real arc lost a slice's
+  implementation exactly that way, recoverable only because the code was still in the
+  session's context; the `git stash` alternative the same sentence offered parks the
+  slice for the same reason. **The step now inverts the mutating edit** — a targeted
+  edit of the same hunk, safe whether or not anything is committed — and keeps a VCS
+  restore only where `git status --short <path>` was **checked clean before** the
+  mutation. 0.26.0's own specimen (four working-tree corruptions from whole-file
+  read-then-write restores) is unaffected: a targeted hunk edit is not a whole-file
+  rewrite and normalizes nothing. Both field specimens now hold at once.
+
+### Added
+- **[installable]** **`lenses:` is a fifth close-out key, fail-closed.** The slice
+  commit body carries the review's lens verdicts, or the zero-form `no lens
+  triggered`. Until now a lens that ran and found nothing left **no durable trace at
+  all**: the review hand-back is not retained, and `REVIEW_LENSES.md` carries only a
+  lens *finding* onward under its own name. So two field arcs of lens evidence could
+  not distinguish *ran and clean* from *never triggered* — and a standing decision to
+  delete three lenses for finding nothing could not be read at all (§70.7 (i); the
+  clock is re-started rather than spent). A check with no durable negative record
+  cannot be told apart from one that never ran. `close-out.template.sh` enforces it
+  in `check` and classifies on it in `stop-check`; `end-slice.md` §4 and step 7, and
+  the template's slice-loop steps 7 and 11, prescribe it.
+- **[installable]** **A backlog entry's identifier is allocated, not assumed**
+  (`end-slice.md` §9): the next integer above the file's current maximum, **read from
+  the file at the moment of the append**. `end-phase.md` step 7's reconcile asserts
+  uniqueness — one `sort | uniq -d` — before it counts, and a collision is fixed by
+  renumbering the later-provenance entry. Measured: one arc closed with **106 entries
+  under 104 identifiers**, all four minted the same day by two slice reviews writing
+  into different regions of a 1,500-line list, and the document scoping the next
+  phase already named one of the duplicates — resolving by content to one entry and
+  by number to two. Nothing downstream can detect this: every step addresses entries
+  by number, and the retirement bullet's promise that moving entries *verbatim* keeps
+  an old reference resolving is precisely what a collision breaks.
+
+### Changed
+- **[installable]** **Absorption by a retro is not a closed state.** `sdlc-retro.md`
+  step 6's flip now carries a disposition — `implemented in <commit>` /
+  `ruled unpreventable` / **`RULING OPEN`** — and only the first two close the entry;
+  step 2's sweep reports absorbed-with-open-ruling entries beside unabsorbed ones,
+  with how many phases have passed since absorption. The escalation rule in
+  `end-slice.md` §9 and the template's *Bookkeeping rules* names absorption
+  explicitly as not closed. Absorption records that a finding was **transmitted**,
+  and the process was treating transmission as resolution: one hazard reached
+  **eleven** recorded recurrences with two retros and two owner rulings inside that
+  span, because each absorption reset the count to zero.
+- **[installable]** **The age rule re-checks the upstream artifact before it carries
+  an entry.** `sdlc-retro.md` step 2 carries any friction entry older than one phase
+  into the report automatically and asked nothing about whether the defect still
+  existed upstream. The ninth report is the specimen: its finding 7 was filed against
+  a template whose defect had been removed **in the very release the report was
+  written against**, with the corrected file sitting in the project's own kept kit
+  folder. A defect fixed in a release the project has not taken is a finding about
+  the update, not about the kit.
+- **[installable]** **`change-verify` §3 gains the long-running-process shape.** A
+  web app's front door binds a socket and serves forever, and the skill's *execute
+  and capture the output* cost two failed attempts before it worked — twice in one
+  arc, once with the skill dispatched, which makes it a text gap rather than an
+  operator lapse. Three traps, each named with its remedy: `subprocess.run(timeout=)`
+  discards the output it was about to prove the pass with (use `Popen` +
+  `terminate()` + `communicate()`); a pipe-attached child buffers stdout so the
+  banner under test never arrives (set the unbuffered switch in the child's
+  environment); and printing captured UTF-8 to a cp1252 console raises **after** a
+  run that actually succeeded.
+- **[installable]** **`change-simplify` §3 prices the gate between moves.** *One move
+  at a time, gate between* is right and its cost scales with suite runtime — the one
+  thing a maturing project reliably grows; at a ~100-second suite two moves cost
+  three full runs and a poll loop each, and a session never told what it may trim
+  invents the trade silently. Between moves: lint, typecheck, and the tests covering
+  the axis the move touched — enough to locate a break to the move that caused it.
+  After the last move: the full gate, once. Which form ran is stated in the report.
+- **[installable]** **The mutation rules that bite when the loop is hand-rolled are
+  stated in the command** (`end-slice.md` §5): one mutation at a time reverting
+  between, and a stated **3–8** sample where a file offers more targets than are
+  worth exhausting. `mutation-testing` keeps its file and is untouched — **no
+  invariant-3 divergence note is owed** — but two field arcs measured **zero**
+  activations against roughly a hundred mutations actually run, so
+  `reference/SKILLS.md` no longer claims *`/end-slice`'s mutation-check step invokes
+  it*: it is reference depth, and the row now says so and says not to restore the old
+  wording. Same reasoning as 0.26.0's 7.4b — a rule delivered by relevance-based
+  dispatch is a rule delivered never.
+- **[adoption-only]** `PROJECT_INDEX.template.md` seeds the identifier-allocation
+  rule in the Deferred backlog comment; `SDLC.template.md` carries the canonical
+  statement of every rule above (invariant 2), including a new bookkeeping rule — **a
+  check records its verdict whether or not it found anything**, because every
+  judgement about whether a check earns its place needs that denominator.
+- **[installable]** `sdlc-update.md` and the root README carry the mirrored 0.27.0
+  transition note: both changes arrive by updating, and the fifth key means the
+  **first slice closed after updating reports `INCOMPLETE - problems: lenses`** —
+  a one-time relearning, narrow, fixed by `git commit --amend` like any other key.
+  The note also warns that a project already on 0.26.0 has the dangerous restore
+  wording installed and should not run the §5 recipe on a file whose slice work is
+  uncommitted until it updates.
+
+### Repo (not shipped in the bundle)
+- `tools/close-out-check.py` grows the fifth key through every pass. The two verbatim
+  adopter bodies are **kept unedited and pinned in both directions**: as filed they
+  now fail on `lenses:` **alone** — which is the update transition, proven rather
+  than asserted in prose — and with the line added they pass. Editing the field
+  evidence to make the suite green would have deleted the only proof that the failure
+  is narrow. New cases: `missing_lenses`, `empty_lenses_payload`, `duplicated_lenses`
+  (two review passes each writing a verdict), plus an `anchor_dropped_lenses`
+  mutation so the new counter is itself under the mutation pass.
+- `FEATURE_PLAN.md` §70 records the triage and §70.7 the five rulings, including the
+  two clock questions answered from evidence rather than judgement: the STD-lens
+  clock could not be read and is re-started (above), and the **bare-flagging arming
+  bar is measured and unmet** — 121 log lines over the arc with 4 WOULD-BLOCK false
+  candidates on one documentation commit, against a bar of zero, so the backstop
+  stays log-only. `change-simplify`'s criterion was ruled mis-specified and re-written
+  once, knowingly spending its no-extension commitment; CONTRACT's first arc was ruled
+  not spent, so its clock starts at the first arc run under 0.26.0.
+
 ## 0.26.0 — 2026-08-21
 
 One release, combined by owner ruling (`FEATURE_PLAN.md` §67.7 (d), against the

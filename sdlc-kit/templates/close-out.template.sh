@@ -2,8 +2,9 @@
 # SDLC close-out evidence checker.
 #
 # Verifies that a slice commit's body carries the close-out evidence record the
-# process mandates - the RED: / quality: / mutation: / verify: lines, each present
-# or carrying its stated-skip form - and fails LOUDLY on silent absence. /end-slice
+# process mandates - the RED: / quality: / lenses: / mutation: / verify: lines, each
+# present or carrying its stated-skip form - and fails LOUDLY on silent absence.
+# /end-slice
 # runs it as its own step, right after the slice commit and before anything is
 # pushed, and quotes its output either way: a pass not observed is not a pass.
 #
@@ -18,8 +19,11 @@
 #             form, "not observed - <reason>", or the zero-form
 #             "none - no behavior batches this slice".
 #   quality:  exactly one line, non-empty. Two lines fail: nobody knows which is
-#   mutation: the record. Zero lines or an empty payload fail: that is exactly the
-#   verify:   silent absence this script exists to catch.
+#   lenses:   the record. Zero lines or an empty payload fail: that is exactly the
+#   mutation: silent absence this script exists to catch. lenses: carries the
+#   verify:   review's lens verdicts or the zero-form "no lens triggered" - a lens
+#             that ran clean has no other durable home, and a clock that deletes a
+#             lens for finding nothing needs that denominator.
 #
 # THREE MODES, AND THEIR FAIL DIRECTIONS DIFFER - deliberately, each for the
 # same reason pointed at its own seat:
@@ -48,7 +52,7 @@
 # Invocation:  sh .github/hooks/sdlc-close-out.sh check [<ref>]      (default HEAD)
 #              sh .github/hooks/sdlc-close-out.sh docs-check [<ref>] (default HEAD)
 #              sh .github/hooks/sdlc-close-out.sh stop-check         (payload on stdin)
-# This file takes no per-project values - the four keys are fixed by the process,
+# This file takes no per-project values - the five keys are fixed by the process,
 # the index path is canonical, and the budget is a constant below - so it is
 # copied verbatim.
 
@@ -56,7 +60,7 @@ MODE=$1
 
 cannot() { printf 'close-out record: CANNOT CHECK - %s\n' "$1"; exit 2; }
 
-# count_record <ref> - all eight counters in ONE awk pass, into globals both
+# count_record <ref> - all ten counters in ONE awk pass, into globals both
 # modes read. Not style: a per-pattern grep costs a process pair per counter,
 # and process forks are expensive on Windows sh - the grep-per-counter draft of
 # this script cost ~1.7 s per invocation there (measured 2026-08-10, Git Bash),
@@ -69,11 +73,13 @@ count_record() {
   { sub(/\r$/, "") }
   /^RED:/      { rn++; if ($0 ~ /^RED:[[:space:]]*$/) re++ }
   /^quality:/  { qn++; if ($0 ~ /^quality:[[:space:]]*$/) qe++ }
+  /^lenses:/   { ln++; if ($0 ~ /^lenses:[[:space:]]*$/) le++ }
   /^mutation:/ { mn++; if ($0 ~ /^mutation:[[:space:]]*$/) me++ }
   /^verify:/   { vn++; if ($0 ~ /^verify:[[:space:]]*$/) ve++ }
-  END { printf "%d %d %d %d %d %d %d %d", rn+0, re+0, qn+0, qe+0, mn+0, me+0, vn+0, ve+0 }')
+  END { printf "%d %d %d %d %d %d %d %d %d %d", rn+0, re+0, qn+0, qe+0, ln+0, le+0, mn+0, me+0, vn+0, ve+0 }')
   set -- $COUNTS
-  red_n=$1; red_e=$2; qua_n=$3; qua_e=$4; mut_n=$5; mut_e=$6; ver_n=$7; ver_e=$8
+  red_n=$1; red_e=$2; qua_n=$3; qua_e=$4; len_n=$5; len_e=$6
+  mut_n=$7; mut_e=$8; ver_n=$9; shift 9; ver_e=$1
 }
 
 if [ "$MODE" = "stop-check" ]; then
@@ -138,7 +144,7 @@ if [ "$MODE" = "stop-check" ]; then
   defective=""; bare_flagged=""; bare_noted=0; complete=0
   for C in $CANDS; do
     count_record "$C"
-    if [ "$((red_n + qua_n + mut_n + ver_n))" -eq 0 ]; then
+    if [ "$((red_n + qua_n + len_n + mut_n + ver_n))" -eq 0 ]; then
       if [ -n "$GUARD_EVID" ]; then bare_flagged="$bare_flagged $C"
       else bare_noted=$((bare_noted + 1)); fi
       continue
@@ -146,6 +152,7 @@ if [ "$MODE" = "stop-check" ]; then
     probs=""
     pk RED "$red_n" "$red_e" ""
     pk quality "$qua_n" "$qua_e" s
+    pk lenses "$len_n" "$len_e" s
     pk mutation "$mut_n" "$mut_e" s
     pk verify "$ver_n" "$ver_e" s
     probs=${probs%,}
@@ -270,11 +277,12 @@ status() {
 
 status 'RED:     ' RED      "$red_n" "$red_e" ""
 status 'quality: ' quality  "$qua_n" "$qua_e" s
+status 'lenses:  ' lenses   "$len_n" "$len_e" s
 status 'mutation:' mutation "$mut_n" "$mut_e" s
 status 'verify:  ' verify   "$ver_n" "$ver_e" s
 
 if [ -z "$bad" ]; then
-  printf 'close-out record: COMPLETE - RED(%s) quality mutation verify - structural presence only; this does not verify the evidence is true.\n' "$red_n"
+  printf 'close-out record: COMPLETE - RED(%s) quality lenses mutation verify - structural presence only; this does not verify the evidence is true.\n' "$red_n"
   exit 0
 fi
 

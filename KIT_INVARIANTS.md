@@ -190,7 +190,11 @@ hook-environment probe and its dispatch check (the pinned-vs-unpinned probe pair
 CLI version recorded — added 0.24.0 after a wiring shape was measured silently never
 firing), the TDD-ordering guards' proof step and their logging-to-deny
 ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
-setup proof step, the checker's stop-time backstop with its fire-first proof and
+setup proof step (five keys as of 0.27.0: `lenses:` joined RED/quality/mutation/verify
+fail-closed, because a lens verdict of `clean` or `no lens triggered` previously had no
+durable home — the review hand-back is not retained and only a lens *finding* travelled
+onward, so two field arcs could not distinguish a lens that ran clean from one that
+never triggered), the checker's stop-time backstop with its fire-first proof and
 logging-to-deny ramp, the checker's docs-budget observer (0.26.0 — log-only by
 design, so it has no arming ramp and no fire-proof at setup; its negative case is
 `tools/close-out-check.py`'s docs corpus and its six mutations, which is where a

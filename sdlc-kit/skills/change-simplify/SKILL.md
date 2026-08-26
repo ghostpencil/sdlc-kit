@@ -117,6 +117,16 @@ self-locating, and the moves are individually small by construction. If a move g
 revert **that move** and record it — a refactor you believed was behavior-preserving and
 was not is worth more as a note than as a silent retry.
 
+**The gate between moves may be trimmed; the gate at the end may not.** The rule above
+prices a full suite at zero, and its cost scales with suite runtime — the one thing a
+maturing project reliably grows. At a hundred-second suite, two moves cost three full
+runs and a poll loop each, and a session that is never told what it may trim will
+invent the trade silently and unevenly. So: **between** moves, run lint, the typecheck,
+and the tests covering the axis the move touched — enough to locate a break to the move
+that caused it, which is the whole purpose. **After the last move, run the gate in
+full, once.** State in the report which form ran between moves, because a trimmed
+intermediate gate is a stated method and an unstated one is a gap.
+
 ### 4. Report
 
 **All five sections are always present, including when one is empty.** "Findings: none"

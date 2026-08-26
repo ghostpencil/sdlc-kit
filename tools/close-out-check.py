@@ -6,9 +6,11 @@ Four passes, and the last is the point:
   1. a unit pass driving check mode over a fixture corpus of real commit bodies -
      every stated-skip form, the RED zero-form, each key missing / empty /
      duplicated, a mid-line key lookalike, a CRLF body, and two verbatim record
-     bodies from the first adopter's armed arcs (ai-news-dashboard S6/S7) - each
-     case committed into a bench git repo and checked through the script's real
-     interface;
+     bodies from the first adopter's armed arcs (ai-news-dashboard S6/S7) in BOTH
+     directions - as filed, where they now fail on the 0.27.0 lenses: key alone
+     (the update transition, pinned rather than asserted in prose), and with that
+     line added, where they pass - each case committed into a bench git repo and
+     checked through the script's real interface;
   2. a stop pass driving stop-check mode (the §52 backstop) over per-case bench
      repos - defective / complete / bare crossed with guard-state present /
      absent / stale-session, the no-upstream narrowing, pushed-commits-out-of-
@@ -35,6 +37,7 @@ TPL = os.path.join(REPO, "sdlc-kit", "templates", "close-out.template.sh")
 
 FULL_TAIL = (
     "quality: nothing to do\n"
+    "lenses: no lens triggered\n"
     "mutation: 1 guard, seen to fail\n"
     "verify: ran — behavior exercised through the CLI, verdict green (Git Bash)\n")
 
@@ -79,10 +82,11 @@ CASES = [
           "RED: pytest -q tests/test_a.py::test_one — test_a.py:12 — exit 1",
           "RED: pytest -q tests/test_a.py::test_two — test_a.py:31 — exit 1",
           "quality: 2 moves applied",
+          "lenses: shared state under concurrency: clean",
           "mutation: 2 guards, each seen to fail",
           "verify: ran — CLI path green (Git Bash)"),
      ["check"], 0,
-     "close-out record: COMPLETE - RED(2) quality mutation verify - structural presence only; this does not verify the evidence is true.",
+     "close-out record: COMPLETE - RED(2) quality lenses mutation verify - structural presence only; this does not verify the evidence is true.",
      []),
     ("red_not_observed_form",
      body("fix(y): hotfix", "RED: not observed — regression pinned by existing test",
@@ -90,49 +94,75 @@ CASES = [
      ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("red_zero_form",
      body("docs(z): config-only slice", "RED: none — no behavior batches this slice",
-          "quality: nothing to do", "mutation: none — no new guards",
+          "quality: nothing to do", "lenses: no lens triggered",
+          "mutation: none — no new guards",
           "verify: skipped — docs only, the gate fully pins it"),
      ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("all_skip_forms",
      body("chore(w): mechanical sweep", "RED: none — no behavior batches this slice",
           "quality: skipped — mechanical rename, nothing to weigh",
+          "lenses: no lens triggered",
           "mutation: none — no new guards", "verify: skipped — covered by the gate"),
      ["check"], 0, None, ["COMPLETE"]),
     ("missing_red",
-     body("feat(x): s", "quality: nothing to do", "mutation: none — no new guards",
-          "verify: skipped — small"),
+     body("feat(x): s", "quality: nothing to do", "lenses: no lens triggered",
+          "mutation: none — no new guards", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: RED",
      ["MISSING -", "Never invent", "git commit --amend"]),
     ("missing_quality",
-     body("feat(x): s", "RED: not observed — reason", "mutation: none — no new guards",
-          "verify: skipped — small"),
+     body("feat(x): s", "RED: not observed — reason", "lenses: no lens triggered",
+          "mutation: none — no new guards", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: quality", ["MISSING -"]),
+    ("missing_lenses",
+     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+          "mutation: none — no new guards", "verify: skipped — small"),
+     ["check"], 1, "close-out record: INCOMPLETE - problems: lenses", ["MISSING -"]),
     ("missing_mutation",
      body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
-          "verify: skipped — small"),
+          "lenses: no lens triggered", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: mutation", ["MISSING -"]),
     ("missing_verify",
      body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
-          "mutation: none — no new guards"),
+          "lenses: no lens triggered", "mutation: none — no new guards"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: verify", ["MISSING -"]),
     ("empty_red_payload",
      body("feat(x): s", "RED:", "quality: nothing to do",
-          "mutation: none — no new guards", "verify: skipped — small"),
+          "lenses: no lens triggered", "mutation: none — no new guards",
+          "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: RED", ["EMPTY -"]),
+    ("empty_lenses_payload",
+     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+          "lenses:  ", "mutation: none — no new guards", "verify: skipped — small"),
+     ["check"], 1, "close-out record: INCOMPLETE - problems: lenses", ["EMPTY -"]),
     ("empty_verify_payload",
      body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
-          "mutation: none — no new guards", "verify:   "),
+          "lenses: no lens triggered", "mutation: none — no new guards",
+          "verify:   "),
      ["check"], 1, "close-out record: INCOMPLETE - problems: verify", ["EMPTY -"]),
     ("duplicated_quality",
      body("feat(x): s", "RED: not observed — reason", "quality: 1 move applied",
-          "quality: nothing to do", "mutation: none — no new guards",
-          "verify: skipped — small"),
+          "quality: nothing to do", "lenses: no lens triggered",
+          "mutation: none — no new guards", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: quality",
      ["DUPLICATED (2 lines)"]),
+    ("duplicated_lenses",
+     # Two review passes each writing their own verdict line: nobody knows which
+     # is the record, and the denominator this key exists for is the casualty.
+     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+          "lenses: untrusted input: clean", "lenses: no lens triggered",
+          "mutation: none — no new guards", "verify: skipped — small"),
+     ["check"], 1, "close-out record: INCOMPLETE - problems: lenses",
+     ["DUPLICATED (2 lines)"]),
     ("anchors_midline_lookalikes_do_not_count",
-     # Prose names "RED:" and "quality:" mid-line; neither real line exists.
-     "feat(x): s\n\nCopy the RED: lines and the quality: line from the record.\n\n"
-     "mutation: none — no new guards\nverify: skipped — small\n",
+     # Prose names "RED:", "quality:" and "lenses:" mid-line. Neither RED nor
+     # quality has a real line, so both must read as missing. lenses: DOES have a
+     # real line below, so with the anchor intact it reads as present-once — and
+     # if the anchor were dropped the prose mention would make it duplicated,
+     # which is what pins the anchor for this key rather than only for the other two.
+     "feat(x): s\n\nCopy the RED: lines, the quality: line and the lenses: line\n"
+     "from the record.\n\n"
+     "lenses: no lens triggered\nmutation: none — no new guards\n"
+     "verify: skipped — small\n",
      ["check"], 1, "close-out record: INCOMPLETE - problems: RED quality", []),
     ("lookalikes_beside_full_record",
      body("feat(x): s", "Per the record contract the RED: and quality: lines follow.",
@@ -147,10 +177,33 @@ CASES = [
           "RED: pytest -q — t.py:1 — exit 1", "RED: not observed — flaky fixture",
           "RED: pytest -q — t.py:9 — exit 2", *FULL_TAIL.splitlines()),
      ["check"], 0, None, ["COMPLETE - RED(3)"]),
-    ("adopter_s7_verbatim", ADOPTER_S7, ["check"], 0, None, ["COMPLETE - RED(3)"]),
-    ("adopter_s6_verbatim", ADOPTER_S6, ["check"], 0, None, ["COMPLETE - RED(1)"]),
+    # Real field bodies, kept verbatim. Both predate the lenses: key (0.27.0), so
+    # both are now INCOMPLETE on exactly that one line and nothing else — which is
+    # the transition consequence stated in sdlc-update.md, pinned here rather than
+    # asserted in prose: the first slice closed after updating fails until the line
+    # is written. Editing the field evidence to make the suite green would delete
+    # the only proof that the failure is narrow.
+    ("adopter_s7_verbatim_pre_lenses", ADOPTER_S7, ["check"], 1,
+     "close-out record: INCOMPLETE - problems: lenses",
+     ["RED:      present (3 lines)", "quality:  present", "mutation: present",
+      "verify:   present"]),
+    ("adopter_s6_verbatim_pre_lenses", ADOPTER_S6, ["check"], 1,
+     "close-out record: INCOMPLETE - problems: lenses",
+     ["RED:      present (1 lines)", "verify:   present"]),
+    # The same two bodies with the line their next slice will carry: the forward
+    # direction, so the pair proves the key discriminates rather than just fails.
+    ("adopter_s7_verbatim_lensed",
+     ADOPTER_S7.replace("quality: nothing to do\n",
+                        "quality: nothing to do\nlenses: no lens triggered\n"),
+     ["check"], 0, None, ["COMPLETE - RED(3)"]),
+    ("adopter_s6_verbatim_lensed",
+     ADOPTER_S6.replace("quality: nothing to do\n",
+                        "quality: nothing to do\n"
+                        "lenses: the unconsumed artifact: SourceRefreshStatus, "
+                        "no production consumer\n"),
+     ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("no_record_at_all", "feat(x): subject only\n\nProse.\n",
-     ["check"], 1, "close-out record: INCOMPLETE - problems: RED quality mutation verify", []),
+     ["check"], 1, "close-out record: INCOMPLETE - problems: RED quality lenses mutation verify", []),
     ("bad_ref", None, ["check", "no-such-ref"], 2, None,
      ["CANNOT CHECK -", "does not resolve"]),
     ("unknown_mode", None, ["frob"], 2, None, ["CANNOT CHECK -", "unknown mode 'frob'"]),
@@ -162,6 +215,7 @@ CASES = [
 MUTATIONS = [
     ("anchor_dropped_RED", "/^RED:/      { rn++;", "/RED:/      { rn++;"),
     ("anchor_dropped_quality", "/^quality:/  { qn++;", "/quality:/  { qn++;"),
+    ("anchor_dropped_lenses", "/^lenses:/   { ln++;", "/lenses:/   { ln++;"),
     ("empty_check_disabled", "if ($0 ~ /^RED:[[:space:]]*$/) re++", ""),
     ("duplicate_check_disabled", '[ "$n" -gt 1 ]', '[ "$n" -gt 99 ]'),
     ("incomplete_exits_zero", "exit 1\n", "exit 0\n"),
@@ -253,11 +307,13 @@ FULL_BODY = body("feat(x): slice",
                  "RED: pytest -q — t.py:1 — exit 1",
                  "RED: pytest -q — t.py:9 — exit 1",
                  "quality: nothing to do",
+                 "lenses: no lens triggered",
                  "mutation: 2 guards, each seen to fail",
                  "verify: ran — CLI path green (Git Bash)")
 DEFECTIVE_BODY = body("feat(x): slice missing verify",
                       "RED: pytest -q — t.py:1 — exit 1",
                       "quality: nothing to do",
+                      "lenses: no lens triggered",
                       "mutation: 1 guard, seen to fail")
 BARE_BODY = "docs(z): notes only\n\nProse, no record keys.\n"
 

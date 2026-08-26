@@ -123,7 +123,13 @@ policy fences off), also apply the matching lens from
 reports by name with its verdict** — `<lens>: <finding, file and line | clean>` —
 and a review that
 applied none writes `no lens triggered`; an unnamed lens verdict cannot be credited
-to the lens (the file's own preamble states the contract).
+to the lens (the file's own preamble states the contract). **That verdict goes into
+the slice commit body as the `lenses:` line (step 7), where the other per-slice
+evidence lines already outlive the session.** The review hand-back is not retained,
+and only a lens *finding* travels onward under its own name — so before this line
+existed, a lens that ran and found nothing left no trace anywhere, and two field arcs
+of lens evidence could not distinguish *ran and clean* from *never triggered*. A clock
+that deletes a lens for having no catch needs the second number, not the first.
 
 Triage findings — **verify each one against the source before it enters any pile.** A
 finding is a claim about the code; severity is asserted by the reviewer, not measured,
@@ -185,18 +191,43 @@ checked out of how many (`mutation: 6 of 129 characterization pins, each seen to
 fail`) — a stated sample is evidence; an unstated one is the same blank the exemption
 left.
 
-**Restore by reverting the file, never by rewriting it.** The mutation is a tracked
-edit, so the tracked original is the byte-exact copy: undo it with
-`git checkout -- <path>` (or `git stash pop`, if that is how it was parked), then
-confirm `git status --short` shows the path clean before re-running the suite. Never
-restore by writing the file's text back through a whole-file read-then-write — one arc
-corrupted its working tree four times doing exactly that, because a read-modify-write
-normalizes whatever it round-trips (line endings, the trailing newline, an encoding a
-BOM implied) and a restore that should have been a no-op silently rewrote every line
-of the file. That is the whole recipe, stated here rather than left to the skill: a
-fix that arrives only when a skill happens to be dispatched is a fix that arrives
-never, and this one was measured at zero activations against roughly a hundred
-mutations actually run.
+**Restore by undoing the edit, not by restoring the file.** This step runs *before*
+step 7 commits, so the slice's own implementation is sitting uncommitted in the
+working tree underneath the mutation — which makes the obvious mechanism the
+destructive one. `git checkout -- <path>` restores the path to **HEAD**, not to its
+pre-mutation state: on a file whose slice work is not yet committed it reverts the
+mutation *and the slice*, and one arc lost a slice's uncommitted implementation
+exactly that way, recoverable only because the code was still in the session's
+context. `git stash` parks the slice for the same reason. So:
+
+- **Undo the mutation the way you made it — a targeted edit of the same hunk,
+  inverted.** The mutating edit changed specific characters; change exactly those
+  back. This is the default, and it is safe whether or not anything is committed.
+- **A VCS restore is available only when the path carries no uncommitted work
+  behind it** — and that is a thing to *check*, with `git status --short <path>`
+  before mutating, not to assume. Clean before the mutation means
+  `git checkout -- <path>` is a true inverse; dirty means it is not.
+- **Never restore by writing the file's text back through a whole-file
+  read-then-write.** One arc corrupted its working tree four times doing exactly
+  that, because a read-modify-write normalizes whatever it round-trips (line
+  endings, the trailing newline, an encoding a BOM implied) and a restore that
+  should have been a no-op silently rewrote every line of the file. A targeted hunk
+  edit is not a whole-file rewrite and normalizes nothing.
+
+Either way, confirm the file is back — `git diff -- <path>` empty of the mutation —
+before re-running the suite. A mutation left in the tree is the worst outcome
+available here, and it is what a failed restore looks like.
+
+**Two more rules that only bite when the loop is hand-rolled, which is how it is
+actually run:** mutate **one thing at a time and revert between** — stacked mutations
+make a red suite unattributable, and the second mutation's evidence is worthless.
+And where a file offers more targets than are worth exhausting, take **a sample of
+three to eight** rather than every branch, and say in the record how many of how
+many. All of this is stated here rather than left to the skill: `mutation-testing`
+carries the same rules at more length and is worth reading when a mutation pass gets
+difficult, but two arcs of ledger measured **zero** activations against roughly a
+hundred mutations actually run, and a rule that arrives only when a skill happens to
+be dispatched is a rule that arrives never.
 
 ### 6. Slice verification — optional, and never silent
 
@@ -240,6 +271,7 @@ git commit -m "$(cat <<'EOF'
 
 RED: <test command> — <the failing line> — exit <code>   (one per behavior batch)
 quality: <N moves applied | nothing to do | skipped — reason>
+lenses: <lens: finding | lens: clean, …  | no lens triggered>
 mutation: <N guards, each seen to fail | none — no new guards>
 verify: <ran — verdicts | skipped — reason>
 EOF
@@ -273,8 +305,8 @@ CHECK.
 
 The checker verifies **structural presence only**: every evidence line of step 7's
 record present, or carrying its stated-skip form — one line per key for
-`quality:`/`mutation:`/`verify:` (a duplicate fails: nobody knows which line is
-the record), each key at the start of its line — with silent absence failing
+`quality:`/`lenses:`/`mutation:`/`verify:` (a duplicate fails: nobody knows which
+line is the record), each key at the start of its line — with silent absence failing
 loudly. It never verifies truth — its own output says so — and COMPLETE is not
 evidence the work behind a line happened; the steps that produced the lines remain
 the record of that.
@@ -304,9 +336,17 @@ Update `spec/PROJECT_INDEX.md`:
   so the two can only diverge across kit releases and never per project — the
   observer's own output quotes the budget it actually used, which is the value to
   believe.
-- Append deferred review findings to the backlog with rationale, provenance
-  (e.g. "(slice review, <date>)"), and the cause marker from step 4's triage
-  (**measured** / **suspected**).
+- Append deferred review findings to the backlog with an identifier, rationale,
+  provenance (e.g. "(slice review, <date>)"), and the cause marker from step 4's
+  triage (**measured** / **suspected**). **The identifier is the next integer above
+  the file's current maximum, read from the file at the moment of the append** — not
+  carried from earlier in the session, and not guessed from the entry count, which
+  drifts the moment anything retires. Every step downstream addresses entries by
+  number and none of them can detect a collision: one arc minted two pairs of
+  duplicates on a single day, two slice reviews writing into different regions of the
+  same unordered list, and the document that scoped the next phase then named one of
+  the numbers — resolving by content to one entry and by number to two, the other a
+  legitimately open finding a scoping pass could have discarded on sight.
 - If this slice added a tool, runtime, or service the gate now requires, record it
   (*Records* → *The gate* in `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and add it to CI in
   the same commit — a gate dependency discovered by a contributor's red run is a
@@ -316,8 +356,15 @@ Update `spec/PROJECT_INDEX.md`:
   consecutive** one to record the same hazard, it stops being a note and becomes a
   check — a gate step, a hook, or a test — or the owner ratifies it as unpreventable and
   the entry says so, with the recurrence count. Those are the hazard's only two closed
-  states; a sharper note is neither. Prose in a status document is not a
-  control: a real adoption recorded an editor silently rewriting line endings four
+  states; a sharper note is neither — **and neither is having been absorbed by a
+  retro.** A retro that reads the hazard, files it upstream, and even takes an owner
+  ruling on it has recorded that the finding was *transmitted*; the hazard is closed
+  when something changed, not when someone was told. Count the recurrences past
+  absorption, and where a hazard has been absorbed with nothing built, say so in the
+  entry with the date it was absorbed — one adoption's guard-ergonomics hazard reached
+  **eleven** recorded recurrences with two retros and two owner rulings inside that
+  span, because each absorption reset the count to zero. Prose in a status document is
+  not a control: a real adoption recorded an editor silently rewriting line endings four
   times, each note sharper than the last, each one followed, and the hazard recurred
   every time. And when the check becomes a control: **a control that hands the operator a
   remediation command must scope that command to the population the control actually

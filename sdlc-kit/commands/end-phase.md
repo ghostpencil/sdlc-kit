@@ -242,7 +242,16 @@ read before it is reconciled is a decision taken twice.
      itself just closed. The backlog bullet below asks convert/defer/drop of that
      reconciled number: a count still carrying entries this arc delivered describes
      the future mixed together with the past, and one was measured at 101 with a
-     shipped entry sitting inside it.
+     shipped entry sitting inside it. **Assert the identifiers are unique in the same
+     pass** — one `sort | uniq -d` over the entry numbers, reported as part of this
+     subject. A collision is silent everywhere else: every downstream step addresses
+     entries by number, the retirement bullet below promises that moving entries
+     verbatim keeps an old reference resolving, and a duplicated number resolves to two
+     things and preserves the ambiguity into a file no session reads at start. One arc
+     closed with 106 entries under 104 identifiers, minted the same day by two slice
+     reviews, and the document scoping the next phase already named one of the
+     duplicates. Fix a collision here by renumbering the **later-provenance** entry to
+     the next free integer and leaving a pointer at the old number.
   2. **Every row of `spec/SDLC.md` *Records*, not only the two rows that have bullets
      of their own.** Check each against this close's gate run and report it
      recorded-vs-measured — the gate baseline and the coverage floor, which keep their

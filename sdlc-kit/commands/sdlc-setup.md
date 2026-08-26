@@ -479,13 +479,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
    **Install the close-out evidence checker — both CLIs, always, not an offer.**
    `close-out.template.sh` → `.github/hooks/sdlc-close-out.sh`, copied verbatim — it
-   takes no values (the record's four keys are fixed by the process); do not edit it.
+   takes no values (the record's five keys are fixed by the process); do not edit it.
    It is not a hook despite its address: `/end-slice`'s verify-the-record step runs
    it as a command step in the agent's shell, and it fails closed there on purpose.
    Prove it the way every other check is proven — by seeing it fail: run it against
    `HEAD` (`sh .github/hooks/sdlc-close-out.sh check` wherever `sh` resolves in the
    agent's shell — Claude Code's Bash tool does, measured 2026-08-10), and a pre-kit
-   commit carries no record, so the proof is INCOMPLETE naming all four keys,
+   commit carries no record, so the proof is INCOMPLETE naming all five keys,
    exit 1. Two branches, neither assumed: a repo whose `HEAD` **does** carry a
    record (a re-adoption from kit ≥ 0.15.0 — the partial-install case in the Notes)
    proves against a commit predating the record instead, because a COMPLETE is the
@@ -731,7 +731,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    a `chore/adopt-sdlc` branch and a normal PR (the team should see this land like any
    change). Never commit without asking. **New mode: the close-out checker proof
    deferred from step 6 runs now, against the initial commit just made** — it carries
-   no slice record, so the checker must report INCOMPLETE naming all four keys,
+   no slice record, so the checker must report INCOMPLETE naming all five keys,
    exit 1; quote that output and finalize the `{{CLOSE_OUT_CHECK_NOTE}}` line in
    `spec/SDLC.md` from deferred to proven, in this same commit (amend it). If the
    owner declines the commit, the note keeps saying the proof is owed — a note

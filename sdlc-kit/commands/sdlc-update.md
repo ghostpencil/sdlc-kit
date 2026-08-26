@@ -459,7 +459,7 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   the git on its PATH (`bin\sh.exe` beside `git.exe`'s `cmd` directory) and the note
   carries that literal proven path; a non-Windows Copilot project measures its own
   answer. Prove it the way setup does: run it against a
-  pre-record commit and watch it fail INCOMPLETE naming all four keys. (b) The
+  pre-record commit and watch it fail INCOMPLETE naming all five keys. (b) The
   slice loop in `spec/SDLC.md` gains the verify-the-record step after the commit
   step and the `RED:` zero-form (`RED: none — no behavior batches this slice`) in
   the commit step's record contract — hand the owner the template diff, do not edit
@@ -637,6 +637,34 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   is the pass working, not a defect it introduced; and rulings it produces are
   ordinary owner decisions, recorded where they are made. The command file carries
   all of it, so this half arrives by updating with nothing to hand-apply.
+- **0.27.0 adds a fifth key to the close-out record, and the first slice closed
+  after updating will fail on it once.** The slice commit body now carries a
+  `lenses:` line beside `RED:`/`quality:`/`mutation:`/`verify:` — the slice review's
+  lens verdicts, or the zero-form `no lens triggered` when none applied. Both halves
+  arrive automatically: `end-slice.md` prescribes the line and the verbatim
+  close-out script enforces it. **That is the point to state at the halt** — the
+  checker's `check` mode is fail-closed, so a slice closed out of old habit reports
+  `INCOMPLETE - problems: lenses` and the fix is `git commit --amend` with the real
+  verdict, exactly as for any other missing key. It is a one-time relearning, not a
+  defect, and it is narrow: nothing else about the record changed. Why it was worth
+  a fail-closed key rather than a prose rule: a lens that ran and found nothing
+  previously left no trace anywhere, because the review hand-back is not retained
+  and only a lens *finding* travelled onward under its own name — so two field arcs
+  of lens evidence could not distinguish *ran and clean* from *never triggered*, and
+  a standing decision to delete three lenses for finding nothing could not be read.
+  A check with no durable negative record cannot be told apart from one that never
+  ran.
+- **0.27.0 also changes how a mutation is undone, and the old recipe could destroy
+  a slice.** `end-slice.md` §5 shipped `git checkout -- <path>` as the canonical
+  restore in 0.26.0. That step runs *before* the slice commits, so the
+  implementation sits uncommitted underneath the mutation and the command restores
+  the path to **HEAD** — reverting the mutation and the slice together. A real arc
+  lost a slice's work that way. The step now inverts the mutating edit instead (a
+  targeted edit of the same hunk, safe whether or not anything is committed), and
+  keeps a VCS restore only where `git status --short <path>` was clean *before* the
+  mutation. **A project that took 0.26.0 has the dangerous wording installed**;
+  updating replaces it, and until then do not run the §5 recipe on a file whose
+  slice work is uncommitted.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

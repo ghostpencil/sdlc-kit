@@ -127,9 +127,19 @@ none of them writes anything.
   recorded and still not addressed is a stronger finding than friction merely felt — the
   process saw it and had no place to put it. **Read the log for status and age, not only
   for content:** entries a previous retro absorbed carry a marker, so report the ones
-  that do not — each with its date and how many phases it has now survived — and carry
+  that do not — each with its date and how many phases it has now survived — **and
+  report absorbed entries whose disposition is `RULING OPEN` alongside them, with how
+  many phases have passed since absorption.** An absorbed entry with nothing built is
+  live friction wearing a closed marker, and reading the marker rather than the
+  disposition is how the same hazard gets re-absorbed instead of escalated. Carry
   any entry older than one phase into this report automatically, whether or not the
-  interview raises it. An entry with no status line is the default state, not a
+  interview raises it — **and re-check it against the current upstream artifact
+  before carrying it**, because a defect fixed in a kit release the project has not
+  yet taken is a finding about the update, not about the kit. One report filed a
+  finding against a template whose defect had been removed in the very release the
+  report was written against, with the corrected file sitting in the project's own
+  kept kit folder; the age rule had carried it in and nothing had re-read it.
+  An entry with no status line is the default state, not a
   conclusion; one adoption's oldest live entry sat unabsorbed across two releases while
   three younger ones beside it were marked absorbed, and nothing in the sweep read the
   difference. The sweep is done when no unabsorbed entry is left unreported — each
@@ -260,9 +270,15 @@ legitimate outcome and worth recording; a manufactured finding is not.
 - Apply the project lessons to `spec/PROJECT_INDEX.md` (Notes, Environment gotchas,
   backlog entries tagged `(retro, <date>)`).
 - Flip each Kit-friction-log entry this report absorbed to its absorbed form —
-  `- <date> — <friction> — absorbed by retro <date>` — the one shape the log's own
-  comment prescribes and step 2's sweep reads; flipping in any other wording forks the
-  format the next sweep parses.
+  `- <date> — <friction> — absorbed by retro <date> — <disposition>` — the one shape
+  the log's own comment prescribes and step 2's sweep reads; flipping in any other
+  wording forks the format the next sweep parses. **The disposition is required, and
+  only two of its three values close the entry:** `implemented in <commit>` and
+  `ruled unpreventable` are closed; **`RULING OPEN`** is not. Absorption on its own
+  records that a finding was *transmitted upstream*, and transmission is not
+  resolution — a hazard absorbed by two consecutive retros, with an owner ruling taken
+  on it both times and nothing built, reached **eleven** recorded recurrences while
+  every sweep after the first read it as closed.
 - Commit the report and the index together as a docs commit.
 - Before presenting the submit decision, resolve the kit repository URL so a yes can be
   acted on without a second question: `spec/SDLC.md`'s *Kit home repository* line names

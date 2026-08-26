@@ -721,6 +721,25 @@ only as a hand-apply, and the per-version transition notes name each one.
    pass working, not damage it did. The update command's 0.26.0 note states the same
    procedure.
 
+   **0.27.0 adds a fifth key to the slice close-out record, and your first slice
+   after updating will fail on it once.** The commit body now carries a `lenses:`
+   line beside `RED:`/`quality:`/`mutation:`/`verify:` — the slice review's lens
+   verdicts, or `no lens triggered` when none applied. Both halves arrive by
+   updating (the command prescribes the line, the verbatim checker enforces it), and
+   because `check` mode is fail-closed a slice closed out of old habit reports
+   `INCOMPLETE - problems: lenses`; amend with the real verdict and re-run, exactly
+   as for any other key. It is a one-time relearning and it is narrow — nothing else
+   about the record changed. It is fail-closed rather than a prose rule because a
+   lens that ran and found nothing previously left no durable trace at all, and a
+   check with no negative record cannot be told apart from one that never ran.
+   **0.27.0 also replaces 0.26.0's mutation-restore recipe, which could destroy a
+   slice:** `/end-slice`'s mutation step runs before the slice commits, so
+   `git checkout -- <path>` restored the file to HEAD and took the uncommitted
+   implementation with it. The step now inverts the mutating edit instead. If you
+   are on 0.26.0, that wording is installed — until you update, do not run it on a
+   file whose slice work is uncommitted. The update command's 0.27.0 notes state the
+   same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,

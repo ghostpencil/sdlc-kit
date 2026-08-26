@@ -53,6 +53,11 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 ## Deferred backlog — *growing*
 
 <!-- Review findings and small follow-ups deferred at /end-slice / /end-phase.
+     Each entry carries an identifier, and the identifier is the next integer above
+     this section's current maximum, READ FROM THIS FILE at the moment of the append —
+     never carried from earlier in a session and never inferred from the entry count,
+     which drifts as entries retire. Every other step addresses entries by number and
+     none can detect a collision; /end-phase asserts uniqueness before it counts.
      One line each: what, where, why deferred — and where it came from, e.g.
      "(slice review, 2026-07-19)" or "(whole-arc review, PR #2)". Provenance is what
      makes the pile triageable months later. Each entry also marks its stated cause
