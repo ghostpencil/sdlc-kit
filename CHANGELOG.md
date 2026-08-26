@@ -10,6 +10,44 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.28.1 — 2026-08-26
+
+**A patch release, and it re-arms a control that four releases had silently disarmed.**
+Found while updating an adopter to 0.28.0 by running the fix against *that project's
+own recorded payloads* before trusting it (`FEATURE_PLAN.md` §72). Their guard was held
+at 0.24.0 and the divergence recorded in their spec until this shipped.
+
+### Fixed
+- **[adoption-only]** **The TDD guard's shell dialect skipped every write reported by
+  absolute path** (`templates/tdd-guard.template.sh`, shipped 0.25.0–0.28.0). The
+  relativization added by CLASSIFY compares the incoming path against a root taken from
+  `SDLC_REPO_ROOT`, which falls back to `$(pwd)` — and **the hook shell's path flavour
+  and the CLI's need not agree**. On Windows an MSYS shell answers `/d/foo` while the
+  CLI reports `D:oo`; those never prefix-match, so every absolute path fell to the
+  *outside the repository* arm and the write was **skipped instead of guarded**. The
+  log line reads like correct behavior, which is the worst shape a control change can
+  take. Measured on an adopter's own recorded production path: the **0.24.0 body denies
+  it, the 0.25.0–0.28.0 body allows it.** The fix tries the root in **both** flavours
+  (`pwd` and `pwd -W`), costs one subshell, and cannot regress a POSIX host where the
+  two answers are identical. Verified 5/5 across backslash-absolute, slash-absolute,
+  repo-relative, in-repo test, and out-of-repo paths, against the broken body's 3/5.
+  **The Claude/Python dialect was checked and is correct** — it normalizes both sides
+  and its root is already Windows-flavoured — so it is untouched.
+
+### Repo (not shipped in the bundle)
+- `tools/tdd-guard-check.py` gains **24b** and **24c**: an absolute in-repo path with
+  `SDLC_REPO_ROOT` **unset**, in both of the shell's path flavours. That unset state is
+  the configuration every real adopter runs, and it is why the existing case 2c
+  (*absolute path INSIDE the repo is still production source*) passed on the broken
+  body: `Bench.run` **pins** `SDLC_REPO_ROOT` to the bench's own root, so both sides of
+  the comparison agree by construction and can never diverge. A case existed, a fixture
+  defeated it. A mutation dropping the second candidate root joins the list, so the
+  regression cannot return unnoticed.
+- `FEATURE_PLAN.md` §72 records the defect and is **corrected twice** against what
+  building the fix revealed: it claimed two causes where there is one (the incoming
+  path *is* backslash-normalized), and the failure is broader than backslash paths —
+  a forward-slash absolute path fails too, whenever the flavours differ.
+
 ## 0.28.0 — 2026-08-26
 
 **IMPACT** (`FEATURE_PLAN.md` §66, opened 2026-08-18 and ruled the same day; built

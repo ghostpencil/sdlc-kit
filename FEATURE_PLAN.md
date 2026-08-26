@@ -2884,16 +2884,21 @@ case "$nl" in
     continue ;;
 ```
 
-Two independent defects, either of which alone breaks the match:
+**Corrected 2026-08-26 while building the fix — this filing claimed two causes and
+there is one.** The incoming path *is* backslash-normalized, six lines above
+(`n=$(printf '%s' "$p" | tr` ... `)`); I misread its absence. The single cause is the
+flavour mismatch:
 
-1. **The incoming path is never backslash-normalized.** The *root* gets
-   `tr '\\' '/'`; `$n` gets only `tr` for case. The comparison is therefore between a
-   forward-slash root and a backslash path — asymmetric, and the asymmetry is visible
-   in two adjacent lines.
-2. **The root and the paths are in different flavours.** `SDLC_REPO_ROOT=$(pwd)` in
-   the hook's MSYS shell yields `/d/aicourse/ai-news-dashboard`; the CLI sends
-   `D:\AICourse\ai-news-dashboard\...`. Even with (1) fixed, `/d/...` never prefixes
-   `d:/...`.
+**The root and the paths are in different flavours.** `SDLC_REPO_ROOT=$(pwd)` in the
+hook's MSYS shell yields `/d/aicourse/ai-news-dashboard`; the CLI reports a path that
+normalizes to `d:/aicourse/...`. `/d/...` never prefixes `d:/...`, so the match cannot
+succeed however the separators are written.
+
+**And it is broader than "backslash paths".** Measured on a bench where `pwd` answers
+`/tmp/...` and `pwd -W` answers `C:/Users/...`: the 0.28.0 body also fails on a
+**forward-slash** absolute in-repo path (3/5 against the fixed body's 5/5). Any
+absolute path fails whenever the two flavours differ; the adopter's backslashes were
+how it surfaced, not what caused it.
 
 So `nl` matches neither arm's intent: it falls through to `?:/*`, is logged as
 *outside the repository*, and `continue` **skips the write entirely**.
@@ -2936,9 +2941,17 @@ escape-interpreting `printf`/`echo` on a string that should be passed as an argu
 
 ### 72.4 Why the kit's own proofs did not catch it
 
-`tools/tdd-guard-check.py` runs the shell dialect through a bench repo, and the bench
-constructs its paths POSIX-style. The corpus therefore contains **no Windows-flavoured
-absolute path at all**, so the case that breaks in the field cannot arise in the proof.
+**Corrected: the corpus does have an in-repo absolute case — the bench neutralizes
+it.** Case 2c is exactly *"absolute path INSIDE the repo is still production source"*.
+It passes on the broken body because `Bench.run` **pins** `SDLC_REPO_ROOT` to the
+bench's own Python-flavoured root (`e["SDLC_REPO_ROOT"] = self.root`), so both sides of
+the comparison are in the same flavour **by construction** and can never diverge.
+
+No adopter sets that variable. Every one of them takes the `SDLC_REPO_ROOT=$(pwd)`
+fallback — the one path the corpus never exercised for classification. A case existed,
+a fixture defeated it, and the pass was green for a reason unrelated to the property it
+names. That is a sharper and more uncomfortable finding than "the corpus lacked a
+case": a fixture convenience silently deleted a control's only coverage.
 This is invariant 15 turned on the kit's own tooling: the proof verifies the artifact
 and is silent about the environment it will run in. The ninth field report's finding 5
 is the same shape — *a fire-proof and a catch-proof are different tests* — one level

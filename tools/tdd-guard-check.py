@@ -386,6 +386,40 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
             check("24 script with no SDLC_REPO_ROOT trusts a repo-root cwd",
                   "VIOLATION" in b.tail(), b.tail())
 
+            # 24b is the case that mattered and did not exist: an ABSOLUTE in-repo
+            # path with SDLC_REPO_ROOT UNSET - the configuration every real adopter
+            # runs, since nothing sets that variable for them. Case 2c above covers
+            # absolute-in-repo, but the bench PINS SDLC_REPO_ROOT to a
+            # Python-flavoured root, so both sides agree by construction and the
+            # comparison can never diverge. Unset, the guard falls back to `pwd`,
+            # which on Windows answers `/c/foo` while the CLI reports `C:oo` -
+            # different flavours, no prefix match, and every absolute path fell to
+            # the "outside the repository" arm. The guard SKIPPED every write that
+            # CLI reports by absolute path, which is how it reports them, and it
+            # shipped that way in 0.25.0-0.28.0 (FEATURE_PLAN.md §72). A proof whose
+            # only in-repo absolute case runs with the root pinned cannot see it.
+            b.reset_state()
+            subprocess.run(["sh", b.guard, "pre-write"],
+                           input=json.dumps(write(R, [("Update", os.path.join(R, "payments.py"))])).encode(),
+                           capture_output=True, env=e, cwd=R)
+            check("24b absolute in-repo path is production with SDLC_REPO_ROOT unset",
+                  "VIOLATION" in b.tail() and "outside the repository" not in b.tail(),
+                  b.tail())
+
+            # ...and the same path in the OTHER flavour the shell can report, so the
+            # fix is pinned in both directions rather than for whichever one this
+            # host happens to produce.
+            alt = subprocess.run(["sh", "-c", "cd \"$1\" && pwd -W 2>/dev/null || pwd", "_", R],
+                                 capture_output=True, text=True).stdout.strip()
+            if alt:
+                b.reset_state()
+                subprocess.run(["sh", b.guard, "pre-write"],
+                               input=json.dumps(write(R, [("Update", alt + "/payments.py")])).encode(),
+                               capture_output=True, env=e, cwd=R)
+                check("24c the same path in the shell's other flavour is also production",
+                      "VIOLATION" in b.tail() and "outside the repository" not in b.tail(),
+                      b.tail())
+
             p = subprocess.run(["sh", b.guard, "pre-write"],
                                input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=elsewhere)
@@ -492,6 +526,12 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
 
 
 MUTATIONS = [
+    ("drop the second candidate root (reintroduces the §72 defect: an absolute "
+     "in-repo path stops matching whenever the shell's pwd flavour differs from the "
+     "CLI's, so the guard skips every write reported that way)",
+     lambda s: s.replace(
+         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; do',
+         'for cand in "$SDLC_REPO_ROOT"; do')),
     ("drop the compound-command check (reintroduces the D3 false-GREEN defect)",
      lambda s: s.replace('*";"*|*"&"*|*"|"*)', '*"@@never@@"*)')),
     ("regress the separator list to the doubled-only 0.18.0 forms (a single '&' "
@@ -520,18 +560,22 @@ MUTATIONS = [
          '[ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && '
          '[ "$S/red-observed" -nt "$S/last-test-edit" ]',
          '[ -f "$S/red-observed" ]')),
+    # Both anchors below were RE-POINTED at 0.28.1, when the §72 fix replaced the
+    # single `case` with a two-candidate loop. The suite reported them STALE rather
+    # than counting them caught, which is the only reason these two defect classes
+    # did not silently lose their coverage.
     ("charge out-of-repo writes as production (a session scratchpad costs the same "
      "license as an edit to the module guarding the database)",
      lambda s: s.replace(
-         '        /*|?:/*)\n'
-         '          log "write outside the repository - not production source: $p"\n'
-         '          continue ;;\n',
+         '          /*|?:/*)\n'
+         '            log "write outside the repository - not production source: $p"\n'
+         '            continue ;;\n',
          '')),
     ("drop the repo-relative reduction (an absolute path to tests/conftest.py is "
      "charged as a production write - this dialect's live misclassification)",
      lambda s: s.replace(
-         '        "$rl"/*) n=$(printf \'%s\' "$n" | cut -c $((${#rr} + 2))-) ;;',
-         '        "$rl"/*) : ;;')),
+         '          "$cl"/*) rel=$(printf \'%s\' "$n" | cut -c $((${#c} + 2))-); break ;;',
+         '          "$cl"/*) break ;;')),
     ("match the runner against the raw command text (a commit message quoting the "
      "RED command counts as a test run)",
      lambda s: s.replace('    case "$PROBE" in', '    case "$CMD" in')),

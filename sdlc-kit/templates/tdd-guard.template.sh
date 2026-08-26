@@ -227,15 +227,37 @@ case "$MODE" in
       # outside the repository cannot be production source. Compared case-insensitively
       # because Windows hands back either case for the same directory.
       nl=$(printf '%s' "$n" | tr '[:upper:]' '[:lower:]')
-      rr=$(printf '%s' "$SDLC_REPO_ROOT" | tr '\\' '/'); rr=${rr%/}
-      rl=$(printf '%s' "$rr" | tr '[:upper:]' '[:lower:]')
-      case "$nl" in
-        "$rl"/*) n=$(printf '%s' "$n" | cut -c $((${#rr} + 2))-) ;;
-        /*|?:/*)
-          log "write outside the repository - not production source: $p"
-          continue ;;
-        ./*) n=${n#./} ;;
-      esac
+      # TWO candidate roots, tried in turn, because the hook shell's own path flavour
+      # and the flavour the CLI reports paths in NEED NOT AGREE. On Windows an MSYS
+      # shell answers `pwd` with `/d/foo` while the CLI reports `D:\foo`; normalizing
+      # separators does not reconcile those, since the drive form differs too, so a
+      # root taken from `pwd` alone matches nothing that CLI ever sends. Not
+      # hypothetical: it shipped in 0.25.0 and made every absolute path fall to the
+      # "outside the repository" arm below, so the guard SKIPPED every write this CLI
+      # reports by absolute path - which is how it reports them. Measured on an
+      # adopter's own recorded path (FEATURE_PLAN.md §72): the pre-0.25.0 body denied
+      # it, the 0.25.0 body allowed it. A fix meant to narrow the guard's scope opened
+      # a hole in it. Trying both flavours costs one subshell and cannot regress a
+      # POSIX host, where the two answers are identical.
+      rel=""
+      for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; do
+        [ -n "$cand" ] || continue
+        c=$(printf '%s' "$cand" | tr '\\' '/'); c=${c%/}
+        cl=$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')
+        case "$nl" in
+          "$cl"/*) rel=$(printf '%s' "$n" | cut -c $((${#c} + 2))-); break ;;
+        esac
+      done
+      if [ -n "$rel" ]; then
+        n=$rel
+      else
+        case "$nl" in
+          /*|?:/*)
+            log "write outside the repository - not production source: $p"
+            continue ;;
+          ./*) n=${n#./} ;;
+        esac
+      fi
       b=${n##*/}
       case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
       case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
