@@ -100,7 +100,10 @@ For each, read the named files in full — do not sample — and cite evidence p
   coverage-floor establishment proof, the deploy verification, the
   preserved-contract check and the product-contract reconcile, the
   unconsumed-artifact lens's deletion-path contract search, the retirement step's
-  closing-marker re-read, the update
+  closing-marker re-read (0.27.0: it reads the friction line's disposition, so an entry
+  marked `RULING OPEN` must be seen NOT to retire), the backlog uniqueness assert at
+  the phase close, the retro's open-ruling sweep and its age-rule upstream re-check,
+  the update
   classifier, the release workflow's manifest verification, the `tools/` proof
   suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`

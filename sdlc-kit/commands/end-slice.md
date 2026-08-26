@@ -377,7 +377,8 @@ Update `spec/PROJECT_INDEX.md`:
   where a decision was needed? If so, one line to the Kit friction log in
   PROJECT_INDEX, now, in the log's prescribed shape —
   `- <YYYY-MM-DD> — <the friction, one sentence> — open` — the same shape the retro
-  later flips to `absorbed by retro <date>`; an entry without the status word is one
+  later flips to `absorbed by retro <date> — <disposition>`; an entry without the
+  status word is one
   the sweep has to guess about. Slice close is the last moment the evidence is still
   accurate; the retro reads this log and cannot reconstruct what was never recorded —
   one adoption's retros produced 23 findings across three arcs while the log gained

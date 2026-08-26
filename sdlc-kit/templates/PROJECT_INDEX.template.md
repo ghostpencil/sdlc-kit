@@ -22,7 +22,8 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      The two growing record sections (Deferred backlog, Kit friction log) also have an
      exit path: at every phase close, /end-phase retires items whose line carries a
      closing marker — "— done (<fix commit>)" / "— dropped (owner, <date>)" on a
-     backlog entry, the absorbed form on a friction line more than a phase old — into
+     backlog entry, a CLOSED absorbed form on a friction line more than a phase old
+     (an entry still marked RULING OPEN never retires) — into
      spec/PROJECT_INDEX_HISTORY.md, one dated section per close, numbering and
      provenance preserved. An entry without its marker never retires. -->
 
@@ -89,10 +90,16 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
        - <YYYY-MM-DD> — <the friction, one sentence> — open
      flipped in place when a retro absorbs the entry into a report:
        - <YYYY-MM-DD> — <the friction, one sentence> — absorbed by retro <YYYY-MM-DD>
+         — <implemented in <commit> | ruled unpreventable | RULING OPEN>
+       Only the first two dispositions close the entry; RULING OPEN stays live and
+       never retires, however old it is.
      /end-slice's close-out writes the `open` form here, at the moment the friction is
-     still accurate; /sdlc-retro's sweep reads the status word, reports every entry
-     still `open` with its age, and carries anything older than one phase into the
-     next report. One shape for writer and sweep — an entry without a status word is
+     still accurate; /sdlc-retro's sweep reads the status word AND the disposition,
+     reports every entry still `open` with its age, reports absorbed entries whose
+     disposition is RULING OPEN beside them with how many phases since absorption,
+     and carries anything older than one phase into the next report — re-checking it
+     against the current upstream artifact first, since a defect already fixed in a
+     kit release this project has not taken is a finding about the update. One shape for writer and sweep — an entry without a status word is
      one the sweep has to infer about, which is how two entries in a real adoption
      sat statusless until a retro guessed. This is /sdlc-retro's raw material — its
      recorded-but-unactioned sweep mines this section first, because friction that

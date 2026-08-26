@@ -832,8 +832,9 @@ Run `/end-phase` when the last slice is done:
   fresh session at start. At `/end-phase` post-merge bookkeeping, items whose line
   carries closing evidence — a backlog entry marked `— done (<fix commit>)` or
   `— dropped (owner, <date>)` (the backlog presentation writes the marker as the
-  verdict is taken), a Kit-friction line flipped to its absorbed form
-  (`- <date> — <friction> — absorbed by retro <date>`) more
+  verdict is taken), a Kit-friction line flipped to a **closed** absorbed form
+  (`- <date> — <friction> — absorbed by retro <date> — implemented in <commit>`
+  or `— ruled unpreventable`) more
   than one phase ago — move verbatim to
   `spec/PROJECT_INDEX_HISTORY.md` (created on first retirement), one dated section
   per phase close, any numbering and all provenance preserved so an old reference

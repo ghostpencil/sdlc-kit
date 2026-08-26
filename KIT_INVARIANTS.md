@@ -209,7 +209,14 @@ deploy verification, the preserved-contract check and the product-contract
 reconcile, the unconsumed-artifact lens's deletion-path contract search, the
 retirement step's closing-marker re-read (an entry moved to
 `spec/PROJECT_INDEX_HISTORY.md` without its closing marker is pulled back — the
-visible failure), the update
+visible failure; as of 0.27.0 it reads a friction line's **disposition** too, so an
+entry absorbed with `RULING OPEN` must be seen NOT to retire however old it is), the
+backlog's **uniqueness assert** at the phase close (negative case: a duplicated
+identifier surfaced by `sort | uniq -d` instead of folded into a silent count), the
+retro's **open-ruling sweep** (an absorbed entry with nothing built must be seen to be
+reported beside the unabsorbed ones) and its **age-rule upstream re-check** (an aged
+entry whose defect the current kit release already fixed must be seen to be
+reclassified rather than re-filed), the update
 classifier, the release workflow's manifest
 verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
