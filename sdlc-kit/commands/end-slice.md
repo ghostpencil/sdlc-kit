@@ -416,8 +416,28 @@ behavior batch** (the command, the failing line, the exit code — with `not obs
 stated, never omitted, same contract as the quality pass), **verification outcome**
 (the verdicts, or skipped with the reason), **the record check's quoted output**
 (step 8 — COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line**
-(step 9 — quoted, and an `OVER` answered rather than merely reported), any tool
-substituted for one this file names, and commit hashes. End with: **safe to `/clear`**.
+(step 9 — quoted, and an `OVER` answered rather than merely reported), **the final
+architecture footprint** (below, where the project has one), any tool substituted for
+one this file names, and commit hashes. End with: **safe to `/clear`**.
+
+**Regenerate the architecture impact view before handing back**, where the project
+carries one — after the record check and the docs commit, so it describes the slice as
+it actually landed rather than as it looked at the preview:
+
+```
+python .github/hooks/sdlc-impact.py slice        # quote the block it prints
+python .github/hooks/sdlc-impact.py clear-base   # the slice's base is spent
+```
+
+Quote the block, then say **whether the footprint changed from the preview**
+`/next-slice` handed back — a close-out review that added a file the owner never saw in
+the preview is exactly the case worth naming, and it is invisible unless someone
+compares the two. Clearing the base in the same pass is what keeps the next slice from
+computing against a spent one. None of this gates the step: it is a comprehension aid,
+not verification (`spec/SDLC.md`, *Architecture impact view*), its summary never enters
+the commit body's evidence keys, and an `UNAVAILABLE` is one stated line. A project
+whose `spec/SDLC.md` has no such section predates the adapter — say so rather than
+guessing an invocation.
 
 ## Notes
 

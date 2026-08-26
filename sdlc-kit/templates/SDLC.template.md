@@ -428,6 +428,67 @@ ratified behavior can vanish with every gate, test, and review green.
   entered as current and never silently left out — the first real backfill omitted
   three, and only a human reading a document no adopter process reads caught it.
 
+## Architecture impact view — *optional*
+
+A project that carries an **Understand Anything** knowledge graph gets a mechanical
+picture of what each slice and each arc touched: the git change set mapped onto the
+graph's nodes, one hop out through its edges, written back as UA's own
+`diff-overlay.json` and summarized in a few printed lines the daily commands quote.
+The adapter is `.github/hooks/sdlc-impact.py`, installed verbatim and launched
+`python <path>`; it is command-invoked, never a hook.
+
+**It is a comprehension aid, and it is not verification.** Nothing it prints enters
+gate truth, no step passes or fails on it, and it adds no owner halt — the five in
+*Owner halt points* are still the five. A `COMPLETE` summary says the picture was
+drawn, never that the change is correct. Read it the way you would read a map, not a
+test result, and note that its own summary is **not** part of the slice commit's
+evidence record: the close-out checker's keys are unchanged, because a picture is not
+evidence.
+
+**A project without the graph loses nothing.** With no UA directory the adapter prints
+`UNAVAILABLE` with the reason and every step continues exactly as written — an
+optional capability that is not installed has nothing to report. `/next-slice` records
+the slice base only when a graph is present, so a non-adopting project pays no
+footprint at all; the honest cost is that a graph installed mid-slice waits one slice
+before the view works.
+
+Its four states are worth knowing apart:
+
+- **COMPLETE** — every changed project file mapped to a node.
+- **PARTIAL** — the footprint was computed and something is missing *and named*:
+  files the graph does not know, or a graph that may predate the work. The counts are
+  printed with their denominators (`changed-files` beside `mapped-files`) so
+  incompleteness is loud rather than inferred.
+- **UNAVAILABLE** — the capability's environment is absent. Not a failure.
+- **ERROR** — the adapter itself broke on a readable graph. That is kit friction and
+  belongs in the friction log; a graph that exists and will not parse reports here and
+  never as a silent COMPLETE.
+
+**Freshness answers one question only:** had the tree already moved on from the graph
+*before this work began*? It compares the graph's build commit against the slice or
+phase **base**, never against the working tree — this change set's own edits are unseen
+by the graph by definition, and measuring against the tree would call every slice stale
+and make COMPLETE unreachable. No build metadata means `freshness unknown` with the
+reason, never "current".
+
+**The overlay is written only where the UA directory is git-ignored.** *Phase end*
+requires a clean tree and re-asserts it before the merge, so writing into a tracked UA
+directory would dirty the tree at exactly the moments this process checks it. Where the
+directory is not ignored the summary still prints and the file is not written, said
+plainly (`overlay: not written — .ua is not git-ignored`). The same path rule keeps
+UA's own generated files out of the project's changed-file denominator.
+
+Where the view fits: `/next-slice` records the slice base once the branch is settled and
+previews the footprint into the slice-ready hand-back; `/end-slice` regenerates after
+the record check, states **whether the footprint changed from that preview**, and clears
+the spent base in the same pass, so the next slice can never compute against an old one;
+`/end-phase` runs it against the main branch the project's own records name for the
+acceptance hand-back, and regenerates before the merge halt, stating any change since
+acceptance. The two changed-from statements are the ones that earn the view its place:
+a close-out review that adds a file the owner never saw, or a whole-arc review that adds
+one after acceptance, is invisible to every other step. The dashboard is never launched
+automatically.
+
 ## Phase start
 
 Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping, or when

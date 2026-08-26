@@ -55,6 +55,17 @@ observed is not a pass**: anything it could not exercise is reported as unverifi
 assumed. Same caveat as its slice-level twin: this runs in the agent's shell and does
 not stand in for halt 4, the one step in this loop that runs in the owner's.
 
+**Then draw the arc's architecture footprint**, where the project carries an
+Understand Anything graph: run `python .github/hooks/sdlc-impact.py phase <main>` —
+with the main branch **the project's own records name** (`spec/SDLC.md`, *Shape*),
+never a guessed `main` — and quote the block it prints into the acceptance hand-back
+beside the verification result. Quote it rather than paraphrase it; the point is that
+the selection is mechanical. It is a comprehension aid and not verification
+(`spec/SDLC.md`, *Architecture impact view*): it gates nothing, adds no halt, and an
+`UNAVAILABLE` is one stated line rather than a blocked step. A project whose
+`spec/SDLC.md` has no such section predates the adapter — say so instead of guessing an
+invocation.
+
 This is what step 3 draws on. An arc that reaches the acceptance halt with nothing
 observed puts the owner in front of a system no one has run, and the halt passes
 vacuously.
@@ -207,6 +218,15 @@ fix batch, each per the hand-back standard: plain English, numbered and marked, 
 with a recommendation.
 
 ### 6. Merge approval — HALT
+
+**Regenerate the architecture footprint first**, where the project carries one, so the
+picture the owner approves against is the arc as it now stands rather than as it stood
+before step 5's fixes: `python .github/hooks/sdlc-impact.py phase <main>`, the main
+branch again taken from the project's own records. Quote it, and state any change from
+the footprint presented at acceptance — a whole-arc review that added a file after the
+owner accepted is precisely the case worth naming here, and nothing else in this step
+would surface it. No halt is added and nothing gates on it; this halt is the merge
+decision, exactly as before.
 
 Present per the hand-back standard: a plain-English executive summary in bullets — PR
 link, review outcome (N fixed / N deferred-to-backlog), final gate results, CI status

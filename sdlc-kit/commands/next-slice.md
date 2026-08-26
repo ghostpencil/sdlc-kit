@@ -106,6 +106,15 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
   it for the **arc's theme**, not for this first slice, because later slices accumulate
   onto it and a branch named for its first slice misdescribes everything after).
 - Never implement a slice directly on the main branch.
+- **Record the slice base for the architecture impact view**, once the branch is
+  settled and before any implementation begins:
+  `python .github/hooks/sdlc-impact.py record-base`. It prints one line and does
+  nothing at all on a project without an Understand Anything graph, which is most
+  projects — `spec/SDLC.md` (*Architecture impact view*) is the canonical statement.
+  The base has to be taken here because every slice of the arc accumulates on one
+  branch, so `<main>...HEAD` would describe the whole phase rather than this slice.
+  A project whose `spec/SDLC.md` has no such section predates the adapter; skip this
+  and say so in the hand-back rather than guessing an invocation.
 
 ### 4. Enter the TDD loop
 
@@ -143,6 +152,15 @@ When the slice's exit criteria are met, tell the owner the slice is ready for cl
 English — **and stop there. Do not run `/end-slice`; the owner runs it** (gate, quality
 pass, review, mutation check, verification, commit, record check, PROJECT_INDEX,
 then `/clear`).
+
+**Quote the architecture impact preview in that hand-back**, where the project has one:
+run `python .github/hooks/sdlc-impact.py slice` and paste the block it prints. Quote it,
+never paraphrase it — the value is that the selection is mechanical, and a summary of a
+summary is a model's opinion about the footprint rather than the footprint. It is a
+comprehension aid and explicitly not verification (`spec/SDLC.md`, *Architecture impact
+view*), so it never gates the hand-back: `UNAVAILABLE` is stated in one line and the
+hand-back proceeds, since absence must be visible rather than silent. `ERROR` is worth a
+Kit-friction line at close-out.
 Close-out commits and pushes without asking, so this hand-back is the owner's one
 moment to look at the work before it lands on the arc branch — a summary delivered in
 the same turn as the commit it describes is a summary no one could act on.
