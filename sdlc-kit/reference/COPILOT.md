@@ -23,6 +23,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | TDD-ordering guards (optional, per dialect since 0.21.0) | `.github/hooks/sdlc-tdd-guard.py` + four hook blocks in `.claude/settings.json` — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` |
 | Skill-activation ledger (optional, logging-only) | `.github/hooks/sdlc-skill-ledger.sh` + the `"Skill"`-matcher launcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
 | Close-out evidence checker (always; a command step run by `/end-slice`, not a hook) | `.github/hooks/sdlc-close-out.sh`, invoked `sh …` from the Bash tool | the same file — but the shell tool resolves no `sh` (measured 2026-08-10, and its PATH's `bash` is WSL's, the corrupting route), so the invocation derives sh from the git on its PATH and `spec/SDLC.md` records the proven literal form |
+| Architecture-impact adapter (always; a command step the daily commands invoke, not a hook) | `.github/hooks/sdlc-impact.py`, invoked `python …` | **the same file and the same invocation** — it is Python rather than shell, so the `sh`-resolution problem in the row above does not arise, and no dialect fork exists. Inert without an Understand Anything graph on either CLI. |
 | Close-out stop-time backstop (optional, offered from 0.22.0; the same script's `stop-check` mode) | a launcher-neutral `sh -c` `Stop` block in `.claude/settings.json` — no `"shell"` pin, which was measured never firing on 2.1.231 (GATE_RECIPES, *The hook environment*) | `.github/hooks/sdlc-close-out.json`, `agentStop`, the guard JSON's `cat \| sh …` wrapper shape |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
@@ -618,7 +619,7 @@ is never evidence of the other.
 | Strong | `CLAUDECODE=1` (also `CLAUDE_CODE_ENTRYPOINT`, `CLAUDE_CODE_SESSION_ID`) | setup is running inside Claude Code |
 | Bonus | `AI_AGENT` — **prefix match only** | whichever CLI the prefix names |
 | Medium | `.claude/settings.json`, `.claude/commands/` | repo already set up for Claude Code |
-| Medium | `.github/hooks/` beyond `sdlc-close-out.sh` (which installs on both CLIs from 0.20.0 and signals nothing), `.github/agents/`, `.github/copilot-instructions.md`, `.github/copilot/settings.json` | repo already set up for Copilot CLI |
+| Medium | `.github/hooks/` beyond `sdlc-close-out.sh` and `sdlc-impact.py` (both install on both CLIs — from 0.20.0 and 0.28.0 — and signal nothing), `.github/agents/`, `.github/copilot-instructions.md`, `.github/copilot/settings.json` | repo already set up for Copilot CLI |
 | Weak | `claude` / `copilot` on `PATH` | installed on this machine; says nothing about this repo |
 
 Three traps, each of which has already caught someone:

@@ -62,9 +62,11 @@ and it instantiates every template, installs the four daily commands, `sdlc-retr
 `sdlc-update.md`, the vendored TDD skill set, and the three kit-written change passes
 (`diff-review`, `change-simplify`, `change-verify`), writes the edit-time hook, and
 installs the close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, verbatim,
-both CLIs) and offers its stop-time backstop (`.github/hooks/sdlc-close-out.json` on
-Copilot, a `Stop` settings block on Claude Code) — the `.sh` and `.json` are the two
-kit-owned files in that directory.
+both CLIs), offers its stop-time backstop (`.github/hooks/sdlc-close-out.json` on
+Copilot, a `Stop` settings block on Claude Code), and installs the architecture-impact
+adapter (`.github/hooks/sdlc-impact.py`, verbatim, both CLIs, never offered — it is
+inert without an Understand Anything graph) — those three are the kit-owned files in
+that directory; every other file there is project-owned.
 `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
 *Updating an adopted project* section state the same procedure and must agree.

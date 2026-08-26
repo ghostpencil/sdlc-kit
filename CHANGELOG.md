@@ -10,6 +10,100 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.28.0 — 2026-08-26
+
+**IMPACT** (`FEATURE_PLAN.md` §66, opened 2026-08-18 and ruled the same day; built
+2026-08-26). The §56.3 (d) hold resolved: the owner's visualization spec arrives at
+the root as `FEATURE_SPEC_IMPACT.md`, and eight triage deltas win over it wherever
+they disagree. A project carrying an **Understand Anything** knowledge graph now gets
+a mechanical picture of what each slice and each arc touched — the git change set
+mapped onto the graph's nodes, one hop out through its edges, written back as UA's own
+`diff-overlay.json` and summarized in a few lines the daily commands quote.
+
+**It is a comprehension aid and explicitly not verification.** Nothing it prints
+enters gate truth, no step passes or fails on it, and it adds no owner halt — the five
+stay five. Its summary is deliberately **not** one of the close-out record's keys, so
+the checker's five-key denominator is unchanged: a picture is not evidence. A project
+without a graph loses nothing and pays no footprint at all.
+
+### Added
+- **[adoption-only]** `templates/sdlc-impact.template.py` →
+  `.github/hooks/sdlc-impact.py`, copied verbatim, both CLIs, **installed
+  unconditionally and never offered**. Stdlib only, zero placeholders, launched
+  shell-neutrally (`python <path>`) — command-invoked rather than hooked, so the PIN
+  class never applies and there is no dialect fork. Modes `record-base`, `slice`,
+  `phase <base-ref>`, `clear-base`. Four states, and the distinction that carries the
+  weight is **UNAVAILABLE vs ERROR**: an absent graph is an optional capability that
+  is not installed, while a graph that exists and will not parse is ERROR — never a
+  silent COMPLETE, and never UNAVAILABLE, which would read as *you do not have this
+  feature* to someone who has a broken one. PARTIAL prints its denominators
+  (`changed-files` beside `mapped-files`, unmatched files **named** rather than
+  counted), so incompleteness is loud rather than inferred.
+- **[repo]** `tools/impact-check.py` — 17 cases and 13 mutations, all green. Every
+  negative case spec §23 requires, plus the two the deltas add. Its bench repos are
+  built from `tools/impact-fixtures/`, a seed **minimized from an observed UA pair**
+  (331 nodes → 44) rather than invented, because cases 5, 6 and 7 are precisely the
+  ones an invented graph gets wrong unnoticed: the seed carries a real file with five
+  nodes, a real file→class pair joined by **both** `contains` and `exports`, and that
+  same pair both-changed and adjacent. `SEED.md` records provenance and forbids
+  hand-editing it to match a future schema.
+
+### Changed
+- **[adoption-only]** `SDLC.template.md` gains *Architecture impact view — optional*
+  as the canonical statement (invariant 2): the four states, the not-verification
+  rule, what a project without a graph experiences, and where the view fits in the
+  loop.
+- **[installable]** Three command mirrors, each running the adapter and **quoting** it
+  rather than restating its behavior. `/next-slice` step 3 records the slice base once
+  the branch is settled and before any implementation — every slice accumulates on one
+  arc branch, so `<main>...HEAD` would describe the whole phase — and step 5 quotes the
+  preview into the slice-ready hand-back. `/end-slice` step 10 regenerates after the
+  record check, states **whether the footprint changed from the preview**, and clears
+  the spent base in the same pass. `/end-phase` runs the arc footprint after step 2 for
+  the acceptance hand-back and regenerates before the merge halt. **The two changed-from
+  statements are what earn the view its place**: a close-out review that adds a file the
+  owner never saw, or a whole-arc review that adds one after acceptance, is invisible to
+  every other step.
+- **[installable]** `sdlc-setup.md` installs the adapter in New-mode step 5 and the
+  Existing-mode column. Nothing is proven or offered for it and no graph is looked for
+  at setup time — discovery happens at run time, so a graph added six months later
+  works with no re-run. The exit check's verbatim-file enumeration goes from six to
+  seven.
+- **[installable]** `sdlc-update.md` and the root README carry the mirrored 0.28.0
+  transition note; `reference/COPILOT.md` gains the mapping row — same file, same
+  invocation, no dialect fork, because Python sidesteps the `sh`-resolution problem
+  the close-out checker's row records.
+
+### Fixed (found by writing the proof, before any release)
+- **Freshness was measured against the wrong thing.** Delta (g) specifies the graph
+  commit diffed against the **base**; it diffed against the working tree. A change
+  set's own edits are unseen by the graph *by definition* — that is what the overlay
+  draws — so every slice would have reported `may be stale` and COMPLETE would have
+  been unreachable. The signal would have been noise from the first arc.
+- **The adapter crashed with a traceback and exit 1.** Its own module docstring
+  promised it "must never take down the step that quotes it", and that promise existed
+  only as prose. Any unexpected exception is now `SDLC IMPACT: ERROR` with the
+  exception named.
+- **The checks were ordered wrong.** A project with no graph was told *no slice base
+  recorded — run /next-slice first*, which is misleading: `record-base` is conditional
+  on a graph, so `/next-slice` would not record one either.
+- **The overlay path printed with a platform-dependent separator**, so two runs of the
+  same tree differed on Windows alone.
+
+### Repo (not shipped in the bundle)
+- The mutation pass found two gaps in the proof's own corpus and both were closed: a
+  case for "UA's generated files are not project changes" had built its bench with the
+  UA directory git-ignored, so git never reported those files and the adapter's path
+  rule was never exercised — it passed because `.gitignore` was doing the work; and a
+  mutation anchor written with a single backslash inside a Python string literal
+  silently matched nothing, reported as *anchor not found — the mutation is stale*
+  rather than counted as caught.
+- Invariant 13's denominator gains the adapter's four-state taxonomy in both homes;
+  root `CLAUDE.md`, the README tree and ownership table, and
+  `sdlc-kit-process-flow.md` all record the third kit-owned file in
+  `.github/hooks/` — the derived-statement sweep §65 requires, run over the files that
+  *describe* the behavior and not only the ones that implement it.
+
 ## 0.27.0 — 2026-08-26
 
 The ninth field report's small batch (`FEATURE_PLAN.md` §70, ruled 2026-08-26). The

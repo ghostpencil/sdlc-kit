@@ -218,7 +218,10 @@ reported beside the unabsorbed ones) and its **age-rule upstream re-check** (an 
 entry whose defect the current kit release already fixed must be seen to be
 reclassified rather than re-filed), the update
 classifier, the release workflow's manifest
-verification, the `tools/` proof suites, and `/kit-check` itself — must state how it is
+verification, the architecture-impact adapter's four-state taxonomy (0.28.0 — its
+negative cases live in `tools/impact-check.py`: a graph that will not parse must be
+seen to report ERROR rather than a silent COMPLETE, and an un-ignored UA directory
+must be seen to write no overlay), the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
 being added here is one the pass will not think to look for. Adding a check means

@@ -34,6 +34,12 @@ never overwriting). Either way it leaves the project with:
 - **The hook guards** — the edit-time gate hook (always offered), the TDD-ordering
   guards (Copilot CLI only, optional, logging mode first), and the skill-activation
   ledger (optional, logging-only, both CLIs). Detailed below.
+- **The architecture-impact adapter** (`.github/hooks/sdlc-impact.py`, both CLIs,
+  from 0.28.0) — installed unconditionally and **inert unless the project carries an
+  Understand Anything knowledge graph**, in which case `/next-slice`, `/end-slice` and
+  `/end-phase` quote a mechanical picture of what the slice or arc touched. A
+  comprehension aid, never verification: it gates nothing, adds no halt, and its
+  summary is deliberately not one of the close-out record's keys.
 - **A green gate** — the lint / typecheck / test commands recorded in `spec/SDLC.md`
   with their baseline (zero for a clean adoption, the measured counts for a project
   adopted red). The gate must match what CI already runs, or the gate lies.

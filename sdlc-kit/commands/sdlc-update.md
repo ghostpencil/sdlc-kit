@@ -665,6 +665,22 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   mutation. **A project that took 0.26.0 has the dangerous wording installed**;
   updating replaces it, and until then do not run the §5 recipe on a file whose
   slice work is uncommitted.
+- **0.28.0 installs one new file and asks nothing of a project without a graph.**
+  `.github/hooks/sdlc-impact.py` — the architecture-impact adapter — is kit-owned and
+  copied verbatim, so it arrives with the update like the close-out checker. It is
+  **inert unless the project carries an Understand Anything knowledge graph**: every
+  command that quotes it prints `UNAVAILABLE` and one stated line, and nothing gates,
+  fails, or halts on it. That is why it is installed unconditionally rather than
+  offered — most projects will never install a graph, the cost is one file, and a
+  graph added later works with no re-run of setup, since discovery happens at run
+  time. Add the file and the three command mirrors arrive with it; there is nothing to
+  prove and nothing to arm. Two things to say at the halt for a project that **does**
+  carry a graph: the adapter writes its overlay only into a **git-ignored** UA
+  directory (the phase close requires a clean tree and re-asserts it before the merge,
+  so a tracked UA directory gets the summary and no overlay, stated); and the view is
+  a **comprehension aid, never verification** — nothing it prints enters gate truth,
+  and its summary is deliberately not one of the close-out record's keys, so the
+  checker's five-key denominator is unchanged.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

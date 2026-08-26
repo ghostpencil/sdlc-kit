@@ -214,6 +214,9 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   │                                   close-out evidence checker /end-slice runs; no values)
 │   ├── close-out-hook.template.json → .github/hooks/sdlc-close-out.json (optional: the checker's
 │   │                                   stop-time backstop wiring, Copilot dialect; no values)
+│   ├── sdlc-impact.template.py      → .github/hooks/sdlc-impact.py (both CLIs, always: the
+│   │                                   architecture-impact adapter; inert without an
+│   │                                   Understand Anything graph; no values)
 │   └── explore.agent.template.md    → .github/agents/explore.agent.md (Copilot only: read-only sweeps)
 ├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
@@ -295,8 +298,9 @@ The whole procedure rests on this split:
 | `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the eight `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
-| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; the one `.sh` in that directory the kit owns — its neighbors are project-owned. |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the three kit-owned files in that directory (with `sdlc-close-out.json` and `sdlc-impact.py`) — every other file there is project-owned. |
 | `.github/hooks/sdlc-close-out.json` (Copilot, offered from 0.22.0: the checker's stop-time backstop wiring — present only where accepted) | **kit** | Same rule — compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes your accept; the update never adds or removes it. |
+| `.github/hooks/sdlc-impact.py` (both CLIs, from 0.28.0: the architecture-impact adapter) | **kit** | Same rule — compared against `templates/sdlc-impact.template.py`, which it copies verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined. |
 | `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
@@ -741,6 +745,18 @@ only as a hand-apply, and the per-version transition notes name each one.
    are on 0.26.0, that wording is installed — until you update, do not run it on a
    file whose slice work is uncommitted. The update command's 0.27.0 notes state the
    same procedure.
+
+   **0.28.0 adds one kit-owned file and asks nothing of a project without a graph.**
+   `.github/hooks/sdlc-impact.py`, the architecture-impact adapter, arrives verbatim
+   with the update. It is **inert unless your project carries an Understand Anything
+   knowledge graph** — every command that quotes it prints `UNAVAILABLE` and one line,
+   and nothing gates, fails, or halts on it — which is why it installs unconditionally
+   rather than being offered. If you *do* have a graph: the overlay is written only
+   into a **git-ignored** UA directory, because `/end-phase` requires a clean tree and
+   re-asserts it before the merge, so a tracked one gets the summary and no file. And
+   the view is a comprehension aid, never verification: nothing it prints enters gate
+   truth, and its summary is deliberately not one of the close-out record's keys. The
+   update command's 0.28.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,

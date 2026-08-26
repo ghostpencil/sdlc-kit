@@ -104,8 +104,9 @@ For each, read the named files in full — do not sample — and cite evidence p
   marked `RULING OPEN` must be seen NOT to retire), the backlog uniqueness assert at
   the phase close, the retro's open-ruling sweep and its age-rule upstream re-check,
   the update
-  classifier, the release workflow's manifest verification, the `tools/` proof
-  suites, and this command.
+  classifier, the release workflow's manifest verification, the impact adapter's
+  four-state taxonomy (0.28.0; negative cases in `tools/impact-check.py`), the
+  `tools/` proof suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that

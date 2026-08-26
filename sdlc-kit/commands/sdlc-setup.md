@@ -515,6 +515,31 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    exits 0 even on its own errors, and a mode that cannot fail a step cannot lie
    about one.
 
+   **Install the architecture-impact adapter — both CLIs, always, and inert without
+   a graph.** `sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py`, copied
+   verbatim; it takes no values, so like the checker it is never edited. It is not a
+   hook either despite the address: the daily commands invoke it as a command step,
+   launched `python .github/hooks/sdlc-impact.py <mode>` — shell-neutral, the same
+   rationale the settings template records for the guard launchers.
+
+   **Nothing is proven or offered for it, and that is deliberate.** It gates no step,
+   fails no step, and adds no halt — a project without an Understand Anything
+   knowledge graph gets `UNAVAILABLE` and one stated line from every command that
+   quotes it, which is the whole of its behavior there. Most projects will never
+   install a graph, and installing the adapter anyway costs one file and keeps the
+   commands' instructions true for the projects that do. Do **not** ask the owner
+   whether they want it, and do not look for a graph at setup time: the commands
+   discover it at run time, so a graph added six months from now works with no
+   re-run of setup (`spec/SDLC.md`, *Architecture impact view*, is the canonical
+   statement and is instantiated whether or not a graph exists).
+
+   One thing to tell the owner in the setup summary, once, where a `.ua/` or
+   `.understand-anything/` directory **is** already present: the adapter writes its
+   overlay only into a **git-ignored** UA directory, because `/end-phase` requires a
+   clean tree and re-asserts it before the merge. If theirs is tracked, the summary
+   still prints and the overlay does not — say so at the feedback halt rather than
+   letting them discover it at a phase close.
+
    **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
    optional where the checker itself is not.** The same script's `stop-check` mode,
    wired as a stop hook: at session end it classifies the *unpushed* commits by the
@@ -716,8 +741,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    on Claude Code, both on a both-CLIs project (the gate's
    and the guard's `.json` launchers take no values, and neither do the
    skill-ledger's — `sdlc-skill-ledger.json` and `sdlc-skill-ledger.sh` alike — the
-   backstop's (`sdlc-close-out.json`), or
-   `.github/hooks/sdlc-close-out.sh` — all copied verbatim — so none of the six is
+   backstop's (`sdlc-close-out.json`),
+   `.github/hooks/sdlc-close-out.sh`, or `.github/hooks/sdlc-impact.py` — all copied
+   verbatim — so none of the seven is
    in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,
