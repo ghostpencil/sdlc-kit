@@ -236,6 +236,7 @@ tools/skill-ledger-check.py          ← proves the skill-activation ledger, bot
 tools/tdd-guard-check.py             ← proves the TDD guards, then mutates them to prove the proof
 tools/tdd-guard-claude-check.py      ← proves the Claude Code guard dialect the same two-pass way
 tools/close-out-check.py             ← proves the close-out evidence checker, corpus + mutations
+tools/impact-check.py                ← proves the architecture-impact adapter, cases + mutations
 tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
                                        Understand Anything graph + overlay (SEED.md has provenance)
 .gitattributes                       ← pins LF — the manifest hashes depend on it
@@ -366,20 +367,26 @@ only as a hand-apply, and the per-version transition notes name each one.
    for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
                            .github/skills .github/agents \
                            .github/hooks/sdlc-close-out.sh \
-                           .github/hooks/sdlc-close-out.json); do
+                           .github/hooks/sdlc-close-out.json                            .github/hooks/sdlc-impact.py); do
      have=""
      case "$f" in
        .github/hooks/sdlc-close-out.sh)
-         # one of the two kit-owned files in .github/hooks/ — copied verbatim, no
+         # one of the THREE kit-owned files in .github/hooks/ — copied verbatim, no
          # project values. Their neighbors are project-owned and deliberately NOT in
          # the pathspec above: this loop must never classify the gate, guard, or ledger scripts.
          base=sdlc-close-out.sh
          want=$(awk '$2 == "templates/close-out.template.sh" {print $1}' "$MAN") ;;
        .github/hooks/sdlc-close-out.json)
-         # the other: the stop-time backstop's Copilot wiring, present only where
+         # the second: the stop-time backstop's Copilot wiring, present only where
          # the 0.22.0 offer was accepted (git ls-files skips it otherwise).
          base=sdlc-close-out.json
          want=$(awk '$2 == "templates/close-out-hook.template.json" {print $1}' "$MAN") ;;
+       .github/hooks/sdlc-impact.py)
+         # the third: the architecture-impact adapter (0.28.0), verbatim on both CLIs.
+         # A project coming from a pre-0.28.0 kit has no such file yet — git ls-files
+         # skips it and it arrives as a new install like any other.
+         base=sdlc-impact.py
+         want=$(awk '$2 == "templates/sdlc-impact.template.py" {print $1}' "$MAN") ;;
        .claude/skills/*)
          base=${f#.claude/skills/}
          # skills/ installs one directory per skill here from 0.14.0 on.

@@ -18,7 +18,8 @@ the project owns.**
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
-| `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — the one `.sh` in that directory the kit owns; its neighbors are project-owned |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — one of the three kit-owned files in that directory; its other neighbors are project-owned |
+| `.github/hooks/sdlc-impact.py` (both CLIs: the architecture-impact adapter, from 0.28.0) | kit | same rule; compared against `templates/sdlc-impact.template.py`, copied verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined |
 | `.github/hooks/sdlc-close-out.json` (Copilot: the checker's stop-time backstop wiring, offered from 0.22.0 — present only where accepted) | kit | same rule; compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes the owner's accept; the update never adds or removes it — the 0.22.0 note below offers it where the choice was never put |
 | `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
@@ -88,21 +89,29 @@ MAN=/tmp/kit-old/sdlc-kit/MANIFEST.sha256
 for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
                         .github/skills .github/agents \
                         .github/hooks/sdlc-close-out.sh \
-                        .github/hooks/sdlc-close-out.json); do
+                        .github/hooks/sdlc-close-out.json \
+                        .github/hooks/sdlc-impact.py); do
   have=""
   case "$f" in
     .github/hooks/sdlc-close-out.sh)
       base=sdlc-close-out.sh
-      # one of the two kit-owned files in .github/hooks/ — copied verbatim, no
+      # one of the THREE kit-owned files in .github/hooks/ — copied verbatim, no
       # project values. Their neighbors are project-owned and deliberately NOT in
       # the pathspec above: this loop must never classify the gate, guard, or
       # ledger scripts.
       want=$(awk '$2 == "templates/close-out.template.sh" {print $1}' "$MAN") ;;
     .github/hooks/sdlc-close-out.json)
       base=sdlc-close-out.json
-      # the other kit-owned file: the stop-time backstop's Copilot wiring, present
+      # the second kit-owned file: the stop-time backstop's Copilot wiring, present
       # only where the 0.22.0 offer was accepted (git ls-files skips it otherwise).
       want=$(awk '$2 == "templates/close-out-hook.template.json" {print $1}' "$MAN") ;;
+    .github/hooks/sdlc-impact.py)
+      base=sdlc-impact.py
+      # the third kit-owned file: the architecture-impact adapter (0.28.0), copied
+      # verbatim on both CLIs. A project updating FROM a pre-0.28.0 kit has no such
+      # file, so git ls-files skips it and the add happens at step 6 like any other
+      # new install — this branch classifies it on every update after that.
+      want=$(awk '$2 == "templates/sdlc-impact.template.py" {print $1}' "$MAN") ;;
     .claude/commands/*)
       base=${f#.claude/commands/}
       # commands/ and reference/REVIEW_LENSES.md install here. So did skills/ on kits

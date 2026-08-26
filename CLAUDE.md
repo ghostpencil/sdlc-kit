@@ -46,7 +46,8 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
                                               sdlc-gate-claude.sh, sdlc-tdd-guard.py,
                                               sdlc-skill-ledger.sh where accepted)
                                              (Copilot: .github/hooks/, .github/agents/)
-                                             (both CLIs: .github/hooks/sdlc-close-out.sh)
+                                             (both CLIs: .github/hooks/sdlc-close-out.sh
+                                              and .github/hooks/sdlc-impact.py)
   commands/*.md                              .claude/commands/*.md
                                              (Copilot: .github/skills/<name>/SKILL.md)
   skills/<name>/SKILL.md                     .claude/skills/<name>/SKILL.md
