@@ -195,15 +195,20 @@ def layers_for(graph, node_ids):
     return names
 
 
-def freshness(root, ua_path, changed):
-    """v1 freshness: does the graph predate project files this change set touches?
+def freshness(root, ua_path, base):
+    """v1 freshness: had the tree already moved on from the graph BEFORE this work began?
+
+    The comparison is graph-commit against the BASE, never against the working tree.
+    That distinction is the whole rule: this change set's own edits are unseen by the
+    graph by definition - that is what the overlay exists to draw - so measuring
+    against the working tree would report "may be stale" on virtually every slice and
+    make COMPLETE unreachable. What matters is whether the graph already
+    mis-described the tree the work started from.
 
     Deliberately simpler than the spec's monorepo-aware version, which needs a project
-    path scope nothing in the contract supplies. The graph records the commit it was
-    built at; anything this change set touches that the graph has not seen makes it
-    POSSIBLY stale, and the number is reported so the owner can weigh it. No metadata
-    means unknown, said plainly - never "current", which would be a claim the artifact
-    does not support.
+    path scope nothing in the contract supplies: here ANY project file changed between
+    the graph commit and the base counts. No metadata means unknown, said plainly -
+    never "current", which would be a claim the artifact does not support.
     """
     path = os.path.join(ua_path, META_NAME)
     if not os.path.isfile(path):
@@ -219,15 +224,14 @@ def freshness(root, ua_path, changed):
     code, out = git("-C", root, "cat-file", "-e", commit + "^{commit}")
     if code != 0:
         return "unknown - graph commit %s not in this repository" % commit[:8], False
-    code, out = git("-C", root, "diff", "--name-only", commit, "--")
+    code, out = git("-C", root, "diff", "--name-only", commit, base, "--")
     if code != 0:
-        return "unknown - could not diff against graph commit %s" % commit[:8], False
-    since = set(out.split("\n")) if out else set()
-    overlap = sorted(since.intersection(changed))
-    if not overlap:
-        return "current for this change set (graph at %s)" % commit[:8], False
-    return ("may be stale - %d of this change set's files changed since graph commit %s"
-            % (len(overlap), commit[:8])), True
+        return "unknown - could not diff graph commit %s against the base" % commit[:8], False
+    since = [f for f in out.split("\n") if f] if out else []
+    if not since:
+        return "current at the base (graph at %s)" % commit[:8], False
+    return ("may be stale - %d project files changed between graph commit %s and the base"
+            % (len(since), commit[:8])), True
 
 
 def write_overlay(root, ua_path, ua_name, base_branch, changed, changed_ids, affected):
@@ -356,7 +360,7 @@ def run(scope, root, base, base_branch):
     changed_ids, unmatched = map_nodes(graph, changed)
     affected = one_hop(graph, changed_ids)
     layer_names = layers_for(graph, changed_ids + affected)
-    fresh_text, stale = freshness(root, ua_path, changed)
+    fresh_text, stale = freshness(root, ua_path, base)
     overlay = write_overlay(root, ua_path, ua_name, base_branch,
                             changed, changed_ids, affected)
 
@@ -394,6 +398,13 @@ def main(argv):
     if mode == "clear-base":
         return cmd_clear_base(root)
     if mode == "slice":
+        # The graph is checked first on purpose: a project that never adopted
+        # Understand Anything must be told THAT, not told to run /next-slice - which
+        # would not record a base either, since record-base is conditional on a graph.
+        # The commonest UNAVAILABLE deserves the actionable reason.
+        ua_path, ua_name = resolve_ua_dir(root)
+        if not ua_path or not os.path.isfile(os.path.join(ua_path, GRAPH_NAME)):
+            return run("slice", root, None, None)
         base, problem = read_base(root)
         if problem:
             return emit("UNAVAILABLE", "slice", [], reason=problem)
@@ -416,5 +427,25 @@ def main(argv):
                        "phase <base-ref> | clear-base)" % mode)
 
 
+def guarded(argv):
+    """Any unexpected exception becomes ERROR, never a traceback.
+
+    This adapter is quoted by a step, and a comprehension aid that takes down the step
+    quoting it has cost more than it returns. ERROR is exactly the state reserved for
+    "the adapter broke given a readable graph" - so an unhandled fault is reported in
+    the same grammar as everything else, with the exception named so the friction is
+    reportable upstream rather than mysterious. A traceback on stderr and a non-zero
+    exit would be indistinguishable, to the step, from the tool being broken beyond
+    use. This existed as a docstring promise and not as code until the proof crashed
+    the adapter and the harness saw exit 1 with empty output.
+    """
+    try:
+        return main(argv)
+    except Exception as exc:                     # deliberately broad: see above
+        return emit("ERROR", "unknown", [],
+                    reason="the adapter raised %s: %s"
+                           % (type(exc).__name__, exc))
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(guarded(sys.argv))
