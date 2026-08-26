@@ -233,6 +233,8 @@ tools/skill-ledger-check.py          ← proves the skill-activation ledger, bot
 tools/tdd-guard-check.py             ← proves the TDD guards, then mutates them to prove the proof
 tools/tdd-guard-claude-check.py      ← proves the Claude Code guard dialect the same two-pass way
 tools/close-out-check.py             ← proves the close-out evidence checker, corpus + mutations
+tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
+                                       Understand Anything graph + overlay (SEED.md has provenance)
 .gitattributes                       ← pins LF — the manifest hashes depend on it
 .gitignore
 README.md                            ← you are here

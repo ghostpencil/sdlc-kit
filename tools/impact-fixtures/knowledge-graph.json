@@ -1,0 +1,1209 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "FixtureProject",
+    "languages": [
+      "python",
+      "markdown"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "class:tfit_qa_server.py:Handler",
+      "type": "class",
+      "name": "Handler",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        2314,
+        3305
+      ],
+      "summary": "The single BaseHTTPRequestHandler subclass that dispatches every GET and POST ro…",
+      "tags": [
+        "api-handler",
+        "middleware",
+        "security",
+        "routing"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tfit_ratelimit.py:Decision",
+      "type": "class",
+      "name": "Decision",
+      "filePath": "tfit_ratelimit.py",
+      "lineRange": [
+        107,
+        144
+      ],
+      "summary": "Dataclass carrying a rate-limit verdict: explicit allow/deny/unavailable state,…",
+      "tags": [
+        "data-model",
+        "rate-limiting",
+        "dataclass"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tfit_ratelimit.py:RateLimiter",
+      "type": "class",
+      "name": "RateLimiter",
+      "filePath": "tfit_ratelimit.py",
+      "lineRange": [
+        147,
+        419
+      ],
+      "summary": "Thread-safe DuckDB-backed limiter implementing check_and_consume with burst rows…",
+      "tags": [
+        "rate-limiting",
+        "duckdb",
+        "service",
+        "fail-closed"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tools/build_golden_set.py:Spend",
+      "type": "class",
+      "name": "Spend",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        291,
+        320
+      ],
+      "summary": "Running spend tracker for the Claude calls: accumulates cache-write, cache-read,…",
+      "tags": [
+        "cost-control",
+        "token-usage",
+        "accounting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:usage_store.py:UsageStore",
+      "type": "class",
+      "name": "UsageStore",
+      "filePath": "usage_store.py",
+      "lineRange": [
+        174,
+        391
+      ],
+      "summary": "Records one row per paid Claude call into tfit_usage.duckdb and serves an aggreg…",
+      "tags": [
+        "usage-tracking",
+        "database",
+        "graceful-degradation",
+        "observability"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:spec/PRODUCT_CONTRACT.md",
+      "type": "document",
+      "name": "PRODUCT_CONTRACT.md",
+      "filePath": "spec/PRODUCT_CONTRACT.md",
+      "summary": "Owner-ratified statement of externally observable app behaviors that must be pre…",
+      "tags": [
+        "documentation",
+        "product-contract",
+        "sdlc",
+        "governance"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:spec/PROJECT_INDEX.md",
+      "type": "document",
+      "name": "PROJECT_INDEX.md",
+      "filePath": "spec/PROJECT_INDEX.md",
+      "summary": "The SDLC status hub for the app code: current phase, START HERE next-work pointe…",
+      "tags": [
+        "documentation",
+        "project-status",
+        "backlog",
+        "sdlc",
+        "entry-point"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_usage_store.py",
+      "type": "file",
+      "name": "test_usage_store.py",
+      "filePath": "tests/test_usage_store.py",
+      "summary": "Test suite for UsageStore: recording and summary round trips, untrusted usage pa…",
+      "tags": [
+        "test",
+        "usage-tracking",
+        "error-handling",
+        "pytest"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_usage_wiring.py",
+      "type": "file",
+      "name": "test_usage_wiring.py",
+      "filePath": "tests/test_usage_wiring.py",
+      "summary": "Test suite for the server's usage-recording wiring: every paid call path (draft,…",
+      "tags": [
+        "test",
+        "usage-tracking",
+        "integration",
+        "pytest"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tfit_qa_server.py",
+      "type": "file",
+      "name": "tfit_qa_server.py",
+      "filePath": "tfit_qa_server.py",
+      "summary": "The main Q&A web application: a stdlib HTTP server that answers cited questions…",
+      "tags": [
+        "entry-point",
+        "api-handler",
+        "service",
+        "web-server",
+        "qa-app",
+        "tested"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tfit_ratelimit.py",
+      "type": "file",
+      "name": "tfit_ratelimit.py",
+      "filePath": "tfit_ratelimit.py",
+      "summary": "The M6 spend limiter guarding the three paid Claude routes (/ask, /suggest, /sub…",
+      "tags": [
+        "rate-limiting",
+        "security",
+        "cost-control",
+        "duckdb",
+        "tested"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tools/build_golden_set.py",
+      "type": "file",
+      "name": "build_golden_set.py",
+      "filePath": "tools/build_golden_set.py",
+      "summary": "One-off Phase 06 S2 harness that builds the ~40-question labelled golden set for…",
+      "tags": [
+        "tooling",
+        "evaluation",
+        "retrieval",
+        "claude-api",
+        "cost-control"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:usage_store.py",
+      "type": "file",
+      "name": "usage_store.py",
+      "filePath": "usage_store.py",
+      "summary": "Per-call Claude token-usage records (#112): captures the usage object every paid…",
+      "tags": [
+        "usage-tracking",
+        "database",
+        "observability",
+        "cost-monitoring",
+        "tested"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_usage_wiring.py:claude",
+      "type": "function",
+      "name": "claude",
+      "filePath": "tests/test_usage_wiring.py",
+      "lineRange": [
+        42,
+        66
+      ],
+      "summary": "Fixture that fakes the Claude API endpoint with canned responses carrying a usag…",
+      "tags": [
+        "test-double",
+        "http-capture",
+        "pytest"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_usage_wiring.py:usage",
+      "type": "function",
+      "name": "usage",
+      "filePath": "tests/test_usage_wiring.py",
+      "lineRange": [
+        29,
+        38
+      ],
+      "summary": "Pytest fixture wiring a real UsageStore on a temp file into the server module fo…",
+      "tags": [
+        "test-fixture",
+        "pytest",
+        "usage-tracking"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_usage_wiring.py:warm_cache",
+      "type": "function",
+      "name": "warm_cache",
+      "filePath": "tests/test_usage_wiring.py",
+      "lineRange": [
+        184,
+        198
+      ],
+      "summary": "Helper that pre-populates the answer cache so a subsequent ask is served as a ca…",
+      "tags": [
+        "test-fixture",
+        "cache",
+        "setup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tfit_qa_server.py:_rate_limit_message",
+      "type": "function",
+      "name": "_rate_limit_message",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        470,
+        502
+      ],
+      "summary": "Turns a rate-limit Decision into the human-facing 429/503 error string, naming w…",
+      "tags": [
+        "rate-limiting",
+        "error-messages",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:_record_usage",
+      "type": "function",
+      "name": "_record_usage",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1044,
+        1087
+      ],
+      "summary": "Writes a per-call Claude token-usage record (route, phase, tier, cache kind) to…",
+      "tags": [
+        "usage-tracking",
+        "observability",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:add_todo",
+      "type": "function",
+      "name": "add_todo",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1963,
+        2004
+      ],
+      "summary": "POST handler creating a new to-do card in the authoritative DuckDB store, coerci…",
+      "tags": [
+        "todo-board",
+        "api-handler",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:answer_question",
+      "type": "function",
+      "name": "answer_question",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1132,
+        1238
+      ],
+      "summary": "Core Q&A pipeline: checks the answer cache, builds the cited prompt (full corpus…",
+      "tags": [
+        "qa-pipeline",
+        "llm-call",
+        "caching",
+        "validation"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tfit_qa_server.py:archive_fingerprint",
+      "type": "function",
+      "name": "archive_fingerprint",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1276,
+        1299
+      ],
+      "summary": "Computes a version fingerprint of the archive contents so cached answers from a…",
+      "tags": [
+        "caching",
+        "versioning",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:build_kb",
+      "type": "function",
+      "name": "build_kb",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        296,
+        352
+      ],
+      "summary": "Walks the archive (emails, chat docs, attachments, ARCHIVE_GUIDE.md) and assembl…",
+      "tags": [
+        "knowledge-base",
+        "corpus",
+        "startup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:build_public_mirror",
+      "type": "function",
+      "name": "build_public_mirror",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        599,
+        621
+      ],
+      "summary": "Rebuilds the public/ serve-mirror of hard links to servable archive files, the o…",
+      "tags": [
+        "security",
+        "file-serving",
+        "startup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tfit_qa_server.py:call_claude",
+      "type": "function",
+      "name": "call_claude",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        973,
+        998
+      ],
+      "summary": "Low-level Claude Messages API call over urllib with instruction blocks, optional…",
+      "tags": [
+        "llm-call",
+        "api-client",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:extract_text",
+      "type": "function",
+      "name": "extract_text",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        274,
+        285
+      ],
+      "summary": "Dispatches on file suffix to extract plain text from an archive file: PDFs via e…",
+      "tags": [
+        "text-extraction",
+        "attachments"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tfit_qa_server.py:get_calendar",
+      "type": "function",
+      "name": "get_calendar",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1544,
+        1616
+      ],
+      "summary": "Fetches upcoming Google Calendar events through the service-account client and s…",
+      "tags": [
+        "google-calendar",
+        "api-handler",
+        "integration"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        3500,
+        3549
+      ],
+      "summary": "Server entry point: runs the safe-bind check, prints the CSRF/rate-limit/retriev…",
+      "tags": [
+        "entry-point",
+        "startup",
+        "server"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:markdown_to_html",
+      "type": "function",
+      "name": "markdown_to_html",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        779,
+        830
+      ],
+      "summary": "Hand-rolled Markdown-to-HTML renderer (headings, lists, tables, inline links) us…",
+      "tags": [
+        "markdown",
+        "rendering",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:reload_kb",
+      "type": "function",
+      "name": "reload_kb",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1302,
+        1375
+      ],
+      "summary": "Admin-triggered corpus reload: re-scans the archive files, rebuilds the knowledg…",
+      "tags": [
+        "admin",
+        "reload",
+        "knowledge-base"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:require_safe_bind",
+      "type": "function",
+      "name": "require_safe_bind",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        3313,
+        3344
+      ],
+      "summary": "Startup guard that refuses to bind to a non-local host unless an auth token or C…",
+      "tags": [
+        "security",
+        "startup",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:source_block",
+      "type": "function",
+      "name": "source_block",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1101,
+        1125
+      ],
+      "summary": "Builds a prompt content block for one archive source file, extracting text from…",
+      "tags": [
+        "prompt-building",
+        "extraction",
+        "utility"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:suggest_items",
+      "type": "function",
+      "name": "suggest_items",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1814,
+        1880
+      ],
+      "summary": "Paid /suggest route: sends the archive corpus and current board state to Claude…",
+      "tags": [
+        "llm-call",
+        "todo-board",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:suggest_subtasks",
+      "type": "function",
+      "name": "suggest_subtasks",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1897,
+        1930
+      ],
+      "summary": "Paid /subtasks/suggest route: asks Claude to break a single to-do card into conc…",
+      "tags": [
+        "llm-call",
+        "todo-board",
+        "api-handler"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tfit_qa_server.py:update_event",
+      "type": "function",
+      "name": "update_event",
+      "filePath": "tfit_qa_server.py",
+      "lineRange": [
+        1635,
+        1679
+      ],
+      "summary": "POST handler that patches a Google Calendar event (date, summary, description) f…",
+      "tags": [
+        "google-calendar",
+        "api-handler",
+        "validation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tools/build_golden_set.py:_api_key",
+      "type": "function",
+      "name": "_api_key",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        323,
+        337
+      ],
+      "summary": "Resolves the Anthropic API key from the ANTHROPIC_API_KEY environment variable o…",
+      "tags": [
+        "credentials",
+        "configuration",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tools/build_golden_set.py:_docx_text",
+      "type": "function",
+      "name": "_docx_text",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        95,
+        106
+      ],
+      "summary": "Extracts plain text from a .docx file by reading word/document.xml out of the zi…",
+      "tags": [
+        "text-extraction",
+        "docx",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tools/build_golden_set.py:build_corpus_text",
+      "type": "function",
+      "name": "build_corpus_text",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        128,
+        179
+      ],
+      "summary": "Standalone replica of the server's build_kb(): assembles the full archive corpus…",
+      "tags": [
+        "corpus",
+        "knowledge-base",
+        "replica",
+        "ingestion"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tools/build_golden_set.py:call_claude",
+      "type": "function",
+      "name": "call_claude",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        340,
+        368
+      ],
+      "summary": "Makes one Claude Messages API call over raw urllib for a batch of units, sending…",
+      "tags": [
+        "claude-api",
+        "prompt-caching",
+        "http-client"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tools/build_golden_set.py:extract_text",
+      "type": "function",
+      "name": "extract_text",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        109,
+        121
+      ],
+      "summary": "Dispatches attachment text extraction by file suffix: PDFs via pypdf, docx via t…",
+      "tags": [
+        "text-extraction",
+        "dispatch",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tools/build_golden_set.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        371,
+        459
+      ],
+      "summary": "Orchestrates the run: builds the sampling frame, prints the dry-run cost project…",
+      "tags": [
+        "entry-point",
+        "orchestration",
+        "evaluation",
+        "cost-control"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tools/build_golden_set.py:sampling_frame",
+      "type": "function",
+      "name": "sampling_frame",
+      "filePath": "tools/build_golden_set.py",
+      "lineRange": [
+        197,
+        237
+      ],
+      "summary": "Queries the read-only DuckDB index to build the mechanical sampling frame: Unit…",
+      "tags": [
+        "sampling",
+        "evaluation",
+        "duckdb",
+        "methodology"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:usage_store.py:_count",
+      "type": "function",
+      "name": "_count",
+      "filePath": "usage_store.py",
+      "lineRange": [
+        133,
+        153
+      ],
+      "summary": "Coerces one token-count field from an untrusted usage payload, nulling non-integ…",
+      "tags": [
+        "validation",
+        "sanitization",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:usage_store.py:counts",
+      "type": "function",
+      "name": "counts",
+      "filePath": "usage_store.py",
+      "lineRange": [
+        156,
+        171
+      ],
+      "summary": "Extracts the four Messages-API token-count fields from a usage object, recording…",
+      "tags": [
+        "parsing",
+        "validation",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:usage_store.py:flag_enabled",
+      "type": "function",
+      "name": "flag_enabled",
+      "filePath": "usage_store.py",
+      "lineRange": [
+        115,
+        130
+      ],
+      "summary": "Reads the recording feature flag: defaults on, with only an explicit off value d…",
+      "tags": [
+        "feature-flag",
+        "configuration",
+        "utility"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "file:tfit_ratelimit.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "file:usage_store.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "class:tfit_qa_server.py:Handler",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:build_kb",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:answer_question",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:call_claude",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:reload_kb",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:markdown_to_html",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:build_public_mirror",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:source_block",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:archive_fingerprint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:get_calendar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:update_event",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:suggest_items",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:suggest_subtasks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:add_todo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:_record_usage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:_rate_limit_message",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:require_safe_bind",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_ratelimit.py",
+      "target": "class:tfit_ratelimit.py:Decision",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_ratelimit.py",
+      "target": "class:tfit_ratelimit.py:RateLimiter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "class:tfit_qa_server.py:Handler",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:build_kb",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:answer_question",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:call_claude",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:reload_kb",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:main",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tfit_ratelimit.py",
+      "target": "class:tfit_ratelimit.py:RateLimiter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tfit_ratelimit.py",
+      "target": "class:tfit_ratelimit.py:Decision",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tfit_qa_server.py:Handler",
+      "target": "class:tfit_ratelimit.py:RateLimiter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_usage_store.py",
+      "target": "file:usage_store.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_usage_wiring.py",
+      "target": "file:tfit_qa_server.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_usage_wiring.py",
+      "target": "file:usage_store.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "function:usage_store.py:flag_enabled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "function:usage_store.py:_count",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "function:usage_store.py:counts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "class:usage_store.py:UsageStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_usage_wiring.py",
+      "target": "function:tests/test_usage_wiring.py:usage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_usage_wiring.py",
+      "target": "function:tests/test_usage_wiring.py:claude",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tests/test_usage_wiring.py",
+      "target": "function:tests/test_usage_wiring.py:warm_cache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "class:usage_store.py:UsageStore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "function:usage_store.py:flag_enabled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "function:usage_store.py:counts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "file:tests/test_usage_store.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:usage_store.py",
+      "target": "file:tests/test_usage_wiring.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "file:tests/test_usage_wiring.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:spec/PRODUCT_CONTRACT.md",
+      "target": "file:tfit_qa_server.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:spec/PRODUCT_CONTRACT.md",
+      "target": "file:usage_store.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "function:tools/build_golden_set.py:_docx_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "function:tools/build_golden_set.py:extract_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "function:tools/build_golden_set.py:build_corpus_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "function:tools/build_golden_set.py:sampling_frame",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "class:tools/build_golden_set.py:Spend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "function:tools/build_golden_set.py:_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "function:tools/build_golden_set.py:call_claude",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "function:tools/build_golden_set.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:tools/build_golden_set.py",
+      "target": "file:tfit_qa_server.py",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:tfit_qa_server.py",
+      "target": "function:tfit_qa_server.py:extract_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:web-app",
+      "name": "Web Application Layer",
+      "description": "The Q&A web server hub (tfit_qa_server.py) and its request-facing modu…",
+      "nodeIds": [
+        "file:tfit_qa_server.py",
+        "file:tfit_ratelimit.py"
+      ]
+    },
+    {
+      "id": "layer:retrieval",
+      "name": "Retrieval & Indexing Layer",
+      "description": "Builds the DuckDB archive index and performs selective retrieval for a…",
+      "nodeIds": [
+        "file:tools/build_golden_set.py"
+      ]
+    },
+    {
+      "id": "layer:data",
+      "name": "Data Stores & Integrations",
+      "description": "DuckDB-backed persistence (answer cache, authoritative to-do store, to…",
+      "nodeIds": [
+        "file:usage_store.py"
+      ]
+    },
+    {
+      "id": "layer:test",
+      "name": "Test Suite",
+      "description": "The hermetic pytest suite gating every commit — dispatch, auth, stores…",
+      "nodeIds": [
+        "file:tests/test_usage_store.py",
+        "file:tests/test_usage_wiring.py"
+      ]
+    },
+    {
+      "id": "layer:documentation",
+      "name": "Documentation & SDLC Specs",
+      "description": "Root project docs (archive guide, web-app spec, deploy and changelog r…",
+      "nodeIds": [
+        "document:spec/PRODUCT_CONTRACT.md",
+        "document:spec/PROJECT_INDEX.md"
+      ]
+    }
+  ],
+  "tour": []
+}
