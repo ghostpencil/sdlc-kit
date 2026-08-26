@@ -2381,3 +2381,254 @@ rather than by a careful reader noticing.
 - **Invariant 1 (no project facts):** one softening — *the guards see only files
   inside the repository* became *where the guards are installed, they see only…*,
   since a project can decline them.
+
+---
+
+## 70. The ninth field report triaged — six findings stand, three do not survive as
+## filed, and one of the three is a hazard 0.26.0 shipped five days ago — 2026-08-26
+
+`FIELD_REPORT_2026-08-21.md` (`sdlc-kit#9`, filed 2026-08-21) is the **ninth** field
+report and the **sixth** from the first adopter, covering their Phase 08 — 5 slices, 1
+PR, 27 owner decisions — written against **0.24.0**, which is genuinely what they run
+(`spec/SDLC.md:13`, and a kept `sdlc-kit/` folder at 0.24.0). Nine findings, a priority
+table, and an owner-posted correction that reproduces the report's own finding 1.
+
+It arrived **five days after 0.26.0 released** and describes an arc that closed on
+0.24.0 one day after the eighth report's batch was designed. That overlap is most of
+the triage: three findings collide with work already shipped, and one collides with it
+head-on.
+
+**Its theme, one step past the eighth report's:** *this kit verifies that a step ran; it
+does not verify that a step could have caught anything, or that a decision it recorded
+ever reached a terminal state.* The eighth report said the kit is bad at making a number
+reconcile and the kit answered with RECON; this one says a reconcile pass over the rows
+the kit names cannot see a number written somewhere the kit does not name.
+
+### 70.1 The arc, as measured
+
+Every enforced thing green and agreeing with CI — lint 0, typecheck 0 over 18 source
+files, **762** tests (the report says 761; see the correction), coverage floor 63, 0 fix
+commits, close-out records **8/8 COMPLETE**, 53 observed REDs. At that same moment two
+recorded numbers were wrong on disk and the backlog held 106 entries under 104
+identifiers. None of the nine findings is about the work.
+
+### 70.2 The three that do not survive as filed
+
+**Finding 7 — the `"shell": "bash"` pin — DOES NOT STAND. It was fixed in 0.24.0, the
+release the report is written against.** `templates/settings.template.json` carries no
+`"shell"` key anywhere; read the file. 0.24.0's PIN batch (§61) removed it, and
+`tools/gate-hook-check.py` gained wiring cases pinning the no-`shell`-key property "so
+the measured-dead pin cannot be silently reintroduced". The corrected template was
+sitting in the adopter's own tree the whole time, in the `sdlc-kit/` folder they keep at
+0.24.0. **How it got in is the interesting part, and it is finding 3's mechanism:** the
+entry reached the report through `sdlc-retro.md` step 2's *age rule* — carry any friction
+entry older than one phase into the report automatically — which asks nothing about
+whether the upstream artifact still holds the defect. A recorded claim was carried
+forward without being re-derived against the artifact, inside a report whose theme is
+that recorded claims are not re-derived against artifacts. Nothing owed kit-side beyond
+the age-rule clause below; the adopter should be told, so the entry can close as
+*implemented in 0.24.0* rather than age a third phase.
+
+**Finding 4 — "no workflow command dispatches `mutation-testing`" — PREMISE FALSE, and
+its suggested fix was ruled against seven days ago on this same evidence.** Verified
+against **0.24.0 itself** (`git show v0.24.0:sdlc-kit/commands/end-slice.md`): §5 reads
+*"Use the mutation-testing skill (`mutation-testing`, installed at
+`.claude/skills/mutation-testing/`) for anything beyond a quick delete-and-run"* — the
+skill by identifier, its install path, and a trigger condition. The claim that the step
+"never names the installed skill" is wrong about the text it quotes. `end-phase.md` §5
+is wrong in the other direction: the whole-arc review has no mutation step at all, so
+"likewise" describes nothing there — adding one is a different proposal from fixing one.
+And the suggested fix — dispatch by name instead of paraphrasing — is exactly the option
+**§67.7 ruled against on 2026-08-19**, on this adopter's own ledger measurement: *a fix
+delivered by relevance-based dispatch is a fix delivered never*, which is why 0.26.0
+inlined the byte-safe recipe (7.4a) rather than pointing at the skill.
+
+What survives is real and is not a naming problem: **0 dispatches against ~40 mutations
+actually run, second consecutive arc at zero**, while mutation produced *both* of the
+arc's defect findings including one that had survived two arcs with a fully green suite.
+Naming has now been tried and measured. The live question is whether a skill file nothing
+ever dispatches earns its place, or whether the rest of it follows 7.4a into the command
+text — a delete-or-inline question, on a **vendored** file, so invariant 3 attaches
+either way. See the decision owed below.
+
+**Finding 9's first half — the mutation revert mechanism — is INVERTED, and this is the
+one to act on first.** 0.26.0's 7.4a inlined this into `end-slice.md` §5 five days ago:
+
+> **Restore by reverting the file, never by rewriting it.** The mutation is a tracked
+> edit, so the tracked original is the byte-exact copy: undo it with
+> `git checkout -- <path>` […] Never restore by writing the file's text back through a
+> whole-file read-then-write
+
+Finding 9's specimen is that exact command destroying a slice: *"the mutation was
+reverted with `git checkout -- <file>`, which reverted the **uncommitted implementation
+along with the mutant** — the file had no committed version of the slice's work behind
+it."* **Both specimens are real, and the shipped text is wrong at the step that invokes
+it.** §5 runs at end-slice; **§7 is where the slice commits**. So at §5 the slice's
+implementation is uncommitted by construction, and §5's own justification — *the mutation
+is a tracked edit, so the tracked original is the byte-exact copy* — is false there: the
+tracked original is HEAD's version, not the pre-mutation working tree.
+`git checkout -- <path>` at §5 reverts the mutation **and the slice**. The parked-stash
+alternative the same sentence offers parks the slice too.
+
+This is the only finding on the list getting worse with time: it is **[installable]**, it
+is canonical as of 0.26.0, and it has not yet reached either adopter. A resolution
+satisfying both specimens exists and is three lines — **a targeted single-hunk edit back**
+(the mutating edit, inverted) is neither a whole-file read-then-write nor a VCS restore:
+it normalizes nothing and discards nothing. `git checkout --` stays correct only where
+the file carries no uncommitted work behind it, which §5 must **test for** rather than
+assume.
+
+### 70.3 The six that stand
+
+**1 — the floor reconcile names homes by document, and a document holds the number
+twice. STANDS, with two corrections that sharpen the fix.** Verified: `end-phase.md` step
+7's Coverage-floor bullet reads *"the floor recorded in `spec/PROJECT_INDEX.md` (and
+`spec/SDLC.md`)"*, and §68's reconcile pass is defined over *"Every row of `spec/SDLC.md`
+Records"* — so a second home 300 lines away in the same file, and the index's ceiling
+line, are outside its population. **The report's warning is correct: 0.26.0 would have
+reported this instance clean.**
+
+- *Correction A.* The report names `templates/SDLC.template.md` as seeding both homes.
+  It does not. The template's *Coverage floor* section is procedural prose carrying **no
+  number**, and `git log -S"Current:"` over that file's entire history returns nothing.
+  The second home is **adopter-authored**. The fix cannot be "fix the template's second
+  home"; there is none. What the template lacks is the prohibition.
+- *Correction B, and it is the finding's real shape.* **The kit already has that
+  prohibition** — for a different number, in `PROJECT_INDEX.template.md`: *"Gate
+  baseline: recorded in spec/SDLC.md (its single home — do not restate the counts here,
+  they would go stale silently when the baseline moves)."* The doctrine exists. It is an
+  instantiation-time comment, addressed to setup, covering one number in one file, and
+  nothing ever re-reads it. The adoption restated the count in two files anyway. This is
+  not a missing rule — it is **a rule with no observer**, which is the shape §68 built
+  `docs-check` for.
+
+The adopter has already fixed their side: all four homes now read 63/762, with the
+incident recorded in place (`spec/SDLC.md:568`, `PROJECT_INDEX.md:265`).
+
+**The correction comment — STANDS, and its second cause collides with a 0.26.0 rule.**
+Cause 1 (a `-q` runner that emits no count, so "read the count" yields silence and the
+gap gets filled from the document under review) is unaddressed: the red-baseline bullet
+says *report this arc's count beside the recorded one* and never says where the count
+comes from. Cause 2 is the one to weigh: the baseline was re-derived correctly from the
+PR's CI run, then a close-out commit **after the merge** added a test, so the freshly
+re-derived number was already wrong when the close finished. **§68's reconcile pass
+forbids the proposed fix** — *"No new gate run — step 2's run is the measurement […]
+re-running here measures a different tree than the one these records describe."* Step 2
+runs pre-merge on the arc branch; step 7 then commits docs, contract pins and bookkeeping
+on main. 0.26.0 says the record describes the *measured* tree; the correction says it
+must describe the *final* tree. Both are coherent, they cannot both be the rule, and the
+correction is right that most closes under this kit commit after merging. Owner decision.
+
+**2 — nothing allocates a backlog identifier. STANDS, unqualified, and it is the cheapest
+item on the table.** `end-slice.md` §9's append bullet prescribes rationale, provenance
+and cause marker and never mentions the number every downstream step addresses entries
+by. §68's reconcile walks the backlog and reports the open count but asserts nothing
+about uniqueness. And `end-phase.md`'s retirement bullet makes a promise a collision
+silently breaks — *move the entries verbatim […] so an old reference to an entry still
+resolves* — into a file no session reads at start. Measured: 106 entries, 104
+identifiers, all four collisions minted the same day by two slice reviews writing into
+different regions of a 1,500-line list. One clause plus one `sort | uniq -d`.
+
+**3 — "absorbed" is a third state that reads as closure. STANDS, and it is load-bearing
+for two other findings.** `sdlc-retro.md` step 2: *"entries a previous retro absorbed
+carry a marker, so report the ones that do not"* — absorbed is excluded from the sweep.
+Step 6's flip is a bare `absorbed by retro <date>` with no disposition. `end-slice.md` §9
+and the template name only two closed states and never mention absorption. That is how a
+hazard reached **eleven recurrences** with two retros and two owner rulings in between.
+**Add a fourth part to the report's three:** the age rule in the same step-2 sentence
+must ask whether the upstream artifact still holds the defect — that is how finding 7 got
+here.
+
+*Note against §63.3:* the guard ergonomics behind those eleven recurrences **were**
+fixed, in 0.25.0/CLASSIFY — out-of-repo writes and quoted-argument matching, both
+dialects. The adopter cannot see it: neither fix arrives by updating (the instantiated
+guard is project-owned), which is the standing transition note. Their *compound-command*
+half (40 uncounted `cd "<path>" && pytest` runs) is **not** covered — 0.25.0 deliberately
+left the compound check reading the raw command — so that half is new and open.
+
+**5 — the stop-time backstop watches a window the workflow empties. STANDS.**
+`close-out.template.sh:105–107` scopes `stop-check` to `git rev-list -n 20 '@{u}..HEAD'`,
+and `end-slice.md` step 7 commits **and pushes**, so the range is empty at every ordinary
+stop: 121 log lines, ~100 vacuous `clean`, 4 false positives, **0 real catches** across
+an arc. The transferable half is the sharpest sentence in the report and generalizes past
+this hook: **a fire-proof and a catch-proof are different tests.** The kit already makes
+exactly that demand of the coverage floor (*prove it fires — once*) and makes it of none
+of its own controls.
+
+**6 — a ratified *method* and a *Risks* entry reach no terminal state. STANDS, both
+halves.** `next-slice.md` §2 re-derives the entry's **cause** and an **estimated
+number**; a ratified method the slice implements *through* is uncovered, and the arc's
+specimen cost a real conclusion (going straight to the bisect passed §2 cleanly; running
+the prescribed byte-diff proved the region byte-identical and named a difference the
+bisect had only eliminated by inference). §68's reconcile has three subjects — backlog,
+*Records*, contract-absent — and never re-reads the phase spec's own *Risks & Deferred*,
+so an obligation the spec attached to the arc lapses by silence while the arc makes the
+question larger. **Cheapest medium item on the list, because it is not a new mechanism:**
+Risks is a fourth subject for the pass 0.26.0 already built.
+
+**8 — `change-verify` §3 has no shape for a process that never returns. STANDS.** §3
+gained the environment-constraint opening in 0.26.0 (7.6) and still carries nothing for
+the commonest front door there is: `subprocess.run(timeout=…)` discards the output it was
+about to prove the pass with, a pipe-attached child buffers stdout so the banner never
+arrives, and on Windows printing the captured UTF-8 to a cp1252 console raises after the
+run succeeded. Cost it twice this arc, once **with the skill dispatched**, which makes it
+a text gap rather than an operator lapse. Kit-written file; XS.
+
+**9's second half — `change-simplify` §3 prices the gate at zero. STANDS.** *"Apply them
+one at a time, gate between"* is right, and its cost scales with suite runtime, which is
+the one thing a maturing project reliably grows: two moves cost three backgrounded
+full-gate runs and a poll loop each at a ~100-second suite. Say what the intermediate
+gate may be trimmed to. Kit-written; XS.
+
+### 70.4 What the report confirms about shipped work
+
+Recorded because a simplification pass should not have to rediscover it. The arc ran on
+0.24.0 and independently exercised two things 0.26.0 built:
+
+- **The half-delivered split (§68) has field confirmation before the release reaches
+  them.** *"The retirement bullet's own re-read check fired for the first time and
+  produced its designed failure: a half-delivered entry was pulled back out of the
+  history file rather than retired on a marker it only half-earned."* That is exactly the
+  case §68's split rule addresses, observed independently.
+- **The preserved-contract check's negative case was proven to fire**, and the
+  product-contract reconcile ran to 12 new entries with one claim-only promoted to
+  pinned.
+
+### 70.5 Clock evidence this report supplies
+
+The four §63.4 rulings are still owed, and **three of them now have another arc of
+evidence** — which is the argument for taking them alongside this triage rather than
+before it:
+
+- **The three STD lenses.** This arc: *unconsumed artifact* one genuine hit, *preserved
+  contract* clean with its negative case proven to fire. That is a second named catch
+  from the same adopter, and it bears directly on the ruling about whether ai-news's
+  lens-less evidence table counted as an arc.
+- **`change-simplify`.** Ran 4/5 slices, 2/2/3/1 moves, one skip with a stated reason — a
+  third arc of moves-applied and still no *confirmed catch* in the clock's wording. The
+  ruling (does "moves applied" clear it?) is now three arcs old.
+- **CONTRACT's value criterion.** The reconcile ran and the negative case fired. Whether
+  that is the clock's first arc or a repair of the mechanism is the ruling.
+- **Bare-flagging arming bar.** Still no false-candidate count in any report. Ask.
+
+### 70.6 Decisions owed
+
+1. **Sequencing against IMPACT.** IMPACT (§66) is build-ready and was next in the queue.
+   This report's finding 9a is an installable hazard the kit shipped five days ago and
+   neither adopter has yet. Recommendation: **a small batch first** — 9a, plus the XS/S
+   items that need no design (2, 8, 9b, and finding 3's four-part fix) — then IMPACT,
+   then the medium items (1, 5, 6). The alternative is folding everything into one batch
+   behind IMPACT, which leaves 9a canonical-and-wrong for however long that takes.
+2. **Finding 1's fix shape.** Search-for-the-old-value until it cannot be found, as
+   filed — or the stronger form corrections A and B point at: *a number has one home and
+   the others link to it*, with the existing `PROJECT_INDEX.template.md` prohibition
+   generalized and given an observer. The second is more work and is the fix that does
+   not go stale the next time someone writes the number somewhere new.
+3. **The correction's cause 2, against §68's "no new gate run".** Does a recorded
+   baseline describe the tree that was measured, or the tree the close leaves behind? The
+   two rules cannot both stand.
+4. **Finding 4's real question.** `mutation-testing` is dispatched zero times across two
+   arcs while being the step with the best defect record on this adoption. Inline the
+   rest of it (7.4a's precedent), delete it, or leave it and accept that it is
+   documentation? A vendored file either way — invariant 3 attaches.
+5. **The four §63.4 clock rulings**, on the evidence in 70.5.

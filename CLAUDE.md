@@ -206,6 +206,23 @@ holds** — the backlog said 101 with a shipped entry inside it, the gate baseli
 and the product contract said current with three ratified behaviors absent. §63.3 sorts
 the ten into two classes; §63.4 reads the two arcs against the standing clocks.
 
+`FIELD_REPORT_2026-08-21.md` is the **ninth** — the first adopter's Phase 08
+(`sdlc-kit#9`, anonymized like its predecessor: do not de-anonymize it or its filename),
+still against 0.24.0, filed five days after 0.26.0 shipped. Nine findings plus an
+owner-posted correction that reproduces the report's own finding 1. `FEATURE_PLAN.md`
+§70 records the triage, and it is the first report where **the collision with shipped
+work is most of the triage**: six findings stand, and three do not survive as filed —
+finding 7 was fixed in 0.24.0 itself (carried in by `/sdlc-retro`'s age rule, which
+never asks whether the upstream artifact still holds the defect), finding 4's premise is
+false against the text it quotes and its fix is the option §67.7 ruled against, and
+finding 9's first half is **inverted**: 0.26.0's inlined `git checkout -- <path>` restore
+recipe destroys uncommitted work at the step that invokes it, because `end-slice.md` §5
+runs before §7 commits. Read §70.2 before acting on the report's priority table. Its
+theme extends the eighth's: **the kit verifies that a step ran, never that it could have
+caught anything, or that a decision it recorded reached a terminal state** — a fire-proof
+stood in for a catch-proof, a reconcile bullet visited the documents it names and left
+the number wrong in two others, and an absorbed finding counted as a closed one.
+
 ## Writing conventions for these files
 
 Command files are prompts, not documentation. The established shape is: a title, a

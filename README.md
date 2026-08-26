@@ -246,6 +246,7 @@ FIELD_REPORT_2026-08-02.md           ← findings from the 6th phase (sdlc-kit#2
 FIELD_REPORT_2026-08-15.md           ← whole-project review of ai-news-dashboard — triaged in FEATURE_PLAN.md §56
 FIELD_REPORT_2026-08-17.md           ← findings from a 7th phase (sdlc-kit#7) — triaged in FEATURE_PLAN.md §63
 FIELD_REPORT_2026-08-17b.md          ← ai-news-dashboard Phase 05 (sdlc-kit#8) — triaged in FEATURE_PLAN.md §63
+FIELD_REPORT_2026-08-21.md           ← findings from an 8th phase (sdlc-kit#9) — triaged in FEATURE_PLAN.md §70
 CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN_HISTORY.md §11
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
 FEATURE_PLAN.md                      ← the live plan: standing decisions, clocks, active work
