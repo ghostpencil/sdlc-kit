@@ -2776,3 +2776,80 @@ scope fix lands.
 mechanism that carried finding 7 into the report, and ruling 5's batch item for finding
 3 adds the missing clause: an aged entry is re-checked against the upstream artifact
 before it is carried.
+
+---
+
+## 71. A perf gate that disables the mutation pass — `tools/close-out-check.py`'s S2
+## budgets fail the released kit on this machine, and a timing wobble costs the
+## strongest check in the suite — filed 2026-08-26
+
+Found while building 0.27.0 (§70), and filed rather than fixed because it is the
+tooling's own defect and not part of that batch's ruled scope.
+
+### 71.1 What was measured
+
+The suite has three S2 timing budgets — unit 1000 ms, docs 1000 ms, stop 1500 ms with
+a 5000 ms cap-20 walk — each checked with `if slowest >= …: sys.exit(1)` immediately
+after its pass. Measured on this machine over six runs:
+
+| run | unit warm | docs | stop typical | outcome |
+|---|---|---|---|---|
+| **v0.26.0, released tag, throwaway worktree** | 436 ms | 535 ms | **1918 ms** | **S2 FAILED**, exit 1 |
+| 0.27.0 A | 368 ms | **5503 ms** | — | S2 FAILED (docs) |
+| 0.27.0 B | 368 ms | ok | **6289 ms** | S2 FAILED (stop) |
+| 0.27.0 C | — | — | **6120 ms**, cap-20 **8977 ms** | S2 FAILED (stop) |
+| 0.27.0 D | **5328 ms** | — | — | S2 FAILED (unit) |
+| 0.27.0 E | ok | ok | ok | **all green**, 22 mutations caught |
+| 0.27.0 F | — | — | **6099 ms** | S2 FAILED (stop) |
+
+Two things follow, and only the second is interesting.
+
+**The budgets do not hold on this machine, and that is not a 0.27.0 regression.** The
+**released** v0.26.0 fails the stop budget here (1918 ms against 1500 ms) — measured
+against the tag in a throwaway worktree rather than argued. And the decisive control:
+the **docs** pass is untouched by everything 0.27.0 changed (`docs-check` never calls
+`count_record`) and still swung **535 ms → 5503 ms**, a 10× move on identical code.
+Same code measured 368 ms and 5328 ms on the unit pass in consecutive runs. This is
+machine state, not cost.
+
+### 71.2 The finding, which is the ordering and not the numbers
+
+**A timing wobble silently costs the mutation pass.** Each budget check exits
+immediately, and the mutation pass runs *last* — so on any loaded machine the run
+ends after the functional passes and **before the only pass that tests whether the
+corpus can detect a defect at all.** Invariant 13's instrument is the one a flaky
+gate switches off.
+
+That is not hypothetical. It happened three times during this batch, and it mattered:
+0.27.0 added a fifth key whose corpus turned out **not to pin its anchor** —
+`anchor_dropped_lenses` SURVIVED. The only run that revealed it was the one that got
+past S2; four runs before it reported green functional passes and told nobody. The
+gap was then closed and verified by driving the mutated and real scripts by hand,
+because the suite could not be made to complete.
+
+**This is the ninth report's own finding 5, in the kit's own tooling, one turn
+sharper:** there, a control's reach was unmeasured; here, a control *disables another
+control*, and the log reads like a failure of the thing being tested rather than a
+pass that never ran. A functional-plus-mutation result and a perf result are
+different verdicts, and one must not be able to suppress the other.
+
+### 71.3 Options, none ruled
+
+1. **Collect perf, never short-circuit on it.** Run every functional pass and the
+   mutation pass unconditionally; accumulate perf breaches and apply them to the exit
+   code at the end, so a slow machine still yields the complete correctness signal.
+   Cheapest, and it keeps the budget's teeth. **Recommended.**
+2. **Reorder** so the mutation pass precedes the budget checks. Fixes this instance,
+   leaves the general shape (an early gate hiding a later pass) in place.
+3. **Re-calibrate** — median or best-of-N per invocation rather than the slowest
+   single one, which is what a background antivirus scan lands on. Worth doing beside
+   1 or 2; on its own it only moves the threshold at which the hiding starts.
+
+The budgets exist for a real reason — the stop path runs inside a 30 s hook timeout —
+so none of these proposes dropping them.
+
+**Scope checked, not assumed: this is the only suite affected.** `close-out-check.py`
+is the sole `tools/` proof with timing budgets; `gate-hook-check.py` and
+`skill-ledger-check.py` contain no timing code at all, and the two guard suites' only
+use of `time` is `sleep(1.1)` for 1-second-granular mtime ordering, which is a
+correctness device rather than a gate. So the fix is one file, and no sweep is owed.
