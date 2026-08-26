@@ -2853,3 +2853,114 @@ is the sole `tools/` proof with timing budgets; `gate-hook-check.py` and
 `skill-ledger-check.py` contain no timing code at all, and the two guard suites' only
 use of `time` is `sleep(1.1)` for 1-second-granular mtime ordering, which is a
 correctness device rather than a gate. So the fix is one file, and no sweep is owed.
+
+---
+
+## 72. The 0.25.0 guard fix disarms the shell dialect on Windows — found while
+## updating the adopter it was written for, and held out of their update — 2026-08-26
+
+Found 2026-08-26 during the ai-news-dashboard update to 0.28.0, by running the fix
+against **that project's own recorded payloads** before trusting it. The guard was
+reverted to its 0.24.0 body there and the divergence recorded in their `spec/SDLC.md`;
+the rest of the update shipped. This section is the kit-side half.
+
+**Severity: high, and it is live in three releases.** 0.25.0, 0.26.0, 0.27.0 and
+0.28.0 all carry it. Any Copilot-CLI adopter on Windows running 0.25.0+ has a TDD
+guard that **stops guarding every write the CLI reports by absolute path** — which is
+how that CLI reports them.
+
+### 72.1 What was measured
+
+`templates/tdd-guard.template.sh`, the relativization added by §64/CLASSIFY:
+
+```sh
+nl=$(printf '%s' "$n" | tr '[:upper:]' '[:lower:]')
+rr=$(printf '%s' "$SDLC_REPO_ROOT" | tr '\\' '/'); rr=${rr%/}
+rl=$(printf '%s' "$rr" | tr '[:upper:]' '[:lower:]')
+case "$nl" in
+  "$rl"/*) n=$(printf '%s' "$n" | cut -c $((${#rr} + 2))-) ;;
+  /*|?:/*)
+    log "write outside the repository - not production source: $p"
+    continue ;;
+```
+
+Two independent defects, either of which alone breaks the match:
+
+1. **The incoming path is never backslash-normalized.** The *root* gets
+   `tr '\\' '/'`; `$n` gets only `tr` for case. The comparison is therefore between a
+   forward-slash root and a backslash path — asymmetric, and the asymmetry is visible
+   in two adjacent lines.
+2. **The root and the paths are in different flavours.** `SDLC_REPO_ROOT=$(pwd)` in
+   the hook's MSYS shell yields `/d/aicourse/ai-news-dashboard`; the CLI sends
+   `D:\AICourse\ai-news-dashboard\...`. Even with (1) fixed, `/d/...` never prefixes
+   `d:/...`.
+
+So `nl` matches neither arm's intent: it falls through to `?:/*`, is logged as
+*outside the repository*, and `continue` **skips the write entirely**.
+
+**Measured on a real path from the adopter's own `guard.log`** —
+`D:\AICourse\ai-news-dashboard\src\main\java\com\ainews\dashboard\refresh\RefreshOrchestrationService.java`,
+a path their guard had genuinely denied before:
+
+| guard body | verdict |
+|---|---|
+| 0.24.0 (pre-fix) | **DENY** production write without observed red |
+| 0.25.0–0.28.0 | *"write outside the repository - not production source"*, **allowed** |
+
+A fix written to *narrow* the guard's scope opened a hole in it. That is the worst
+shape a control change can take, because the log line reads like correct behavior.
+
+### 72.2 Scope, checked rather than assumed
+
+- **The Claude/Python dialect is CORRECT and needs no change.**
+  `templates/tdd-guard-claude.template.py` normalizes **both** sides
+  (`n = p.replace("\\", "/")` beside `root_n = ROOT.replace("\\", "/")`), and its
+  root comes from `CLAUDE_PROJECT_DIR` or `os.getcwd()`, which under Windows Python is
+  already `D:\...`. Verified empirically on the first adopter 2026-08-26: an in-repo
+  absolute path relativizes to `usage_store.py` and is denied.
+- **The shell dialect is broken only where the hook shell's `pwd` flavour differs from
+  the CLI's path flavour** — i.e. Windows. On a POSIX host `pwd` gives `/home/x/repo`
+  and paths arrive `/home/x/repo/...`, so the prefix matches and the fix works as
+  designed. The defect is Copilot-CLI-on-Windows, which is exactly the adopter the fix
+  was written for.
+
+### 72.3 A second, pre-existing defect found in the same pass
+
+Backslash paths are **corrupted in the guard's own log and deny text**: `\a` becomes a
+BEL, `com\ainews` renders `cominews`, `dashboard\refresh` renders `dashboardefresh`.
+Present in the **0.24.0** body too, so it is not a CLASSIFY regression. It misreads
+without misclassifying — the 0.24.0 guard still denies the right paths — but it makes
+every absolute-path log line and every deny message unreliable as evidence, which
+matters precisely when someone is diagnosing the guard. Almost certainly an
+escape-interpreting `printf`/`echo` on a string that should be passed as an argument.
+
+### 72.4 Why the kit's own proofs did not catch it
+
+`tools/tdd-guard-check.py` runs the shell dialect through a bench repo, and the bench
+constructs its paths POSIX-style. The corpus therefore contains **no Windows-flavoured
+absolute path at all**, so the case that breaks in the field cannot arise in the proof.
+This is invariant 15 turned on the kit's own tooling: the proof verifies the artifact
+and is silent about the environment it will run in. The ninth field report's finding 5
+is the same shape — *a fire-proof and a catch-proof are different tests* — one level
+further in.
+
+It is also the third instance today of a check passing for a reason other than the one
+intended (§70's unpinned `lenses:` anchor, IMPACT's git-ignored fixture bench, this).
+
+### 72.5 Decisions owed
+
+1. **Fix shape.** Normalize the incoming path (`tr '\\' '/'`) **and** resolve the root
+   in the same flavour the CLI uses — `pwd -W` where available, falling back to `pwd`,
+   or derive it from `git rev-parse --show-toplevel` and normalize both. The fix must
+   be proven against a **backslash** path, not a POSIX one.
+2. **Proof-corpus gap.** `tdd-guard-check.py` gains Windows-flavoured absolute paths —
+   in-repo and out-of-repo, both dialects — and a mutation that deletes the
+   normalization must be caught. Without this the fix is unfalsifiable in the same way
+   the defect was.
+3. **Release urgency.** This is live in four releases and disarms a deny-armed control
+   for one of the two adopters. Ship as its own patch release before any further batch,
+   or fold into the next? The adopter is holding at 0.24.0's guard body until it is
+   fixed **and** re-proven against their path shape, so nothing reaches them until it is.
+4. **Whether CLASSIFY's §64 clock is affected.** The out-of-repo classifier was
+   field-measured as working on the Claude dialect; on the shell dialect it has never
+   worked at all. Any claim resting on "both dialects fixed" needs re-reading.
