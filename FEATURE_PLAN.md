@@ -1740,6 +1740,8 @@ Owner-ruled 2026-08-17 at the §63.5 halt: Class B folds into 0.25.0 beside the 
 batch; RECON and the four independents follow. Built the same day. Both fixes land in
 **both dialects** — the §61 version-and-route standard, and §63.1 measured that the
 Copilot dialect had the path defect too, by a shorter route than the Claude one.
+⚠️ **The out-of-repo half of the Copilot fix did not actually work in the field** and
+was repaired at 0.28.1 — see the correction at the end of this section and §72.
 
 **(a) A file outside the repository is not production source.** Claude
 (`tdd-guard-claude.template.py`): the `else: rel = n` fall-through becomes a
@@ -1806,6 +1808,16 @@ what it claims (invariant 13), so each fix ships with the mistake that would und
 |---|---|---|
 | Claude (`tools/tdd-guard-claude-check.py`) | `3b` out-of-repo not production, `3c` not denied when armed, `3d` relative still in scope, `7c` quoted-only counts nothing, `7d` quoted argument still counts | charge out-of-repo as production; skip relative paths (the hole); match the raw command text |
 | Copilot (`tools/tdd-guard-check.py`) | `2b` out-of-repo not production, `2c` absolute-inside still production, `2d` `tests/conftest.py` is a test edit, `5c` quoted-only counts nothing, `5d` quoted argument still counts | drop the out-of-repo skip; drop the reduction (the `conftest.py` regression); match the raw command text |
+
+⚠️ **Corrected 2026-08-27 (§72): the Copilot row above overstates what was proven.**
+Its `2c` case — *absolute-inside still production* — passed on a body where the
+reduction was broken, because the bench **pins** `SDLC_REPO_ROOT` to its own root, so
+both sides of the comparison agreed by construction. No adopter sets that variable.
+The shell dialect's out-of-repo classifier therefore **never worked in the
+configuration adopters actually run**, from 0.25.0 until the 0.28.1 fix; the Claude
+dialect's did, and still does. Read the table as *the Claude fix was proven; the
+Copilot fix was proven only against a fixture that could not fail.* §72 has the
+measurement and the repair (cases `24b`/`24c`, run with the variable unset).
 
 Both suites green, both dialects, unit and mutation passes, **measured not assumed**:
 the shell suite reports 110 unit cases (55 × two parser dialects), 0 failures, **20
@@ -2929,15 +2941,45 @@ shape a control change can take, because the log line reads like correct behavio
   designed. The defect is Copilot-CLI-on-Windows, which is exactly the adopter the fix
   was written for.
 
-### 72.3 A second, pre-existing defect found in the same pass
+### 72.3 WITHDRAWN — the "log corruption" was my probe, not the guard
 
-Backslash paths are **corrupted in the guard's own log and deny text**: `\a` becomes a
-BEL, `com\ainews` renders `cominews`, `dashboard\refresh` renders `dashboardefresh`.
-Present in the **0.24.0** body too, so it is not a CLASSIFY regression. It misreads
-without misclassifying — the 0.24.0 guard still denies the right paths — but it makes
-every absolute-path log line and every deny message unreliable as evidence, which
-matters precisely when someone is diagnosing the guard. Almost certainly an
-escape-interpreting `printf`/`echo` on a string that should be passed as an argument.
+**Filed 2026-08-26, withdrawn 2026-08-27 after measurement.** This section claimed the
+guard corrupted backslash paths in its own log and deny text (`` becoming a BEL, so
+`cominews` rendered `cominews`). That is **false**, and the claim should never have
+been filed on the evidence I had.
+
+What the measurement shows, run in the adopter's own tree with a payload built by
+`json.dumps` rather than by hand:
+
+- sent `D:\AICoursei-news-dashboard\src\main\java\cominews\dashboardefresh\RefreshOrchestrationService.java`
+- logged **byte-exact**, `` and `` intact.
+
+And the decisive check — the only two corrupted lines in that project's entire
+`guard.log` are timestamped `2026-08-26T18:03:53Z` and `18:04:15Z`: **both are my own
+probes from the day before.** Every line from a genuine session carries
+`D:\AICoursei-news-dashboard` uncorrupted.
+
+`log()` was never suspect on inspection either — it is
+`printf '%s [%s] %s
+' … "$1"`, with the path as an **argument** to `%s`, which
+performs no escape interpretation. I wrote the section anyway, from a log line I had
+produced myself.
+
+**The actual cause:** my probe's payload was constructed inside a shell-quoted
+`python -c` string, and the backslashes were consumed one layer before Python saw
+them, so the guard was *sent* an already-mangled path and logged it faithfully. The
+guard did exactly the right thing with exactly the wrong input.
+
+**The lesson is the section's own theme pointed at me.** Four times that day a check
+passed or failed for a reason other than the one intended, and each time the log told
+the truth where the exit code lied. Here the log told the truth and I read my own
+corruption back out of it as the tool's. *Evidence produced by the instrument you are
+testing, through a harness you wrote minutes earlier, is not independent.* Build
+payloads programmatically and confirm a defect against traffic you did not generate —
+in this case, the session lines that were sitting in the same file.
+
+Withdrawn with no fix owed. The correction is propagated to the adopter's `spec/SDLC.md`
+and to their merged PR, both of which carried the false claim.
 
 ### 72.4 Why the kit's own proofs did not catch it
 
@@ -2960,7 +3002,45 @@ further in.
 It is also the third instance today of a check passing for a reason other than the one
 intended (§70's unpinned `lenses:` anchor, IMPACT's git-ignored fixture bench, this).
 
-### 72.5 Decisions owed
+### 72.5 Ruled and resolved 2026-08-26/27 — shipped as 0.28.1
+
+1. **Fix shape — the root is resolved in BOTH flavours** (`$SDLC_REPO_ROOT` as given,
+   and `pwd -W`), tried in turn, matching on either. One subshell; it cannot regress a
+   POSIX host, where the two answers are identical. Proven on a bench where they
+   genuinely differ: **3/5 broken, 5/5 fixed**, across backslash-absolute,
+   slash-absolute, repo-relative, in-repo test and out-of-repo paths.
+2. **Proof-corpus gap — closed, and it was worse than "a missing case".** Case `2c` is
+   literally *absolute path INSIDE the repo is still production source*, and it passed
+   on the broken body because `Bench.run` **pins** `SDLC_REPO_ROOT` to the bench's own
+   root: both sides agree by construction and can never diverge. No adopter sets that
+   variable. New cases `24b`/`24c` run with it **unset**, in both path flavours, and a
+   mutation dropping the second candidate root is caught **by them**. *A case existed
+   and a fixture convenience deleted its coverage* — a sharper failure than absence,
+   because the suite named the property and still could not see it.
+3. **Release urgency — shipped as its own patch, 0.28.1**, ahead of any further batch.
+   Published tarball verified: checksum matches, 44/44, and the shipped guard scores
+   **5/5 run out of the downloaded tarball**. The affected adopter re-took the guard
+   only after re-proving in their own tree (3/5 → 5/5, deny-armed), which was the
+   condition their own spec recorded.
+4. **RULED 2026-08-27: the "both dialects" claim needed re-reading, and §64 is now
+   corrected.** The Claude dialect's out-of-repo fix was genuinely proven and still
+   holds. The Copilot dialect's was proven only against a fixture that could not fail,
+   so it **never worked in the configuration adopters run** — 0.25.0 to 0.28.0. §64's
+   proof table and its opening claim both carry the correction; nothing else in the
+   kit rests on that sentence.
+
+**Two mutations went STALE when the fix restructured their anchor** — *charge
+out-of-repo writes as production* and *drop the repo-relative reduction*. The suite
+reported them as stale rather than counting them caught, which is the only reason
+those two defect classes did not silently lose coverage **inside the patch that
+exists because coverage was silently lost**. Both re-pointed; final run 57 cases on
+each parser dialect, 21 mutations, 0 stale, exit 0.
+
+**Nothing further is open from this section.** §72.3 was withdrawn on 2026-08-27:
+the "log corruption" was my own probe's mangled payload, not a guard defect — see
+that section for the measurement and the lesson.
+
+### 72.6 Superseded — the decisions as originally owed
 
 1. **Fix shape.** Normalize the incoming path (`tr '\\' '/'`) **and** resolve the root
    in the same flavour the CLI uses — `pwd -W` where available, falling back to `pwd`,

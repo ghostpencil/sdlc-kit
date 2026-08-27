@@ -677,6 +677,14 @@ def main():
         print("\nS4 green: %d cases, verdicts identical to the direct-sh pass" % len(CASES))
         return
 
+    # Perf breaches accumulate and reach the exit code only at the END. They used to
+    # exit the moment a budget was missed, which on a loaded machine ended the run
+    # before the mutation pass — the only pass that tests whether the corpus can detect
+    # a defect at all. A timing wobble silently switched off invariant 13's instrument,
+    # three times in one day (FEATURE_PLAN.md §71). Correctness and speed are different
+    # verdicts, and one must not be able to suppress the other.
+    perf = []
+
     print("== unit pass (%d cases) ==" % len(CASES))
     failures, slowest = unit_pass(src, verbose=True)
     print("slowest warm invocation: %.0f ms (S2 budget: 1000 ms; cold first spawn: %.0f ms, uncounted)"
@@ -686,8 +694,7 @@ def main():
             print("\nFAILED %s: %s\n--- output ---\n%s" % (name, "; ".join(problems), out))
         sys.exit(1)
     if slowest >= 1.0:
-        print("S2 FAILED: slowest invocation %.2f s" % slowest)
-        sys.exit(1)
+        perf.append("unit invocation %.2f s (budget 1.00 s)" % slowest)
 
     print("\n== docs pass (%d cases) ==" % len(DOCS_CASES))
     failures, slowest = docs_pass(src, verbose=True)
@@ -697,8 +704,7 @@ def main():
             print("\nFAILED %s: %s\n--- output ---\n%s" % (name, "; ".join(problems), out))
         sys.exit(1)
     if slowest >= 1.0:
-        print("S2 FAILED: slowest docs invocation %.2f s" % slowest)
-        sys.exit(1)
+        perf.append("docs invocation %.2f s (budget 1.00 s)" % slowest)
 
     print("\n== stop pass (%d cases) ==" % len(STOP_CASES))
     failures, times = stop_pass(src, verbose=True)
@@ -714,14 +720,23 @@ def main():
         for name, problems, out in failures:
             print("\nFAILED %s: %s\n--- detail ---\n%s" % (name, "; ".join(problems), out))
         sys.exit(1)
-    if typical >= 1.5 or cap_t >= 5.0:
-        print("S2 FAILED: stop invocation over budget")
-        sys.exit(1)
+    if typical >= 1.5:
+        perf.append("typical stop invocation %.2f s (budget 1.50 s)" % typical)
+    if cap_t >= 5.0:
+        perf.append("cap-20 stop walk %.2f s (budget 5.00 s)" % cap_t)
 
     print("\n== mutation pass (%d mutations, count derived) ==" % len(MUTATIONS))
     survivors = []
+    stale = []
     for name, old, new in MUTATIONS:
-        assert old in src, "mutation %s no longer applies - update it" % name
+        if old not in src:
+            # Reported, never raised. An assert aborts the run, so every mutation after
+            # a stale one never executes and one bad anchor hides all of them. A stale
+            # mutation is also NOT a pass: it is a defect class that has silently lost
+            # its coverage — which is how the §72 regression reached four releases.
+            stale.append(name)
+            print("  %-38s STALE - anchor no longer applies, re-point it" % name)
+            continue
         mutated = src.replace(old, new)
         broke, _ = unit_pass(mutated, verbose=False)
         where = "unit"
@@ -736,6 +751,17 @@ def main():
             survivors.append(name)
     if survivors:
         print("\nMUTATIONS SURVIVED: %s - the corpus does not pin what it claims" % ", ".join(survivors))
+    if stale:
+        print("\nMUTATIONS STALE: %s - re-point the anchors" % ", ".join(stale))
+    if perf:
+        print("\nS2 PERF over budget: %s" % "; ".join(perf))
+        # ASCII only: this prints to the operator's console, and on Windows that is
+        # cp1252 - an em dash or a section sign arrives as a replacement character,
+        # which is the same encoding trap change-verify's own guidance names.
+        print("  (the correctness results above are unaffected - these are timing"
+              " budgets, and this machine's are unreliable under load: FEATURE_PLAN 71)")
+
+    if survivors or stale or perf:
         sys.exit(1)
 
     print("\nall green: %d unit + %d docs + %d stop cases, %d mutations caught"
