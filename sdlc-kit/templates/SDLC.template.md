@@ -118,6 +118,19 @@ at the step that uses them instead: the run command and acceptance surface (*Pha
 end*, halt 4), the deploy note (*Phase end*, step 6), the main branch (*Shape*), the
 kit version (the header) — each read where it is used, never re-derived.
 
+**Every row that records a control records what its proof could *see*.** The install
+proofs this kit prescribes are already catch-proofs — each one says *prove it by making
+it fail*, and a control seen only to run is not one of them. But a catch-proof
+**constructs** the state it catches, and that leaves the question nobody asks: does the
+workflow ever produce that state on its own? So a control row states three things, not
+two — installed (where, and in which mode), the **catch** seen (what was flagged, named),
+and the **reach note**: whether the flagged state arises in ordinary operation, or was
+built for the proof. *"Constructed for the proof; not yet observed arising on its own"*
+is a legitimate answer and a useful one — it is a claim the next close can check. What is
+not legitimate is a row that records only that the control executed: one adoption carried
+a stop-time backstop as installed and proven on exactly such a line, and its window was
+empty at 96 of the 125 stops it ever took, with zero catches in its whole life.
+
 **Scope: {{SDLC_SCOPE}}**
 <!-- What this process governs and what is explicitly out of scope. "The whole repo" is
      the common answer; a mixed repo (app + docs, app + infra, monorepo packages) names
@@ -134,7 +147,8 @@ All of the following, in order, all green (rules: *The Gate*):
 ```
 
 **Baseline: {{GATE_BASELINE}}** — the single place the baseline is defined; commands
-read it from here (rules: *Gate baseline*).
+read it from here (rules: *Gate baseline*). The value carries the commit it was measured
+at (`N @ <short-sha>`); *Gate baseline* says why.
 
 The same checks run in CI ({{CI_DESCRIPTION}}). Merges to `{{MAIN_BRANCH}}` require the
 CI check green — via branch protection where it is configured, and as a process rule
@@ -254,10 +268,13 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      THE SAME NOTE also records the stop-time backstop's state — the same script's
      `stop-check` mode wired at agentStop (Copilot, `.github/hooks/sdlc-close-out.json`)
      / Stop (Claude Code, the settings-file block), offered separately and OPTIONAL
-     where the checker itself is not. Installed: which CLIs, the fire-proof actually
-     seen (which CLI and launcher, the would-block line read back — a recorded
-     install whose proof never ran is the silent absence this family catches,
-     one layer up), logging or armed
+     where the checker itself is not. Installed: which CLIs, the catch-proof
+     actually seen (which CLI and launcher, the would-block line read back NAMING
+     THE COMMIT — a recorded install whose proof never ran is the silent absence
+     this family catches, one layer up), THE REACH NOTE the rule above requires
+     (the proof constructs an unpushed commit missing a key, while /end-slice
+     commits, checks and pushes in one step — so say whether that state has been
+     seen to arise on its own), logging or armed
      (the flag file `.git/sdlc-close-out/deny-enabled`, present means armed — arming
      or disarming means updating this line, because nothing else will), and that the log lives at
      `.git/sdlc-close-out/log`, per-clone like everything under `.git/`. Declined:
@@ -318,6 +335,19 @@ decision to lower it via a stabilization slice in the next phase, or records tha
 owner **ratified holding it** — with how many arcs it has been unchanged. A ceiling
 nobody is ever asked about is not a ratchet, and *"drive it down through the backlog"*
 is a wish until a step serves it.
+
+**The number describes a commit, not a tree.** Every recorded baseline carries the
+commit it was measured at — `N @ <short-sha>` — because the measurement and the record
+are never simultaneous. The count comes from the arc branch's gate run — *Phase end*
+step 1, before the merge; the close then commits docs, pins and bookkeeping on top of
+it. One arc
+re-derived its baseline correctly and a later close-out commit added a test, so the
+freshly derived number was already wrong by the time the close finished. The stamp does
+not make the number current — it makes it **checkable**, which is strictly better than a
+number that silently claims to describe whatever the tree holds now. The next close's
+reconcile reads the drift between the stamp and the tree instead of assuming there is
+none. Re-running the gate at close to refresh the number stays forbidden, for the reason
+*Phase end*'s reconcile gives.
 
 **Rendering:** an unchanged red baseline is reported as `N (unchanged for K arcs)`,
 never as `N (ceiling held)` or any other phrasing where a stall reads as an
@@ -552,9 +582,13 @@ Run `/next-slice` in a **fresh session**:
    was claimed to hold**, correct the entry in place
    and re-scope. The same rule covers an **estimated** number the slice implements:
    derive it before starting, take a differing result back to the owner as a question,
-   and re-tag the decision measured with what you ran. The re-derivation is done when
-   every marker has had its proportional check and every estimated number carries a
-   recorded derivation.
+   and re-tag the decision measured with what you ran. **And it covers a ratified
+   *method* the slice implements through** — where the phase spec ratified not only an
+   outcome but how it would be established, the slice owes that method or an explicit
+   substitution presented at the halt, because a different route answers a different
+   question even when it satisfies the same one. The re-derivation is done when every
+   marker has had its proportional check, every estimated number carries a recorded
+   derivation, and every ratified method has been run or explicitly substituted.
 3. Ensure the arc branch is checked out (create it if phase start was skipped; check for
    any unmerged arc branch before creating a new one — see *Shape*).
 4. Read `spec/TESTING.md`, invoke the TDD skill, implement the slice in small
@@ -785,7 +819,7 @@ Run `/end-phase` when the last slice is done:
    each reported as `recorded X / measured Y` — divergences first, agreements collapsed
    to one line. A decision taken against a stale number is taken twice. No new gate run
    is needed: step 1's evidence **is** the measurement, the merge having come from a
-   clean tree. Three subjects, in order:
+   clean tree. Four subjects, in order:
    - **The backlog, reconciled before it is counted.** Walk this arc's slice commits
      and the phase spec; mark `— done (<commit>)` on every entry they closed; only
      then report the open count, stating how many the pass itself just closed. The
@@ -798,7 +832,11 @@ Run `/end-phase` when the last slice is done:
      structurally unreconciled from birth, nothing having ever been written to
      reconcile them. The coverage-floor and red-baseline bullets below keep their own
      decision procedures; this pass is the **detector** they and every unnamed row now
-     share.
+     share. **Where a row's number is enforced somewhere, the value is searched for,
+     not just the row:** take the number from the enforcing artifact, then search the
+     whole spec set for the **old** value and report every file still carrying it.
+     Reconciling one home says nothing about a second one three hundred lines away in
+     the same file.
    - **The contract's absent direction.** For every ratified decision in prior phase
      specs that has neither a contract entry nor a recorded drop, ask the question no
      other check asks: is the behavior in the tree? Absent → surface it for an explicit
@@ -807,6 +845,12 @@ Run `/end-phase` when the last slice is done:
      close, not once: the one-time backfill runs once by definition, and the
      preserved-contract check's population — entries on touched surfaces — can never
      reach a behavior that never became an entry.
+   - **The phase spec's own *Risks & Deferred*.** Every entry the spec opened is driven
+     to a terminal state — discharged (naming what discharged it), carried (with the
+     identifier it was given), or withdrawn (with the reason) — and anything ending in
+     none of the three is reported. No other walk reads that section, so without this
+     one an obligation the spec attached to the arc lapses by silence while the arc
+     closes green.
 
    Then the decisions and the records themselves: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;

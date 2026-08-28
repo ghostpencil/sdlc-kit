@@ -91,7 +91,10 @@ For each, read the named files in full — do not sample — and cite evidence p
   close-out evidence checker and its setup proof step (five keys as of 0.27.0 —
   `lenses:` joined them fail-closed, its negative case being the review verdict that
   previously had no durable home at all), the checker's stop-time
-  backstop with its fire-first proof and logging-to-deny ramp, the checker's
+  backstop with its catch-proof, its reach note (invariant 16) and its
+  logging-to-deny ramp - whose negative cases as of 0.29.0 also include a bookkeeping
+  commit seen NOT to be flagged, a repeated stop seen not to re-log a flag it already
+  logged, and an empty window seen to log `n/a` rather than `clean`, the checker's
   docs-budget observer (log-only; its negative case lives in the proof suite, not in
   an arming ramp), the retro's
   ledger-alive precheck and its spec-claims-against-the-tree sweep, the
@@ -111,6 +114,13 @@ For each, read the named files in full — do not sample — and cite evidence p
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that
   reconciles the two, or is explicitly claim-only.
+- **16 — a control's record says whether its trigger occurs on its own:** every control
+  record `templates/SDLC.template.md` seeds, and every `commands/sdlc-setup.md` step
+  that writes one, demands the catch **by name** (what was flagged) and a **reach
+  note** — whether the flagged state arises in ordinary operation or was constructed
+  for the proof. Every install proof in the kit is already a catch-proof, so the
+  finding is never "it only proves the control ran"; it is a record that settles reach
+  by silence. A row saying only that the control executed is the violation.
 - **15 — verification names its environment:** enumerate every verification verb in
   `commands/` and `templates/` (verify, confirm, check, prove, accept, ratify, and
   "green"); each names where the check runs and whether that place is what the claim is

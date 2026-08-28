@@ -530,6 +530,11 @@ record-the-version rule — is never fought).
 
 **Logging first, always.** It installs logging-only: verdicts appear as
 `stop: WOULD-BLOCK` lines in `.git/sdlc-close-out/log`, and nothing is blocked.
+A flag is logged **once per commit per session** (a repeat stop logs `stop: repeat`),
+so counting `WOULD-BLOCK` lines counts events: before 0.29.0 one session logged the
+same commit fifteen times. Commits that touch only `spec/` and the root kit documents
+are skipped before classification — bookkeeping, never a slice, and they were 100% of
+this backstop's measured firing history.
 Blocking the defective class is armed by creating `.git/sdlc-close-out/deny-enabled`
 and disarmed by deleting it — the owner's call, after reading a few real sessions
 of the log, and the `{{CLOSE_OUT_CHECK_NOTE}}` line in `spec/SDLC.md` is updated

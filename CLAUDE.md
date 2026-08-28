@@ -99,7 +99,7 @@ and now also handles the 0.14.0 skills move as a removal-and-re-add.)
 
 ## Invariants to preserve when editing
 
-The canonical, full ledger is `KIT_INVARIANTS.md` at the root — 15 invariants, each with
+The canonical, full ledger is `KIT_INVARIANTS.md` at the root — 16 invariants, each with
 the real defect that motivated it — and `/kit-check` is the reading pass that verifies
 them. The six below are the working summary; on disagreement the ledger wins.
 

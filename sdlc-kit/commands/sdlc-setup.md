@@ -395,7 +395,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      line appears, the guard is not firing: re-check the matcher and the hook
      environment above before adjusting anything else.
    - Record the outcome as `{{TDD_GUARD_NOTE}}` in `spec/SDLC.md`: installed or not,
-     which CLI they run on, logging or deny mode, and the proof you just ran. **When
+     which CLI they run on, logging or deny mode, the proof you just ran, and the
+     **reach note** *Records* requires — this proof constructs its own violation, so
+     say whether one has been seen to arise on its own. **When
      installed, the note also states the four rules the guards impose on a coding
      session** — a test run registers only as a single bare command (no `;`, `&` or
      `|`; flags and single-test selectors are fine); the stop guard's green is
@@ -573,12 +575,20 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      fired on the next) — end a
      session in a repo whose `HEAD` is an unpushed commit missing a record key and
      confirm the log holds `stop: WOULD-BLOCK - defective record` naming the
-     commit; a clean stop logs `stop: clean`. No line → the hook is not firing;
-     re-check the hook environment before trusting it.
+     commit. A stop that inspected commits and found their records whole logs
+     `stop: clean (inspected N, …)`; a stop with **nothing in its window** logs
+     `stop: n/a (nothing to inspect: …)` — deliberately a different word, because
+     until 0.29.0 both said `clean` and a control with no reach was
+     indistinguishable in its own log from one that found nothing. No line at all →
+     the hook is not firing; re-check the hook environment before trusting it.
    - Record the outcome in the same `{{CLOSE_OUT_CHECK_NOTE}}` line: installed
-     (which CLIs, logging mode, the flag file and log path, per-clone, **and the
-     fire-proof actually seen — which CLI and launcher, the would-block line read
-     back**) or declined
+     (which CLIs, logging mode, the flag file and log path, per-clone, **the
+     catch-proof actually seen — which CLI and launcher, the would-block line read
+     back naming the commit**, and **the reach note** *Records* requires: the proof
+     above constructs an unpushed commit missing a record key, while `/end-slice`
+     commits, checks and pushes in one step, so state plainly whether that state has
+     been seen to arise on its own — *"constructed for the proof"* is the honest
+     answer at setup and the one the next close can check) or declined
      with the date — the note's comment in `SDLC.template.md` states both forms. A
      recorded install whose proof was never run is the silent absence this checker
      family exists to catch, one layer up.

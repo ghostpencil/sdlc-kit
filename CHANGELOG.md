@@ -10,6 +10,100 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.29.0 — 2026-08-28
+
+The ninth field report's medium batch (`FEATURE_PLAN.md` §73, ruled 2026-08-27) — the
+last ruled work from that report. Its one item without a fix shape was **measured before
+it was designed**, and the measurement reversed the fix: the report proposed widening the
+stop-time backstop's window, and the control's own log says the window is right and its
+*candidates* are wrong. The theme, one turn past the report's own: **a control's proof
+constructs the state it catches, and nothing asks whether the workflow ever produces that
+state on its own.**
+
+### Fixed
+- **[installable]** **The stop-time backstop flagged only commits that could never carry
+  a record** (`templates/close-out.template.sh`, `stop-check`). Measured over the whole
+  installed life of one adoption's hook — 126 log lines, not the arc the report sampled:
+  **96 of 125 stops (77%) had an empty window**, all 29 non-empty ones held **zero**
+  commits carrying a record, and **all 19 flag lines were two `docs(...)` commits** that
+  touched only `spec/` and `CLAUDE.md`. Real catches over the control's life: **zero**.
+  A candidate whose changed paths lie entirely inside `spec/` or are the root kit
+  documents is now **skipped before classification** — bookkeeping, never a slice. The
+  filter is deliberately one-sided: one non-kit path, or no paths at all (a merge, an
+  empty commit), and the commit stays a candidate. The window and the amend remedy are
+  untouched, because the remedy is legal *only* while unpushed — which is why widening
+  the window, as filed, would have broken it while multiplying the false firings.
+- **[installable]** **A repeat stop re-logged the same flag.** One session logged the
+  same commit **fifteen times**, inflating the event count roughly 10:1 for anyone
+  reading the log to count firings. A flag is now logged once per commit per session
+  and repeats log `stop: repeat`. De-dup governs **logging only**: armed, a
+  still-defective commit blocks at every stop, because being mentioned once must never
+  buy a pass.
+- **[installable]** **An empty window and a clean inspection printed the same word.**
+  A stop with nothing to inspect now logs `stop: n/a (nothing to inspect: …)`, and an
+  inspection logs `stop: clean (inspected N, K bookkeeping skipped; …)`. That
+  difference is the finding's opening sentence — *a control that cannot catch logs the
+  same word as a control that found nothing* — and it is what makes the pass's reach
+  countable at all.
+- **[installable]** **The phase-close reconcile named number homes by document, and a
+  document can hold the number twice** (`commands/end-phase.md`). For every row whose
+  number is enforced somewhere, the pass now **searches for the value**: take the
+  number from the enforcing artifact, then search the whole spec set for the **old**
+  one and report every file and line still carrying it. Output is a file list; an empty
+  list is the only pass. One arc recorded a coverage floor in four places, corrected
+  the two a bullet happened to name, and closed green with the other two wrong.
+- **[adoption-only]** **The one-home rule was a comment with no observer**
+  (`templates/PROJECT_INDEX.template.md`). It covered one number in one file, addressed
+  to setup, and nothing ever re-read it. It is now a standing rule over every enforced
+  number, paired with the search above that finds a second home rather than trusting
+  there is none.
+- **[installable]** **A ratified *method* reached no terminal state**
+  (`commands/next-slice.md` §2). Cause and `estimated` number were re-derived; the
+  method the slice implements *through* was not. A substituted route **answers a
+  different question** — one arc went straight to a bisect, passed the halt cleanly, and
+  only the prescribed byte-diff later proved the region byte-identical and named a
+  difference the bisect had eliminated by inference.
+- **[installable]** **A *Risks & Deferred* entry lapsed by silence**
+  (`commands/end-phase.md`). The reconcile pass gains a **fourth subject**: every risk
+  the phase spec opened is driven to discharged / carried / withdrawn, and anything
+  ending in none of the three is the finding. No other walk reads that section.
+
+### Changed
+- **[adoption-only]** **The gate baseline now describes a commit, not a tree**
+  (`templates/SDLC.template.md`, `commands/end-phase.md`). The recorded value carries
+  the commit it was measured at — `N @ <short-sha>` — because the measurement (the arc
+  branch's step-2 run) and the record are never simultaneous: one arc re-derived its
+  baseline correctly and a close-out commit added a test underneath it the same day.
+  The stamp does not make the number current; it makes the drift **readable** by the
+  next close. Re-running the gate at close to refresh it stays forbidden.
+- **[adoption-only]** ***Records* asks a third thing of every control: the reach note**
+  (`templates/SDLC.template.md`, `commands/sdlc-setup.md`). The kit's install proofs
+  were already catch-proofs — *"prove it by making it fail"* — and the template still
+  called the result a *fire-proof*, which is how one adoption recorded a backstop as
+  installed and proven on a line saying only that it executed. Two changes: the
+  recorded catch must **name what was flagged**, and each control row states whether
+  the flagged state **arises in ordinary operation or was constructed for the proof**.
+  A catch-proof establishes that a control *can* fire; it says nothing about reach, and
+  reach is what the backstop above turned out to lack for four releases.
+
+### Changed (continued)
+- **[installable]** **The candidate pass reads a commit's body and its paths in one
+  `git show`.** The filter's first cut took a second git process per candidate, and this
+  script already carries a 2026-08-10 warning about exactly that cost on Windows. Over a
+  20-candidate walk, five runs each: **4188 ms** with no filter, **6868 ms** with it as
+  first written, **4186 ms** once folded into the existing counter pass — so the filter
+  now costs nothing measurable, and the walk is no slower than 0.28.1's. The stop path
+  runs inside a 30 s hook timeout. Caught by measurement: the suite was green either way.
+
+### Repo (not shipped in the bundle)
+- `tools/close-out-check.py` gains five stop cases and five mutations. The corpus gap
+  was the mirror image of the one expected: it already proved the mode **fires** four
+  different ways, and contained **no case pinning what it must stay silent about** —
+  the exact configuration that produced 19 of 19 field firings. It also could not build
+  such a case, because every stop bench commit was `--allow-empty` and therefore had no
+  paths at all; `commit_files` is new for that reason. One mutation anchor was
+  **re-pointed** where the fix restructured the line it targeted, per 0.28.1's lesson.
+
 ## 0.28.1 — 2026-08-26
 
 **A patch release, and it re-arms a control that four releases had silently disarmed.**

@@ -80,9 +80,22 @@ decision (`Decision 2: the derived value differs — keep the ratified number or
 the derived one?`), with both numbers and the derivation. When the derivation confirms
 the number, re-tag the decision **measured** in the spec with what you ran.
 
-The re-derivation is done when every marker has had its proportional check and every
-`estimated` number the slice implements carries a recorded derivation — any changed
-cause corrected in place, any changed number back to the owner.
+**The same rule covers a ratified *method* this slice implements through.** Where the
+phase spec ratified not only an outcome but *how* it would be established — a byte-diff,
+a named probe, a specific comparison — the slice owes that method, or an explicit
+substitution presented here. A different route that satisfies the question still costs
+whatever the ratified one would have established: on a real arc the slice went straight
+to a bisect, passed this step cleanly, and only the prescribed byte-diff — run later —
+proved the region byte-identical and named a difference the bisect had eliminated by
+inference alone. Cause and number are re-derived because a stale one misleads; a method
+is re-read because a substituted one **answers a different question**, and this halt is
+the only place that comparison is cheap. If the substitution is better, say so with both
+and let the owner take it as a numbered decision inside this halt.
+
+The re-derivation is done when every marker has had its proportional check, every
+`estimated` number the slice implements carries a recorded derivation, and every
+ratified method it implements through has been run or explicitly substituted — any
+changed cause corrected in place, any changed number or method back to the owner.
 
 ### 3. Ensure the branch
 

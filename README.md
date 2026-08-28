@@ -765,6 +765,39 @@ only as a hand-apply, and the per-version transition notes name each one.
    truth, and its summary is deliberately not one of the close-out record's keys. The
    update command's 0.28.0 note states the same procedure.
 
+   **0.28.1 re-arms the TDD guard's shell dialect, which 0.25.0 through 0.28.0
+   silently disarmed on Windows.** If you run Copilot CLI on Windows and applied the
+   0.25.0 guard fix above, **that guard has been skipping every write the CLI reports
+   by absolute path** — which is how that CLI reports them. The relativization compared
+   the incoming path against a root taken from `$(pwd)`, and an MSYS hook shell answers
+   `/d/foo` where the CLI sends `D:\foo`; they never prefix-match, so the write fell to
+   the *outside the repository* arm and was skipped rather than guarded. The log line
+   reads like correct behavior, which is the worst shape this can take. Measured on an
+   adopter's own recorded path: the 0.24.0 body **denies** it, 0.25.0–0.28.0 **allow**
+   it. The fix resolves the root in both flavours and cannot regress a POSIX host. It
+   is in `templates/tdd-guard.template.sh` and, like every guard change, **arrives only
+   by hand** — apply it as a template diff keeping your three placeholder values, at
+   the same time as the 0.25.0 fixes if you have not taken those yet. **The Claude /
+   Python dialect was checked and is correct**, so a Claude Code project needs nothing
+   here. Re-prove the deny afterwards against a path shape from your own `guard.log`,
+   and read the verdict **from the log**, never from the probe's exit code.
+
+   **0.29.0 quiets the stop-time backstop and asks one new thing of your *Records*.**
+   The checker is kit-owned, so all three behaviour changes arrive with the file:
+   commits touching only `spec/` and the root kit documents are **skipped before
+   classification** (bookkeeping, never a slice — and across one adoption's entire log
+   they were 100% of the flags it ever raised); a flag is logged **once per commit per
+   session**, with repeats logged as `stop: repeat`; and a stop with nothing in its
+   window logs **`stop: n/a`** instead of `stop: clean`, because a control with no
+   reach and a control that found nothing were previously the same word. Expect a
+   quieter and more informative log. Two things to fold into `spec/SDLC.md` by hand:
+   if your close-out note records a *fire-proof*, upgrade it to the **catch actually
+   seen, naming the commit**, plus a **reach note** — whether that flagged state arises
+   in ordinary operation or was constructed for the proof; and from your next
+   `/end-phase`, the gate baseline is recorded as `N @ <short-sha>`, stamped with the
+   commit its number was measured at. Nothing recomputes the baseline during the
+   update. The update command's 0.28.1 and 0.29.0 notes state the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,

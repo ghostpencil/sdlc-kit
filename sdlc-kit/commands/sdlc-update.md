@@ -690,6 +690,38 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   a **comprehension aid, never verification** — nothing it prints enters gate truth,
   and its summary is deliberately not one of the close-out record's keys, so the
   checker's five-key denominator is unchanged.
+- **0.28.1 re-arms the TDD guard's shell dialect on Windows, and it arrives only by
+  hand.** 0.25.0 through 0.28.0 shipped a relativization that compared the incoming
+  path against a root taken from `$(pwd)`; on Windows the hook shell answers `/d/foo`
+  while Copilot CLI sends `D:\foo`, so **every absolute path fell to the *outside the
+  repository* arm and was skipped rather than guarded** — logging a line that reads
+  like correct behavior. Measured against an adopter's own recorded path: 0.24.0
+  denies, 0.25.0–0.28.0 allow. Apply `templates/tdd-guard.template.sh` as a template
+  diff keeping the project's three placeholder values, together with the 0.25.0 fixes
+  if those are not taken yet. **The Claude/Python dialect is correct and needs
+  nothing.** Re-prove the deny afterwards against a path shape from the project's own
+  `guard.log`, and read the verdict from the log rather than the probe's exit code — a
+  malformed payload makes the guard log a parse error and exit 0, which looks exactly
+  like an allow.
+- **0.29.0 changes the close-out backstop's log vocabulary, and the change arrives with
+  the update.** `.github/hooks/sdlc-close-out.sh` is kit-owned and copied verbatim, so
+  unlike either TDD-guard fix this one needs no hand-application. Three behaviour
+  changes to state at the halt, all in `stop-check`: commits touching only `spec/` and
+  the root kit documents are **skipped before classification** (bookkeeping, never a
+  slice — and they were 100% of one adoption's measured firing history); a flag is
+  logged **once per commit per session**, with repeats logged as `stop: repeat`; and a
+  stop with nothing in its window now logs **`stop: n/a`** rather than `stop: clean`,
+  because a control with no reach and a control that found nothing were previously the
+  same word. Expect the log to get quieter and more informative at once. **If the
+  project's close-out checker note in `spec/SDLC.md` records a fire-proof**, this is the
+  close to upgrade that line: 0.29.0's *Records* rule asks for the catch actually seen
+  (naming the commit) **and a reach note** — whether the flagged state arises in ordinary
+  operation or was constructed for the proof. Hand-fold both, as with every
+  `spec/SDLC.md` change; never 3-way-merge that file.
+- **0.29.0 also stamps the gate baseline with the commit it was measured at.** The
+  recorded value becomes `N @ <short-sha>`. Nothing recomputes it here: the stamp is
+  applied at the next `/end-phase`, from that close's own step-2 run. An unstamped
+  baseline is not a defect to fix during the update.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

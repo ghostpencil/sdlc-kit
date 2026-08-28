@@ -27,6 +27,19 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      spec/PROJECT_INDEX_HISTORY.md, one dated section per close, numbering and
      provenance preserved. An entry without its marker never retires. -->
 
+<!-- ONE NUMBER, ONE HOME. Any number this project enforces somewhere - the gate
+     baseline, the coverage floor, a cap, a threshold - is recorded in exactly one
+     document, and every other mention LINKS to that home instead of repeating the
+     value. Restating it is not redundancy, it is a second thing to update: the copy
+     goes stale silently, and it goes stale in the reader's favour, because a stale
+     copy still looks like a record. One adoption carried a coverage floor in four
+     places, moved it in the two a close-out bullet happened to name, and closed green
+     with the other two wrong. /end-phase's reconcile searches for the OLD value across
+     the whole spec set at every close, so a second home is found rather than trusted -
+     but the cheaper fix is never to create one. The home for each is named where the
+     number is defined: the gate baseline and the coverage floor in spec/SDLC.md
+     *Records*, everything else wherever it was ratified. -->
+
 ## Phase — *bounded*
 
 **{{INITIAL_PHASE_STATUS}}**

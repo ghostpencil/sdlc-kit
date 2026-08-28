@@ -235,7 +235,7 @@ case "$MODE" in
       # hypothetical: it shipped in 0.25.0 and made every absolute path fall to the
       # "outside the repository" arm below, so the guard SKIPPED every write this CLI
       # reports by absolute path - which is how it reports them. Measured on an
-      # adopter's own recorded path (FEATURE_PLAN.md §72): the pre-0.25.0 body denied
+      # adopter's own recorded path: the pre-0.25.0 body denied
       # it, the 0.25.0 body allowed it. A fix meant to narrow the guard's scope opened
       # a hole in it. Trying both flavours costs one subshell and cannot regress a
       # POSIX host, where the two answers are identical.

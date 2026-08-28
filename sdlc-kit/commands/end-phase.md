@@ -255,7 +255,7 @@ read before it is reconciled is a decision taken twice.
   with the file that holds it, then the agreements collapsed to one line (`N rows
   reconciled, no divergence`). **No new gate run** — step 2's run is the measurement,
   the merge having come from a clean tree; re-running here measures a different tree
-  than the one these records describe. Three subjects, in order:
+  than the one these records describe. Four subjects, in order:
   1. **The backlog, reconciled before it is counted.** Walk this arc's slice commits
      and the phase spec, and mark `— done (<fix commit>)` on every backlog entry they
      closed. **Only then** report the open count — and say how many entries this pass
@@ -282,6 +282,16 @@ read before it is reconciled is a decision taken twice.
      is defined over the table rather than over a list of row names. A row this close
      produces no evidence about is reported `recorded X / not measured this close` —
      never as agreement.
+
+     **For every row whose number is enforced somewhere, search for the value, not just
+     the row.** Take the number from the *enforcing* artifact — the CI workflow or build
+     file for the coverage floor, this file for the red baseline — then search the whole
+     spec set for the **old** value and report every file and line that still carries
+     it. Reconciling the row proves nothing about a second home three hundred lines away
+     in the same file: one arc recorded a coverage floor in four places, corrected the
+     two that a bullet happened to name, and closed green with the other two wrong. The
+     output of this leg is a **file list**, not a verdict, and an empty list is the only
+     pass.
   3. **Ratified decisions the contract never received.** For every ratified decision in
      prior phase specs that has **neither** a contract entry **nor** a recorded drop,
      ask the question no other check asks: is the behavior in the tree? Present each
@@ -293,6 +303,15 @@ read before it is reconciled is a decision taken twice.
      reads entries on touched surfaces, so neither can ever reach a behavior that never
      became an entry. That is the gap three owner-ratified behaviors went missing
      through, with every gate, test, and review green the whole way.
+  4. **The phase spec's own *Risks & Deferred*.** Walk every entry the spec opened and
+     drive each to a terminal state: **discharged** (naming what discharged it),
+     **carried** (into the backlog or the next phase's scope, with the identifier it
+     was given there), or **withdrawn** (with the reason). An obligation the spec
+     attached to this arc has no other reader — the backlog walk above sees only
+     backlog entries, the *Records* walk sees only rows, and the contract walk sees only
+     ratified decisions — so without this leg a risk lapses by silence while the arc
+     that raised it closes green. Report the three counts, and list every entry that
+     ends the pass in none of the three states: that list is the finding.
 - **Ask the deploy question, then record the verified outcome:** does this phase need
   a deploy for its changes to reach users, and has it happened? Merging is not
   shipping — a production fix sat unshipped behind exactly this missing question once.
@@ -394,7 +413,14 @@ read before it is reconciled is a decision taken twice.
   fell, lower the baseline in `spec/SDLC.md` in this same docs commit — that record *is*
   the enforcement, since the gate compares against it. If it did not fall, ask the owner
   once: lower it anyway (a stabilization slice in the next phase), or ratify holding it
-  — and record which, with **how many arcs the number has now been unchanged**. The
+  — and record which, with **how many arcs the number has now been unchanged**. Either
+  way the recorded value carries **the commit it was measured at** (`N @ <short-sha>` —
+  step 2's run, on the arc branch, which is the only measurement this close is allowed
+  to use). The stamp is what makes the next close's reconcile able to read drift instead
+  of assuming none: this close commits docs and bookkeeping *after* the measurement, so
+  a number written without one is already describing a tree that no longer exists — one
+  arc re-derived its baseline correctly and a close-out commit added a test underneath
+  it the same day. The
   coverage floor ratchets by procedure; without this bullet the baseline ratchets by
   hope, and a real adoption held one typecheck count across four arcs and twelve
   recorded gate runs before anyone noticed the leg was inert. Never let an unchanged

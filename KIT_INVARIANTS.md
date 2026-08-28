@@ -194,8 +194,11 @@ setup proof step (five keys as of 0.27.0: `lenses:` joined RED/quality/mutation/
 fail-closed, because a lens verdict of `clean` or `no lens triggered` previously had no
 durable home — the review hand-back is not retained and only a lens *finding* travelled
 onward, so two field arcs could not distinguish a lens that ran clean from one that
-never triggered), the checker's stop-time backstop with its fire-first proof and
-logging-to-deny ramp, the checker's docs-budget observer (0.26.0 — log-only by
+never triggered), the checker's stop-time backstop with its
+catch-proof, its reach note (invariant 16) and its logging-to-deny ramp — whose
+negative cases as of 0.29.0 also include a bookkeeping commit that must be seen NOT to
+be flagged, a repeated stop that must be seen not to re-log a flag it already logged,
+and an empty window that must be seen to log `n/a` rather than `clean`, the checker's docs-budget observer (0.26.0 — log-only by
 design, so it has no arming ramp and no fire-proof at setup; its negative case is
 `tools/close-out-check.py`'s docs corpus and its six mutations, which is where a
 budget that stopped discriminating would show), the retro's ledger-alive precheck and its
@@ -242,6 +245,14 @@ that writes the record must reconcile the two in the same pass (or the record mu
 state explicitly that it is claim-only). A number in prose is not the number the
 machine enforces; writing one without the other is how the two drift.
 
+**One number, one home, and the record names the commit it was measured at** (both
+0.29.0). A value restated in a second document is a second thing to update, and it goes
+stale in the reader's favour because a stale copy still looks like a record — so the
+reconcile searches the whole spec set for the **old** value rather than checking the one
+home a bullet happens to name. And a record and its measurement are never simultaneous:
+the gate baseline is written `N @ <short-sha>` so the next close can read the drift
+instead of assuming there is none.
+
 **Check:** reading pass over `commands/` and `templates/` for every step that records
 a value or state; each names its enforcing artifact and its reconcile step, or is
 marked claim-only. **Specimen:** TFit's coverage floor — `/end-phase` bookkeeping
@@ -268,3 +279,31 @@ manifest committed it (`FIELD_REPORT_2026-08-01.md` finding 1). Every in-repo si
 agreed with the wrong conclusion because every one of them was measured somewhere
 other than production. Four of that report's eight findings are instances of this one
 invariant (plan §12, R3.9).
+
+---
+
+## 16. A control's record says whether its trigger occurs on its own
+
+Every install proof this kit prescribes is a **catch**-proof — each says *prove it by
+making it fail* — and each one therefore **constructs** the state it catches. That
+leaves a question none of them asks: does the workflow ever produce that state by
+itself? So the record of a control states three things, not two — installed (where and
+in which mode), the catch actually seen (naming what was flagged), and the **reach
+note**: whether the flagged state arises in ordinary operation, or was built for the
+proof. *"Constructed for the proof; not yet observed arising on its own"* is a
+legitimate answer and the useful one, because unlike the two proofs it is a claim a
+later close can check. A row recording only that the control executed is not a proof of
+anything and must not read as one.
+
+This is invariant 13 pointed one step further out. 13 asks whether a check can be made
+to fail; 16 asks whether anything will ever make it.
+
+**Check:** reading pass over every control record `templates/SDLC.template.md` seeds and
+every `commands/sdlc-setup.md` step that writes one — each demands the catch by name and
+a reach note. **Specimen:** the close-out checker's stop-time backstop. Its setup proof
+genuinely catches, because the operator constructs an unpushed commit missing a record
+key — but `/end-slice` commits, checks and pushes in one step, so that state essentially
+never arises: **96 of 125 stops had an empty window, every one of the other 29 held zero
+commits carrying a record, and all 19 flag lines were two bookkeeping commits.** Zero
+real catches across the control's entire life, recorded the whole time as installed and
+proven (`FIELD_REPORT_2026-08-21.md` finding 5; plan §73.2, fixed in 0.29.0).

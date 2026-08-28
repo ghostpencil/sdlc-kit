@@ -2951,8 +2951,10 @@ been filed on the evidence I had.
 What the measurement shows, run in the adopter's own tree with a payload built by
 `json.dumps` rather than by hand:
 
-- sent `D:\AICoursei-news-dashboard\src\main\java\cominews\dashboardefresh\RefreshOrchestrationService.java`
-- logged **byte-exact**, `` and `` intact.
+- sent `D:\AICoursei-news-dashboard\src\main\java\cominews\dashboard
+efresh\RefreshOrchestrationService.java`
+- logged **byte-exact**, `` and `
+` intact.
 
 And the decisive check — the only two corrupted lines in that project's entire
 `guard.log` are timestamped `2026-08-26T18:03:53Z` and `18:04:15Z`: **both are my own
@@ -3057,3 +3059,328 @@ that section for the measurement and the lesson.
 4. **Whether CLASSIFY's §64 clock is affected.** The out-of-repo classifier was
    field-measured as working on the Claude dialect; on the shell dialect it has never
    worked at all. Any claim resting on "both dialects fixed" needs re-reading.
+
+---
+
+## 73. The medium batch opened — the ninth report's remainder, and its one unruled
+## item needs the opposite of the fix it was filed with: narrow the candidates, do not
+## widen the window — 2026-08-27
+
+§70.7 ruling 1 sequenced this batch behind the small one and IMPACT. Both shipped
+(0.27.0, 0.28.0), the guard re-arm shipped beside them (0.28.1), and both adopters
+merged on 2026-08-26 — so this is the last ruled work from the ninth report.
+
+Four items. Three are ruled and need only building; the fourth (finding 5) had no fix
+shape, and measuring it before designing one changed the answer.
+
+### 73.1 The three that are ruled, as build notes
+
+- **Finding 1 + ruling 2 — the floor's homes.** `end-phase.md`'s *Coverage floor*
+  bullet (line 373) asserts two homes agree — `spec/PROJECT_INDEX.md` **and**
+  `spec/SDLC.md` — against the enforcing threshold, while §68's reconcile pass is
+  defined over *"Every row of `spec/SDLC.md` Records"*, so a second home elsewhere in
+  the same file is outside its population. Ruled (b): the reconcile gains **the value
+  search** (find the enforcement artifact's number, then assert no occurrence of the
+  old value anywhere in the spec set; failure is a file list), and
+  `PROJECT_INDEX.template.md`'s existing one-home prohibition — today one instantiation
+  comment about one number, at line 38 — is **generalized to a rule with an observer**.
+- **Ruling 3 — stamp the baseline with the commit it was measured at.** §68's *no new
+  gate run* stands; the number stops claiming to describe a tree and starts describing a
+  commit, and the next close's reconcile reads the drift.
+- **Finding 6 — *Risks & Deferred* becomes the reconcile's fourth subject**, beside the
+  backlog, *Records*, and the contract-absent direction. Not a new mechanism: the pass
+  built in 0.26.0 gains a fourth walk.
+
+Nothing below changes any of those three. They are XS/S and mechanical.
+
+### 73.2 Finding 5, measured over the control's whole installed life
+
+The report measured its own arc. The log is still on disk in the adopter's tree and
+covers install-to-date, so the population is enumerable rather than sampled —
+`.git/sdlc-close-out/log`, **126 lines** (125 `stop:` lines plus one `docs budget:`
+line from the 0.26.0 observer):
+
+| class | lines | what it means |
+|---|---|---|
+| `clean (no candidate commits)` | **96** (77%) | the window was **empty** — nothing was inspected |
+| `clean (0 complete, N bare ...)` | 10 | the window held 1–2 commits, **none carrying a record** |
+| `WOULD-BLOCK (bare, log-only)` | **19** | fired — on **2 distinct commits** |
+| real catches | **0** | across the control's entire life |
+
+Three facts follow, and the first two are not in the report.
+
+**1. `0 complete`, every single time.** In all 29 stops where the window was *not*
+empty, the count of commits carrying a close-out record was zero. The window is not
+merely usually empty — **it has never once contained the artifact the mode exists to
+inspect.** That is a stronger statement than "the workflow empties it", and it is the
+one that decides the fix: `/end-slice` step 7 commits, step 8 runs the fail-closed
+`check` on that commit, step 10 pushes. A slice commit is therefore *recorded before it
+is pushed and pushed before the session stops*, so it can be in this window only in the
+seconds between step 7 and step 10.
+
+**2. The report undercounts its own log by 15 lines and one commit.** It reports *"4
+WOULD-BLOCK lines on a single documentation commit."* The log carries **19**, on
+**two**: `f419114` x4 and `a5fc4dd` x15, all logged 2026-08-19, both inside the reported
+arc. This is the lineage's own theme landing on the report that names it — a number read
+off a reading of the artifact rather than off the artifact. It **strengthens** the
+finding rather than weakening it.
+
+**3. The 19 lines are 2 events.** `a5fc4dd` is re-flagged at all 15 stops of the session
+that made it: there is no de-dup, so the log inflates events roughly 10:1, and a reader
+counting lines overstates the false-positive rate by the same factor.
+
+**What the two flagged commits are, checked rather than inferred:**
+
+```
+a5fc4dd  docs(sdlc): Phase 08 planned - prompt cache and the real cost per question
+         CLAUDE.md | spec/PHASE_08_*.md | spec/PHASE_08_*_NOTES.md | spec/PROJECT_INDEX.md
+f419114  docs(phase-08): acceptance 8.1 read the cache - D14 withdrawn, S3 re-scoped
+         spec/PHASE_08_*.md | spec/PHASE_08_*_NOTES.md | spec/PROJECT_INDEX.md
+```
+
+**Neither touches a single code file.** Both are bookkeeping commits, and the false
+positive is the exact shape the script's own comment predicted at build time — *"a docs
+commit made in the same session as slice work is a real false-block shape, so this class
+logs until proven never to flag one."* The design anticipated it; the field supplied the
+count; nothing ever closed the loop.
+
+**4.** Five lines took the `HEAD only, no upstream configured` narrowing. That path is
+exercised in the field, not theoretical, and any change must keep it.
+
+### 73.3 What the measurement does to the report's suggested fix
+
+The report proposes: *"Scope `stop-check` to the arc branch's recent commits rather than
+to unpushed ones."* On the numbers above that is the wrong direction, for two reasons
+that are independent.
+
+**It multiplies the only firings the control has ever produced.** Every firing to date
+is a bookkeeping commit. An arc branch contains *more* of them than `@{u}..HEAD` does —
+the phase plan, every acceptance record, every close-out docs commit — and none of them
+will ever carry a close-out record, because they are not slices. Widening the window
+grows the numerator of a control whose numerator is 100% false.
+
+**It breaks the remediation the control prints.** The block reason says *"amend that
+commit ... Fix the body before pushing (`git commit --amend` while it is HEAD)"*, and the
+comment above the range says so outright: *"unpushed commits - also the remediation
+boundary, since the fix is amending a body, legal exactly while unpushed."* On the arc
+branch most candidates are already pushed and are not `HEAD`; the instruction becomes
+either impossible or a force-push. **The window is unpushed because the remedy is only
+legal there.** A fix that widens the window owes a new remedy, and the report does not
+supply one.
+
+The measurement points the other way: the window is right and **the candidate set is
+wrong.**
+
+### 73.4 Options for finding 5, none ruled
+
+**A. Filter the candidates; keep the window. Recommended.** Skip any candidate whose
+changed paths lie entirely inside `spec/` or are the root kit documents (`CLAUDE.md`,
+`README.md`) — a bookkeeping commit, never a slice. Verified against the two specimens:
+**19 of 19 lines and 2 of 2 commits are eliminated**, driving the false count to zero
+without touching the window or the remedy. Two things make this cheap rather than
+speculative: the script is copied **verbatim** and carries **zero placeholders**, so a
+filter may only use paths the kit itself owns — and `spec/` is exactly that, already
+hard-coded in the same file by the 0.26.0 `docs-check` mode (`IDX=spec/PROJECT_INDEX.md`).
+The precedent exists. Pair it with the de-dup from 73.2's fact 3 and with a log line
+that distinguishes *inspected N, all clean* from *nothing to inspect* — today both print
+the word `clean`, which is the finding's opening sentence.
+
+**B. Move the check to pre-push.** Non-empty by construction, and the remedy stays legal
+because nothing is pushed yet. But it needs a **git** hook in `.git/hooks/`, which is a
+new install surface: not committed, per-clone, invisible to `git clone`, and outside
+`.github/hooks/` where every kit-owned hook lives. It also largely duplicates step 8's
+fail-closed `check`. High cost for the same target population A already covers.
+
+**C. Widen to the arc branch, and rewrite the remedy** (amend while unpushed and `HEAD`;
+otherwise a follow-up correction commit, or defer to the phase-close reconcile). This is
+the report's fix made coherent. It is strictly more work than A, and per 73.3 it is only
+safe *combined* with A's filter — so it is A plus a remedy rewrite, not an alternative
+to it.
+
+**D. Delete `stop-check`.** Defensible on the kit's own clock discipline: 125 stops, zero
+catches, every firing false, and §52.2's arming bar (**zero** false candidates) is unmet
+by 2 events. The report considered deletion and declined it at interview because the
+command-step `check` is fail-closed and separate and went 8/8. The counter-argument the
+numbers now supply: the target population — a session that stops between step 7 and step
+10 — **has never been observed to occur**, so what would be deleted is a control with no
+demonstrated demand as well as no demonstrated reach.
+
+**The recommendation is A, plus the honest log line, plus the de-dup — and then a
+pre-registered clock rather than a verdict**, because A is what makes the clock readable
+at all: with the false count at zero the bare class becomes armable for the first time,
+and a control that goes two more field arcs with no catch gets D applied on evidence
+instead of on argument. That sequencing also unblocks §70.7 (5)(iv), which ruled the
+arming question closed until finding 5's scope fix lands.
+
+**One property worth stating because it does not hold for the guard:**
+`.github/hooks/sdlc-close-out.sh` is **kit-owned and copied verbatim**, so unlike the
+TDD guard's instantiated body this fix *does* reach both adopters by ordinary
+`/sdlc-update`. No hand-application, no transition note.
+
+### 73.5 The catch-proof half, which is not finding 5's and is the larger half
+
+The report's transferable sentence — **a fire-proof and a catch-proof are different
+tests** — is about *Records*, not about `stop-check`. The adoption's row reads *"a fresh
+headless session's stop executed the block fail-open and wrote its classification to the
+log"*: proof the hook **ran**, recorded as though it settled whether the hook could ever
+**catch**. `SDLC.template.md` seeds that wording (line 257: *"Installed: which CLIs, the
+fire-proof actually ..."*).
+
+**Corrected while building, and the correction makes the finding sharper rather than
+smaller.** The draft of this section claimed the kit demands a catch-proof only for the
+coverage floor and for none of its own controls. **That is false, and reading
+`sdlc-setup.md` before writing the fix is what caught it.** Every install proof in the
+kit is already a catch-proof, and each says so in the same words — *"Prove them the way
+every other check is proven — by making them fail"*: the TDD guard's is a production
+write with no failing test, seen to be named in the log; the checker's is a commit with
+no record, seen to exit 1 INCOMPLETE naming all five keys; and the backstop's is *"end a
+session in a repo whose HEAD is an unpushed commit missing a record key and confirm the
+log holds `stop: WOULD-BLOCK - defective record` naming the commit."*
+
+So the adopter's row did not follow a weak rule — **it under-recorded a strong one**, and
+`SDLC.template.md` invited that by calling the result *the fire-proof* (line 257) when
+what it demands is a catch. That much is a naming fix.
+
+**The real gap is the one neither word covers, and the backstop is its perfect
+specimen.** Its install proof genuinely catches — because the operator *constructs* an
+unpushed commit missing a key. In ordinary operation `/end-slice` commits, checks and
+pushes in one step, so that state essentially never arises: 96 of 125 stops had nothing
+in the window at all. **The proof builds the very population whose natural occurrence is
+the open question.** That is §72's lesson one level up — there a fixture pinned
+`SDLC_REPO_ROOT` so both sides agreed by construction; here a proof constructs the
+violation it then catches. A catch-proof establishes the control *can* fire; it says
+nothing about *reach*.
+
+So the batch's portable change is a third thing recorded beside the other two — a
+**reach note**: whether the flagged state arises in ordinary operation, or was built for
+the proof. *"Constructed for the proof; not yet observed arising on its own"* is a
+legitimate answer, and unlike the two proofs it is a claim the next close can check. It
+is prose in *Records* plus one clause in each install step, not a mechanism.
+
+### 73.6 Cost, named up front
+
+| item | where | size |
+|---|---|---|
+| Finding 1 — value search + generalized one-home rule | `end-phase.md`, `PROJECT_INDEX.template.md` | S |
+| Ruling 3 — baseline commit stamp | `SDLC.template.md`, `end-phase.md` | XS |
+| Finding 6 — *Risks* as the reconcile's 4th subject | `end-phase.md` | XS |
+| Finding 5 (option A) — filter + de-dup + honest log | `close-out.template.sh` | S |
+| Finding 5's proof — a **catch** case, not a fire case | `tools/close-out-check.py` | S |
+| The reach note in *Records* (+ catch-proof naming) | `SDLC.template.md`, `sdlc-setup.md` | S |
+
+The proof row is not optional and is the reason finding 5 is S rather than XS: a filter
+that silently skips too much is the same defect one layer down, and §72's lesson is that
+a fixture which cannot fail is worse than a missing case.
+
+**Checked rather than assumed, and it inverts the expected gap.** The suite's 15 stop
+cases *do* prove the mode catches — `stop_defective_logs_wouldblock`,
+`stop_bare_with_guard_flagged`, `stop_defective_armed_blocks`,
+`stop_defective_below_head_flagged` all assert a flag on a commit that earned one. What
+the corpus contains **no case of** is the thing the field produced 19 times: **a
+bookkeeping commit present in the window that must NOT be flagged.** Every case pins
+what the mode fires on; not one pins what it must stay silent about. That is the same
+shape as §72's case `2c` — the corpus names the property and cannot see the failure —
+and it is why the filter's proof must be a **negative** case (`spec/`-only commit in the
+window, `WOULD-BLOCK` absent, alongside a code commit in the same window that is still
+flagged), not another firing case.
+
+### 73.7 Decisions owed
+
+1. **Finding 5's shape** — A (recommended), B, C, or D. A is measured to eliminate 19/19
+   false lines with a discriminator the file already uses.
+2. **Clock or verdict.** With A, does `stop-check` go on a pre-registered two-arc clock
+   (no catch → delete, per D), or is it simply kept? The recommendation is the clock,
+   pre-registered here.
+3. **Does the catch-proof requirement generalize** to every installed control in
+   *Records*, or only to the close-out hook? Recommended: generalize — it is the
+   report's own transferable sentence, and the coverage floor already proves the shape
+   works.
+4. **Release shape** — one 0.29.0 carrying all four items, or the three ruled ones now
+   and finding 5 behind its decision.
+
+### 73.8 Ruled 2026-08-27 — all four, each as recommended
+
+1. **Finding 5 — option A: narrow the candidates, keep the window and the remedy.** A
+   candidate whose changed paths lie entirely inside `spec/` or are the root kit
+   documents (`CLAUDE.md`, `README.md`) is a bookkeeping commit and is skipped before
+   classification. With it: de-dup, so a commit already logged in this session is not
+   re-logged (73.2's fact 3, measured at 15 lines for one commit); and the log line
+   splits, so *inspected N, all clean* and *nothing to inspect* stop printing the same
+   word — which is the sentence the finding opens with.
+2. **A pre-registered two-arc clock, not a verdict.** Written out below, because a clock
+   whose denominator is unstated is the defect §70.7 (5)(i) had to rule around.
+3. **The catch-proof generalizes to every installed control.** *Records* carries a
+   catch-proof beside the fire-proof for each control it lists — the report's own
+   transferable sentence, and the coverage floor's *prove it fires — once* is the
+   working precedent.
+4. **One release, 0.29.0**, carrying all four items plus the catch-proof half, with the
+   pre-tag `/kit-check` over the combined scope.
+
+**The clock, pre-registered.** Two field arcs run under the release carrying the filter.
+
+- **Denominator, and it is now readable, which is the point of the split log line:** an
+  arc's denominator is the number of stops whose window was **non-empty**. The old log
+  could not supply this — 96 empty and 29 inspected stops printed the same verdict.
+- **Positive (the catch):** at least one arc in which `stop-check` flags a commit that
+  genuinely lacked its close-out record and was a slice commit rather than bookkeeping.
+- **Failure by falsity:** a false candidate in either arc fails §52.2's arming bar. The
+  filter is incomplete, gets fixed, and the clock **restarts once**. A second false
+  candidate after that is deletion — the same evidence D rests on, arrived at honestly.
+- **Failure by unreadability, and it is deliberate:** if both arcs close with a
+  denominator of **zero**, the clock is not extended — it is **deletion**. A window that
+  never contains anything is precisely the finding, and letting an unreadable clock run
+  forever is how this control reached 125 stops without a verdict.
+- **No catch across two readable arcs → delete `stop-check`** (option D). The
+  fail-closed `check` at `/end-slice` step 8 is untouched by any outcome here; it is a
+  separate control and went 8/8 in the field.
+
+**Not ruled here, because it is not owed yet:** whether the bare class arms. §70.7
+(5)(iv) closed that question until this fix lands; it re-opens at the first arc whose
+false count is zero, and not before.
+
+### 73.9 Built 2026-08-27 — and three things the building found
+
+All four items plus the reach note, shipped as 0.29.0. The parts that went as ruled are
+in the CHANGELOG; what follows is only what the build learned that the design did not
+know.
+
+**1. The first cut of the filter cost 3.5 seconds, and the measurement is the only
+reason it is not in the release.** Reading each candidate's paths took a second `git
+show` beside the body's `git log`, i.e. **two processes per candidate** — and this file
+already carries a warning about exactly that, from 2026-08-10: a grep-per-counter draft
+cost ~1.7 s per invocation on Windows, which is why the ten counters share one awk pass.
+Measured on a purpose-built 20-candidate repo, five runs each:
+
+| variant | 20-candidate walk |
+|---|---|
+| no filter at all | 4188 ms |
+| filter as first written (two processes per candidate) | **6868 ms** |
+| filter folded into the body read (one process) | **4186 ms** |
+
+The stop path runs inside a **30 s hook timeout** and the cap is 20 candidates, so this
+was real and not noise. The fix reads body and paths from **one** `git show
+--name-only --format='%B%n<marker>'` and classifies both in the existing awk, which
+also means the filter now costs *nothing measurable* — 4186 against 4188. §71's ruling
+was that a timing wobble must not suppress a correctness pass; it was never that timing
+stops mattering, and the S2 budgets are what surfaced this.
+
+**2. It was caught by measuring, not by reviewing.** The suite went green with the slow
+version — every case passed, all 28 mutations caught — and the only signal was an S2
+budget this repo has documented as unreliable on this machine. Had §71's fix not landed
+first, the run would have exited at the budget **before the mutation pass**, and the
+slow version would have shipped with a weaker result than the fast one. §71 paid for
+itself inside one batch.
+
+**3. A `git show --name-only` on a merge commit prints no paths**, so a merge falls to
+"not bookkeeping" and stays a candidate — the safe direction, and the same one an empty
+commit takes. Every existing stop case in the corpus commits `--allow-empty`, so **all
+fifteen of them are pathless**, which is why the filter had to grow `commit_files`
+before its own cases could exist. That is the same shape as §72's case `2c`: the bench
+could not construct the input the defect needed.
+
+**On the corpus gap, corrected from 73.6.** The expectation was that the suite would
+lack a catch case. It had four. What it lacked was any case pinning what the mode must
+stay **silent** about — the exact configuration behind 19 of 19 field firings. Five
+cases and five mutations close it, and three of those mutations had to be re-pointed
+when the one-process refactor moved the lines they targeted, which is 0.28.1's lesson
+arriving on schedule.

@@ -34,12 +34,18 @@
 #   stop-check the stop-time backstop (agentStop on Copilot, Stop on Claude
 #              Code). FAILS OPEN on its own errors: a hook that errors must not
 #              block real work, so errors log to .git/sdlc-close-out/log and
-#              exit 0. Classifies every unpushed commit by the record grammar:
+#              exit 0. Classifies every unpushed commit by the record grammar,
+#              after dropping the ones that cannot carry a record at all - a
+#              commit touching only spec/ and the root kit documents is
+#              bookkeeping, not a slice, and was 100% of this mode's measured
+#              firing history before 0.29.0. Of what remains:
 #              a DEFECTIVE record (some keys present, but one missing / empty /
 #              duplicated) is an /end-slice escape and flags statelessly; a BARE
 #              commit (no keys at all) flags only when the TDD guard's state
 #              shows slice-loop evidence for this session, and bare-flagging is
-#              log-only by design on every install. Blocking for
+#              log-only by design on every install. A flag is logged once per
+#              commit per session, and an empty or wholly-filtered window logs
+#              n/a rather than clean: nothing inspected is not nothing found. Blocking for
 #              the defective class arms via .git/sdlc-close-out/deny-enabled;
 #              absent, verdicts are logged as WOULD-BLOCK. Stands down
 #              unconditionally when stop_hook_active is true.
@@ -60,8 +66,16 @@ MODE=$1
 
 cannot() { printf 'close-out record: CANNOT CHECK - %s\n' "$1"; exit 2; }
 
-# count_record <ref> - all ten counters in ONE awk pass, into globals both
-# modes read. Not style: a per-pattern grep costs a process pair per counter,
+# count_record <ref> - all eleven counters in ONE awk pass, into globals both
+# modes read: the ten record counters, plus whether every path the commit changed
+# is a process document this kit installs (anything under spec/, or the two root
+# documents setup writes). That last one is stop-check's candidate filter, and it
+# rides along here rather than in a helper of its own for the reason the next
+# paragraph gives - a second `git show` per candidate measured 7.7 s against 4.1 s
+# over a 20-candidate walk (Windows, 2026-08-27), inside a 30 s hook timeout. The
+# marker line separating body from paths is chosen not to occur in prose; a body
+# containing it would fail SAFE, since its remaining lines then read as non-kit
+# paths and the commit stays a candidate. Not style: a per-pattern grep costs a process pair per counter,
 # and process forks are expensive on Windows sh - the grep-per-counter draft of
 # this script cost ~1.7 s per invocation there (measured 2026-08-10, Git Bash),
 # against the design intent that a close-out check be effectively free; the
@@ -69,18 +83,21 @@ cannot() { printf 'close-out record: CANNOT CHECK - %s\n' "$1"; exit 2; }
 # defensive: a body written through a Windows shell can carry CRLF, and a stray
 # CR turns the end-anchored empty-payload match false.
 count_record() {
-  COUNTS=$(git log -1 --format=%B "$1" | awk '
+  COUNTS=$(git show --name-only --format='%B%n<<<SDLC-PATHS>>>' "$1" 2>/dev/null | awk '
   { sub(/\r$/, "") }
-  /^RED:/      { rn++; if ($0 ~ /^RED:[[:space:]]*$/) re++ }
-  /^quality:/  { qn++; if ($0 ~ /^quality:[[:space:]]*$/) qe++ }
-  /^lenses:/   { ln++; if ($0 ~ /^lenses:[[:space:]]*$/) le++ }
-  /^mutation:/ { mn++; if ($0 ~ /^mutation:[[:space:]]*$/) me++ }
-  /^verify:/   { vn++; if ($0 ~ /^verify:[[:space:]]*$/) ve++ }
-  END { printf "%d %d %d %d %d %d %d %d %d %d", rn+0, re+0, qn+0, qe+0, ln+0, le+0, mn+0, me+0, vn+0, ve+0 }')
+  /^<<<SDLC-PATHS>>>$/ { inp = 1; next }
+  !inp && /^RED:/      { rn++; if ($0 ~ /^RED:[[:space:]]*$/) re++ }
+  !inp && /^quality:/  { qn++; if ($0 ~ /^quality:[[:space:]]*$/) qe++ }
+  !inp && /^lenses:/   { ln++; if ($0 ~ /^lenses:[[:space:]]*$/) le++ }
+  !inp && /^mutation:/ { mn++; if ($0 ~ /^mutation:[[:space:]]*$/) me++ }
+  !inp && /^verify:/   { vn++; if ($0 ~ /^verify:[[:space:]]*$/) ve++ }
+  inp && NF > 0 { np++; if ($0 !~ /^spec\// && $0 != "CLAUDE.md" && $0 != "README.md") other = 1 }
+  END { printf "%d %d %d %d %d %d %d %d %d %d %d", rn+0, re+0, qn+0, qe+0, ln+0, le+0, mn+0, me+0, vn+0, ve+0, (np > 0 && !other) ? 1 : 0 }')
   set -- $COUNTS
   red_n=$1; red_e=$2; qua_n=$3; qua_e=$4; len_n=$5; len_e=$6
-  mut_n=$7; mut_e=$8; ver_n=$9; shift 9; ver_e=$1
+  mut_n=$7; mut_e=$8; ver_n=$9; shift 9; ver_e=$1; bookkeeping=$2
 }
+
 
 if [ "$MODE" = "stop-check" ]; then
   # ---- the stop-time backstop: FAIL-OPEN from here on - every early return is
@@ -115,8 +132,13 @@ if [ "$MODE" = "stop-check" ]; then
     CANDS=$(git rev-parse --verify --quiet --short 'HEAD^{commit}' 2>/dev/null)
     SCOPE="HEAD only, no upstream configured"
   fi
+  # An empty window is NOT a clean inspection, and until 0.29.0 both printed the
+  # word "clean" - 96 of one adoption's 125 stops were the empty kind, which is
+  # how a control with zero reach and a control with nothing to report became
+  # indistinguishable in its own log. The two verdicts now read differently, so
+  # the log can be read for how often this check had anything to inspect at all.
   if [ -z "$CANDS" ]; then
-    slog "stop: clean (no candidate commits; $SCOPE)"
+    slog "stop: n/a (nothing to inspect: no candidate commits; $SCOPE)"
     exit 0
   fi
 
@@ -141,9 +163,45 @@ if [ "$MODE" = "stop-check" ]; then
     fi
   }
 
-  defective=""; bare_flagged=""; bare_noted=0; complete=0
+  # already_logged / mark_logged - one commit, one line, per session. A session
+  # that stops 15 times with the same unrecorded commit logged it 15 times
+  # before 0.29.0, inflating the event count ~10:1 for anyone reading the log to
+  # count firings. De-dup governs LOGGING ONLY: the block path below always logs
+  # and always blocks, because a still-defective commit must not be let through
+  # merely because an earlier stop mentioned it.
+  SEEN="$SD/seen"
+  already_logged() {
+    [ -n "$SID" ] || return 1
+    [ -f "$SEEN" ] || return 1
+    grep -qF "$SID $1" "$SEEN" 2>/dev/null
+  }
+  mark_logged() {
+    [ -n "$SID" ] || return 0
+    printf '%s %s\n' "$SID" "$1" >> "$SEEN" 2>/dev/null || true
+  }
+  # split <list> into new (not yet logged this session) and repeat, marking the
+  # new ones. Sets NEW and REPEAT.
+  split_logged() {
+    NEW=""; REPEAT=""
+    for _sl in $1; do
+      if already_logged "$_sl"; then REPEAT="$REPEAT $_sl"
+      else NEW="$NEW $_sl"; mark_logged "$_sl"; fi
+    done
+  }
+
+  # ONE pass: classify each candidate and drop the bookkeeping ones as they are
+  # met, so a commit costs a single git process whether it is filtered or not.
+  # A commit whose changed paths are all kit process documents can never carry a
+  # close-out record, because it is not a slice; classifying it produces a false
+  # candidate and nothing else. Deliberately one-sided: one non-kit path, or no
+  # paths at all (a merge, an empty commit), and it stays a candidate. The filter
+  # removes certainties; it never guesses.
+  defective=""; defective_shas=""; bare_flagged=""; bare_noted=0; complete=0
+  skipped=0; inspected=0
   for C in $CANDS; do
     count_record "$C"
+    if [ "$bookkeeping" = "1" ]; then skipped=$((skipped + 1)); continue; fi
+    inspected=$((inspected + 1))
     if [ "$((red_n + qua_n + len_n + mut_n + ver_n))" -eq 0 ]; then
       if [ -n "$GUARD_EVID" ]; then bare_flagged="$bare_flagged $C"
       else bare_noted=$((bare_noted + 1)); fi
@@ -157,14 +215,26 @@ if [ "$MODE" = "stop-check" ]; then
     pk verify "$ver_n" "$ver_e" s
     probs=${probs%,}
     if [ -z "$probs" ]; then complete=$((complete + 1))
-    else defective="$defective $C($probs )"; fi
+    else defective="$defective $C($probs )"; defective_shas="$defective_shas $C"; fi
   done
 
   # Bare-flagging is LOG-ONLY by design - it never blocks in this version,
   # armed or not: a docs commit made in the same session as slice work is a
   # real false-block shape, so this class logs until proven never to flag one.
+  # Every candidate filtered out is the same verdict as an empty window, and for
+  # the same reason: nothing was inspected, so nothing was found.
+  if [ "$inspected" -eq 0 ]; then
+    slog "stop: n/a (nothing to inspect: $skipped bookkeeping skipped; $SCOPE)"
+    exit 0
+  fi
+
   if [ -n "$bare_flagged" ]; then
-    slog "stop: WOULD-BLOCK (bare, log-only by design) - no close-out record on$bare_flagged while this session shows slice-loop evidence"
+    split_logged "$bare_flagged"
+    if [ -n "$NEW" ]; then
+      slog "stop: WOULD-BLOCK (bare, log-only by design) - no close-out record on$NEW while this session shows slice-loop evidence"
+    else
+      slog "stop: repeat (bare flag already logged this session on$REPEAT; $SCOPE)"
+    fi
   fi
 
   if [ -n "$defective" ]; then
@@ -173,13 +243,22 @@ if [ "$MODE" = "stop-check" ]; then
       slog "stop: BLOCK - defective record on$defective"
       printf '{"decision":"block","reason":"%s"}' "$reason"
     else
-      slog "stop: WOULD-BLOCK - defective record on$defective"
+      # Unarmed, this line is a log event and nothing else, so it de-dups per
+      # commit. Armed, the branch above logs and blocks every time - a
+      # still-defective commit must never be let through because an earlier stop
+      # happened to mention it.
+      split_logged "$defective_shas"
+      if [ -n "$NEW" ]; then
+        slog "stop: WOULD-BLOCK - defective record on$defective"
+      else
+        slog "stop: repeat (defective flag already logged this session on$REPEAT; $SCOPE)"
+      fi
     fi
     exit 0
   fi
 
   if [ -z "$bare_flagged" ]; then
-    slog "stop: clean ($complete complete, $bare_noted bare without slice-loop evidence; $SCOPE)"
+    slog "stop: clean (inspected $inspected, $skipped bookkeeping skipped; $complete complete, $bare_noted bare without slice-loop evidence; $SCOPE)"
   fi
   exit 0
 fi

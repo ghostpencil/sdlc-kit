@@ -227,9 +227,28 @@ MUTATIONS = [
     ("standdown_disabled",
      '"stop_hook_active"[[:space:]]*:[[:space:]]*true',
      '"stop_hook_active_never"[[:space:]]*:[[:space:]]*true'),
+    # RE-POINTED for 0.29.0: the anchor gained the defective_shas list that the
+    # de-dup reads. §72's lesson - re-point a mutation when the fix restructures
+    # what it targets, or a defect class silently loses its coverage.
     ("defective_counted_complete",
-     'else defective="$defective $C($probs )"; fi',
+     'else defective="$defective $C($probs )"; defective_shas="$defective_shas $C"; fi',
      'else complete=$((complete + 1)); fi'),
+    # --- the candidate filter and de-dup (§73.8).
+    ("filter_disabled",
+     'if [ "$bookkeeping" = "1" ]; then skipped=$((skipped + 1)); continue; fi',
+     'if [ "$bookkeeping" = "never" ]; then skipped=$((skipped + 1)); continue; fi'),
+    ("filter_too_greedy",
+     'if ($0 !~ /^spec\// && $0 != "CLAUDE.md" && $0 != "README.md") other = 1',
+     'if (0) other = 1'),
+    ("filter_swallows_pathless_commits",
+     '(np > 0 && !other) ? 1 : 0',
+     '(!other) ? 1 : 0'),
+    ("dedup_disabled",
+     '    [ -f "$SEEN" ] || return 1',
+     '    return 1'),
+    ("empty_window_still_says_clean",
+     'slog "stop: n/a (nothing to inspect: no candidate commits; $SCOPE)"',
+     'slog "stop: clean (no candidate commits; $SCOPE)"'),
     ("bare_ignores_guard_evidence",
      'if [ -n "$GUARD_EVID" ]; then bare_flagged="$bare_flagged $C"',
      'if [ -n "" ]; then bare_flagged="$bare_flagged $C"'),
@@ -336,6 +355,33 @@ class StopBench(Bench):
         p = self.git("push", "-q", "origin", "HEAD")
         assert p.returncode == 0, "bench push failed: " + p.stderr.decode()
 
+    def commit_files(self, message, paths):
+        """A commit that really touches paths - the candidate filter's only input.
+        Every other stop case commits --allow-empty, i.e. no paths at all, which
+        the filter deliberately treats as NOT bookkeeping (a certainty is what it
+        removes; it never guesses). Without this helper the filter's cases cannot
+        exist, which is how the corpus came to pin only what the mode fires ON."""
+        for rel in paths:
+            full = os.path.join(self.root, *rel.split("/"))
+            d = os.path.dirname(full)
+            if d and not os.path.isdir(d):
+                os.makedirs(d)
+            with io.open(full, "a", encoding="utf-8", newline="\n") as fh:
+                fh.write("a line\n")
+            self.git("add", "--", rel)
+        p = self.git("commit", "--cleanup=verbatim", "-F", "-",
+                     input=message.encode("utf-8"))
+        assert p.returncode == 0, "bench commit_files failed: " + p.stderr.decode()
+
+    def seen(self, sid, ref="HEAD"):
+        """Pre-seed the per-session de-dup ledger, so one bench run stands in for
+        the second stop of a session."""
+        d = os.path.join(self.root, ".git", "sdlc-close-out")
+        os.makedirs(d, exist_ok=True)
+        sha = self.git("rev-parse", "--short", ref).stdout.decode().strip()
+        with io.open(os.path.join(d, "seen"), "a", encoding="utf-8", newline="\n") as fh:
+            fh.write("%s %s\n" % (sid, sha))
+
     def guard_state(self, sid, evidence=True):
         d = os.path.join(self.root, ".git", "sdlc-tdd")
         os.makedirs(d, exist_ok=True)
@@ -424,6 +470,44 @@ def _s_cap(b, base):
         b.commit("docs(z): bare %d\n\nProse.\n" % i)
     return payload()
 
+def _s_bookkeeping_skipped(b, base):
+    # THE case the corpus lacked: a commit that CANNOT carry a record, in the
+    # window, with slice-loop evidence present - the exact configuration that
+    # produced 19 of one adoption's 19 flag lines. It must be skipped, silently
+    # and by name in the verdict.
+    b.base_commit(); b.set_origin(base)
+    b.commit_files(BARE_BODY, ["spec/PHASE_01_X.md", "spec/PROJECT_INDEX.md", "CLAUDE.md"])
+    b.guard_state(SID)
+    return payload()
+
+def _s_bookkeeping_beside_candidate(b, base):
+    # Filtering must not cost a real catch standing next to it.
+    b.base_commit(); b.set_origin(base)
+    b.commit_files(BARE_BODY, ["spec/PROJECT_INDEX.md"])
+    b.commit_files(DEFECTIVE_BODY, ["src/app.py"])
+    return payload()
+
+def _s_spec_plus_code_not_bookkeeping(b, base):
+    # Conservative in one direction on purpose: one non-spec path and it stays a
+    # candidate. A slice that also edits its phase spec is still a slice.
+    b.base_commit(); b.set_origin(base)
+    b.commit_files(BARE_BODY, ["spec/PROJECT_INDEX.md", "src/app.py"])
+    b.guard_state(SID)
+    return payload()
+
+def _s_repeat_flag_dedups(b, base):
+    # The second stop of a session that already logged this flag.
+    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.guard_state(SID); b.seen(SID)
+    return payload()
+
+def _s_dedup_never_suppresses_block(b, base):
+    # Armed: a still-defective commit blocks at EVERY stop. De-dup governs
+    # logging only - being mentioned once must never buy a pass.
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.arm(); b.seen(SID)
+    return payload()
+
 def _s_empty_payload(b, base):
     b.base_commit(); b.set_origin(base); b.commit(FULL_BODY)
     return ""
@@ -434,31 +518,50 @@ STOP_CASES = [
     ("stop_defective_logs_wouldblock", _s_defective, None,
      ["stop: WOULD-BLOCK - defective record on", "missing verify"], ["stop: BLOCK"]),
     ("stop_complete_clean", _s_complete, None,
-     ["stop: clean (1 complete, 0 bare"], ["WOULD-BLOCK"]),
+     ["stop: clean (inspected 1, 0 bookkeeping skipped; 1 complete, 0 bare"],
+     ["WOULD-BLOCK"]),
     ("stop_bare_without_guard_noted", _s_bare_no_guard, None,
-     ["stop: clean (0 complete, 1 bare"], ["WOULD-BLOCK"]),
+     ["stop: clean (inspected 1, 0 bookkeeping skipped; 0 complete, 1 bare"],
+     ["WOULD-BLOCK"]),
     ("stop_bare_with_guard_flagged", _s_bare_guard, None,
      ["stop: WOULD-BLOCK (bare, log-only by design)"], []),
     ("stop_bare_never_blocks_even_armed", _s_bare_guard_armed, None,
      ["stop: WOULD-BLOCK (bare, log-only by design)"], ["stop: BLOCK"]),
     ("stop_bare_stale_session_noted", _s_bare_stale_session, None,
-     ["stop: clean (0 complete, 1 bare"], ["WOULD-BLOCK"]),
+     ["stop: clean (inspected 1, 0 bookkeeping skipped; 0 complete, 1 bare"],
+     ["WOULD-BLOCK"]),
     ("stop_bare_camel_session_id", _s_bare_guard_camel, None,
      ["stop: WOULD-BLOCK (bare, log-only by design)"], []),
     ("stop_defective_armed_blocks", _s_defective_armed, "block-json",
      ["stop: BLOCK - defective record on"], []),
     ("stop_no_upstream_head_only", _s_no_upstream, None,
-     ["stop: clean (1 complete, 0 bare", "no upstream configured"], ["WOULD-BLOCK"]),
+     ["stop: clean (inspected 1, 0 bookkeeping skipped; 1 complete, 0 bare",
+      "no upstream configured"], ["WOULD-BLOCK"]),
+    # "clean" is ABSENT on purpose: an empty window is not a clean inspection,
+    # and the two printing the same word is finding 5's opening sentence.
     ("stop_pushed_out_of_scope", _s_pushed_out_of_scope, None,
-     ["stop: clean (no candidate commits"], ["WOULD-BLOCK"]),
+     ["stop: n/a (nothing to inspect: no candidate commits"],
+     ["WOULD-BLOCK", "clean"]),
     ("stop_defective_below_head_flagged", _s_defective_below_head, None,
      ["stop: WOULD-BLOCK - defective record on", "missing verify"], []),
     ("stop_crlf_defective", _s_crlf_defective, None,
      ["stop: WOULD-BLOCK - defective record on"], []),
     ("stop_candidate_cap_20", _s_cap, None,
-     ["20 bare without slice-loop evidence"], ["22 bare"]),
+     ["inspected 20", "20 bare without slice-loop evidence"], ["22 bare"]),
     ("stop_empty_payload_fails_open", _s_empty_payload, None,
-     ["stop: clean (1 complete"], ["WOULD-BLOCK"]),
+     ["stop: clean (inspected 1, 0 bookkeeping skipped; 1 complete"], ["WOULD-BLOCK"]),
+    # --- the candidate filter and the per-session de-dup (§73.8, 0.29.0).
+    ("stop_bookkeeping_skipped_not_flagged", _s_bookkeeping_skipped, None,
+     ["stop: n/a (nothing to inspect: 1 bookkeeping skipped"],
+     ["WOULD-BLOCK", "clean"]),
+    ("stop_bookkeeping_beside_candidate", _s_bookkeeping_beside_candidate, None,
+     ["stop: WOULD-BLOCK - defective record on", "missing verify"], ["n/a"]),
+    ("stop_spec_plus_code_not_bookkeeping", _s_spec_plus_code_not_bookkeeping, None,
+     ["stop: WOULD-BLOCK (bare, log-only by design)"], ["n/a", "bookkeeping skipped"]),
+    ("stop_repeat_flag_dedups", _s_repeat_flag_dedups, None,
+     ["stop: repeat (bare flag already logged this session on"], ["WOULD-BLOCK"]),
+    ("stop_dedup_never_suppresses_block", _s_dedup_never_suppresses_block,
+     "block-json", ["stop: BLOCK - defective record on"], ["repeat"]),
 ]
 
 
