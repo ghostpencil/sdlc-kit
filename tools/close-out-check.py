@@ -30,7 +30,7 @@ Four passes, and the last is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/close-out-check.py
 """
-import io, json, os, subprocess, sys, tempfile, time
+import io, json, os, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "close-out.template.sh")
@@ -68,6 +68,30 @@ verify: app boot + dashboard observed working; malformed URL behavior not exerci
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 """
+
+
+def guarded(label, default, fn, *a, **kw):
+    """Run one pass; an unexpected exception REPORTS and the run continues.
+
+    A crash used to end the run where it happened, and every case after it never ran -
+    and never printed, so the loss did not show up in the output at all. That is how
+    tools/skill-ledger-check.py silently lost three cases for six releases
+    (FEATURE_PLAN.md 75; the rule is 75.7 ruling 3, generalized to all six suites).
+    Correctness failures still fail; what they may no longer do is delete the coverage
+    that follows them. `default` is what the caller unpacks when the pass crashed, and
+    guarded.crashed carries the run's exit code obligation.
+    """
+    try:
+        return fn(*a, **kw)
+    except Exception:
+        traceback.print_exc()
+        print("CRASHED  %s  <-- pass did not complete; its remaining cases did not run"
+              % label)
+        guarded.crashed.append(label)
+        return default
+
+
+guarded.crashed = []
 
 
 def body(subject, *record):
@@ -771,11 +795,15 @@ def main():
         # the script's.
         Bench.via_powershell = True
         print("== S4 unit pass via powershell -> sh (%d cases) ==" % len(CASES))
-        failures, slowest = unit_pass(src, verbose=True)
+        failures, slowest = guarded("S4 unit pass", ([], 0.0), unit_pass, src, verbose=True)
         print("slowest invocation incl. powershell spawn: %.0f ms" % (slowest * 1000))
         if failures:
             for name, problems, out in failures:
                 print("\nFAILED %s: %s\n--- output ---\n%s" % (name, "; ".join(problems), out))
+            sys.exit(1)
+        if guarded.crashed:
+            print("\nCRASHED passes: %s - those cases did not run"
+                  % ", ".join(guarded.crashed))
             sys.exit(1)
         print("\nS4 green: %d cases, verdicts identical to the direct-sh pass" % len(CASES))
         return
@@ -789,7 +817,7 @@ def main():
     perf = []
 
     print("== unit pass (%d cases) ==" % len(CASES))
-    failures, slowest = unit_pass(src, verbose=True)
+    failures, slowest = guarded("unit pass", ([], 0.0), unit_pass, src, verbose=True)
     print("slowest warm invocation: %.0f ms (S2 budget: 1000 ms; cold first spawn: %.0f ms, uncounted)"
           % (slowest * 1000, unit_pass.cold * 1000))
     if failures:
@@ -800,7 +828,7 @@ def main():
         perf.append("unit invocation %.2f s (budget 1.00 s)" % slowest)
 
     print("\n== docs pass (%d cases) ==" % len(DOCS_CASES))
-    failures, slowest = docs_pass(src, verbose=True)
+    failures, slowest = guarded("docs pass", ([], 0.0), docs_pass, src, verbose=True)
     print("slowest docs invocation: %.0f ms (S2 budget: 1000 ms)" % (slowest * 1000))
     if failures:
         for name, problems, out in failures:
@@ -810,13 +838,15 @@ def main():
         perf.append("docs invocation %.2f s (budget 1.00 s)" % slowest)
 
     print("\n== stop pass (%d cases) ==" % len(STOP_CASES))
-    failures, times = stop_pass(src, verbose=True)
+    failures, times = guarded("stop pass", ([], {}), stop_pass, src, verbose=True)
     # Two budgets, both against the 30 s hook timeout: typical sessions hold a
     # handful of unpushed commits (< 1.5 s), and the cap case's 20-candidate walk
     # pays ~2 Windows-sh forks per candidate (measured ~3.5 s at cap on the dev
     # machine - bounded by the cap, nowhere near the timeout's fail-open edge).
-    cap_t = times.pop("stop_candidate_cap_20")
-    typical = max(times.values())
+    # .pop with a default and a guarded max: a crashed stop pass returns no timings,
+    # and a KeyError here would re-create the abort this guard exists to prevent.
+    cap_t = times.pop("stop_candidate_cap_20", 0.0)
+    typical = max(times.values()) if times else 0.0
     print("slowest typical stop invocation: %.0f ms (budget: 1500 ms); cap-20 walk: %.0f ms (budget: 5000 ms)"
           % (typical * 1000, cap_t * 1000))
     if failures:
@@ -841,13 +871,13 @@ def main():
             print("  %-38s STALE - anchor no longer applies, re-point it" % name)
             continue
         mutated = src.replace(old, new)
-        broke, _ = unit_pass(mutated, verbose=False)
+        broke, _ = guarded("mutation (unit): %s" % name, ([], 0.0), unit_pass, mutated, verbose=False)
         where = "unit"
         if not broke:
-            broke, _ = docs_pass(mutated, verbose=False)
+            broke, _ = guarded("mutation (docs): %s" % name, ([], 0.0), docs_pass, mutated, verbose=False)
             where = "docs"
         if not broke:
-            broke, _ = stop_pass(mutated, verbose=False)
+            broke, _ = guarded("mutation (stop): %s" % name, ([], {}), stop_pass, mutated, verbose=False)
             where = "stop"
         print("  %-38s %s" % (name, "caught (%d %s case%s)" % (len(broke), where, "s" if len(broke) != 1 else "") if broke else "SURVIVED"))
         if not broke:
@@ -864,7 +894,11 @@ def main():
         print("  (the correctness results above are unaffected - these are timing"
               " budgets, and this machine's are unreliable under load: FEATURE_PLAN 71)")
 
-    if survivors or stale or perf:
+    if guarded.crashed:
+        print("\nCRASHED passes: %s - those cases did not run"
+              % ", ".join(guarded.crashed))
+
+    if survivors or stale or perf or guarded.crashed:
         sys.exit(1)
 
     print("\nall green: %d unit + %d docs + %d stop cases, %d mutations caught"

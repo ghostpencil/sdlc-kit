@@ -42,6 +42,31 @@ Run these as commands; each states its negative case in the ledger.
   and setup's close-out check names exactly `CLAUDE.md spec/ .claude/settings.json`.
 - **6 — step references:** `grep -nE 'step [0-9]' sdlc-kit/commands/*.md`, then read
   each referenced step and confirm it is the one the sentence means.
+- **13 — the `tools/` proof suites are RUN, not read:** invariant 13's population names
+  them, and reading one establishes only that it *states* its negative cases. Run all
+  six — `python -u tools/{gate-hook,tdd-guard,tdd-guard-claude,skill-ledger,impact,close-out}-check.py`
+  — and quote each exit code beside its case and mutation counts. A suite that cannot
+  complete is the finding whatever it reads like: `skill-ledger-check.py` read as a
+  model proof through five passes while crashing on its first Claude case, and three
+  cases were unexercised for six releases (`FEATURE_PLAN.md` §75). Two costs to plan
+  for rather than discover: the guard suites sleep 1.1 s per case and `close-out-check`
+  ran ~70 minutes under concurrent load, and all six buffer stdout — hence `-u`. A
+  scoped run that skips them says so, in those words, because "13: pass" over unrun
+  suites is exactly the all-clear this command's prime directive forbids.
+- **Lens↔rule map denominator** (`reference/GATE_RECIPES.md`, *The lens↔rule map*,
+  against `reference/REVIEW_LENSES.md`) — a command-level consistency rule with no
+  ledger entry of its own: the map is new and earns one if its criterion
+  (`FEATURE_PLAN.md` §74.8) reads. Three parts. Every `## Lens:` heading in
+  `REVIEW_LENSES.md` has exactly one map entry and vice versa — a lens added without a
+  map row is the stale-derived-statement class this pass keeps catching. Every entry
+  claiming a mechanized half names a rule for **each** language carrying a gate recipe
+  in this file, or says in words that the language has none; silence about a language
+  is the finding, since it reads as an oversight and gets filled in with an invented
+  rule ID. And no entry names a language with no gate recipe here. The map states rule
+  IDs, so it is also the one place in `reference/` where drift is expected rather than
+  suspected: the check is that each entry is *present and attributed*, never that a
+  named ID still exists upstream — the section's own header already says the linter's
+  docs win.
 
 ### 3. Reading passes
 
@@ -130,7 +155,9 @@ For each, read the named files in full — do not sample — and cite evidence p
 
 ### 4. Report
 
-One table: invariant / verdict (**pass** / **finding** / **skipped**) / evidence — where
+One table: invariant / verdict (**pass** / **finding** / **skipped**) / evidence —
+a row whose first column is a name rather than a number is one of this command's
+own consistency rules, carried the same way and reported the same way — where
 a pass's evidence includes the violation it looked for and did not find. Findings are
 fixed as ordinary edits in the session (or recorded in `IMPROVEMENT_PLAN.md` if larger);
 this command itself changes nothing.

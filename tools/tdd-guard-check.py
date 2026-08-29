@@ -14,11 +14,35 @@ Two passes, and the second is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/tdd-guard-check.py
 """
-import io, json, os, shutil, subprocess, sys, tempfile, time
+import io, json, os, shutil, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.sh")
 JTPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.json")
+
+
+def guarded(label, default, fn, *a, **kw):
+    """Run one pass; an unexpected exception REPORTS and the run continues.
+
+    A crash used to end the run where it happened, and every case after it never ran -
+    and never printed, so the loss did not show up in the output at all. That is how
+    tools/skill-ledger-check.py silently lost three cases for six releases
+    (FEATURE_PLAN.md 75; the rule is 75.7 ruling 3, generalized to all six suites).
+    Correctness failures still fail; what they may no longer do is delete the coverage
+    that follows them. `default` is what the caller unpacks when the pass crashed, and
+    guarded.crashed carries the run's exit code obligation.
+    """
+    try:
+        return fn(*a, **kw)
+    except Exception:
+        traceback.print_exc()
+        print("CRASHED  %s  <-- pass did not complete; its remaining cases did not run"
+              % label)
+        guarded.crashed.append(label)
+        return default
+
+
+guarded.crashed = []
 
 
 def _dir_of(exe):
@@ -637,7 +661,7 @@ def main():
             continue
         print("=== unit pass [%s] ===" % name)
         ran = []
-        failed = unit(src, counter=ran, parser=name)
+        failed = guarded("unit pass [%s]" % name, [], unit, src, counter=ran, parser=name)
         print("\n%d cases, %s\n" % (
             len(ran), "all passed" if not failed else "FAILED: " + "; ".join(failed)))
         if failed:
@@ -648,18 +672,24 @@ def main():
     print("=== mutation pass (%d mutations; the unit suite must catch each) ==="
           % len(MUTATIONS))
     for name, fn in MUTATIONS:
-        mutated = fn(src)
+        mutated = guarded("mutation build: %s" % name, None, fn, src)
+        if mutated is None:
+            rc = 1
+            continue
         if mutated == src:
             print("STALE    mutation no longer applies - update it: " + name)
             rc = 1
             continue
-        caught = unit(mutated, verbose=False)
+        caught = guarded("mutation: %s" % name, [], unit, mutated, verbose=False)
         if caught:
             print("caught   %s\n           (by: %s)" % (name, "; ".join(caught)))
         else:
             print("SURVIVED %s  <-- the suite is blind to this" % name)
             rc = 1
 
+    if guarded.crashed:
+        print("CRASHED passes: %s" % ", ".join(guarded.crashed))
+        rc = 1
     print("\n%s" % ("OK" if rc == 0 else "PROBLEMS ABOVE"))
     return rc
 

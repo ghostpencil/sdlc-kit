@@ -114,9 +114,10 @@ questionnaire.
   toolchain; adopted rules go into the linter config with the other tool configs at
   scaffold step 1, so the gate and hook enforce them from the first slice. Note in
   each conventions bullet which parts are mechanically enforced (rule IDs) and which
-  are review-only, and include one adopted rule's violation in step 6's hook
-  verification — a rule proposed and never seen to fire is configuration that reads
-  as enforcement.
+  are review-only — the *lens↔rule map* in that same section states that split
+  per review lens and per language, including the lenses no rule can reach — and
+  include one adopted rule's violation in step 6's hook verification — a rule
+  proposed and never seen to fire is configuration that reads as enforcement.
 
   **The model-policy poll.** The three tiers are the kit's vocabulary on either CLI;
   only the models filling them differ. Present this as the default and ask the owner to

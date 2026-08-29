@@ -32,10 +32,35 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ADAPTER = os.path.join(REPO, "sdlc-kit", "templates", "sdlc-impact.template.py")
 FIXTURES = os.path.join(REPO, "tools", "impact-fixtures")
+
+
+def guarded(label, default, fn, *a, **kw):
+    """Run one pass; an unexpected exception REPORTS and the run continues.
+
+    A crash used to end the run where it happened, and every case after it never ran -
+    and never printed, so the loss did not show up in the output at all. That is how
+    tools/skill-ledger-check.py silently lost three cases for six releases
+    (FEATURE_PLAN.md 75; the rule is 75.7 ruling 3, generalized to all six suites).
+    Correctness failures still fail; what they may no longer do is delete the coverage
+    that follows them. `default` is what the caller unpacks when the pass crashed, and
+    guarded.crashed carries the run's exit code obligation.
+    """
+    try:
+        return fn(*a, **kw)
+    except Exception:
+        traceback.print_exc()
+        print("CRASHED  %s  <-- pass did not complete; its remaining cases did not run"
+              % label)
+        guarded.crashed.append(label)
+        return default
+
+
+guarded.crashed = []
 
 
 def run_git(cwd, *args):
@@ -502,19 +527,23 @@ def main():
         print("CANNOT RUN: adapter not found at %s" % ADAPTER)
         return 2
     print("== case pass (%d cases) ==" % len(CASES))
-    failures = case_pass(ADAPTER, verbose=True)
+    failures = guarded("case pass", [], case_pass, ADAPTER, verbose=True)
     if failures:
         for name, problems, out in failures:
             print("\nFAILED %s: %s\n--- output ---\n%s" % (name, problems, out))
         return 1
 
     print("\n== mutation pass (%d mutations) ==" % len(MUTATIONS))
-    survived = mutation_pass(verbose=True)
+    survived = guarded("mutation pass", [], mutation_pass, verbose=True)
     if survived:
         print("\nMUTATIONS SURVIVED: %s - the corpus does not pin what it claims"
               % ", ".join(survived))
         return 1
 
+    if guarded.crashed:
+        print("\nCRASHED passes: %s - those cases did not run"
+              % ", ".join(guarded.crashed))
+        return 1
     print("\nall green: %d cases, %d mutations caught"
           % (len(CASES), len(MUTATIONS)))
     return 0

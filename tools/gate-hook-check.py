@@ -30,7 +30,7 @@ has been made to speak (invariant 13).
 Kit-development artifact: root only, never inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/gate-hook-check.py
 """
-import io, json, os, shutil, stat, subprocess, sys, tempfile
+import io, json, os, shutil, stat, subprocess, sys, tempfile, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPILOT_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.json")
@@ -40,6 +40,30 @@ CLAUDE_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "claude-gate.templat
 
 LINTER = ("#!/bin/sh\nif grep -q BAD \"$1\" 2>/dev/null; then\n"
           "  echo \"E001 bad token in $1\"; exit 1\nfi\nexit 0\n")
+
+
+def guarded(label, default, fn, *a, **kw):
+    """Run one pass; an unexpected exception REPORTS and the run continues.
+
+    A crash used to end the run where it happened, and every case after it never ran -
+    and never printed, so the loss did not show up in the output at all. That is how
+    tools/skill-ledger-check.py silently lost three cases for six releases
+    (FEATURE_PLAN.md 75; the rule is 75.7 ruling 3, generalized to all six suites).
+    Correctness failures still fail; what they may no longer do is delete the coverage
+    that follows them. `default` is what the caller unpacks when the pass crashed, and
+    guarded.crashed carries the run's exit code obligation.
+    """
+    try:
+        return fn(*a, **kw)
+    except Exception:
+        traceback.print_exc()
+        print("CRASHED  %s  <-- pass did not complete; its remaining cases did not run"
+              % label)
+        guarded.crashed.append(label)
+        return default
+
+
+guarded.crashed = []
 
 
 def _dir_of(exe):
@@ -319,10 +343,13 @@ def main():
                 print(("  PASS  " if cond else "  FAIL  ") + name +
                       (("\n          " + str(detail)) if not cond and detail else ""))
 
-            suite(parser, check)
+            guarded("%s [parser: %s]" % (label, parser), None, suite, parser, check)
             if failed:
                 rc = 1
             print()
+    if guarded.crashed:
+        print("CRASHED passes: %s" % ", ".join(guarded.crashed))
+        rc = 1
     print("OK" if rc == 0 else "PROBLEMS ABOVE")
     return rc
 

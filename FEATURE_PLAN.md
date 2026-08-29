@@ -3384,3 +3384,453 @@ stay **silent** about — the exact configuration behind 19 of 19 field firings.
 cases and five mutations close it, and three of those mutations had to be re-pointed
 when the one-process refactor moved the lines they targeted, which is 0.28.1's lesson
 arriving on schedule.
+
+---
+
+## 74. LENS opened — mechanical counterparts for the review lenses: what a linter can
+## decide, what needs a reference index, and what the code graph must never be asked —
+## 2026-08-29
+
+Opened on the owner's question of 2026-08-29: give the review lenses concrete checks to
+work with, with Language Server Protocol named as the vehicle and Understand Anything's
+knowledge graph raised as the cheaper follow-up. Both were **measured before anything
+was designed**, and the measurement reorders the work: the substrate the question
+started from cannot produce a check at all, the substrate nobody proposed is the
+strongest and is already in the tree, and the third is disqualified for this use by its
+own edge census. The theme continues §73's — *a control's proof constructs the state it
+catches* — one step earlier: **an instrument's input is not its denominator, and
+improving what a lens can see does nothing about a lens nobody can tell whether it
+ran.**
+
+### 74.1 The three substrates, measured
+
+**(a) Linter rules — deterministic, already installed, already the best performer.**
+`reference/GATE_RECIPES.md`'s *Runtime-standards rules* already names per-language rule
+IDs whose subject matter is three of the eight lenses': ruff `E722`/`BLE001`/`B904` and
+the bandit `S` family; ESLint `no-empty`, `no-eval`,
+`@typescript-eslint/no-floating-promises`; `CA1031` with `-warnaserror`; checkstyle
+`EmptyCatchBlock` + `IllegalCatch` with find-sec-bugs. Deterministic, versioned, same
+input to same output, and enforced by the gate and the edit-time hook with no new
+command.
+
+**(b) LSP — real on both CLIs as of 2026-08, and asymmetric.** Claude Code configures
+servers by plugin: `.lsp.json` at the plugin root or an inline `lspServers` object in
+`plugin.json`, `command` + `extensionToLanguage` required, and a `diagnostics` field
+(default `true`) that pushes diagnostics into context after edits. Project scope exists
+— `claude plugin install <name> --scope project` writes `enabledPlugins` into
+`.claude/settings.json`, so it travels with a clone — but **servers start only after the
+workspace is trusted**. Copilot CLI takes `.github/lsp.json` (project, travels with a
+clone) or `~/.copilot/lsp-config.json` (user): an `lspServers` map of `command`, `args`,
+`fileExtensions`, with `/lsp show`, `/lsp test <name>`, `/lsp reload` to verify. Its
+documented capability set is **navigation** — definition, references, hover, rename,
+document and workspace symbols, implementation, incoming/outgoing calls — and **lists no
+diagnostics**.
+
+Neither CLI bundles servers. Of the owner's four languages, Python (pyright) and JS/TS
+(typescript-language-server) are turnkey on both sides; **Java (jdtls) and C# (Roslyn LS
+/ OmniSharp) are custom configuration on both sides and pull a JDK or a .NET SDK onto
+every adopter machine.** The kit's entire runtime dependency list today is git, `sh`,
+python, and a JSON parser.
+
+Decisive for the question as asked: **neither CLI exposes a non-interactive LSP query.**
+GitHub's documentation describes no programmatic interface; Claude's is a model-facing
+tool. An LSP-backed lens yields no exit code, no countable denominator, and nothing
+`tools/` can drive — invariant 13 gets no purchase on it and §73.8's catch-proof cannot
+be satisfied. LSP improves what a reviewer sees; it is not a check.
+
+**(c) The Understand Anything graph — disqualified for reference resolution, measured.**
+Measured on the frozen real pair (`impact-fixture-source/knowledge-graph.json`, UA
+2.9.4, TFit at `d75d9cf`, 116 files): 331 nodes, 544 edges. Edge census: `contains` 215,
+`exports` 90, `imports` 76, `tested_by` 38, `related` 37, `documents` 33, **`calls`
+31**, `depends_on` 9, `inherits` 6, `configures` 6, `deploys` 2, `triggers` 1.
+
+- 183 function nodes; **17 (9%) are ever the target of a `calls` edge**; 7 are the
+  source of one.
+- 210 symbol nodes (function + class); **116 (55%) carry no incoming edge other than the
+  structural `contains`.**
+
+Ask that graph whether anything consumes a given function and it answers **no** for
+roughly nine functions in ten that are in fact called. The *unconsumed artifact* lens's
+failure mode is precisely a false "no consumer" claim, and the lens's own recorded
+specimen is one: a status entity with no production writer, filed as dead and deleted.
+Wiring the graph in as the authority would industrialize the defect the lens exists to
+catch.
+
+It is also the wrong *kind* of artifact. Nodes carry `summary`, `tags`, `complexity`,
+`languageNotes` — prose — and import edges carry `"weight": 0.7`, a heuristic. It is a
+model-authored architectural narrative pinned to a commit hash, not a resolved index, so
+two regenerations of one tree need not agree and a check built on it has **no stable
+denominator** — the exact defect §54 put three lenses on a clock for. Staleness
+compounds it where it matters most: `SOURCE.md` preserves the quirk deliberately —
+`usage_pricing.py`, four new test files, the Phase 08 spec and `.claude/settings.json`
+all in `changedFiles` with no matching node. The unconsumed-artifact lens asks about
+artifacts *the arc just introduced*, which are by construction the nodes a pre-arc graph
+cannot hold.
+
+**§66 already ruled this correctly and proved it.** The adapter walks *any* edge type
+one hop rather than trusting `calls`; responsibilities 6 and 7 make unmatched files and
+staleness loud; `tools/impact-check.py` carries a mutation named
+`partial_reported_as_complete`. Promoting the graph to a reference authority for a lens
+would contradict a decision the kit has already proof-tested.
+
+### 74.2 What §54 already measured, and why it sets the order
+
+> **Runtime-standards recipe — CONFIRMED CATCHES, KEEPS.** … The recipe is the
+> lineage's best-performing rule, and its thesis — mechanize what can be mechanized —
+> is the one every field report keeps re-proving.
+>
+> **The three lenses — zero attributed catches in three arcs; deletion candidates.**
+
+The three lenses on that clock are *logging and swallowed errors*, *untrusted input*,
+and *secrets and exposure* — and GATE_RECIPES already names mechanical rules covering
+all three subjects in every language the kit carries a gate recipe for. For the three
+lenses closest to deletion, the mechanical counterpart lives in the same repository,
+covers the same subject matter, and is the artifact that actually caught things. That
+reframes the question this section opened with: not *how do we feed these lenses better
+data*, but **what is the residue a rule cannot express, and has anyone written it
+down?**
+
+### 74.3 Step 1 — the lens↔rule map
+
+For each of the eight lenses × each language carrying a gate recipe (Python, TS/JS, C#,
+Go, Java, Rust), state which part of the lens mechanizes, name the rule ID, and state
+what is left over for the reader. Expected shape from the current lens text — to be
+derived at build time, not from this list (§4a):
+
+- **fully mechanizable:** logging and swallowed errors; secrets and exposure
+- **partly:** error propagation; untrusted input
+- **not:** verify the denominator; shared state under concurrency beyond what SpotBugs
+  and the Roslyn analyzers already offer; the disposal-intent test and the unconsumed
+  artifact — the last two for the reason step 2 addresses
+
+It lands in *Runtime-standards rules*, which is **adoption-only** — read at
+`/sdlc-setup`, never re-applied — so it cannot disturb an arc in flight. Setup already
+consumes that section in both modes (New mode's Round 2; Existing mode's measured
+violation-count delta), so the plumbing exists and the cost is the table plus at most
+one sentence. The recipe's existing fire-proof — "one deliberate violation must fail the
+lint run" — stays as written.
+
+### 74.4 Step 2 — LSP find-references, as a pre-registered trial
+
+Both kit-written reference lenses turn on *does anything still reference this?*, and
+`REVIEW_LENSES.md` already concedes that its own recommended method is unreliable:
+
+> a caller-grep undercounts — a framework-wired reader is a consumer the grep never sees
+
+That is the one question grep structurally cannot answer, and it is where the confirmed
+catches are: the seventh report's only lens-named catch was `unconsumed artifact`.
+
+Scope: those two lenses only; Python and JS/TS only; Java and C# held pending a measured
+startup cost, since jdtls and the Roslyn server are the two that add a language runtime
+to the adopter's machine and the two with no official plugin on either side. Honest
+bound, stated before the trial rather than after: **LSP narrows the framework-wiring gap
+and does not close it** — Spring annotation wiring, DI by configuration, and reflection
+stay invisible. The claim under trial is *fewer false "no consumer" calls*, never *a
+correct denominator*.
+
+This runs under §5's trial-protocol rule (pre-registered value criterion), **not** the
+ENF ramp: nothing here is enforcement, so there is no logging trial, no arming bar, and
+no deny ramp. Delivery asymmetry is the build's main cost and its main hazard — Copilot
+takes a `.github/lsp.json` the kit writes into a directory it already owns; Claude Code
+takes a plugin install plus a workspace-trust gate whose failure mode is the server
+simply not starting, which is the silent-inertness shape §61 and §72 both paid for. Any
+offer must state how the adopter checks it is live (`/lsp show`, `/lsp test`, the
+`/plugin` Errors tab).
+
+### 74.5 Step 3 — the UA graph as lens triage, never as verdict
+
+74.1 (c) disqualifies the graph as an authority. It has a cheaper role the adapter's
+existing read already pays for: choosing *where to look*.
+
+- **`tested_by` (38 edges)** is a signal LSP does not supply at all — production symbols
+  with no test edge, as a place to look first.
+- **File-level `imports`** (76 edges over 67 file nodes) is the densest and most
+  trustworthy layer, and is already what blast radius uses.
+- **`tags`** (`entry-point`, `api-handler`, `tested`) can inform *which lenses are worth
+  running on this diff* — a triggering question, not a concluding one.
+
+The rule, and it must appear in any text that ships: **the graph chooses where to look;
+a deterministic check decides what is true.** Sparsity is survivable for ranking and
+fatal for verdicts, and an unqualified sentence here is one the next reader promotes.
+
+### 74.6 The clock collision, and why step 1 clears it
+
+The three STD lenses sit on a final two-arc clock, re-started 2026-08-26 (§70.7 (i))
+from the first arc whose denominator is enumerable; the instrument that makes it
+enumerable — the `lenses:` close-out key — shipped in 0.27.0 and no arc has closed under
+it yet. Editing those three lenses now would restart that clock a third time, which is
+the failure the re-start was itself a response to.
+
+Step 1 does not touch them. It lands in an adoption-only reference doc;
+`REVIEW_LENSES.md` — the one installed reference file — is untouched; and an existing
+adoption's linter config is unaffected, because rules are adopted per project at setup
+or gate time and never re-applied. The map can therefore be built now and the clock
+still reads on schedule.
+
+The map also improves the ruling when the clock does read: "delete or keep" becomes "is
+the residue this rule cannot express worth a lens?" — a question with an artifact behind
+it.
+
+### 74.7 Cost named up front
+
+**Step 1:** `reference/GATE_RECIPES.md` (*Runtime-standards rules* — the map); at most
+one sentence in `commands/sdlc-setup.md`, both modes already reading the section; a
+`/kit-check` consistency rule (every lens with a mechanizable half names a rule for each
+language carrying a gate recipe, and no rule is named for a language with no recipe). No
+new files, both READMEs untouched, `[adoption-only]`.
+
+**Step 2:** a new offer and decline record in `commands/sdlc-setup.md`; a
+`.github/lsp.json` template plus the Claude-side plugin instruction;
+`reference/COPILOT.md` mapping rows; both READMEs' trees; MANIFEST regenerated.
+`[installable]`, and the first kit feature ever to require a per-language binary the kit
+does not ship.
+
+**Step 3:** text only, inside the lens hand-back `/end-phase` already prints.
+
+### 74.8 Value criteria, pre-registered
+
+- **Step 1:** a field arc in which a rule adopted from the map fires on a defect whose
+  lens would have been the only other detector. Failure: two arcs in which the map's
+  rules add violations but no arc records a catch attributable to a rule the map added —
+  the map is then documentation, and documentation of rules is what GATE_RECIPES already
+  was.
+- **Step 2:** an `unconsumed artifact` or `disposal-intent` finding in a field arc that
+  names find-references as its method **and** records that a caller-grep would have
+  missed it. Failure by falsity, and it is the one that matters: any arc in which an
+  LSP-sourced "no consumer" claim proves wrong closes the trial. A reference index that
+  produces a confident wrong answer is worse than a grep that produces an admittedly
+  uncertain one — that is the whole of 74.1 (c), turned on the replacement.
+- **Step 3:** an arc whose lens hand-back names a graph-sourced starting point for a
+  finding something else then confirmed. Explicitly the weakest of the three: "helped
+  the reviewer look in the right place" is the unfalsifiable claim §54 went looking for
+  and could not find, so this gets **one** arc and is dropped if the record cannot carry
+  it.
+
+### 74.9 Owner decisions owed before the build
+
+- **(a) Sequencing.** Step 1 now with steps 2 and 3 behind it (recommended — step 1 is
+  deterministic, dependency-free, adoption-only and clock-safe, and it is the only one
+  of the three that answers the question as the owner posed it); or all three as one
+  batch; or step 2 first, on the grounds that the two reference lenses are where the
+  confirmed catches already are.
+- **(b) Map breadth.** All six languages carrying gate recipes (recommended — Go and
+  Rust rows already exist in the runtime-standards list, and omitting them creates the
+  asymmetry the next reader files as a finding); or the owner's four (Java, Python, C#,
+  JavaScript); or only the two step 2 would also cover.
+- **(c) The catch-proof question.** Does §73.8's generalization require anything beyond
+  the recipe's existing fire-proof for a lint rule? Recommended: **no, and say so in one
+  sentence** — for a rule the deliberate violation is both proofs at once, and leaving
+  it unstated invites a later reader to invent a second ritual.
+- **(d) Step 2's scope if it runs.** Python + JS/TS only, Java and C# held pending a
+  measured jdtls/Roslyn startup cost (recommended); or all four at once; or decline the
+  LSP direction and keep steps 1 and 3.
+- **(e) Whether step 3 ships at all.** Its criterion is the weakest by construction. One
+  arc and drop (recommended), or hold it entirely until step 1's criterion reads.
+
+### 74.10 Ruled 2026-08-29 — all five; step 1 builds now and the other two stay filed
+
+1. **Sequencing — RULED (a): step 1 now, steps 2 and 3 behind it.** The lens↔rule map
+   is deterministic, dependency-free, adoption-only, and the only one of the three that
+   answers the question as it was posed. It is also the clock-safe move: it lands in
+   `reference/GATE_RECIPES.md` and leaves `REVIEW_LENSES.md` — the installed file
+   carrying the three STD lenses on their final two-arc clock — untouched, so the clock
+   re-started 2026-08-26 still reads on schedule under the `lenses:` key that shipped in
+   0.27.0 and has not yet had an arc close under it.
+2. **Map breadth — RULED (a): all six languages carrying a gate recipe.** Python,
+   TypeScript/JavaScript, C#, Go, Java, Rust. Go and Rust rows already exist in the
+   runtime-standards list; a map that skipped them would be the asymmetry the next
+   reader files as a finding, and the marginal cost is two columns of rule IDs.
+3. **The catch-proof question — RULED (c): no new ritual, said in one sentence.** For a
+   lint rule the deliberate violation is the fire-proof and the catch-proof at once —
+   the state it flags is the state that was constructed — so §73.8's generalization is
+   already satisfied by the section's existing *prove the adopted set* paragraph. Saying
+   so explicitly is what stops a later reader inventing a second ceremony for it.
+4. **Step 2's scope if it runs — RULED (d), and it is now moot until step 1's criterion
+   reads.** Recorded so the answer is not re-derived: Python + JS/TS only, with Java and
+   C# held pending a measured jdtls/Roslyn startup cost, because those two add a JDK or
+   a .NET SDK to every adopter machine and the kit's whole runtime dependency set today
+   is git, `sh`, python, and a JSON parser.
+5. **Step 3 — RULED (e): one arc, then dropped if the record cannot carry it.** Held
+   with step 2. Its criterion is the weakest by construction and 74.1 (c) is the reason:
+   a graph that answers "does anything consume this?" with *no* for nine called
+   functions in ten cannot be promoted past triage on a claim as unfalsifiable as
+   "it helped the reviewer look in the right place."
+
+**Built by this batch:** the map itself in `reference/GATE_RECIPES.md`; one sentence in
+`commands/sdlc-setup.md` pointing both modes at it; and a `/kit-check` consistency rule.
+Nothing installed changes shape, no new placeholder, no new file.
+
+---
+
+## 75. The skill-ledger proof has been dead since 0.24.0 — the batch that caught one
+## proof rotted by the launcher split introduced the same rot in the tool beside it,
+## and six releases of `/kit-check` read it as sound — filed 2026-08-29
+
+Found 2026-08-29 by running the `tools/` suites during a readiness review, which is the
+first time all six have been run in one sitting. Five hold. The sixth has not completed
+a run since 0.24.0 shipped on 2026-08-15. The artifact it proves is sound — that was
+established separately, and 75.2 says how — so this is an instance of the class §61.4
+named at its own meta-level: *a proof that certifies the wrong artifact is a hook that
+never fires, one level up.* Here it is one level up again, because the reading pass that
+should have noticed cannot notice this kind of failure at all.
+
+### 75.1 What was measured
+
+`python tools/skill-ledger-check.py`, run at `d014dc2`. The six Copilot cases pass. Then:
+
+```
+FAIL  claude: valid payload appends an ISO-stamped line, exit 0
+        - rc=127 err=sh: .github/hooks/sdlc-skill-ledger.sh: No such file or directory
+Traceback (most recent call last):
+  File "tools/skill-ledger-check.py", line 121, in main
+    n = io.open(ledger_of(repo2), encoding="utf-8").read().count("\n")
+FileNotFoundError: ... proj2/.git/sdlc-skill-ledger.jsonl
+```
+
+The mechanism: `load_bodies()` returns `blocks[0]["hooks"][0]["command"]` from
+`settings.template.json`'s `Skill` block, and `run()` executes that string as the hook
+**body**. Since 0.24.0 the string is a bare launcher — `sh
+.github/hooks/sdlc-skill-ledger.sh` — and the body it used to hold moved to
+`templates/skill-ledger-claude.template.sh`. The suite now drives a path that does not
+exist in its own bench, and the uncaught `FileNotFoundError` **aborts the run**, so the
+three Claude cases after the failure — second-line append, unset `CLAUDE_PROJECT_DIR`,
+`CLAUDE_PROJECT_DIR` without `.git` — have not executed since either. One dialect of one
+control has been entirely unexercised for two weeks and six releases: 0.25.0, 0.26.0,
+0.27.0, 0.28.0, 0.28.1, 0.29.0.
+
+### 75.2 The shipped artifact is sound, established separately
+
+`templates/skill-ledger-claude.template.sh` was driven directly against the same
+measured payload rather than inferred from reading it. With `CLAUDE_PROJECT_DIR` set to
+a repo root it appends one ISO-stamped line carrying the payload verbatim and exits 0;
+with it unset it prints `SDLC skill ledger did NOT record this activation: ...` on stderr
+and exits 2. Both branches behave as the artifact's header claims.
+
+And the artifact has not moved: `git log v0.24.0..HEAD` over both
+`skill-ledger-claude.template.sh` and `skill-ledger.template.json` is empty. So the
+exposure is **six releases shipped with a control unproven**, not a defect that slipped
+past a dead proof. That is the §72 distinction landing the other way this time, and it
+is the reason this is filed rather than hot-fixed: the loss is coverage, not
+correctness.
+
+### 75.3 Why the kit's own checks did not catch it, which is the larger half
+
+**(1) `/kit-check` reads; it does not run.** The command opens by declaring itself "an
+agent **reading pass**, not a grep suite", and invariant 13's enumerated population
+explicitly includes "the `tools/` proof suites". Reading a suite establishes that it
+*states* its negative cases. It cannot establish that it *executes*. And
+`skill-ledger-check.py` still reads as a model proof: payload fixtures measured on the
+bench rather than invented, both dialects' loud branches exercised, a newline assertion
+carrying its own reason. Every pre-tag pass since 0.24.0 would have read it and passed
+it — §65, §69, and the 0.27.0 and 0.28.0 passes among them. This is the command's own
+prime directive — *an all-clear from a check that cannot fail proves nothing* — turned
+on the command itself.
+
+**(2) The commit that broke it is titled for catching the same defect next door.**
+`19a2a7a` (PIN, §61) reads "…the proof tool's index decay caught with it": it found
+`gate-hook-check.py` driving a `PostToolUse` index that 0.21.0 had silently re-pointed,
+and repaired it to locate blocks by matcher and read the body from its new template
+home. That tool's docstring now documents the split verbatim ("split 2026-08-15"). The
+suite sitting beside it in the same directory, reading the same file for the same
+reason, was never opened. §4a's rule — derive the edit map mechanically, never from the
+plan's own list — was applied to the batch's **product** and not to its **proofs**, and
+the batch's own finding was the strongest available signal that the proofs were in
+scope.
+
+### 75.4 Scope, checked rather than assumed
+
+Two suites read `settings.template.json`: `gate-hook-check.py` (fixed in 0.24.0) and
+`skill-ledger-check.py` (this defect). The other four each read a single-body template
+that was never split — `close-out.template.sh`, `sdlc-impact.template.py`,
+`tdd-guard.template.sh` + `.json`, `tdd-guard-claude.template.py`. **There is no third
+instance of this defect.**
+
+The general defect in 75.3 (1) covers all six, and the other five were run the same day
+to bound it: `gate-hook-check` OK; `tdd-guard-claude-check` OK, mutations caught;
+`tdd-guard-check` 57 cases under each of two parsers, all passed, mutations caught;
+`impact-check` 17 cases and 13/13 mutations; `close-out-check` 53 cases (26 unit, 7
+docs, 20 stop) with 18/18 mutations, 0 survivors, 0 stale, correctness green and only
+the §71 timing budgets breached — under three concurrent suites, which is the load §71
+described. That run is also the first field exercise of §71's fix: the budgets were
+missed and the mutation pass still completed, which under the pre-§71 code it would not
+have.
+
+### 75.5 The fix, and the open half
+
+The artifact fix has one shape, and it is the sibling's:
+
+- read the Claude **body** from `templates/skill-ledger-claude.template.sh`;
+- keep locating the `Skill` block by matcher (already done) and **assert the block's
+  command is a bare launcher naming that file** — the property `gate-hook-check.py`
+  already pins for the gate, so the split cannot silently reverse;
+- keep the launcher itself under test rather than merely unused: assert the path it
+  names is the file `sdlc-setup.md` installs.
+
+The open half is what makes a dead suite loud. Options:
+
+1. **`/kit-check` runs the suites and quotes their exit codes.** One step; invariant
+   13's population already names them; it closes exactly the measured failure mode.
+   Cheapest. **Recommended.**
+2. **A release-step gate.** Stronger — it cannot be skipped by scoping `/kit-check` to
+   selected entries — but there is no release script to hang it on today, so it would
+   ship as prose, which is the thing this repo keeps concluding does not work.
+3. **Both**, 1 as the routine pass and 2 as the tag-time backstop.
+4. **Neither; re-run by habit.** Recorded so it is not rediscovered as an option: it is
+   what has been in force since 0.14.0, and it produced this section.
+
+### 75.6 Decisions owed
+
+- **(a) Fix shape.** All three bullets above (recommended — the middle one is what
+  prevents the recurrence, and it costs one assertion); or minimal, re-pointing at the
+  body file and leaving the launcher unpinned.
+- **(b) Loudness.** Option 1 (recommended), 2, 3, or 4.
+- **(c) Does §71's accumulate-don't-short-circuit fix generalize?** This suite *aborted*
+  on an exception rather than reporting and continuing, which is why three cases
+  vanished silently rather than failing visibly. Recommended: **generalize the crash
+  half only** — an unexpected exception in one case reports and the run continues; the
+  timing-budget half stays with `close-out-check.py`, the only suite that has budgets.
+- **(d) Release shape.** `tools/` is kit-development only, so a fix there carries **no
+  VERSION bump** (the `b6a81a9` precedent, which said so explicitly). Recommended: fold
+  into whatever ships next; nothing installed changes.
+- **(e) Does the unproven window need a note where adopters read?** Recommended: **no.**
+  The artifact never changed and never failed, and the CHANGELOG's entry classes are
+  `[installable]` and `[adoption-only]` — both defined by what an adopted project holds.
+  A note about a kit-development proof would be the first entry in that file about
+  something no adopter has.
+
+### 75.7 Ruled 2026-08-29 — all five; the fix and its loudness ship together
+
+1. **Fix shape — RULED (a): all three bullets.** The suite reads the Claude body from
+   `templates/skill-ledger-claude.template.sh`; it asserts the `Skill` block's command
+   is the bare launcher naming that file — the property `gate-hook-check.py` already
+   pins for the gate, so the split cannot silently reverse a second time; and it asserts
+   the launcher's path is the one `commands/sdlc-setup.md` installs, so the launcher
+   stays under test rather than merely unused. The middle bullet is the one that
+   prevents the recurrence and it costs a single assertion.
+2. **Loudness — RULED (b), option 1: `/kit-check` runs the suites and quotes their exit
+   codes.** Invariant 13's population already names the `tools/` proof suites, so this
+   is the population's own check finally executing rather than a new obligation. It
+   closes exactly the measured failure mode: a suite that cannot complete now reports a
+   nonzero code into the pass that has been reading it as sound for six releases. The
+   step carries the runtime facts measured 2026-08-29 — the guard suites sleep 1.1 s per
+   case, `close-out-check.py` ran ~70 minutes under concurrent load, and all six buffer
+   stdout, so they run with `python -u` — because a step whose cost surprises the runner
+   is a step that gets skipped, and skipping is what option 4 already proved.
+   Option 2 stays refused for the reason it was filed with: there is no release script
+   to hang a gate on, so it would ship as prose.
+3. **The crash half — RULED (c): generalize it, and only it.** An unexpected exception
+   in one section now reports as a `CRASHED` line and the run continues to the next,
+   with the exit code carrying it; the run no longer ends at the first traceback taking
+   every later case with it silently. This is §71's accumulate-don't-short-circuit
+   applied to the failure shape that produced §75, and it goes into **all six** suites,
+   because the property that made this invisible — cases that never ran also never
+   printed — is a property of the harness, not of this suite. The timing-budget half
+   stays where it is: `close-out-check.py` is the only suite with budgets.
+4. **Release shape — RULED (d): no VERSION bump for the `tools/` half.** `tools/` is
+   kit-development only (invariant 12), so the suite fix and the crash guard change
+   nothing an adopter holds — the `b6a81a9` precedent, which said so explicitly. They
+   fold into whatever ships next, which is this batch's §74 step 1.
+5. **A note where adopters read — RULED (e): no.** The artifact never changed and never
+   failed across the unproven window, and both CHANGELOG entry classes are defined by
+   what an adopted project holds. An entry about a kit-development proof would be the
+   first in that file about something no adopter has.

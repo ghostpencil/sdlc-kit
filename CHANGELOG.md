@@ -12,6 +12,20 @@ to an already-adopted project.
 
 ## Unreleased
 
+### Added
+- **[adoption-only]** **A lens↔rule map** (`reference/GATE_RECIPES.md`), stating for
+  each of `REVIEW_LENSES.md`'s eight lenses which half a linter rule can decide — with
+  rule IDs for all six languages carrying a gate recipe — and which half no rule can
+  express. Three lenses turn out to be substantially covered by rules the section
+  already recommended; three have residue that is entirely about the deployment or the
+  reviewer's search; and two (*verify the denominator*, *the disposal-intent test*)
+  have **no** mechanical counterpart in any language, which the map records rather than
+  leaving to be rediscovered. Adopting from it needs no new proof step: for a lint rule
+  the deliberate violation is the fire-proof and the catch-proof at once. `sdlc-setup`
+  points at it from the runtime-conventions ask in both modes; no new placeholder, no
+  new file, and `REVIEW_LENSES.md` is untouched. (`FEATURE_PLAN.md` §74, ruled
+  2026-08-29.)
+
 ### Changed
 - **[installable]** / **[adoption-only]** **The shipped bundle no longer cites
   kit-development documents.** Eight `FIELD_REPORT_*.md` citations in

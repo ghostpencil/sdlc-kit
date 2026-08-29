@@ -25,6 +25,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard-claude.template.py")
@@ -90,6 +91,30 @@ class Bench:
 
     def arm_deny(self):
         self.seed("deny-enabled")
+
+
+def guarded(label, default, fn, *a, **kw):
+    """Run one pass; an unexpected exception REPORTS and the run continues.
+
+    A crash used to end the run where it happened, and every case after it never ran -
+    and never printed, so the loss did not show up in the output at all. That is how
+    tools/skill-ledger-check.py silently lost three cases for six releases
+    (FEATURE_PLAN.md 75; the rule is 75.7 ruling 3, generalized to all six suites).
+    Correctness failures still fail; what they may no longer do is delete the coverage
+    that follows them. `default` is what the caller unpacks when the pass crashed, and
+    guarded.crashed carries the run's exit code obligation.
+    """
+    try:
+        return fn(*a, **kw)
+    except Exception:
+        traceback.print_exc()
+        print("CRASHED  %s  <-- pass did not complete; its remaining cases did not run"
+              % label)
+        guarded.crashed.append(label)
+        return default
+
+
+guarded.crashed = []
 
 
 def win(root, rel):
@@ -443,7 +468,7 @@ def main():
     src = io.open(TPL, encoding="utf-8").read()
 
     names = []
-    failures = unit(src, counter=names)
+    failures = guarded("unit pass", [], unit, src, counter=names)
     print("unit pass: %d/%d cases green" % (len(names) - len(failures), len(names)))
     if failures:
         print("FAILED unit cases:")
@@ -452,10 +477,18 @@ def main():
         return 1
 
     survived = []
+    stale = []
     for label, old, new in MUTATIONS:
-        assert old in src, "mutation target drifted: %s" % label
+        if old not in src:
+            # Reported, never raised: an assert here aborts the run, so one drifted
+            # anchor takes every mutation after it with it. A stale mutation is a
+            # defect class that has silently lost its coverage, not a pass - the
+            # sibling suites already report it this way (close-out-check.py).
+            stale.append(label)
+            print("STALE    %s - anchor no longer applies, re-point it" % label)
+            continue
         mutated = src.replace(old, new, 1)
-        caught = unit(mutated, verbose=False)
+        caught = guarded("mutation: %s" % label, [], unit, mutated, verbose=False)
         if caught:
             print("caught   %s" % label)
             print("           (by: %s)" % "; ".join(caught[:3]))
@@ -463,8 +496,13 @@ def main():
             survived.append(label)
             print("SURVIVED %s" % label)
     print()
+    if stale:
+        print("STALE: %d mutation anchor(s) need re-pointing" % len(stale))
+    if guarded.crashed:
+        print("CRASHED passes: %s" % ", ".join(guarded.crashed))
     if survived:
         print("FAILED: %d mutation(s) survived the suite" % len(survived))
+    if survived or stale or guarded.crashed:
         return 1
     print("OK")
     return 0

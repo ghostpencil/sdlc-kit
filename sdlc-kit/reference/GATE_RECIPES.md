@@ -20,7 +20,9 @@ Per-language commands for the two places tooling is configured during `/sdlc-set
 
 A third section, *Runtime-standards rules*, lists per-linter rule sets for the
 runtime-conventions interview — those land inside the linter's own config, so both
-places above enforce them without a new command.
+places above enforce them without a new command. It closes with *The lens↔rule
+map*: which half of each review lens those rules already decide, and which half no
+rule in any of the six languages can express.
 
 These are starting points. Always prefer the commands the project **already uses**
 (check CI workflows, `Makefile`, `package.json` scripts) over these defaults — the gate
@@ -733,6 +735,118 @@ own docs win over this table):
 Prove the adopted set the way the hook is proven: one deliberate violation (a bare
 `except:`, a stray `print`) must fail the lint run before the rules are trusted — a
 rule proposed and never seen to fire is configuration that reads as enforcement.
+
+
+### The lens↔rule map: what a rule decides, and the residue it cannot
+
+`reference/REVIEW_LENSES.md` carries eight review lenses. Three of them
+(*logging and swallowed errors*, *untrusted input*, *secrets and exposure*) have
+subject matter the rules above already cover mechanically, and a rule is strictly
+better than a lens where it applies: it is deterministic, it runs on every file rather
+than on the ones a reviewer opened, and the gate already enforces it. This map says,
+per lens, **which half a rule can decide** — adopt those rules for the project's
+languages — and **which half no rule can express**, because that residue is the only
+part a human review adds.
+
+Read it when adopting rules (both setup modes) and when a lens comes up for its
+retirement reading. It is a map of *coverage*, not a claim that any lens is redundant:
+a lens whose mechanizable half is fully adopted is a lens whose value is now exactly
+its residue, and that is the question its clock should be answering.
+
+The rules named per language are drawn from the starting points above; where a language
+has no equivalent the row says so, because an omission that reads as an oversight gets
+filled in with an invented rule ID the next time someone edits this file.
+
+**Lens: error propagation.** *Mechanized:* an exception raised without its cause
+attached, a caught-and-rethrown error that loses the stack, an error return dropped on
+the floor. Python `B904`, `E722`; JS/TS `no-useless-catch`, `no-throw-literal` (typed:
+`@typescript-eslint/only-throw-error`, `@typescript-eslint/no-floating-promises`); C#
+`CA2200`, `CA1031`; Go `errcheck`, `errorlint`; Java checkstyle `IllegalCatch`, PMD
+`PreserveStackTrace`; Rust clippy `unwrap_used`, `expect_used`.
+*Residue:* every caller's control flow re-read after a new raise travels, and whether a
+status code can honestly make its claim about fault. No linter reads a 4xx and knows
+whose fault it was.
+
+**Lens: logging and swallowed errors.** *Mechanized:* the empty handler, the blind
+catch, the stray `print`, the error logged without its exception. Python `E722`,
+`BLE001`, `TRY400`, `T201`/`T203`; JS/TS `no-empty`, `no-console`; C# `CA1031` under
+`-warnaserror`; Go `errcheck`, `forbidigo`; Java checkstyle `EmptyCatchBlock` +
+`IllegalCatch`, PMD `EmptyCatchBlock`; Rust clippy `print_stdout`, `dbg_macro`.
+*Residue:* the level as a routing decision — whether anyone watches the level chosen,
+whether the line carries the operation and identifying inputs a reader needs to act,
+and the one-failure-one-ERROR bound. A rule sees the logging call; it cannot see the
+reader, and "swallowed with a receipt" passes every rule in this row.
+
+**Lens: verify the denominator.** *Mechanized:* nothing, in any of the six languages.
+The lens is about a claim made from a search — what was enumerated, and what the
+enumeration could not reach — and no rule takes a search as its input.
+*Residue:* all of it. This row exists so the absence is recorded rather than
+rediscovered.
+
+**Lens: shared state under concurrency.** *Mechanized:* thinly, and unevenly. Go is the
+strongest — `go test -race` in CI (a gate command, not a rule) plus `go vet`'s
+`copylocks` and `loopclosure`; Java SpotBugs' multithreaded-correctness detectors
+(`IS2_INCONSISTENT_SYNC`); Rust's `Send`/`Sync` checking in the compiler itself, plus
+clippy `await_holding_lock` and `mutex_atomic`; JS/TS `require-atomic-updates` and
+`@typescript-eslint/no-misused-promises`. Python and C# have no rule that names the
+model.
+*Residue:* the lens's actual question — name the runtime's concurrency model and state
+what serializes access — and its measurement requirement. "Nothing serializes access"
+is a sentence a reviewer writes, not a diagnostic a linter emits.
+
+**Lens: untrusted input.** *Mechanized:* the interpreter hops, by taint or by pattern.
+Python ruff's bandit family — `S608` (SQL), `S602`–`S609` (shell), `S301` (`pickle`),
+`S506` (unsafe YAML load), `S307` (`eval`); JS/TS `no-eval`, `no-implied-eval`,
+`no-new-func`, plus eslint-plugin-security's `detect-child-process` and
+`detect-non-literal-fs-filename`; C# `CA2100` and the taint rules `CA3001` (SQL),
+`CA3003` (file path), `CA3006` (command); Go gosec `G201`/`G202` (SQL string building),
+`G204` (subprocess), `G304` (file path from a variable); Java find-sec-bugs
+`SQL_INJECTION_*`, `COMMAND_INJECTION`, `PATH_TRAVERSAL_IN`. Rust has no comparable
+taint set in clippy — `cargo audit` covers dependencies, not data flow.
+*Residue:* naming **every** interpreter the input reaches and the neutralizing
+mechanism at each hop, and the canonicalize-then-prefix-check sequence. A rule sees the
+`realpath` call; it does not see whether the *result* was checked against the intended
+root, which is the near-miss the lens was written for.
+
+**Lens: secrets and exposure.** *Mechanized:* the hardcoded credential, and committed
+config. Python `S105`–`S107`; JS/TS eslint-plugin-no-secrets (`no-secrets/no-secrets`);
+C# `CA5390`, plus `CA5350`/`CA5351` for the weak-crypto neighbours; Go gosec `G101`;
+Java find-sec-bugs `HARD_CODE_PASSWORD`, `HARD_CODE_KEY`; Rust has no clippy rule here.
+Across all six, repository-level secret scanning (the forge's push protection, or a
+scanner in CI) is the rule that catches what a language linter never sees, because a
+secret's usual home is a config file no linter reads.
+*Residue:* the two halves that are about the deployment, not the file — who may call a
+new surface and what enforces that **where the code will actually run**, and whether an
+error path discloses internals to its caller. No rule running in the test environment
+can answer either.
+
+**Lens: the disposal-intent test.** *Mechanized:* nothing, in any language, and not for
+want of a rule — the lens's subject is a property of the **diff** (a test added and then
+deleted, skipped, or gutted within the same slice), and a linter reads a tree. Its
+mechanical counterpart in the kit is the TDD-ordering guard plus `/end-slice`'s
+close-out reading, not a linter rule.
+*Residue:* all of it, plus the contract half — a test the product contract names as a
+pin retires only by contract edit, at halt 3.
+
+**Lens: the unconsumed artifact.** *Mechanized:* dead code, but only the local kind.
+Python ruff `F401`, `F811`, the `ARG` family; JS/TS
+`@typescript-eslint/no-unused-vars` and tsc's `noUnusedLocals`/`noUnusedParameters`;
+C# `IDE0051` and compiler `CS0169`; Go staticcheck `U1000` (golangci-lint's `unused`) —
+the widest of the six, since it reaches unexported identifiers across a module; Java
+PMD `UnusedPrivateMethod` / `UnusedPrivateField`; Rust rustc `dead_code` and
+`unused_imports`, binding under `-D warnings`.
+*Residue:* **every rule in that row stops at the public surface**, and the lens's
+subject starts there — an endpoint nothing calls, a column nothing queries, a factory
+only tests construct. Worse, both a linter and a caller-grep undercount on stacks that
+wire consumers by annotation, reflection, or configuration, so a clean run is not a
+negative result; the lens's own denominator caveat applies to the rule exactly as it
+applies to the grep. Treat these rules as the floor and the arc review as the check.
+
+**Adopting from this map needs no new proof step.** The *prove the adopted set*
+paragraph above is already both proofs at once for a lint rule: the deliberate
+violation *is* the state the rule must flag, so the run that shows it firing shows both
+that the rule executes and that it catches something — there is no second ceremony to
+perform here.
 
 ---
 
