@@ -10,6 +10,18 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+### Changed
+- **[installable]** / **[adoption-only]** **The shipped bundle no longer cites
+  kit-development documents.** Eight `FIELD_REPORT_*.md` citations in
+  `commands/sdlc-update.md`, `reference/GATE_RECIPES.md` and both TDD-guard templates
+  named files that exist only in the kit's own repository, so in an adopted project they
+  pointed at nothing (invariant 5 — pointers in installed files resolve in the installed
+  world). The measurements they introduced are the useful part and all of them stay; only
+  the unresolvable pointer goes. Two `FEATURE_PLAN.md` citations were removed the same
+  way in 0.29.0, one of which had shipped in 0.28.1.
+
 ## 0.29.0 — 2026-08-28
 
 The ninth field report's medium batch (`FEATURE_PLAN.md` §73, ruled 2026-08-27) — the

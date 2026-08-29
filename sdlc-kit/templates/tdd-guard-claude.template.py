@@ -205,8 +205,8 @@ if MODE == "pre-write":
         # acts apart charges the same price for both, which is how a license stops
         # meaning anything. Measured over one arc: 13 denials, 5 of them on a
         # session scratchpad, and a mandated /end-phase verification step that could
-        # not be executed as written (FIELD_REPORT_2026-08-17.md finding 3; owner
-        # ruling: a file outside the repository cannot be production source).
+        # not be executed as written (owner ruling: a file outside the
+        # repository cannot be production source).
         log("write outside the repository - not production source: %s" % p)
         sys.exit(0)
     else:
@@ -281,8 +281,8 @@ if MODE == "observe-test":
     # the raw string fired on any command whose TEXT merely mentioned the runner: a
     # `git commit -m` whose body quotes the RED command, an append writing a RED
     # record. Measured: three spurious notices in one phase, on a control whose
-    # refusals have to be believed (FIELD_REPORT_2026-08-17b.md finding 2). Quoted
-    # text is data, never what the shell runs. Known cost, stated rather than
+    # refusals have to be believed. Quoted text is data, never what the shell
+    # runs. Known cost, stated rather than
     # hidden: a runner reachable ONLY inside a quoted argument (`bash -c "pytest"`)
     # no longer counts - run it bare, which is what the compound rule below asks for
     # anyway. The compound check deliberately keeps reading the RAW command: a

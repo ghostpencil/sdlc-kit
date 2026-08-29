@@ -221,7 +221,7 @@ case "$MODE" in
       # a session scratchpad costing the same license as an edit to the module
       # guarding the project's authoritative data. Measured in the Claude dialect
       # over one arc (13 denials, 5 on a scratchpad, one mandated /end-phase step
-      # unexecutable as written - FIELD_REPORT_2026-08-17.md finding 3); this dialect
+      # unexecutable as written); this dialect
       # reaches the same end by a shorter route and only escaped notice because that
       # adopter's SOURCE_GLOB does not match its scratch files. Owner ruling: a file
       # outside the repository cannot be production source. Compared case-insensitively
@@ -316,8 +316,8 @@ PATHLIST
     # the raw string fired on any command whose TEXT merely mentioned the runner: a
     # `git commit -m` whose body quotes the RED command, an append writing a RED
     # record. Measured: three spurious notices in one phase, on a control whose
-    # refusals have to be believed (FIELD_REPORT_2026-08-17b.md finding 2). Quoted
-    # text is data, never what the shell runs. Known cost, stated rather than hidden:
+    # refusals have to be believed. Quoted text is data, never what the shell
+    # runs. Known cost, stated rather than hidden:
     # a runner reachable ONLY inside a quoted argument (`bash -c "pytest"`) no longer
     # counts - run it bare, which is what the compound rule below asks for anyway.
     # The compound check deliberately keeps reading the RAW command: a stripping bug

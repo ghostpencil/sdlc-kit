@@ -599,11 +599,11 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   same refactor license as an edit to the project's most sensitive module — measured
   over one arc as 13 denials, 5 of them on a session scratchpad, and 12 writes
   licensed for a mandated `/end-phase` verification step whose own text never
-  mentions a license (`FIELD_REPORT_2026-08-17.md` finding 3). Relative paths still
-  count: they can only be relative to the resolved root. (b) **The test-command
+  mentions a license. Relative paths still count: they can only be relative to the
+  resolved root. (b) **The test-command
   pattern is matched with quoted arguments stripped**, so a `git commit -m` whose
   body quotes the RED command no longer registers as a test run — three spurious
-  notices in one phase on a Java adoption (`FIELD_REPORT_2026-08-17b.md` finding 2).
+  notices in one phase on a Java adoption.
   Apply each as a template diff against the project's instantiated copy, the way the
   0.19.x fixes were — `templates/tdd-guard-claude.template.py` (pre-write path
   handling and the `observe-test` match) or `templates/tdd-guard.template.sh` (the
