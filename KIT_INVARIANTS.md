@@ -231,7 +231,13 @@ being added here is one the pass will not think to look for. Adding a check mean
 extending this sentence in the same batch. A check that cannot fail visibly is indistinguishable from
 one that passes.
 
-**Check:** reading pass over every specified check. **Specimen:** three checks written
+**Check:** reading pass over every specified check — **except the `tools/` proof
+suites, which are RUN and their exit codes quoted.** Reading a suite establishes that
+it *states* its negative cases; only running it establishes that it executes, and the
+difference is not hypothetical: `tools/skill-ledger-check.py` read as a model proof
+through five pre-tag passes while crashing on its first Claude case, leaving one
+dialect of one control unexercised across six releases (`FEATURE_PLAN.md` §75, fixed
+2026-08-29). **Specimen:** three checks written
 in one session returned confident, plausible, wrong answers without erroring — working-tree
 hashing (CRLF made all 12 files "drift"), a pipeline probe (missing paths hashed empty
 input and "matched"), and the name-match placeholder check (24 false positives). None

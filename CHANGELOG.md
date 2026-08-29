@@ -10,7 +10,16 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.30.0 — 2026-08-29
+
+One adopter-visible addition and one pointer fix. The addition answers a question the
+kit had never put to itself: **which half of each review lens does a linter already
+decide?** For three of the eight the answer is most of it — the rules were already
+recommended two sections earlier and enforced by the gate, and nobody had said so. For
+two of them the answer is *nothing, in any language*, which is worth writing down
+precisely because a reader who does not find a rule assumes one exists and goes looking.
+The residue that survives the map is the part a human review adds, and it is now the
+question a lens's retirement reading can actually answer.
 
 ### Added
 - **[adoption-only]** **A lens↔rule map** (`reference/GATE_RECIPES.md`), stating for
