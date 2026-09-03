@@ -233,9 +233,17 @@ def unit(guard_src, verbose=True, counter=None):
              hso.get("permissionDecision") == "deny"
              and hso.get("hookEventName") == "PreToolUse"
              and "refactor-license" in (hso.get("permissionDecisionReason") or ""))
+        # 4b pins FEATURE_PLAN_HISTORY.md §48/§50.1: the behavior-preserving route
+        # is named by CASE, never narrowed by a phase word, because operators who
+        # read "close-out" concluded the license was close-out-only. 0.31.0 adds a
+        # genuinely close-out-scoped second license, so "close-out" may now appear
+        # - but only AFTER the unqualified case sentence, never as its qualifier.
+        # Re-pointed, not dropped: the defect §48 fixed is still available.
+        _r = hso.get("permissionDecisionReason") or ""
         case("4b the deny names the case, not the phase",
-             "close-out" not in (hso.get("permissionDecisionReason") or "")
-             and "BEHAVIOR-PRESERVING" in (hso.get("permissionDecisionReason") or ""))
+             "BEHAVIOR-PRESERVING" in _r and "at any point in the cycle" in _r
+             and ("close-out" not in _r
+                  or _r.index("at any point in the cycle") < _r.index("close-out")))
         case("5 a denied production write arms nothing (the tree never changed)",
              not b.state_has("prod-write-observed"))
         b.run("stop-check", stop(b.root))
@@ -309,6 +317,64 @@ def unit(guard_src, verbose=True, counter=None):
         case("13 a test edit revokes the license",
              not b.state_has("refactor-license")
              and any("refactor license revoked" in l for l in b.loglines()))
+
+        # --- the close-out license (FIELD_REPORT_2026-09-01.md finding 1) -----
+        # Close-out's mandated order is review (fixes tests) -> mutation (writes
+        # production, restores tests) -> verify (writes a harness), so a license a
+        # test edit revokes cannot survive its own step. A real arc re-declared it
+        # seven times in one phase. This license differs from the refactor one in
+        # exactly one way, and the survivals are counted so it cannot be silent.
+        b.reset_state()
+        out = b.run("observe-test", green(b.root, "pytest -q"))
+        b.seed("close-out-license", "step: end-slice mutation check\n")
+        b.run("pre-write", write(b.root, "pay.py"))
+        case("13a a close-out license + green licenses a write, logged as close-out",
+             "OK production write (close-out license: step: end-slice mutation check"
+             in b.tail())
+
+        b.run("pre-write", write(b.root, "test_pay.py"))
+        case("13b a test edit does NOT revoke the close-out license, and is counted",
+             b.state_has("close-out-license")
+             and any("close-out license SURVIVED a test edit (1 this session)" in l
+                     for l in b.loglines()))
+
+        b.run("pre-write", write(b.root, "test_other.py"))
+        case("13c each surviving test edit increments the count",
+             any("close-out license SURVIVED a test edit (2 this session)" in l
+                 for l in b.loglines()))
+
+        b.run("pre-write", write(b.root, "pay.py"))
+        case("13d the license still licenses a write after the test edits",
+             "OK production write (close-out license:" in b.tail())
+
+        b.reset_state()
+        b.arm_deny()
+        b.seed("close-out-license", "step: end-slice mutation check\n")
+        b.run("pre-write", write(b.root, "pay.py"))
+        case("13e a close-out license without a green licenses nothing either",
+             "DENY production write" in b.tail())
+
+        b.reset_state()
+        b.seed("close-out-license", "step: end-slice\n")
+        b.seed("close-out-survivals", "4")
+        b.run("stop-check", stop(b.root, sid="session-three"))
+        case("13f a new session clears the close-out license and its count",
+             not b.state_has("close-out-license")
+             and not b.state_has("close-out-survivals"))
+        b.seed("session", SID)
+
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(b.root, "pay.py"))
+        # Defensive exactly as case 4 is: a mutation that re-silences the deny makes
+        # this empty, and an unguarded parse would crash the pass and take every
+        # later case with it (the §75.7 failure shape).
+        try:
+            _hso = (json.loads(out) or {}).get("hookSpecificOutput") or {}
+        except ValueError:
+            _hso = {}
+        case("13g the deny message names the close-out license as the close-out route",
+             "close-out-license" in (_hso.get("permissionDecisionReason") or ""))
 
         # --- observation refusals --------------------------------------------
         for sep, label in ((";", "semicolon"), ("&", "single ampersand"), ("|", "pipe")):
@@ -408,14 +474,28 @@ def unit(guard_src, verbose=True, counter=None):
 # One mutation per known regression; the unit pass must notice each. Suite fails
 # if any mutation survives (invariant 13).
 MUTATIONS = [
-    ("drop the green requirement from the refactor license (a bare declaration "
+    ("drop the green requirement from either license (a bare declaration "
      "licenses with no gate behind it)",
-     'elif present("refactor-license") and present("green-observed"):',
-     'elif present("refactor-license"):'),
+     '    elif (present("refactor-license") or present("close-out-license")) \\\n'
+     '            and present("green-observed"):',
+     '    elif (present("refactor-license") or present("close-out-license")):'),
     ("never revoke the refactor license on a test edit (the window outlives the "
      "cycle it was declared for)",
      'if present("refactor-license"):\n            clear("refactor-license")',
      'if False:\n            clear("refactor-license")'),
+    ("revoke the CLOSE-OUT license on a test edit too (close-out's own mandated "
+     "order becomes unexecutable again - FIELD_REPORT_2026-09-01 finding 1)",
+     '        if present("close-out-license"):\n            k = 0',
+     '        if present("close-out-license"):\n            clear("close-out-license")\n            k = 0'),
+    ("stop counting the test edits a close-out license survives (a license held "
+     "open past its step goes silent)",
+     'log("close-out license SURVIVED a test edit (%d this session) - "',
+     'log("close-out license survived (%d) - "'),
+    ("let the close-out license write without a green (the one bound both "
+     "licenses share)",
+     'elif (present("refactor-license") or present("close-out-license")) \\\n'
+     '            and present("green-observed"):\n        # The declaration alone',
+     'elif present("refactor-license") or present("close-out-license"):\n        # The declaration alone'),
     ("leak observations across sessions (survives the new-session clear)",
      'if SID != prev:',
      'if False:'),

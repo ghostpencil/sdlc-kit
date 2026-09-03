@@ -505,6 +505,52 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         check("30b and the revocation is logged",
               any("refactor license revoked" in l for l in b.loglines()))
 
+        # The close-out license (FIELD_REPORT_2026-09-01 finding 1): the same license
+        # scoped to /end-slice, differing in exactly one way - a test edit does NOT
+        # revoke it. Close-out's mandated order is review (fixes tests) -> mutation
+        # (writes production, restores tests) -> verify (writes a harness), so a
+        # license a test edit revokes cannot survive its own step; a real arc paid the
+        # re-declaration seven times in one phase. The survivals are counted so a
+        # license held open past its step is visible rather than silent.
+        b.reset_state()
+        io.open(os.path.join(b.state, "session"), "w").write(SID)
+        io.open(os.path.join(b.state, "close-out-license"), "w").write(
+            "end-slice: mutation check\n")
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("30c a close-out license without a green licenses nothing either",
+              "VIOLATION" in b.tail(), b.tail())
+
+        b.run("observe-test", shell(R, "python -m pytest", 0))
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("30d close-out license + green -> OK, logged as close-out",
+              "OK production write (close-out license: end-slice: mutation check"
+              in b.tail(), b.tail())
+
+        b.run("pre-write", write(R, [("Update", "tests/test_payments.py")]))
+        check("30e a test edit does NOT revoke it, and the survival is counted",
+              os.path.exists(os.path.join(b.state, "close-out-license"))
+              and any("close-out license SURVIVED a test edit (1 this session)" in l
+                      for l in b.loglines()), b.tail())
+
+        b.run("pre-write", write(R, [("Update", "tests/test_other.py")]))
+        check("30f each surviving test edit increments the count",
+              any("close-out license SURVIVED a test edit (2 this session)" in l
+                  for l in b.loglines()), b.tail())
+
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("30g the license still licenses a write after the test edits",
+              "OK production write (close-out license" in b.tail(), b.tail())
+
+        b.reset_state()
+        io.open(os.path.join(b.state, "close-out-license"), "w").write("left over\n")
+        io.open(os.path.join(b.state, "close-out-survivals"), "w").write("4")
+        b.run("observe-test", shell(R, "python -m pytest", 0, sid="session-colic"))
+        b.run("pre-write", write(R, [("Update", "payments.py")], sid="session-colic"))
+        check("30h a close-out license left by an earlier session licenses nothing",
+              "VIOLATION" in b.tail()
+              and not os.path.exists(os.path.join(b.state, "close-out-survivals")),
+              b.tail())
+
         b.reset_state()
         io.open(os.path.join(b.state, "refactor-license"), "w").write("left over\n")
         b.run("observe-test", shell(R, "python -m pytest", 0, sid="session-lic"))
@@ -517,6 +563,16 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         j = json.loads(out) if out.startswith("{") else {}
         check("32 the deny message names both ways out (red cycle and refactor license)",
               "refactor-license" in (j.get("permissionDecisionReason") or ""), repr(out))
+        # §48/§50.1: the behavior-preserving route is named by CASE and never
+        # narrowed by a phase word. 0.31.0 adds a genuinely close-out-scoped second
+        # license, so "close-out" may appear - but only AFTER the unqualified case
+        # sentence, never as its qualifier. Same re-pointing as the Claude suite's 4b.
+        _r = j.get("permissionDecisionReason") or ""
+        check("32b the case sentence stays unqualified, and close-out is an addition",
+              "BEHAVIOR-PRESERVING" in _r and "at any point in the cycle" in _r
+              and "close-out-license" in _r
+              and _r.index("at any point in the cycle") < _r.index("close-out"),
+              repr(out))
 
         # G2 session scoping (owner-decided 2026-08-08): the stop guard binds only a
         # session that wrote production code or edited a test. A planning, docs, or
@@ -609,17 +665,36 @@ MUTATIONS = [
      "thrashes and probes instead of complying)",
      lambda s: s.replace('        emit_context "TDD ordering: that test run was NOT counted',
                          '        : "TDD ordering: that test run was NOT counted')),
-    ("drop the green requirement from the refactor license (a bare declaration "
+    ("drop the green requirement from either license (a bare declaration "
      "licenses with no gate behind it)",
-     lambda s: s.replace('[ -f "$S/refactor-license" ] && [ -f "$S/green-observed" ]',
-                         '[ -f "$S/refactor-license" ]')),
+     lambda s: s.replace(
+         '{ [ -f "$S/refactor-license" ] || [ -f "$S/close-out-license" ]; } '
+         '&& [ -f "$S/green-observed" ]',
+         '{ [ -f "$S/refactor-license" ] || [ -f "$S/close-out-license" ]; }')),
     ("never revoke the refactor license on a test edit (the window outlives the "
      "cycle it was declared for)",
      lambda s: s.replace('        rm -f "$S/refactor-license" 2>/dev/null\n', '')),
-    ("leak the refactor license across sessions (survives the new-session clear)",
+    ("revoke the CLOSE-OUT license on a test edit too (close-out's own mandated "
+     "order becomes unexecutable again - FIELD_REPORT_2026-09-01 finding 1)",
+     lambda s: s.replace(
+         '      if [ -f "$S/close-out-license" ]; then\n        k=$(',
+         '      if [ -f "$S/close-out-license" ]; then\n'
+         '        rm -f "$S/close-out-license" 2>/dev/null\n        k=$(')),
+    ("stop counting the test edits a close-out license survives (a license held "
+     "open past its step goes silent)",
+     lambda s: s.replace(
+         'log "close-out license SURVIVED a test edit ($k this session)',
+         'log "close-out license survived ($k)')),
+    ("log a close-out write as a refactor one (the two licenses stop being "
+     "distinguishable in review)",
+     lambda s: s.replace(
+         '        if [ -f "$S/close-out-license" ]; then which=close-out; else which=refactor; fi\n',
+         '        which=refactor\n')),
+    ("leak either license across sessions (survives the new-session clear)",
      lambda s: s.replace(
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
-         '"$S/refactor-license" "$S/prod-write-observed" 2>/dev/null',
+         '"$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" '
+         '"$S/prod-write-observed" 2>/dev/null',
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
          '"$S/prod-write-observed" 2>/dev/null')),
     ("drop G2's session scoping (the stop guard binds planning and docs sessions "

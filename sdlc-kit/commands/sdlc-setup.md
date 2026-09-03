@@ -408,7 +408,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      the cycle, not only at close-out)
      is licensed without a fresh red by declaring it, one line naming the step and
      move to `.git/sdlc-tdd/refactor-license`, valid only behind a counted green and
-     revoked by the next test edit; and the guards see **only files inside the
+     revoked by the next test edit — **except during `/end-slice`, which declares
+     `.git/sdlc-tdd/close-out-license` instead**: same rules, except a test edit does
+     not revoke it, because close-out's own step order edits tests between its
+     production writes, and each test edit it survives is counted in the log; and the
+     guards see **only files inside the
      repository** — an absolute path outside the repo root is neither licensed nor
      denied (0.25.0), so a scratch script under a session temp directory is not a
      production write and costs no license, while a relative path always is one
@@ -542,6 +546,25 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    clean tree and re-asserts it before the merge. If theirs is tracked, the summary
    still prints and the overlay does not — say so at the feedback halt rather than
    letting them discover it at a phase close.
+
+   **And where that directory is present, offer to turn the graph tool's own
+   auto-update on — stating what it does and does not do.** Read its `config.json`; if
+   `autoUpdate` is absent or `false`, offer to set it `true` at the feedback halt.
+   Never set it silently: it is the project's file, not the kit's. Say all three of
+   these when you offer it, because the name overpromises and an owner who believes
+   the name will not run the phase-boundary regeneration that actually keeps the graph
+   current (`spec/SDLC.md`, *Architecture impact view*):
+
+   - It **reminds; it does not refresh.** Measured against the Understand Anything
+     plugin at kit 0.31.0: the flag defaults to off, and turning it on enables two
+     hooks whose entire output is a message asking the *agent* to merge the graph by
+     hand. Neither writes the graph.
+   - One of those hooks matches the **Bash** tool only. On a project whose primary
+     shell is PowerShell, a commit fires nothing at all — worth saying explicitly when
+     the runtime interview established a non-Bash shell.
+   - Turning it on is still worth doing: the session-start staleness check is a real
+     signal, and it costs one boolean. It is a supplement to the phase-boundary
+     regeneration, never a substitute for it.
 
    **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
    optional where the checker itself is not.** The same script's `stop-check` mode,

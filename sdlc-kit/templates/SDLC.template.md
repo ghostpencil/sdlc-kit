@@ -195,7 +195,16 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      close-out — is licensed without a fresh red by declaring it:
      one line naming the step and move to `.git/sdlc-tdd/refactor-license`, valid only
      behind a counted green, revoked by the next test edit, every write under it
-     logged; and the guards see only files INSIDE the repository — an absolute path
+     logged — **except during `/end-slice`, which has its own licence and needs one**:
+     close-out's mandated order edits tests *between* its production writes (the review
+     fixes tests, the mutation step writes production and restores tests, the
+     verification step writes a harness), so a licence a test edit revokes cannot
+     survive the step it was declared for, and one real arc paid the re-declaration
+     seven times in a single phase. `.git/sdlc-tdd/close-out-license` is the same
+     licence with that one difference, still behind a counted green, still ending with
+     the session, and every test edit it survives is COUNTED in the log so a licence
+     held open past close-out is visible rather than silent; and the guards see only
+     files INSIDE the repository — an absolute path
      outside the repo root is neither licensed nor denied (0.25.0), so a scratch
      script under a session temp directory is not a production write and costs no
      license, while a relative path always is one. The stop guard is session-scoped (owner-decided
@@ -494,6 +503,28 @@ Its four states are worth knowing apart:
   belongs in the friction log; a graph that exists and will not parse reports here and
   never as a silent COMPLETE.
 
+**Regenerate the graph at the phase boundary — that is the trigger, and it is this
+process's, not the graph tool's.** Run the tool's own analysis after `/end-phase`'s
+post-merge bookkeeping, before the next `/plan-phase`. That is the only moment in the
+loop where the tree is settled, the branch is merged, and no slice is mid-flight, so it
+is the one place a regeneration cannot invalidate work in progress. Without a stated
+trigger the graph ages silently and every run of the view reports `PARTIAL` for the whole
+arc: one real adoption ran a seven-slice phase against a graph built before the
+*previous* phase merged, so the view was degraded at every site that draws it and the
+freshness line was the only thing that said so (field, 2026-09-01).
+
+**Do not rely on the graph tool's own auto-update to do this.** Where the tool offers
+such a setting, turn it on — it is strictly better than nothing — but treat it as a
+reminder, not a refresh. Measured against the Understand Anything plugin at kit 0.31.0:
+its `autoUpdate` flag defaults to off, and turning it on enables two hooks that both only
+*print a message asking the agent* to merge the graph by hand — neither writes it. One of
+those hooks matches the **Bash** tool only, so on a project whose primary shell is
+PowerShell a commit fires nothing at all, and the plugin's own prompt describes itself as
+triggered by a post-commit hook the plugin does not ship. A setting named auto-update
+that reminds rather than updates is exactly the kind of claim this process re-derives
+rather than trusts. The phase-boundary regeneration above is what makes the view's
+freshness a property of this process instead of a property of a vendor's hook matcher.
+
 **Freshness answers one question only:** had the tree already moved on from the graph
 *before this work began*? It compares the graph's build commit against the slice or
 phase **base**, never against the working tree — this change set's own edits are unseen
@@ -629,8 +660,14 @@ Run `/end-slice` when the slice's exit criteria are met:
    restore point behind it. Skipping
    it is a legitimate choice on a small or mechanical slice; skipping it silently is
    not, so say so in the hand-back either way — and the one-line outcome
-   (`quality: <N moves applied | nothing to do | skipped — reason>`) is recorded in
-   the slice commit body.
+   (`quality: <N moves applied | nothing to do | skipped — reason>; reuse: <what was
+   searched, and against what | not searched — reason>`) is recorded in the slice
+   commit body. **The `reuse:` half is required**, because the skill's rule that Reuse
+   is *searched, not eyeballed* has no other durable home: one arc dispatched the skill
+   in every one of five slice sessions and recorded zero named searches, since the line
+   asked only for a move count. This is also the first close-out step that writes
+   production code, so where the TDD guards are installed it is where the **close-out
+   licence** is declared — one declaration covering steps 6 through 9.
 7. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
    reported side by side, never merged; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
@@ -669,7 +706,17 @@ Run `/end-slice` when the slice's exit criteria are met:
    other way round rather than skipping the step:** what is new is the tests, so the
    production code each one pins is what gets mutated, sampled where the count is
    large and the sample stated. Nothing else in the close-out carries signal about
-   such a slice. **The mutation is undone by inverting the edit that made it** — a
+   such a slice. **And a slice whose deliverable is a sweep, a ratchet, or a check is
+   the third case, for which `mutation: none` is wrong:** that check is the artifact
+   this step exists to distrust, so it owes a made-to-disagree run of *itself* — a
+   planted violation in a scratch copy, seen to fire on exactly that, then confirmed
+   clean on the real tree. One arc's sweep needed five passes to enumerate its own
+   population and one of its patterns reported a false clean. **One collision to know
+   before writing the mutation:** a counting or sweeping check can only be made to
+   disagree by *adding* statements, and an unused local inside a function is what the
+   linter's unused-variable rule flags — the edit-time hook rejects the write before
+   the suite runs. Write the mutation at **module level**, where that rule does not
+   apply. **The mutation is undone by inverting the edit that made it** — a
    targeted edit of the same hunk, which is safe whether or not anything is committed.
    This step runs before the slice commits, so the implementation is uncommitted
    underneath the mutation and `git checkout -- <path>` restores the path to HEAD,
@@ -695,8 +742,13 @@ Run `/end-slice` when the slice's exit criteria are met:
    Skipping it is a legitimate choice on a small
    or mechanical slice; skipping it silently is not — the skip and its reason are
    stated in the hand-back, and the one-line outcome (`verify: ran — <verdicts,
-   naming the shell they ran in>` / `verify: skipped — <reason>`) is recorded in the
-   slice commit body either way. The step runs in the agent's shell, and a pass there
+   naming the shell they ran in>; not exercised: <what could not be reached, and why |
+   nothing>` / `verify: skipped — <reason>`) is recorded in the
+   slice commit body either way. **The `not exercised:` half is required and `nothing`
+   is a real answer**: the skill's third verdict — *not exercised, and why* — is a
+   first-class result that must never be folded into the first, and it is the half that
+   disappeared on a real arc while all five keys stayed present and the record read as
+   complete. The step runs in the agent's shell, and a pass there
    does not stand in for halt 4's owner acceptance.
    A break it observes is fixed through the same loop as a review fix: apply, re-run
    the gate, and any new guard joins step 8's mutation obligation.

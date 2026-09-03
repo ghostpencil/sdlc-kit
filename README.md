@@ -253,6 +253,7 @@ FIELD_REPORT_2026-08-15.md           ← whole-project review of ai-news-dashboa
 FIELD_REPORT_2026-08-17.md           ← findings from a 7th phase (sdlc-kit#7) — triaged in FEATURE_PLAN.md §63
 FIELD_REPORT_2026-08-17b.md          ← ai-news-dashboard Phase 05 (sdlc-kit#8) — triaged in FEATURE_PLAN.md §63
 FIELD_REPORT_2026-08-21.md           ← findings from an 8th phase (sdlc-kit#9) — triaged in FEATURE_PLAN.md §70
+FIELD_REPORT_2026-09-01.md           ← findings from a 9th phase (sdlc-kit#10) — triaged in FEATURE_PLAN.md §76
 CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN_HISTORY.md §11
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
 FEATURE_PLAN.md                      ← the live plan: standing decisions, clocks, active work
@@ -798,6 +799,29 @@ only as a hand-apply, and the per-version transition notes name each one.
    commit its number was measured at. Nothing recomputes the baseline during the
    update. The update command's 0.28.1 and 0.29.0 notes state the same procedure.
 
+   **0.31.0 adds a third TDD-guard licence and asks two more words of your close-out
+   records.** `.git/sdlc-tdd/close-out-license` is the refactor licence scoped to
+   `/end-slice`, differing in exactly one way: **a test edit does not revoke it.**
+   Close-out's own order edits tests between its production writes — the review fixes
+   tests, the mutation step restores them, the verification step writes a harness — so
+   a licence a test edit revokes cannot survive the step it exists for, and one
+   adoption paid seven re-declarations in a single phase without it. It arrives with
+   the guard file and needs **no decision**: nothing changes for a project that never
+   declares it, and the refactor licence is unchanged. Every test edit the close-out
+   licence survives is **counted in the guard log**, so one held open past close-out
+   shows as a large count rather than as silence. Separately, `/end-slice`'s
+   `verify:` line now carries `not exercised: <what, or "nothing">` and its `quality:`
+   line carries `reuse: <what was searched, and against what>` — the close-out checker
+   is unchanged and structural-only, so **existing records stay valid and nothing
+   fails**; slices closed after the update should carry the new halves, and old commit
+   bodies are not retrofitted. Also fold into `spec/SDLC.md` by hand: the
+   *Architecture impact view* section, where you have one, now names a **regeneration
+   trigger** — regenerate the graph at `/end-phase`'s post-merge bookkeeping, and do
+   not rely on the graph tool's own auto-update to do it (measured: on the Understand
+   Anything plugin that setting reminds rather than refreshes, and one of its two hooks
+   matches the Bash tool only). The update command's 0.31.0 notes state the same
+   procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
@@ -892,9 +916,9 @@ GitHub issues are the channel; two templates are provided:
 
 Either way, a finding is most useful when it names the kit file(s) that would have to
 change and separates what was observed from what is suspected. That loop is how the kit
-improves: the five `FIELD_REPORT*.md` files at the repo root are real reports from
-adopting projects, and the fix batches in `CHANGELOG.md` were triaged directly out of
-them.
+improves: every `FIELD_REPORT*.md` file at the repo root (the tree above lists them) is a
+real report from an adopting project, and the fix batches in `CHANGELOG.md` were triaged
+directly out of them.
 
 ## FAQ
 

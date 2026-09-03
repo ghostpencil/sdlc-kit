@@ -66,6 +66,11 @@ the selection is mechanical. It is a comprehension aid and not verification
 `spec/SDLC.md` has no such section predates the adapter — say so instead of guessing an
 invocation.
 
+**If the block reports `graph-freshness: may be stale`, say so in the hand-back and name
+step 7's regeneration** — the picture the owner is about to accept against was drawn from
+a tree older than this arc. Do not regenerate here: mid-arc is the wrong moment
+(`spec/SDLC.md`, *Architecture impact view*), and the trigger is the phase boundary.
+
 This is what step 3 draws on. An arc that reaches the acceptance halt with nothing
 observed puts the owner in front of a system no one has run, and the halt passes
 vacuously.
@@ -226,7 +231,8 @@ branch again taken from the project's own records. Quote it, and state any chang
 the footprint presented at acceptance — a whole-arc review that added a file after the
 owner accepted is precisely the case worth naming here, and nothing else in this step
 would surface it. No halt is added and nothing gates on it; this halt is the merge
-decision, exactly as before.
+decision, exactly as before. A `may be stale` line here is carried into step 7's
+regeneration rather than acted on now, for the same reason as at step 2.
 
 Present per the hand-back standard: a plain-English executive summary in bullets — PR
 link, review outcome (N fixed / N deferred-to-backlog), final gate results, CI status
@@ -468,6 +474,15 @@ read before it is reconciled is a decision taken twice.
   re-instantiated — add it in this docs commit, or every retired item becomes
   unfindable by the rule that was supposed to make retirement safe.
 - Trim/align the phase spec if the review changed behavior described there.
+- **Regenerate the architecture graph**, where the project carries one — this is the
+  trigger, and this is the moment it belongs (`spec/SDLC.md`, *Architecture impact
+  view*): the branch is merged, the tree is settled, and no slice is mid-flight, which
+  is true nowhere else in the loop. Run the graph tool's own analysis, then re-run
+  `python .github/hooks/sdlc-impact.py phase <main>` once and state the freshness line
+  it now prints. Do not skip this because the tool advertises an auto-update — that
+  setting reminds rather than refreshes, and the template says why. A project that lets
+  this slide reports `PARTIAL … may be stale` at every site that draws the view for the
+  whole of the next arc, which is what one real adoption measured.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Suggest any durable lessons worth saving to auto-memory.
 - Offer `/sdlc-retro` — it extracts lessons from the phase just closed, while the

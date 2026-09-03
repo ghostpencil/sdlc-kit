@@ -175,6 +175,14 @@ re-denominated form, and every clock in this section was already counted in arcs
   seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
   all standing; the clock evidence each arc carries is read in §63.4 and the rulings
   are owed there.
+- **Standing input — ARRIVED 2026-09-01, triaged in §76.** The first adopter's Phase 09
+  (`sdlc-kit#10`, the tenth report), against **0.30.0** — the first report in the lineage
+  that collides with nothing already shipped. Six findings, all standing, three needing
+  their fix re-aimed, plus a seventh the triage adds (§76.3). §76.5 reads the arc against
+  the clocks: the lens clock is **readable for two of three lenses** for the first time,
+  CONTRACT's **arc one is spent** with §56.2's second criterion met, IMPACT's arc one is
+  proposed **not to count** (whole-arc-stale graph), and `change-simplify`'s final clock
+  is **ambiguous by the kit's own fault**. Five rulings owed at §76.6.
 - **The Copilot bench is still standing** (§29.3): fixture repo
   `D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot
   CLI; neither is tracked, reversal steps recorded there. The ENF, OBS, VER.2, and
@@ -3834,3 +3842,534 @@ The open half is what makes a dead suite loud. Options:
    failed across the unproven window, and both CHANGELOG entry classes are defined by
    what an adopted project holds. An entry about a kit-development proof would be the
    first in that file about something no adopter has.
+
+---
+
+## 76. The tenth field report triaged — all six stand, three need their fix re-aimed,
+## and a seventh finding the report did not make sits on a final clock — 2026-09-01
+
+`FIELD_REPORT_2026-09-01.md` (`sdlc-kit#10`, filed 2026-09-01) is the **tenth** field
+report and the **seventh** from the first adopter, covering their Phase 09 — 7 slices, 23
+commits, 1 PR — written against **0.30.0**, which is genuinely what they run: the 0.30.0
+update landed, was re-stamped when the first attempt did not take, and the whole arc ran
+under it. Six findings, a priority table, two findings withdrawn by the report itself.
+
+**This is the first report in the lineage with no collision.** Every prior report since
+the seventh arrived against a release two or more behind and spent most of its triage on
+findings already fixed. This one is current: nothing in it is closed by shipped work, no
+premise is false against the text it quotes, and no suggested fix is an option already
+ruled against. What the triage owes instead is **aim** — three findings name the wrong
+file, the wrong trigger, or claim more damage than the artifact allows — plus one finding
+the report missed.
+
+**Its theme, and it is the sharpest statement of the lineage so far:** *a rule that lives
+in only one artifact erodes silently, and the kit's own controls are now the main source
+of that erosion.* The eighth report said the kit never makes a number reconcile; the
+ninth said the kit never verifies a step could have caught anything; this one says the
+kit **splits contracts across artifacts and only the restated half survives** — and for
+the first time the ledger can prove it, per skill, per session.
+
+### 76.1 The arc, as measured
+
+762 → **845** tests, coverage floor 63 → **67** (measured 67.87%), mypy 0 errors over 18
+→ 19 files, `[tool.mypy]` flags 2 → **11**, backlog 128 → **121**. Close-out records
+**7/7 complete** on all five keys. Three new controls shipped, each made to fail. Two
+ratified owner decisions re-derived mid-arc and found **wrong** before either did damage.
+Eleven friction entries — the largest harvest of any arc, and three of the six findings
+exist only because of it.
+
+**None of the six findings is about the work**, which is now the fifth consecutive report
+where that is true. All six are about the process taxing or under-specifying itself.
+
+### 76.2 The three corrections — each one changes what the fix is
+
+**Finding 3 — the F841 collision — STANDS, but its cited trigger is wrong and its named
+home is the wrong file.**
+
+- *Correction A, and it is the useful half.* The report says `end-slice.md` §5
+  *"prescribe[s] adding throwaway statements"*. It does not. Read at HEAD, §5 prescribes
+  taking a **new guard, branch, or error path** and *"delet[ing] or invert[ing] it once"* —
+  a *removal*, which never produces an unused local. The 53 × `F841` construction came
+  from mutating a **size ratchet**: a check whose only way to disagree is to make the
+  counted thing **bigger**, so the mutation must *add* statements. That is not a bad
+  choice of mutation; it is the only available one for a counting check. So the collision
+  is narrower and more interesting than filed — it fires exactly where the artifact under
+  mutation is a **counting or sweeping check**, which is **finding 5's third case**.
+  Findings 3 and 5 are one slice's two halves and the fix should be one edit, not two.
+  (The S6 recurrence — inverting a condition — is the same shape: the inverted branch
+  orphans the local the live branch consumed.)
+- *Correction B.* The priority table names `settings.template.json` for the
+  licence-honouring option. That file wires the launcher and carries no linter
+  invocation. `{{HOOK_LINT_CMD}}` lives in `templates/claude-gate.template.sh` and
+  `templates/copilot-hook.template.sh`, with the recipe in `reference/GATE_RECIPES.md`.
+  A licence-honouring gate hook is a **two-dialect** change plus a recipe change plus
+  `tools/gate-hook-check.py` cases — which is why the cheap half of the fix (name the
+  collision and the module-level form in §5) is the one to take first.
+
+**Finding 6 — the stale graph — STANDS, reduced to its small half; the damage claim does
+not survive the template's own text.** The report says the view *"degrades into a
+plausible-looking wrong answer rather than an absent one"*. `templates/SDLC.template.md`
+→ *Architecture impact view* already says the opposite, in the artifact the adopter is
+quoting from: **PARTIAL** is defined as *"the footprint was computed and something is
+missing **and named**: files the graph does not know, **or a graph that may predate the
+work**. The counts are printed with their denominators … so incompleteness is loud rather
+than inferred"*, and *"A `COMPLETE` summary says the picture was drawn, never that the
+change is correct."* The adapter reported `PARTIAL` with the reason on every run of the
+arc. That is the designed behavior, working, and it is exactly the fire-proof/catch-proof
+distinction the ninth report taught: the staleness was **loud**. What is genuinely
+missing is one sentence — **no artifact anywhere names a regeneration trigger** — and
+that is an S, in the template plus the two `end-phase.md` sites.
+
+**Finding 2's *Homes* line is right and incomplete, and the omission is the whole of
+§76.3.** The report names `commands/end-slice.md` §6 and `skills/change-verify/SKILL.md`.
+The same split exists one step earlier, in `change-simplify`, where it is measurable and
+where it lands on a **final, no-extension clock**.
+
+### 76.3 The seventh finding — the report's own mechanism, found in `change-simplify`,
+### where it threatens a clock that cannot be extended again
+
+The report proves finding 2 with a differential: the part `end-slice.md` §6 **restates**
+survived into all four records; the part living only in the skill did not. Run that same
+differential on step 3 and it fails harder — **and this time the skill was dispatched.**
+
+`commands/end-slice.md` §3's prescribed record line is:
+
+> `quality: <N moves applied | nothing to do | skipped — reason>`
+
+`skills/change-simplify/SKILL.md` requires considerably more (lines 139–140, 158–159):
+
+> - **Per-axis verdicts** — one line per axis, even when the answer is clean, and for
+>   Reuse the line names what was searched (the added symbols checked, and against
+>   what) […] the Reuse axis line naming its search.
+
+Measured against the arc's seven `quality:` lines, read off the slice commit bodies:
+
+| | recorded |
+|---|---|
+| slices recording a `quality:` line | **7 / 7** |
+| lines matching §3's prescribed form | **7 / 7** |
+| lines carrying **per-axis verdicts** | **0 / 7** |
+| Reuse-axis moves applied and named as such | **2** (S4, S6) |
+| Reuse lines **naming their search** | **0** |
+
+S4 records `1 move applied (Reuse — extracted the comment-strip the diff duplicated …)`
+and S6 records `3 moves applied (1 reuse: duplicate repo-root expr …)`. Both name the
+axis and the duplicate. Neither names **what was searched, and against what** — which is
+the entire point of the §53 redirect, whose founding miss was a duplicated test helper
+this pass eyeballed and `diff-review` then caught on the same diff.
+
+**Why this is worse than finding 2, not a milder version of it.** Finding 2's mechanism
+is *the skill was never loaded*, and the ledger supports it — one dispatch in five
+sessions. Here the ledger shows **five dispatches in five sessions**. The skill was
+loaded, run, and produced real moves; the half of its contract that had no home in the
+command **still did not reach the record**. So "dispatch the skill" is not the fix for
+this class. The durable record line is, and only the command specifies that.
+
+**And it is load-bearing.** The `change-simplify` clock (§70.7 (ii)) is *two field arcs,
+final, two-sided, and the no-further-extension commitment is already spent.* Its
+**positive** criterion is, verbatim: *"at least one arc records a Reuse-axis move that
+names its search."* Arc one of that clock has now run, and it records two Reuse-axis
+moves and **zero named searches**. On a strict reading the positive half is unmet — but
+what the arc actually measured is a record line that never asked for a search, which is
+the same instrument defect that forced ruling (i) to restart the lens clock in the first
+place. **The kit is about to delete a pass for failing a criterion its own record line
+made unrecordable.** See the decision owed.
+
+**Home:** `commands/end-slice.md` §3, alongside finding 2's §6 — one edit, both steps,
+because they are the same defect and a fix to one leaves the other as the counter-example.
+
+### 76.4 The six that stand, as build notes
+
+**1 — the refactor licence, seventh recurrence. STANDS in full; both homes verified.**
+`templates/tdd-guard-claude.template.py:223-225` and `templates/tdd-guard.template.sh:300-307`
+both revoke on any test edit, in both dialects. `commands/end-slice.md` §§3/5/6 name the
+licence **nowhere** — verified by grep across the file. `templates/SDLC.template.md:196`
+states *"revoked by the next test edit"* as flat truth with no close-out qualification.
+The report's claim that §5's mandated order cannot be executed without re-declaring is
+correct and is the new half: §4 fixes tests → §5 writes production → and §5's own restore
+touches tests again. Three declarations in one slice is what that costs. **Option (a) —
+a close-out-scoped licence — is the one that removes the tax; option (b) only prices it.**
+(a) is a two-dialect guard change with proof cases in both suites; (b) is three sentences.
+Ruling owed.
+
+**2 — `change-verify`'s missing third verdict. STANDS, verified end to end.**
+`skills/change-verify/SKILL.md:184` carries the three-way verdict with *"must never be
+folded into the first"*; §6's record line asks only for a verdict per behavior naming the
+shell. Read off the four `verify: ran` records: **all four name the shell, none contains
+a "not exercised"**, and S6's records three passes over a slice whose IMAP path was
+deferred behind a seam by a ratified decision in the same arc. The report's inference —
+followed from memory of the command, not loaded — is supported by the ledger and is the
+right one. **Take the suggested fix as filed**, and take §76.3's alongside it.
+
+**3 — the F841 collision. STANDS as corrected** (§76.2). Fix the cheap half in §5 with
+finding 5.
+
+**4 — the docs-only slice through the full loop. STANDS.** `commands/next-slice.md` §4
+opens with *"Read `spec/TESTING.md` — fresh, every time"* before a loop with nothing in
+it, and §2 — the one owner halt, where scope is already settled — has no docs-only branch
+to declare. Note that §4 **already knows this class exists**: its characterization
+paragraph warns against a slice that *"quietly takes the zero-form a docs edit takes"*.
+The kit has the concept and no declaration point for it. The suggested fix is the right
+shape; the M is real, because the short-circuit must not become an escape hatch a code
+slice can take.
+
+**5 — step 5's zero-form on a sweep. STANDS, and the adopter already invented the form.**
+S7's record reads `mutation: 1 check seen to fail — the exit-criteria sweep, fed an
+injected line anchor in a scratch copy, fired on exactly that line`. §5 has two branches
+(a new guard; a characterization slice) and this is neither. The fix is to name the third
+case in the language the arc already used. **Merge with finding 3** per §76.2.
+
+**6 — the stale graph. STANDS, reduced** (§76.2). One sentence in the template naming a
+regeneration trigger, echoed at the two `end-phase.md` sites.
+
+### 76.5 The arc read against the standing clocks — three move for the first time
+
+**(i) The three STD lenses — the restarted clock is READABLE for two of three, and arc
+one is spent for those two.** §70.7 (i) restarted the clock *"from the first arc whose
+denominator is enumerable"* and shipped the `lenses:` commit-body line to make it so.
+That line is present **7/7** this arc — the instrument works. Read across the seven
+records:
+
+| lens | applications recorded | catches |
+|---|---|---|
+| `secrets and exposure` | **3** (S3, S4, S6) — all `clean` | 0 |
+| `untrusted input` | **2** (S3, S4) — all `clean` | 0 |
+| `logging and swallowed errors` | **0** | 0 |
+
+So `secrets and exposure` and `untrusted input` are on **arc one of two, at zero
+catches**, with a real denominator for the first time in the clock's life. The third is
+still unreadable, and the reason is structural in the same way ruling (i) found: the
+preamble requires *"one line per lens **applied**"*, so a lens whose trigger never matched
+writes nothing, and *never triggered* remains indistinguishable from *never considered*.
+**Do not restart the clock again for that** — two of three are now measurable, and a lens
+whose trigger has not matched a slice in nine phases is answering the deletion question
+by a different route. Recorded here so the next arc's read is against a stated baseline.
+
+**(ii) `change-simplify` — arc one of the final clock has run, and it is ambiguous by the
+kit's own fault.** Positive half: two Reuse-axis moves, zero named searches (§76.3) —
+unmet as worded. Negative half: **not triggered, verified.** The two candidate backlog
+entries minted by `diff-review` on diffs this pass had passed over are a comment-accuracy
+finding about two allowlists that are *deliberately* different (it argues **against**
+unification) and a duplicated-hazard finding in a file **outside the slice's diff**, which
+is outside `change-simplify`'s stated scope. Neither is the founding miss recurring. So:
+**no disqualifying event, and a positive half the record line could not carry.** Ruling
+owed — and the honest options are to count the two moves as satisfying it, or to fix the
+record line and read arc one again next arc.
+
+**(iii) CONTRACT — arc one IS spent, and the mechanism demonstrably engaged.** §70.7
+(iii) started the clock *"at the first field arc run under 0.26.0"*; this arc ran under
+0.30.0, so it counts. The adopter completed the backfill walk before the arc (32
+confirmed entries across eight surfaces), and the arc's preserved-contract check ran on
+**9 pins across 4 touched surfaces, each verified present and passing**. §56.2's second
+criterion — *"within two arcs a phase touching a contract surface must demonstrably
+encounter its entries"* — is **met on arc one**. No catch, which is not required by that
+half. Arc two decides the first half.
+
+**(iv) IMPACT — arc one ran with a graph that was stale for the entire window; my read is
+it does NOT count, and finding 6 is why.** §66.6 pre-registers *"an arc without a usable
+graph cannot exercise the feature and does not count against it"*, and asks for at least
+one owner-reported comprehension event across two such arcs. This arc: adapter ran at
+every prescribed site, `PARTIAL` every time, graph built before the *previous* phase
+merged, **zero comprehension events reported**. A graph that predates the previous arc
+cannot show this arc's neighborhood, so the feature was never actually exercised — the
+same reasoning ruling (i) used for the lenses. **Fix the instrument (finding 6), then
+start the clock.** This is the third clock in a row whose first reading was blocked by a
+missing half of its own instrument, which is itself worth saying out loud.
+
+**(v) `mutation-testing` — third consecutive arc at zero dispatches, and §70.7 ruling 4
+already priced it.** That ruling inlined the standing rules into §5 and kept the skill as
+depth, saying in terms that *"leaving it produces a third arc at zero"*. It has. **The
+report's corroboration is already-ruled and owes nothing.** What is new is the other
+direction, and it is a **confirmed catch for the 0.26.0/0.29.0 inlining**: the arc's
+records show every inlined rule being followed by sessions that never opened the skill —
+S6 records a stated sample (`5 of 64 characterization pins`), S3 records
+*"restored by inverted edit, never git checkout — both paths carried uncommitted slice
+work"*, and S5 records *"path verified clean beforehand, restored by git checkout, tree
+confirmed clean"*. That is §5's safe-revert rule and its `git status --short` precondition
+being executed exactly as written, on their first field arc, by an operator who never
+loaded the skill. **The 9a fix works, measured.** Record it against §70.7 ruling 4.
+
+### 76.6 Decisions owed
+
+1. **Sequencing.** The natural batch is small and text-only: finding 2 + §76.3 (one edit
+   across §3 and §6), findings 3+5 merged (one edit in §5), finding 6 (one sentence, two
+   echoes). That is four files and no design. Findings 1(a) and 4 are the two that carry
+   design and both are M. Ship the text batch first, or hold for finding 1?
+2. **Finding 1 — (a) or (b)?** (a) a close-out-scoped licence the guard honours, in both
+   dialects with proof cases in both suites — removes a tax now at seven recurrences in
+   one arc. (b) name the licence in §§3/5/6 — three sentences, makes the cost predictable
+   and does not reduce it. The adopter explicitly declined to close this by absorption a
+   third time. Recommend (a), with (b)'s sentences shipped alongside it, since the
+   template's unqualified "revoked by the next test edit" has to change either way.
+3. **§76.3's clock question, and it is the one that cannot wait.** The
+   `change-simplify` positive criterion asks for a named search that the record line
+   never asked for. Options: (α) count arc one's two Reuse-axis moves as satisfying the
+   positive half and let the clock run to arc two on the corrected record line;
+   (β) fix the record line and re-read arc one against arc two and three — an extension
+   in effect, on a commitment already spent once; (γ) hold the criterion strictly and
+   let arc two decide alone. Recommend (α): the redirect's *deliverable* — a Reuse move
+   found on a diff, twice — is on the record, and only its *evidence-of-search* wording
+   is unmet, for a reason that is the kit's defect and not the pass's.
+4. **§76.5 (iv) — does an arc with a whole-arc-stale graph count against IMPACT?**
+   Recommend **no**, consistent with (i) and (iii): fix the instrument first.
+5. **Tell the adopter what is already ruled.** `mutation-testing`'s zero-dispatch
+   corroboration was ruled 2026-08-26 and needs no third recurrence; their friction entry
+   can close as *ruled upstream* rather than age another phase — the same courtesy §70.2
+   extended for finding 7.
+
+### 76.7 Ruled 2026-09-01 — all five, and ruling 4's second half needed a measurement
+### before it could be built
+
+1. **Sequencing — RULED: finding 1 first, then the text batch, all in one release.**
+   The owner inverted the recommendation deliberately: the licence hazard is at seven
+   recurrences in one arc and has been deferred behind a text batch twice already, so it
+   leads. Everything else rides the same release. **Finding 4 is OUT** and holds for the
+   next one — this release already carries a two-dialect guard change with proof cases in
+   both suites, two record-line fixes, the §5 merge, and the impact-view work; finding
+   4's short-circuit has to be one a code slice cannot take, which is its own design
+   question, and it would interleave with the same three `end-slice.md` steps everything
+   else is already editing.
+2. **Finding 1 — RULED (a), with (b)'s sentences shipped alongside**, as recommended. A
+   close-out-scoped licence the guard honours, in both dialects, with proof cases in
+   `tools/tdd-guard-check.py` and `tools/tdd-guard-claude-check.py`; and §§3/5/6 name the
+   licence as a precondition regardless, because `templates/SDLC.template.md:196`'s
+   unqualified *"revoked by the next test edit"* has to change either way and a guard
+   change that leaves the prose asserting the old rule is the §63 defect exactly.
+3. **§76.3's clock question — RULED (α).** Arc one's two Reuse-axis moves count as
+   satisfying the `change-simplify` positive criterion. The redirect's *deliverable* — a
+   Reuse move found on a diff, twice — is on the record; only its *evidence-of-search*
+   wording is unmet, and that is unmet because `end-slice.md` §3's record line never
+   asked for a search. **This is not an extension**: the no-further-extension commitment
+   stays unspent, the clock's two arcs still run, and arc two is read against the
+   corrected record line this release ships. The negative half was checked and is **not
+   triggered** (§76.5 (ii)).
+4. **IMPACT — RULED: no, a whole-arc-stale graph does not count against the clock.** As
+   recommended, and consistent with rulings (i) and (iii): fix the instrument, then start
+   the clock.
+
+   **Its second half — "help adopters turn auto-update on" — was ruled on a premise that
+   does not hold, and the measurement changes what gets built.** Verified directly
+   against the plugin source at
+   `~/.claude/plugins/marketplaces/understand-anything/understand-anything-plugin`,
+   independently of the adopter's own account of it (which it confirms):
+
+   - `autoUpdate` **defaults to `false`** (`packages/core/src/persistence/index.ts:148`).
+   - Setting it `true` enables exactly two things, and **neither writes the graph**.
+     `hooks/hooks.json`'s `PostToolUse` entry runs
+     `hooks/post-tool-use-auto-update.mjs`, whose entire output is a
+     `hookSpecificOutput.additionalContext` string telling **the model** to read
+     `hooks/auto-update-prompt.md` and do the merge by hand. The `SessionStart` entry is
+     a staleness comparison that `echo`s the same instruction.
+   - The `PostToolUse` entry carries **`"matcher": "Bash"`**. A commit issued through the
+     PowerShell tool is a different tool and matches nothing, so on a PowerShell-primary
+     project the commit trigger never fires at all — the adopter measured this both ways
+     (a probe commit through Bash fired the reminder; their real arc commits did not).
+   - `hooks/auto-update-prompt.md:3` describes itself as *"triggered automatically by the
+     post-commit hook"*. **There is no post-commit hook anywhere in the plugin.**
+
+   So `autoUpdate: true` is **auto-remind, not auto-update** — necessary, not sufficient,
+   and on Windows/PowerShell close to session-start-only. Telling adopters to flip it and
+   stopping there would put the kit in the position its own field reports keep catching:
+   prose asserting a mechanism the artifact does not have.
+
+   **RULED (owner, on the measurement): offer the flag AND own the trigger.** Two halves:
+   `commands/sdlc-setup.md` detects a `.ua/` or `.understand-anything/` config, offers to
+   set `autoUpdate: true`, and states in one place what it does and does not do; and the
+   kit names its **own** regeneration trigger at the phase boundary, which is finding 6's
+   actual ask and is independent of whether the plugin's reminder ever arrives. The third
+   option — shipping a deterministic baseline-advancer of the kit's own, as the adopter
+   built for themselves — is **refused**: it would put the kit in the business of
+   maintaining a vendor's graph format, and the adopter's own version needed a
+   tree-sitter-fidelity self-test to be safe (it caught two real extractor bugs before
+   shipping). That is a vendor's job.
+
+   **The vendor defect itself is not the kit's to fix** and is correctly filed against
+   that plugin's repository, as the report says. What the kit owes is not depending on it.
+5. **Tell the adopter what is already ruled — RULED: yes.** `mutation-testing`'s
+   zero-dispatch corroboration was ruled 2026-08-26 (§70.7 ruling 4), which anticipated a
+   third arc at zero in terms. Their friction entry closes as *ruled upstream* rather than
+   ageing another phase — the same courtesy §70.2 extended for the ninth report's finding
+   7. Goes in the issue reply alongside the §76.2 corrections and the §76.5 clock
+   readings, since three of those readings are about their arc and they cannot derive them
+   from their own tree.
+
+### 76.8 The batch, as scoped
+
+**LIC — the tenth report's batch.** One release. In order:
+
+1. **Finding 1** — the close-out licence. `templates/tdd-guard-claude.template.py` and
+   `templates/tdd-guard.template.sh`; proof cases in both `tools/` suites;
+   `commands/end-slice.md` §§3/5/6 naming it; `templates/SDLC.template.md`'s Records
+   paragraph qualified.
+2. **Finding 2 + §76.3** — the two record lines. `commands/end-slice.md` §3 (per-axis
+   verdicts, the Reuse search) and §6 (`not exercised: <what, or "nothing">`), each
+   restating the half of its skill's contract that has been measured not to survive
+   otherwise.
+3. **Findings 3 + 5, merged** — `commands/end-slice.md` §5's third case (a slice whose
+   deliverable is a sweep or a check owes a made-to-disagree run of *that*), carrying the
+   `F841` collision and the module-level form, since a counting check is exactly where
+   both bite.
+4. **Finding 6 + ruling 4's second half** — `templates/SDLC.template.md`'s *Architecture
+   impact view* names a regeneration trigger; `commands/end-phase.md` steps 2 and 6 echo
+   it; `commands/sdlc-setup.md` offers `autoUpdate` with its measured limits stated.
+
+Out: finding 4. Also out: any kit-owned graph writer (ruling 4).
+
+### 76.9 Built 2026-09-01 — and the one thing the build found that the ruling did not
+### cover
+
+**Built as scoped in §76.8**, in the ruled order. Four things worth recording beyond the
+edit list.
+
+**(a) The close-out licence's shape, decided at build time.** The ruling said "a
+close-out-scoped licence the guard honours"; it did not say what bounds it. A licence
+that survives every test edit is, on its face, a session-long bypass of G1 — so the
+design keeps every bound the refactor licence has (a counted green behind it, session
+scope, the declaration line logged on every write) and adds one the refactor licence
+does not need: **every test edit it survives is counted, and the count is logged.**
+`close-out license SURVIVED a test edit (N this session)`. No cap, because a cap that
+denies mid-close-out re-creates the defect being fixed and no evidence exists for a
+number; the count is what makes a licence held open past its step **visible in review**
+rather than silent. That is deliberately a catch-proof rather than a fire-proof, which
+is the ninth report's lesson applied to the fix for the tenth's.
+
+**(b) The build invalidated a pinned property, and it was re-pointed rather than
+dropped.** `tools/tdd-guard-claude-check.py` case 4b pins §48/§50.1: the deny message
+names the behavior-preserving route **by case**, never narrowed by a phase word, because
+operators who read "close-out" concluded the licence was close-out-only. The new deny
+sentence necessarily contains "close-out". The pin's *premise* changed — there is now a
+genuinely close-out-scoped licence — but the defect it guards is still available, so 4b
+was re-pointed to the property that actually protects it: the unqualified case sentence
+must be present **and must precede** any occurrence of "close-out". A matching `32b` was
+added to the shell suite, which had no equivalent. Deleting 4b because the change broke
+it is exactly what the disposal-intent lens exists to catch.
+
+**(c) Two mutation anchors went stale and were re-pointed, in both suites.** The licence
+condition line changed in both dialects, and both suites' *"drop the green requirement"*
+anchors pointed at the old text; the shell suite's session-clear anchor went stale the
+same way. Both suites report a stale anchor rather than passing over it (§75.7), which is
+how these surfaced immediately — the third time that reporting has paid for itself.
+**Four new mutations** cover the new behavior in each dialect: revoke the close-out
+licence on a test edit; stop counting the survivals; let it write without a green; and
+(shell) log a close-out write as a refactor one.
+
+**(d) The open half the ruling did not reach: the new record lines have no observer.**
+`tools/close-out-check.py` is **structural presence only** by design — it asserts the
+five keys are present and non-empty and says so in its own output (*"this does not verify
+the evidence is true"*). So the `not exercised:` half of `verify:` and the `reuse:` half
+of `quality:` are, today, rules with no observer — which is the exact shape §76.3
+criticised and the report's own cross-cutting theme. **Not built, deliberately**, because
+making the checker require a sub-key inside `verify: ran` would fail every existing
+adopter record and every fixture in the suite, and a migration is a design question the
+sequencing ruling did not open. The honest options for the next batch are (α) leave it as
+prose and read arc two's records to see whether restating in the command was sufficient —
+which is the measurement §76.3 says the command line alone *does* determine, and the
+cheapest way to find out; (β) a **log-only** observer on the `docs-check` precedent
+(§68), which breaks nothing and makes the omission visible; (γ) a hard requirement with a
+stated cutover commit. **Recommend (α) then (β):** arc two is already going to be read
+against the corrected line for the `change-simplify` clock, so the measurement is free,
+and (β) only earns its place if that reading shows the restatement was not enough.
+Recorded as the batch's known limit rather than discovered later as a gap.
+
+**(e) Finding 3 is sharper than the report knew: the colliding rule is one the kit
+itself recommends.** The build went looking for where a project decides to enable
+`F841`, and found it in the kit's own **lens↔rule map**, shipped six days ago in 0.30.0
+— the *unconsumed artifact* row recommends exactly that rule family in all six languages
+(`F401`/`F811`/`ARG`, `@typescript-eslint/no-unused-vars`, `IDE0051`, `U1000`,
+`UnusedPrivateMethod`, `dead_code`) as the mechanical half of a review lens. So this is
+not a project's linter choice colliding with the kit; it is **two sections of the kit
+colliding**, one recommending a rule and the other mandating a step the rule blocks,
+neither aware of the other. That is the report's cross-cutting theme found inside the
+kit's own reference file, and it is the strongest single instance of it. Cross-referenced
+both ways: `GATE_RECIPES.md`'s row now names the collision and the module-level form at
+the point a project turns the rules on, and §5 names the row so the step's reader knows
+the rule is recommended rather than incidental. Neither is weakened — enabling the rules
+is still right.
+
+---
+
+## 77. §71's stop budget fails on an IDLE machine at the same number it fails under
+## load — the "timing wobble" explanation has been carrying a stable 3× step change
+## since 0.27.0 — filed 2026-09-01
+
+Found while running `/kit-check` before the 0.31.0 release (§76.8's batch). Filed
+rather than fixed: `tools/close-out-check.py` is outside that batch's ruled scope, and
+this is the tooling's own defect — the same reason §71 was filed rather than fixed.
+
+### 77.1 What was measured
+
+The 0.31.0 pre-release run of `tools/close-out-check.py` breached the stop budget
+**twice**, and the second run is the one that matters:
+
+| run | conditions | stop typical | verdict |
+|---|---|---|---|
+| A | three other proof suites running concurrently | **6399 ms** | S2 PERF, exit 1 |
+| B | **nothing else running** — every other python killed first | **6344 ms** | S2 PERF, exit 1 |
+
+Run B was made specifically to remove load as the explanation, expecting a large drop.
+It moved **55 ms, under 1%.** Correctness in run B was complete and clean: 26 unit
+cases, 7 docs cases, 20 stop cases, **28/28 mutations caught, 0 survivors, 0 stale, 0
+crashes** — the suite's own closing line, *"the correctness results above are
+unaffected"*, is true and is the reason this is not a release blocker.
+
+### 77.2 The finding, which is not the number but the explanation attached to it
+
+**The suite prints, and this repo has twice accepted, that these budgets are
+*"unreliable under load"* — and run B has no load.** Set the five measurements this
+repo holds side by side:
+
+| source | stop typical |
+|---|---|
+| §71, **released v0.26.0**, throwaway worktree | **1918 ms** |
+| §71, 0.27.0 run B | 6289 ms |
+| §71, 0.27.0 run C | 6120 ms |
+| §71, 0.27.0 run F | 6099 ms |
+| §77 run A (0.31.0, loaded) | 6399 ms |
+| §77 run B (0.31.0, **idle**) | 6344 ms |
+
+Five of the six cluster inside **300 ms of each other**, across three releases, on
+loaded and idle machines alike. That is not a wobble; that is a **stable ~3.3× step
+change between v0.26.0 and 0.27.0** that has never been attributed to a cause. §71's
+own decisive control — the docs pass swinging 535 ms → 5503 ms on identical code — is
+real evidence of wobble, and it is what made *wobble* the standing explanation. It has
+since been doing duty for a second phenomenon it does not explain.
+
+**Why this matters beyond a red exit code.** The budgets are not arbitrary: §71 records
+that they exist because *"the stop path runs inside a 30 s hook timeout."* At 6.3 s the
+control still fits — comfortably, and nothing observed in the field suggests otherwise
+— but the margin has quietly gone from ~16× to ~5×, and the artifact that would have
+said so is the one being explained away. A budget that fails every run teaches its
+reader to skip the line, which is how the skill-ledger proof stayed dead for six
+releases (§75).
+
+### 77.3 What is NOT claimed
+
+- **Not a 0.31.0 regression.** `templates/close-out.template.sh` and
+  `tools/close-out-check.py` are both untouched by §76.8's batch — verified by
+  `git diff --stat`, empty for both.
+- **Not attributed.** 0.27.0 added the fifth record key and 0.29.0 added the
+  bookkeeping filter, whose own measurement (§73.9) reported 4186 ms against 4188 ms
+  for the filtered-vs-unfiltered pair — itself well over the 1500 ms budget and
+  recorded at the time as costing "nothing measurable", which was true of the *filter*
+  and silent about the *baseline it sat on*. That is a lead, not a cause. Bisecting the
+  step change is the work this section asks for and does not do.
+- **Not a claim that the budget number is wrong.** It may be right and the code slower;
+  it may be miscalibrated. Deciding that is §71.3 option 3, still unruled.
+
+### 77.4 Decisions owed
+
+1. **Rule §71.3 option 3 (re-calibrate), which has been open since 2026-08-26.**
+   Median or best-of-N per invocation rather than the slowest single one. Option 1
+   shipped and works — the mutation pass now completes and reported all 28 — so the
+   only thing still broken is the verdict.
+2. **Attribute the step change before re-calibrating, not after.** Re-calibrating first
+   would set the new threshold from a number nobody has explained, which is the
+   *recorded-value-with-no-enforcing-artifact* defect (invariant 14) committed against
+   the kit's own tooling. One bisect across v0.26.0 → 0.27.0 → 0.29.0 → HEAD, in a
+   throwaway worktree, answers it.
+3. **Until both are done, a release note is owed on every run**: `/kit-check` should
+   report this suite as **correctness-green / perf-red (§77)** rather than as a pass or
+   a failure, because it is currently neither and both prior releases resolved the
+   ambiguity by informal judgement. 0.30.0 shipped over this same breach (§75, recorded
+   as "under three concurrent suites"); 0.31.0 does the same, now with the load
+   explanation withdrawn.

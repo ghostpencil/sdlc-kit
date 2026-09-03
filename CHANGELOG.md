@@ -10,6 +10,130 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.31.0 — 2026-09-01
+
+The tenth field report's batch, and the first one where nothing in the report had already
+been fixed. Its theme is that **a rule living in only one artifact erodes silently**, and
+three of the four changes here are that defect in different clothes: a licence whose
+revocation rule was correct for a TDD cycle and wrong for the close-out that has to run
+under it; two record lines that asked for the half their skill's contract restates and
+never for the half only the skill carries; and an architecture view whose freshness
+depended on a vendor setting that reminds rather than refreshes.
+
+The measurement behind the second one is the sharpest thing in the report. Across five
+slice sessions of a real arc the skill ledger shows `change-verify` dispatched **once**
+and `change-simplify` dispatched **five times** — and *both* lost the same half of their
+contract to the record. So dispatching a skill is not what preserves it. The durable
+record line is, and only the command specifies that.
+
+### Added
+- **[adoption-only]** **A close-out licence for the TDD guards** —
+  `.git/sdlc-tdd/close-out-license`, in both dialects
+  (`templates/tdd-guard-claude.template.py`, `templates/tdd-guard.template.sh`; reaches
+  adopted projects through `/sdlc-update`'s hook comparison). It is the refactor licence
+  scoped to `/end-slice` and differs in exactly one way: **a test edit does not revoke
+  it.** Close-out's own mandated order edits tests between its production writes — step 4
+  fixes tests, step 5 writes production and restores tests, step 6 writes a harness — so
+  a licence a test edit revokes cannot survive the step it exists for. One real arc paid
+  the re-declaration **seven times in a single phase, three of them inside one slice**,
+  across three consecutive retros and two absorptions (field, 2026-09-01). Every other
+  bound the refactor licence has is kept: a counted green behind it, session scope, the
+  declaration line logged on every write. One bound is added, because a licence that
+  survives every test edit would otherwise be a silent session-long bypass — **every test
+  edit it survives is counted and logged**
+  (`close-out license SURVIVED a test edit (N this session)`), so a licence held open past
+  close-out is visible in review. No cap: a cap that denies mid-close-out re-creates the
+  defect, and no evidence exists for a number.
+- **[installable]** **`/end-slice` §5 gains its third case — a slice whose deliverable is
+  a sweep, a ratchet, or a check.** The step had two branches (a new guard; a
+  characterization slice) and a slice that ships no code but whose *exit criterion is a
+  check* fell to `mutation: none — no new guards`, which is wrong for it: that check is
+  exactly the artifact this step exists to distrust. On a real arc such a sweep needed
+  **five passes to enumerate its own population** (13 → 15 → 16 → 17 → 18) and one
+  pattern reported a **false clean**; the slice caught it by planting a violation, but
+  *despite* the zero-form rather than because of it.
+- **[installable]** **The lint-hook collision, named where it bites.** A counting or
+  sweeping check can only be made to disagree by making the counted thing bigger — you
+  must *add* statements — and a throwaway local inside a function is precisely what an
+  unused-variable rule flags (`F841`, `no-unused-vars`). The edit-time gate hook rejects
+  the write **before the suite runs**, which reads as the mutation being wrong when it is
+  the only mutation available: two blocked attempts in one slice, 53 findings on the
+  first. §5 now names the collision and the module-level form that avoids it, rather than
+  leaving it to be rediscovered by being blocked.
+
+### Changed
+- **[installable]** **`/end-slice` §6's record line carries the third verdict** —
+  `verify: ran — <verdicts>; not exercised: <what, or "nothing">`. The skill's contract
+  has three verdicts and says the third *"must never be folded into the first"*; only the
+  first two survived into a real arc's records. Four slices recorded `verify: ran` with
+  credible detail, **all four naming the shell the old line asked for and none containing
+  a single "not exercised"** — including one whose unreachable path had been deferred
+  behind a seam by a ratified decision in that same arc. `nothing` is a real answer that
+  must be written out, so a run that reached everything has to say so and a run that
+  skipped the skill can no longer produce a contract-satisfying line from memory of the
+  command alone.
+- **[installable]** **`/end-slice` §3's record line carries the Reuse search** —
+  `quality: <…>; reuse: <what was searched, and against what | not searched — reason>`.
+  Same defect, one step earlier, and worse: the skill was dispatched in **every one** of
+  those five sessions and the record still carried **zero** named searches, because the
+  line asked only for a move count. The skill's own rule is that *"an unsearched 'no
+  duplication' is not a verdict, it is a guess with the same spelling"* — and that rule
+  had no home in the durable record until now.
+- **[installable]** **`/end-phase` names a regeneration trigger for the architecture
+  graph** — step 7's post-merge bookkeeping, the one moment in the loop where the branch
+  is merged, the tree is settled and no slice is mid-flight. Steps 2 and 6 now state a
+  `may be stale` line in the hand-back and defer to step 7 rather than acting mid-arc.
+  Nothing in the process had ever said when to regenerate, and one adoption ran a
+  seven-slice phase against a graph built before the *previous* phase merged, so the view
+  reported `PARTIAL` at every site that draws it for the whole arc.
+- **[installable]** **`/sdlc-setup` offers the graph tool's auto-update, and says what it
+  does not do.** Where a `.ua/` or `.understand-anything/` directory is present, setup
+  offers to set `autoUpdate: true` — never silently, it is the project's file. Measured
+  against the Understand Anything plugin at this release: the flag **defaults to off**,
+  and turning it on enables two hooks whose entire output is a message asking the *agent*
+  to merge the graph by hand — **neither writes it**. One of them matches the **Bash**
+  tool only, so on a PowerShell-primary project a commit fires nothing at all, and the
+  plugin's own prompt describes itself as triggered by a post-commit hook it does not
+  ship. Worth turning on and worth not trusting: it is a supplement to the phase-boundary
+  regeneration, never a substitute. The vendor defect belongs to that plugin's repository
+  and is not fixed here; what the kit owes is not depending on it.
+- **[adoption-only]** `templates/SDLC.template.md` — the *Records* TDD-guards paragraph
+  qualifies the revocation rule for close-out instead of stating it as flat truth, and
+  *Architecture impact view* gains the regeneration trigger and the auto-update caveat.
+  `reference/GATE_RECIPES.md` and `commands/sdlc-setup.md`'s guard note carry the third
+  licence, so no site states the old rule unqualified.
+
+### Repo (not shipped in the bundle)
+- `tools/tdd-guard-claude-check.py`: **cases 13a–13g** and
+  `tools/tdd-guard-check.py`: **cases 30c–30h** — the close-out licence in both dialects
+  (licensed write logged as close-out; a test edit does not revoke it; the survival count
+  increments; it still licenses after the test edits; no green still licenses nothing; a
+  new session clears both the licence and the count; the deny message names it).
+- **Four new mutations per dialect** covering the new behavior: revoke the close-out
+  licence on a test edit; stop counting the survivals; let it write without a green; and
+  (shell) log a close-out write as a refactor one.
+- **Two mutation anchors per suite were re-pointed**, not silently lost: the licence
+  condition changed in both dialects and both *"drop the green requirement"* anchors went
+  stale, as did the shell suite's session-clear anchor. Both suites **report** a stale
+  anchor rather than passing over it (0.30.0's §75.7 change), which is how these surfaced
+  in the same run — the third time that reporting has paid for itself.
+- **A pinned property was re-pointed rather than dropped.** Case 4b pins that the deny
+  message names the behavior-preserving route **by case**, never narrowed by a phase word
+  — the 0.20.0 fix for operators who read "close-out" and concluded the licence was
+  close-out-only. The new deny sentence necessarily contains "close-out", so 4b now pins
+  the property that actually protects that defect: the unqualified case sentence must be
+  present **and precede** any occurrence of "close-out". A matching `32b` was added to the
+  shell suite, which had no equivalent.
+- **Known limit, recorded rather than discovered later** (`FEATURE_PLAN.md` §76.9): the
+  two new record-line halves have **no observer**. `tools/close-out-check.py` is
+  structural-presence-only by design and says so in its own output, so `not exercised:`
+  and `reuse:` are, today, rules a checker does not enforce — the same shape this release
+  criticises. Making the checker require them would fail every existing adopter record
+  and every fixture in the suite, which is a migration question this batch did not open.
+  The next arc's records are read against the corrected lines anyway, for the
+  `change-simplify` clock, so the measurement of whether restating in the command was
+  sufficient comes free.
+
 ## 0.30.0 — 2026-08-29
 
 One adopter-visible addition and one pointer fix. The addition answers a question the

@@ -18,8 +18,8 @@ here. Work on this repo is ordinary editing plus careful cross-file consistency.
 
 The repo root is **not** the kit. `sdlc-kit/` is the shippable product — the only folder
 that is copied into an adopting project, and the unit that gets packaged as a release
-artifact. Everything at the root (`README.md`, `CLAUDE.md`, `FIELD_REPORT.md`,
-`FIELD_REPORT_2026-07-20.md`, `FIELD_REPORT_2026-07-22.md`, `IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`,
+artifact. Everything at the root (`README.md`, `CLAUDE.md`, every `FIELD_REPORT*.md` — the README's
+file tree is the one enumeration of them — `IMPROVEMENT_PLAN.md`, `FEATURE_PLAN.md`,
 `FEATURE_PLAN_HISTORY.md`, `KIT_INVARIANTS.md`, `LICENSE`, the root `.claude/commands/`,
 the root `tools/` — re-runnable proofs for the shipped hook artifacts and the
 close-out evidence checker, which are
@@ -225,6 +225,21 @@ theme extends the eighth's: **the kit verifies that a step ran, never that it co
 caught anything, or that a decision it recorded reached a terminal state** — a fire-proof
 stood in for a catch-proof, a reconcile bullet visited the documents it names and left
 the number wrong in two others, and an absorbed finding counted as a closed one.
+
+`FIELD_REPORT_2026-09-01.md` is the **tenth** — the first adopter's Phase 09
+(`sdlc-kit#10`), and the first written against the **then-current** release, 0.30.0.
+Generalized in this repo the way the seventh and ninth are (the issue body itself is
+un-anonymized; do not de-anonymize the file or its filename). Six findings, and it is the
+first report in the lineage that **collides with nothing already shipped** — no premise
+false, no fix already ruled against, nothing closed by a later release. `FEATURE_PLAN.md`
+§76 records the triage: all six stand, three need their fix re-aimed (§76.2 — finding 3's
+cited trigger and named file are both wrong, and finding 6's damage claim is defused by
+the template it quotes), and §76.3 adds a **seventh finding the report did not make** —
+the same command-restates-half-the-contract defect found in `change-simplify`, where it
+lands on a final, no-extension clock. Its theme completes the lineage's current arc: **a
+rule that lives in only one artifact erodes silently, and the kit's own controls are now
+the main source of that erosion.** §76.5 reads the arc against the five standing clocks —
+three of which this arc is the first ever able to move.
 
 ## Writing conventions for these files
 

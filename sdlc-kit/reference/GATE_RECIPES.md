@@ -342,6 +342,15 @@ fails open or closed (default timeout 10 minutes; the guard does state I/O only)
   test is a new cycle), and a new session clears it. It survives reds on purpose —
   mutation testing's expected reds and the revert of a failed refactor move are
   production writes too, and G2 still refuses to stop while the latest run is red.
+  Since 0.31.0 there is a **third** license, `.git/sdlc-tdd/close-out-license`, which
+  is the second one scoped to `/end-slice` and differs in exactly one way: a test edit
+  does **not** revoke it. Close-out's mandated order edits tests between its
+  production writes — the review fixes tests, the mutation step writes production and
+  restores tests, the verification step writes a harness — so a license a test edit
+  revokes cannot survive the step it exists for; one real arc paid the re-declaration
+  seven times in a single phase (field, 2026-09-01). Every test edit it survives is
+  **counted** in the log, so a license held open past close-out is visible in review
+  rather than silent.
   Field-driven: with only the red license, armed close-out passes (`change-simplify`,
   mutation testing) forced synthetic test-edit/red cycles or suppressed legitimate
   quality moves.
@@ -841,6 +850,16 @@ only tests construct. Worse, both a linter and a caller-grep undercount on stack
 wire consumers by annotation, reflection, or configuration, so a clean run is not a
 negative result; the lens's own denominator caveat applies to the rule exactly as it
 applies to the grep. Treat these rules as the floor and the arc review as the check.
+
+*One collision this row creates, and it is the kit's own:* every rule listed here fires
+on a **deliberately** unused local, which is what a mutation against a counting or
+sweeping check has to add — and the edit-time hook runs these rules on the file just
+edited, so it rejects the write before the suite runs. Enabling them is still right; the
+mutation is written at **module level** instead, where an unused-*variable* rule does not
+apply. `commands/end-slice.md` §5 states this at the step that hits it. Recorded here
+because this file is where a project decides to turn the rules on, and a rule this
+document recommends should not silently block a step this process mandates (field,
+2026-09-01 — two blocked attempts in one slice, 53 findings on the first).
 
 **Adopting from this map needs no new proof step.** The *prove the adopted set*
 paragraph above is already both proofs at once for a lint rule: the deliberate

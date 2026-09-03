@@ -722,6 +722,25 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   recorded value becomes `N @ <short-sha>`. Nothing recomputes it here: the stamp is
   applied at the next `/end-phase`, from that close's own step-2 run. An unstamped
   baseline is not a defect to fix during the update.
+- **0.31.0 adds a third TDD-guard licence, and it arrives with the guard's own update.**
+  `.git/sdlc-tdd/close-out-license` is the refactor licence scoped to `/end-slice`,
+  differing in one way: a test edit does **not** revoke it. It reaches the project
+  through the ordinary hook comparison above, in whichever dialect is installed, and it
+  requires **no project decision** — nothing changes for a project that never declares
+  it, and the refactor licence behaves exactly as before. Two things are worth saying in
+  the update summary. First, `/end-slice` §§3, 5 and 6 now name the licence as a
+  precondition, so a close-out that used to rediscover it by being denied will not:
+  that is the point of the change, and one real arc paid seven re-declarations in a
+  single phase without it. Second, **every test edit the close-out licence survives is
+  counted in the guard log** — a licence held open past close-out shows up as a large
+  count rather than as silence, which is what a review should look for.
+- **0.31.0 also changes what `/end-slice`'s `quality:` and `verify:` record lines must
+  carry**, and the change is not enforced by the close-out checker. `verify: ran` now
+  carries `not exercised: <what, or "nothing">`, and `quality:` carries
+  `reuse: <what was searched, and against what>`. The checker is structural-presence-only
+  and is unchanged, so **existing records stay valid and nothing fails** — but slices
+  closed after this update should carry the new halves. Do not retrofit old commit
+  bodies; the record describes the session that wrote it.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

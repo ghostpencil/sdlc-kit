@@ -66,9 +66,41 @@ Three rules make it safe to run automatically:
 **Skipping it is legitimate; skipping it silently is not.** On a small or mechanical
 slice there may be nothing to do — say that in the hand-back (step 10), along with what
 was applied if it ran. A pass whose outcome nobody stated is one nobody can weigh.
-Either way the one-line outcome also goes into the slice commit body (step 7) —
-`quality: <N moves applied | nothing to do | skipped — reason>` — so the record
-outlives the session.
+Either way the one-line outcome also goes into the slice commit body (step 7) — so the
+record outlives the session:
+
+```
+quality: <N moves applied | nothing to do | skipped — reason>; reuse: <what was
+         searched, and against what | not searched — reason>
+```
+
+**The `reuse:` half is not decoration, and it is here because the record line without it
+was measured.** The skill's own contract requires per-axis verdicts and, for Reuse, a
+line naming *what was searched and against what* — because *"an unsearched 'no
+duplication' is not a verdict, it is a guess with the same spelling."* On a real arc the
+skill was dispatched in **every one of five slice sessions** and the durable record still
+carried **zero** named searches, because this line asked only for a move count: the half
+the command restated survived into the commit bodies and the half only the skill carried
+did not (field, 2026-09-01). Dispatching the skill is therefore *not* what preserves its
+contract — the record line is. A move that names the duplicate but not the search does
+not satisfy this; naming the search is what distinguishes a pass that looked from one
+that glanced.
+
+**This is the first close-out step that writes production code, so it is where the
+licence is declared — and it is the close-out licence, not the refactor one.** Where the
+TDD guards are installed, before the first edit here: write one line naming the step and
+move it to `.git/sdlc-tdd/close-out-license`, behind a counted green, exactly as a
+refactor licence is declared. **One declaration covers steps 3 through 6.** Use the
+close-out licence because a test edit revokes the refactor one, and close-out's own
+mandated order puts test edits between its production writes — step 4's review fixes
+tests, step 5's mutation restores them, and a refactor licence declared here is revoked
+by the method it was declared for. On a real arc that cost seven re-declarations in a
+single phase, three of them inside one slice, across three consecutive retros (field,
+2026-09-01). Every test edit the close-out licence survives is counted in the guard log,
+so a licence left open past step 6 is visible in review; it ends with the session either
+way. Declaring it is not a formality here — this step edits production code after the
+gate has run, so the write is behavior-preserving by construction and the licence is its
+precondition.
 
 ### 4. Slice code review
 
@@ -191,6 +223,46 @@ checked out of how many (`mutation: 6 of 129 characterization pins, each seen to
 fail`) — a stated sample is evidence; an unstated one is the same blank the exemption
 left.
 
+**A slice whose deliverable is a sweep, a ratchet, or a check is the third case, and
+`mutation: none` is wrong for it.** When the slice ships no guard and adds no test but
+its exit criterion *is* a check — "no entry cites a line number", "no module exceeds N
+statements", "every declared floor agrees" — then that check is the artifact this step
+exists to distrust, and it owes a made-to-disagree run of **itself**. Feed it a planted
+violation in a scratch copy and watch it fire on exactly that, then confirm it is clean
+on the real tree. This is not pedantry: on a real arc such a sweep needed **five passes
+to enumerate its own population** (13 → 15 → 16 → 17 → 18) and one of its patterns
+reported a **false clean**, and the slice only caught it by injecting an anchor —
+*despite* this step's zero-form rather than because of it (field, 2026-09-01). Record it
+in the same shape: `mutation: 1 check seen to fail — <the check>, fed <the planted
+violation>, fired on exactly that`.
+
+**One collision to know about before you write the mutation, because it will block you
+otherwise.** A counting or sweeping check can only be made to disagree by making the
+counted thing **bigger** — you must *add* statements, not delete a guard — and a
+throwaway local added inside a function is exactly what a linter's unused-variable rule
+exists to flag (`F841` in ruff, `no-unused-vars` in ESLint, and their equivalents).
+**Where this project runs an edit-time gate hook** — check `spec/SDLC.md` (*Records*) for
+whether one is installed — that hook lints the file just edited and rejects the write
+**before the test suite ever runs**, which reads as the mutation being wrong when it is
+the only mutation available. On a real arc this cost two blocked attempts in one
+slice, 53 findings on the first (field, 2026-09-01). **Write the mutation at module
+level**, where an unused-variable rule does not apply, or use a form the project's linter
+already tolerates. The two controls have no knowledge of each other by design — the lint
+hook has no notion of a mutation in progress — so the workaround is stated here rather
+than left to be rediscovered by being blocked. Note that this project may well have
+enabled those rules **on the kit's own recommendation** — they are the mechanical half
+of the *unconsumed artifact* lens. Both rules are right; they simply had no knowledge of
+each other until an arc ran into it, so do not read the block as a sign the linter
+config is wrong.
+
+**The close-out licence declared at step 3 covers this step — and this is the step that
+most needs it.** Where the TDD guards are installed and step 3 was skipped (so nothing
+was declared), declare `.git/sdlc-tdd/close-out-license` here before the first mutation.
+Do not fall back to the refactor licence: this step's own prescribed *restore* touches
+test files between its production writes, so a refactor licence declared here is revoked
+by the method it was declared for — which is what cost one arc three re-declarations
+inside a single slice.
+
 **Restore by undoing the edit, not by restoring the file.** This step runs *before*
 step 7 commits, so the slice's own implementation is sitting uncommitted in the
 working tree underneath the mutation — which makes the obvious mechanism the
@@ -244,8 +316,27 @@ applies (a transcript block per run — a pass not observed is not a pass).
 Same contract as step 3: **skipping is legitimate; skipping silently is not.** On a
 small or mechanical slice — docs, config, a change the gate fully pins — state the skip
 and its reason in the hand-back (step 10). Either way the one-line outcome goes into the
-slice commit body (step 7): `verify: ran — <verdict per behavior, naming the shell it
-ran in>` or `verify: skipped — <reason>`, so the record outlives the session. The
+slice commit body (step 7), so the record outlives the session:
+
+```
+verify: ran — <verdict per behavior, naming the shell it ran in>;
+        not exercised: <what could not be reached, and why | nothing>
+or
+verify: skipped — <reason>
+```
+
+**The `not exercised:` half is required, and `nothing` is a real answer that must be
+written out.** The skill's contract has three verdicts — observed working, observed
+broken, and *not exercised, and why* — and says the third *"is a first-class result and
+must never be folded into the first."* Only the first two survived into the record on a
+real arc: four slices recorded `verify: ran` with credible detail, **all four naming the
+shell this line asked for and none containing a single "not exercised"**, including one
+whose unreachable path had been deferred behind a seam by a ratified decision in that
+same arc (field, 2026-09-01). The ledger showed the skill was not dispatched in any of
+those five sessions — so a run that skipped the skill could still produce a
+contract-satisfying line from memory of this command alone. It no longer can: a run that
+reached everything has to say `nothing`, and a run that did not has to name what it
+missed. The
 shell matters because this step runs in the **agent's** shell: a pass here does not
 stand in for halt 4's owner acceptance, which is the same exercise in the owner's —
 and a documented run command once died at import for the owner while passing cleanly
@@ -253,6 +344,10 @@ for every agent.
 
 If it observed a break, fixes go through the loop the review's fixes do: apply, re-run
 the gate, and any new guard joins step 5's mutation obligation.
+
+Where this step writes a harness or a probe into the repository, it is production source
+to the guards and is covered by the close-out licence step 3 declares — which is what the
+one declaration spanning steps 3 through 6 is scoped for.
 
 ### 7. Commit the slice
 
@@ -310,6 +405,13 @@ line is the record), each key at the start of its line — with silent absence f
 loudly. It never verifies truth — its own output says so — and COMPLETE is not
 evidence the work behind a line happened; the steps that produced the lines remain
 the record of that.
+
+**COMPLETE therefore does not mean the two sub-keys are there.** The checker asserts
+presence of the five keys and nothing inside them, so a `verify: ran` line missing
+`not exercised:` and a `quality:` line missing `reuse:` both pass it. Read those two
+lines yourself before accepting COMPLETE — they are the halves a real arc lost while
+every key was present and the record read as complete (field, 2026-09-01), which is
+precisely the class a structural check cannot see.
 
 - **INCOMPLETE** — `git commit --amend` the slice commit with the real outcome, or
   with the stated-skip form if the step was skipped. Never with invented evidence:

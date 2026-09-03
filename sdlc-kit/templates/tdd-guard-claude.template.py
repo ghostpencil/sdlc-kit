@@ -32,6 +32,14 @@
 #      session's own declaration that the edits are behavior-preserving (refactor,
 #      simplification, mutation testing - at any point in the cycle), revoked by a
 #      test edit, cleared at session end, every write under it logged.
+#      .git/sdlc-tdd/close-out-license is the same license scoped to /end-slice,
+#      and differs in exactly one way: a test edit does NOT revoke it. Close-out's
+#      own mandated order (review fixes tests -> mutation writes production and
+#      restores tests -> verification writes a harness) cannot be executed under a
+#      license a test edit revokes, and a real arc paid the re-declaration seven
+#      times in one phase (field, 2026-09-01). Every test edit it survives is
+#      COUNTED and logged, so a license held open past its step is visible in
+#      review rather than silent.
 # G2 - premature-stop guard: stopping is a violation while no green test run has
 #      been observed, or the latest observed run is red. The green is ANY counted
 #      green (division of labor: full-suite assurance is the end-slice gate's
@@ -167,7 +175,8 @@ if SID:
         pass
     if SID != prev:
         for n in ("red-observed", "green-observed", "last-test-edit",
-                  "refactor-license", "prod-write-observed"):
+                  "refactor-license", "close-out-license",
+                  "close-out-survivals", "prod-write-observed"):
             clear(n)
         try:
             with open(sf("session"), "w") as f:
@@ -223,6 +232,24 @@ if MODE == "pre-write":
         if present("refactor-license"):
             clear("refactor-license")
             log("refactor license revoked (a test edit starts a new cycle)")
+        # A CLOSE-OUT license survives, because close-out's own mandated order puts
+        # test edits between its production writes. It is counted, not silent: a
+        # license still open after many test edits is one held past its step.
+        if present("close-out-license"):
+            k = 0
+            try:
+                with open(sf("close-out-survivals")) as f:
+                    k = int((f.read() or "0").strip() or "0")
+            except (OSError, ValueError):
+                k = 0
+            k += 1
+            try:
+                with open(sf("close-out-survivals"), "w") as f:
+                    f.write(str(k))
+            except OSError:
+                pass
+            log("close-out license SURVIVED a test edit (%d this session) - "
+                "close-out edits tests between its production writes by design" % k)
         sys.exit(0)
     if not match_any(base, SOURCE_GLOB):
         sys.exit(0)
@@ -230,9 +257,11 @@ if MODE == "pre-write":
     if present("red-observed") and present("last-test-edit") \
             and newer("red-observed", "last-test-edit"):
         ok = "red"
-    elif present("refactor-license") and present("green-observed"):
+    elif (present("refactor-license") or present("close-out-license")) \
+            and present("green-observed"):
         # The declaration alone licenses nothing - without a counted green this
-        # session there is no gate behind the claim.
+        # session there is no gate behind the claim. Both licenses answer here;
+        # they differ only in what a test edit does to them.
         ok = "lic"
     # The marker records a production write that actually WENT THROUGH; the deny
     # branch sets nothing on purpose - a denied write leaves the tree unchanged,
@@ -241,13 +270,14 @@ if MODE == "pre-write":
         mark("prod-write-observed")
         log("OK production write (red observed since last test edit): %s" % rel)
     elif ok == "lic":
+        which = "close-out" if present("close-out-license") else "refactor"
         first = ""
         try:
-            with open(sf("refactor-license")) as f:
+            with open(sf(which + "-license")) as f:
                 first = f.readline().strip()
         except OSError:
             pass
-        log("OK production write (refactor license: %s): %s" % (first, rel))
+        log("OK production write (%s license: %s): %s" % (which, first, rel))
         mark("prod-write-observed")
     elif present("deny-enabled"):
         log("DENY production write without observed red: %s" % rel)
@@ -267,7 +297,11 @@ if MODE == "pre-write":
                 "naming the step and move to .git/sdlc-tdd/refactor-license, then "
                 "retry. That license requires a counted green run this session, is "
                 "revoked by the next test edit, ends with the session, and every "
-                "write made under it is logged for review." % rel}})
+                "write made under it is logged for review. If you are running "
+                "/end-slice, declare .git/sdlc-tdd/close-out-license instead - "
+                "same rules, except a test edit does NOT revoke it, because "
+                "close-out's own step order edits tests between its production "
+                "writes; each test edit it survives is counted in the log." % rel}})
     else:
         mark("prod-write-observed")
         log("VIOLATION production write without observed red: %s" % rel)
@@ -338,7 +372,8 @@ if MODE == "observe-test":
         mark("red-observed")
         log("RED observed (exit %s): %s" % (code, cmd))
         # The RED message claims a license only when G1 would actually grant one.
-        if present("last-test-edit") or (present("refactor-license")
+        if present("last-test-edit") or ((present("refactor-license")
+                                          or present("close-out-license"))
                                          and present("green-observed")):
             speak("TDD ordering: RED counted (exit %s). A production write is "
                   "now licensed for this cycle." % code)
