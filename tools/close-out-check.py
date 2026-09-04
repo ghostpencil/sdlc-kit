@@ -843,18 +843,35 @@ def main():
     # handful of unpushed commits (< 1.5 s), and the cap case's 20-candidate walk
     # pays ~2 Windows-sh forks per candidate (measured ~3.5 s at cap on the dev
     # machine - bounded by the cap, nowhere near the timeout's fail-open edge).
-    # .pop with a default and a guarded max: a crashed stop pass returns no timings,
-    # and a KeyError here would re-create the abort this guard exists to prevent.
+    #
+    # The typical verdict reads the MEDIAN, not the slowest (FEATURE_PLAN.md 77,
+    # ruled 2026-09-04). It read the slowest for five releases and failed every run
+    # at a suspiciously stable ~6.3 s, blamed first on load and then on nothing.
+    # Bisected across v0.26.0..v0.31.0 in per-tag worktrees, the median does not
+    # move - 1129 ms then, 1132 ms now - and this machine adds about ONE +5 s
+    # stall per suite run, landing on a random case: the same case run 40 times in
+    # one process gave median 1132 / p90 1263 with exactly one sample at 6203 ms.
+    # A max over ~19 samples catches that stall nearly every time, which is why the
+    # number looked stable across releases and identical loaded vs idle. The
+    # slowest is still printed, because a real regression would move the median AND
+    # show up there - it is an observation, not a verdict.
+    #
+    # The cap walk keeps its max: it is ONE case, so its max IS its measurement.
+    # .pop with a default and guarded statistics: a crashed stop pass returns no
+    # timings, and a KeyError here would re-create the abort this guard prevents.
     cap_t = times.pop("stop_candidate_cap_20", 0.0)
-    typical = max(times.values()) if times else 0.0
-    print("slowest typical stop invocation: %.0f ms (budget: 1500 ms); cap-20 walk: %.0f ms (budget: 5000 ms)"
-          % (typical * 1000, cap_t * 1000))
+    ordered = sorted(times.values())
+    typical = ordered[len(ordered) // 2] if ordered else 0.0
+    worst = ordered[-1] if ordered else 0.0
+    print("median stop invocation: %.0f ms (budget: 1500 ms; slowest of %d: %.0f ms,"
+          " observed not asserted - FEATURE_PLAN 77); cap-20 walk: %.0f ms (budget: 5000 ms)"
+          % (typical * 1000, len(ordered), worst * 1000, cap_t * 1000))
     if failures:
         for name, problems, out in failures:
             print("\nFAILED %s: %s\n--- detail ---\n%s" % (name, "; ".join(problems), out))
         sys.exit(1)
     if typical >= 1.5:
-        perf.append("typical stop invocation %.2f s (budget 1.50 s)" % typical)
+        perf.append("median stop invocation %.2f s (budget 1.50 s)" % typical)
     if cap_t >= 5.0:
         perf.append("cap-20 stop walk %.2f s (budget 5.00 s)" % cap_t)
 
@@ -892,7 +909,9 @@ def main():
         # cp1252 - an em dash or a section sign arrives as a replacement character,
         # which is the same encoding trap change-verify's own guidance names.
         print("  (the correctness results above are unaffected - these are timing"
-              " budgets, and this machine's are unreliable under load: FEATURE_PLAN 71)")
+              " budgets. The stop budget now reads the median, so a single OS stall"
+              " no longer breaches it; a breach here means the typical invocation"
+              " really did slow down: FEATURE_PLAN 71, 77)")
 
     if guarded.crashed:
         print("\nCRASHED passes: %s - those cases did not run"

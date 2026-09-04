@@ -4373,3 +4373,117 @@ releases (§75).
    ambiguity by informal judgement. 0.30.0 shipped over this same breach (§75, recorded
    as "under three concurrent suites"); 0.31.0 does the same, now with the load
    explanation withdrawn.
+
+### 77.5 The bisect, run 2026-09-04 — there is no step change to bisect
+
+§77.4's first two items asked for a bisect across v0.26.0 → 0.27.0 → 0.29.0 → HEAD before
+any re-calibration. It was run in six throwaway worktrees, one per tag, with a harness
+that loads each tree's own `tools/close-out-check.py` and runs **only** its `stop_pass` —
+no unit pass, no docs pass, no mutations — so each release is measured as it shipped, and
+the per-case times are kept rather than collapsed to a max.
+
+| tag | n (excl. cap) | median | p90 | max | cap-20 walk |
+|---|---|---|---|---|---|
+| v0.26.0 | 14 | **1129 ms** | 1301 | 1312 | 4177 ms |
+| v0.27.0 | 14 | **1131 ms** | 1266 | 1303 | 4187 ms |
+| v0.28.1 | 14 | **1142 ms** | 1286 | 1307 | 4190 ms |
+| v0.29.0 | 19 | **1133 ms** | 1300 | 6168 | 4203 ms |
+| v0.30.0 | 19 | **1163 ms** | 1324 | 1370 | 4226 ms |
+| v0.31.0 | 19 | **1132 ms** | 1454 | 1465 | 4285 ms |
+
+**The median does not move: 1129 ms at v0.26.0, 1132 ms at HEAD, across six releases and
+the two changes §77.3 named as leads.** The 0.27.0 fifth record key and the 0.29.0
+bookkeeping filter cost nothing measurable — 0.29.0's own §73.9 reading was right. The
+only real growth in the whole window is the cap-20 walk, 4177 → 4285 ms (**+2.6% over six
+releases**), which is nowhere near its 5000 ms budget. Every isolated run is **under**
+both budgets, including HEAD's.
+
+### 77.6 What the number actually is: `max()` over a distribution with one ~5 s stall
+
+The full suite reports ~6300 ms for the same code these worktrees measure at ~1450 ms, so
+the difference is a property of the run, not of the release. Three measurements, all on
+HEAD, all on the same machine within minutes of each other:
+
+1. **Stop pass alone, twice in one process:** typical **1467 ms**, then **1420 ms**. Run
+   the unit and docs passes in between and the third stop pass reports **5560 ms** — with
+   its wall time essentially unchanged (51 s → 55 s). The time did not spread; it landed
+   somewhere.
+2. **Where it lands is random.** Printing every case in run order: in one run the stall
+   fell on `stop_complete_clean` (case 3 of 20) at **6156 ms** with all nineteen others
+   between 1.08 and 1.46 s; in another it fell on `stop_repeat_flag_dedups` (case 19) at
+   **6469 ms**. Same code, same order, different victim.
+3. **The same case, run 40 times in one process:** min 1076, **median 1132**, p90 1263 —
+   and **exactly one** invocation at **6203 ms**. One outlier in forty, about +5.0 s, on a
+   distribution otherwise tight to ±200 ms.
+
+So the reported statistic is `max()` over ~19 samples of a ~1.1 s distribution that
+carries roughly one +5 s OS stall per suite run. It catches the outlier nearly every time,
+which is exactly why it looked *stable* across releases and *identical* on a loaded and an
+idle machine (§77.2's run A vs run B, 6399 vs 6344): both runs were measuring the stall,
+not the script. §71's 1918 ms at v0.26.0 was not a faster release — it was a run whose
+stall happened to miss.
+
+**This retires the finding as filed and answers §77.4 items 1 and 2 together.** There is
+no step change, so there is nothing to attribute before re-calibrating, and the
+*"unreliable under load"* line was wrong in a second way: the stall is real but it is not
+load. What remains is that **`max()` is the wrong statistic for a budget** — which is
+§71.3 option 3, now supported by a cause rather than by an unexplained number.
+
+**What the fix should be, for the owner's ruling.** The budgets exist because the stop
+path runs inside a 30 s hook timeout, and the honest measurement of that risk is the
+typical invocation, not the worst sample the OS happened to interrupt. Options, in the
+order they are worth taking: **(α)** report the **median** of the stop invocations against
+the 1500 ms budget and print the max beside it as an observation, not a verdict —
+one-line change, immune to a single stall, and it would have read green at every tag in
+the table above; **(β)** best-of-3 per case, which costs three times the stop pass's 51 s
+for the same answer; **(γ)** raise the budget number, which is the one option the
+measurement argues against — the median has not moved in six releases, so a raised budget
+would be calibrated to an artifact of the sampling rather than to the script. **Recommend
+(α).** The cap-20 budget needs nothing: it is measured on a single case, it is stable, and
+it has 700 ms of headroom.
+
+Not done here, because it is a change to the tooling rather than a measurement: §77.4
+item 3's release note, and the `/kit-check` line that reports this suite as
+**correctness-green / perf-red**. With (α) ruled, neither is needed — the suite would
+simply be green — so both wait on the ruling rather than being written first.
+
+### 77.7 Ruled 2026-09-04 — (α), and built the same day
+
+**RULED (α): the typical verdict reads the median.** `tools/close-out-check.py` now
+prints `median stop invocation: N ms (budget: 1500 ms; slowest of 19: M ms, observed not
+asserted - FEATURE_PLAN 77)` and asserts on the median alone. Three things about the
+shape, decided at build time:
+
+- **The slowest is still printed.** A real regression moves the median *and* shows up
+  there, so dropping it would trade one blind spot for another. It is an observation, and
+  the line says so in its own text rather than in a comment.
+- **The cap-20 walk keeps its max**, because it is a single case: with one sample there
+  is no median to take. It has moved 4177 → 4285 ms in six releases *in isolation* — but
+  **it is exposed to the same stall, and that was measured, not assumed**: the in-suite
+  runs of §77.6 read it at **9367 ms** once and **4840 ms** on the verifying run, against
+  a 5000 ms budget. So the last spurious-red path left in the suite runs through this one
+  case. The cheap fix if it ever fires is **best-of-2 for the cap case alone** (~4 s), not
+  a raised budget; not built now, on the same evidence rule applied to the unit and docs
+  passes below — it has not breached yet.
+- **The footer changed too.** *"this machine's are unreliable under load: FEATURE_PLAN
+  71"* was wrong twice over — the stall is real but it is not load, and the sentence
+  taught its reader to skip the line, which is exactly how the skill-ledger proof stayed
+  dead for six releases (§75). It now states what a breach means under the median.
+
+**§77.4's items 1 and 2 are answered and item 3 is withdrawn.** There was no step change
+to attribute, so nothing had to be attributed before re-calibrating; and with the median
+in place the suite is simply green, so the `correctness-green / perf-red` release note
+`/kit-check` was owed has nothing left to report. §71.3 option 3 closes with it.
+
+**The one thing this does NOT fix, stated rather than left to be rediscovered.** The unit
+and docs passes still assert on `max()` — 26 and 7 samples against 1000 ms budgets — so
+the same one-per-run stall can breach either of them on identical code. That is not
+hypothetical: §71's own decisive control was the docs pass swinging **535 ms → 5503 ms**
+between two runs of the same tree, which was read at the time as evidence of *wobble* and
+is better read now as the same stall landing in a different pass. Both return only their
+slowest invocation, so fixing them means returning per-case times from `unit_pass` and
+`docs_pass` — a slightly larger change than this one, and outside what was ruled.
+**Recommend the same treatment when either next breaches**, rather than pre-emptively:
+the stop budget breached every run and these two have breached once between them, so the
+evidence does not yet support the edit. Recorded here so the next breach is read as this
+finding rather than as a new one.

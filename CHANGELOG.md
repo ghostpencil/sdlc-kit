@@ -10,6 +10,31 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## Unreleased
+
+### Repo (not shipped in the bundle)
+- **`tools/close-out-check.py`'s stop budget reads the MEDIAN, not the slowest**
+  (`FEATURE_PLAN.md` §77, ruled 2026-09-04). It read the slowest for five releases and
+  failed every run at a suspiciously stable ~6.3 s, blamed first on load (§71) and then
+  on nothing (§77) — and 0.30.0 and 0.31.0 both shipped over the breach by informal
+  judgement. Bisected across v0.26.0…v0.31.0 in one throwaway worktree per tag, running
+  each tag's own stop pass alone: **the median does not move — 1129 ms at v0.26.0,
+  1132 ms at v0.31.0** — and both leads named in §77.3 (0.27.0's fifth record key,
+  0.29.0's bookkeeping filter) cost nothing measurable. What the number really was:
+  `max()` over ~19 samples of a ~1.1 s distribution, on a machine that adds about **one
+  +5 s stall per suite run, landing on a random case** — the same case run 40 times in
+  one process gave median 1132 / p90 1263 with exactly one sample at 6203 ms. That is
+  why it looked stable across releases and identical on a loaded and an idle machine:
+  both runs were measuring the stall. The slowest invocation is still printed beside the
+  median as an observation, since a real regression would move both; the cap-20 walk
+  keeps its max, because with one sample there is no median to take — it is exposed to
+  the same stall (measured at 9367 ms once, and 4840 ms against its 5000 ms budget on the
+  verifying run), so it is the last spurious-red path left and best-of-2 is the fix if it
+  ever fires. The suite's "unreliable under load" footer is replaced with what a breach
+  now means. **Verified green end to end** on the first run after the change: 26 unit +
+  7 docs + 20 stop cases, 28 mutations caught, 0 survivors, 0 stale, 0 crashes, exit 0 —
+  the first clean exit in five releases.
+
 ## 0.31.0 — 2026-09-01
 
 The tenth field report's batch, and the first one where nothing in the report had already
