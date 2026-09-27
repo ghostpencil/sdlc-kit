@@ -73,121 +73,79 @@ two field arcs" — by owner ruling 2026-08-14**, closing the flag that stood he
 2026-08-05 (put at two halts before being ruled; the digest above carries the
 re-denominated form, and every clock in this section was already counted in arcs).
 
-- **The three STD lenses — RULED 2026-08-14, §54's (b): one final ATTRIBUTED
-  clock.** The audit ran (§54): the runtime-standards recipe KEEPS on confirmed
-  catches; the lenses had zero attributed catches in three arcs, with the recorded
-  caveat that attribution was structurally invisible. The instrument is now fixed
-  (lens verdicts report by name — `REVIEW_LENSES.md` preamble + all three calling
-  sites, shipped with 0.22.0). **The clock: two field arcs from the next arc to
-  run; only a lens-named catch counts; no further extension — a lens with none is
-  deleted, with the conventions' enforcement lines re-pointed in the same batch.**
-  **RE-STARTED 2026-08-26 (§70.7 (i)): the two arcs that ran could not be read.**
-  0.22.0 fixed attribution for *catches* and left the denominator invisible — a
-  `clean` or `no lens triggered` verdict has no durable home, so both arcs are
-  silent on whether the three lenses ever triggered. Three lenses cannot be deleted
-  on a number nobody has. The `lenses:` commit-body line is in the small batch; the
-  two-arc clock restarts from the first arc whose denominator is enumerable, and the
-  ai-news denominator question is retired unruled.
-- **`change-verify` — clock satisfied** (§30.4): confirmed field catch at slice
-  level, arc one, 2026-08-06 (§32.3).
-- **`change-simplify` — RULED 2026-08-14: kept on a final clock, redirected first**
-  (§30.4 expiry reconciled 2026-08-13; owner ruling (b) at the §52.8 halt; the
-  improvement pass is §53). **The new clock: one confirmed catch in the next two
-  field arcs, no further extension** — the impaired-arc argument (arc two's
-  unlicensed guard) is spent with this ruling and cannot be re-used. The redirect
-  shipped 2026-08-14: test code named in scope, Reuse searched not eyeballed,
-  per-axis verdicts with the Reuse search named — built from the founding miss
-  (Phase 04 S4's duplicated `LogCaptor` helper, "nothing to do" from this pass,
-  caught by `diff-review` on the same diff).
-  **RE-SPECIFIED 2026-08-26 (§70.7 (ii)), knowingly spending the no-extension
-  commitment:** three arcs of applied moves and zero *confirmed catches* under a
-  wording built for a defect-finding instrument. The new clock is **two field arcs,
-  final, and two-sided** — positive: one arc records a **Reuse-axis move that names
-  its search**; negative and disqualifying: any arc in which a reuse or duplication
-  finding is first raised by `diff-review` or the whole-arc review on a diff this
-  pass already passed over. Both read off artifacts the kit already requires. The
-  commitment is spent here and cannot be spent again.
-- **R3.8's aging rule — no longer starved, still unexercised** (§16 contingent
-  keep; reconciled 2026-08-13): R4.6's writer has produced real friction entries
-  since 2026-08-08 (the adopter's guard-friction specimens), and the retro sweep
-  consumed them in both later retros — but every entry so far was absorbed in its
-  own arc, so the carry rule for entries **older than one phase** has never had one
-  to carry. That is the healthy state, and the rule is its backstop; stays on the
-  contingent keep.
-- **Bare-flagging arming bar (§52.2)** — the backstop's bare-commit class stays
-  log-only until **zero false candidates across the logging trial (banked
-  2026-08-13, §52.7) and the first field arc**; the arming decision is
-  evidence-bound, taken at a halt, never by default. **RULED 2026-08-26 (§70.7 (iv)):
-  the bar is measured and UNMET — stays log-only.** The ninth report supplies the
-  count the seventh and eighth omitted: 121 log lines over the arc, and the only
-  non-clean firings were **4 WOULD-BLOCK lines on one documentation commit**, named
-  by the adopter as a false positive. Four, not zero. Moot twice over — finding 5
-  shows the window `stop-check` watches is empty by construction, so the arming
-  question cannot re-open until that scope fix lands.
+**Refreshed 2026-09-27, against the tree at 0.31.0.** Shipped machinery is listed by its
+clock, not by its build state; the history of each entry lives in the section it cites.
+
+**Clocks the next field arc reads** (both adopters are on 0.31.0, merged 2026-09-04):
+
+- **The three STD lenses — one final ATTRIBUTED clock, two arcs, no further extension**
+  (§54 (b), ruled 2026-08-14; restarted §70.7 (i) once the denominator became
+  enumerable via the `lenses:` commit-body line). A lens with no lens-named catch is
+  deleted, with the conventions' enforcement lines re-pointed in the same batch.
+  **Arc one read (§76.5 (i)):** `secrets and exposure` (3 applications) and
+  `untrusted input` (2) are at **zero catches** with a real denominator;
+  `logging and swallowed errors` recorded **no application** and stays unreadable —
+  not a reason to restart again. Arc two decides the two readable lenses.
+- **`change-simplify` — final two-sided clock, two arcs** (§70.7 (ii); the
+  no-extension commitment is spent and cannot be spent again). Positive: one arc records
+  a **Reuse-axis move that names its search**. Negative, disqualifying: a reuse or
+  duplication finding first raised by `diff-review` or the whole-arc review on a diff
+  this pass already passed over. **Arc one counted as satisfying the positive half**
+  (§76.7 ruling 3 — not an extension); negative half checked and not triggered. Arc two is
+  read against 0.31.0's corrected `/end-slice` §3 record line.
+- **CONTRACT — §16 clock, arc one spent** (§57.5; started under 0.26.0 per §70.7 (iii)).
+  §56.2's second criterion — a phase touching a contract surface demonstrably encounters
+  its entries — was **met on arc one** (§76.5 (iii): 9 pins, 4 surfaces). Arc two decides
+  the first criterion; no confirmed catch after two arcs → deletion candidate.
+- **IMPACT — shipped 0.28.0; clock NOT started** (§66.6). Arc one did not count: the
+  graph was stale for the whole window (§76.7 ruling 4). 0.31.0 shipped the kit's own
+  phase-boundary regeneration trigger and the `autoUpdate` offer with its measured limits
+  (auto-remind, not auto-update); the clock starts at the first arc run with a graph
+  regenerated under that trigger, and counts only arcs with a usable graph.
+- **`stop-check` — two-arc clock from the release carrying the filter (0.29.0)** (§73.8).
+  Catch: flags a genuine slice commit lacking its close-out record. A false candidate
+  fails §52.2's arming bar, and the clock restarts once; a second false candidate is
+  deletion. **Both arcs at a zero non-empty-window denominator is deletion, not
+  extension.** The tenth report's arc (run under 0.30.0) has **not been read** against
+  this clock — §76.5 is silent on it; read both arcs together at the next retro.
+- **Bare-flagging arming bar (§52.2) — log-only.** Unmet at 4 false candidates
+  (§70.7 (iv)). It re-opens at the first arc whose false count is zero under the 0.29.0
+  filter, and not before (§73.8).
+- **§76.9(d) — the two 0.31.0 record-line halves have no observer.** Ruled (α) then (β):
+  read arc two's records first; build a log-only observer only if the restatement was not
+  enough.
+
+**Settled clocks and contingent keeps:**
+
+- **`change-verify` — clock satisfied** (§30.4): confirmed field catch at slice level,
+  arc one, 2026-08-06 (§32.3).
+- **`mutation-testing` — kept as depth; the inlined rules are the operative path**
+  (§70.7 ruling 4). Three consecutive arcs at zero dispatches, as that ruling predicted;
+  §76.5 (v) records a **confirmed catch for the inlining** itself.
+- **R3.8's aging rule — contingent keep, still unexercised** (§16): the retro sweep
+  consumes friction entries in their own arc, so the older-than-one-phase carry has never
+  had one to carry. That is the healthy state; the rule is its backstop.
+
+**Held work — owed, not scheduled:**
+
+- **§76 finding 4 — OUT of 0.31.0 and held for the next batch** (§76.7 ruling 1): its
+  short-circuit must be one a code slice cannot take, which is its own design question.
+- **§77's residue — the unit and docs perf passes still assert on `max()`** (§77.7).
+  Apply the median treatment when either next breaches, not pre-emptively; a breach is
+  this finding, not a new one. The cap-20 case's fallback, if it fires, is best-of-2 for
+  that case alone, not a raised budget.
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
-  script verifies structurally but not semantically. Its design constraints are
-  recorded there (never inside a timeout-bound tool hook; headless invocation on
-  both CLIs; fixed rubric, forced verdict-plus-quotation; logging ramp; §16 clock
-  from day one). VER.1 exists, so its precondition is met; it opens only when the
-  owner schedules it.
-- **CONTRACT — built 2026-08-15, unreleased; clock armed, not started** (§57.5):
-  the product-contract mechanism runs the §16 clock from the first field arc under
-  it. Value criterion pre-registered in §56.2: seeding the adopter's contract must
-  surface P01's D6/D22/D23 as scheduled work or explicit owner retirement, and
-  within two arcs a phase touching a contract surface must demonstrably encounter
-  its entries. No confirmed catch after two field arcs → deletion candidate like
-  any rule. **RULED 2026-08-26 (§70.7 (iii)): arc one was NOT spent.** The criterion
-  failed on it, but the mechanism named its own repair (8.1) and that repair shipped
-  in 0.26.0 — the arc measured a defective mechanism, not the one on the clock. The
-  clock starts at the first field arc run under **0.26.0**, and neither adopter is
-  there yet (both on 0.24.0), so **the adopter update offer is what starts it**.
-- **PIN — opened 2026-08-15, owner-directed, targeted at the next release** (§61):
-  the Claude-dialect hook rewiring. Field-measured at the TFit 0.23.0 update: hooks
-  behind `"shell": "bash"` never fire on Claude Code 2.1.231 — the adopter's gate
-  hook had been silently inert. Design pre-registered in §61; decisions owed there.
-- **IMPACT — opened 2026-08-18, design §66; ruled same day, queued behind
-  RECON.** The §56.3 (d) hold resolved: the owner's visualization spec is
-  ingested at the root (`FEATURE_SPEC_IMPACT.md`) and triaged — a deterministic
-  Understand Anything impact adapter, eight deltas adopted. All five §66.7
-  rulings taken 2026-08-18: RECON builds first, TFit-Foundation is the trial
-  project (its `.ua/knowledge-graph.json` verified on disk), install path
-  `.github/hooks/sdlc-impact.py`. The observed dashboard read landed
-  2026-08-19 — (b) fully satisfied, the read path frozen against the real
-  TFit pair (snapshotted, git-ignored `impact-fixture-source/`). Only RECON
-  gates the build now. Its clock is pre-registered in §66.6 and counts only
-  field arcs run with a usable graph.
-- **RECON — BUILT 2026-08-19 (§68), shipping as 0.26.0; design §67, rulings §67.7.**
-  The §63.5-ruled
-  next batch: Class A (7.1, 7.2, 7.7, 8.1) built as **one reconcile pass** opening
-  `/end-phase` step 7 — every recorded number and carried claim reported
-  recorded-vs-measured before any owner question — plus the half-done split rule,
-  the contract's per-close absent-behavior direction, and the one-line rule's
-  log-only budget observer in the close-out checker. All rulings taken same day
-  (§67.7) — including COMBINED release shape, so 0.26.0 carries the four
-  independents (7.4a+b, 7.5, 7.6, 8.3) with 7.4b resolved as inline-the-recipe.
-  Built the same day, all of it: the reconcile pass, the split rule, the `docs-check`
-  observer (log-only, budget 25, 7 proof cases + 6 mutations — suite 21+7+15 cases,
-  22 mutations, 0 survivors), the four independents, and the §64 license sentence.
-  `/kit-check` run pre-tag (§69): six findings, all fixed in-session. **IMPACT builds
-  next**, per §66.7 (a) — RECON no longer gates it.
-- **Standing input — ARRIVED 2026-08-17, triaged in §63.** Both adopters closed a
-  phase the same day and filed: the first adopter's Phase 07 (`sdlc-kit#7`, the
-  seventh report) and the second's Phase 05 (`sdlc-kit#8`, the eighth). Ten findings,
-  all standing; the clock evidence each arc carries is read in §63.4 and the rulings
-  are owed there.
-- **Standing input — ARRIVED 2026-09-01, triaged in §76.** The first adopter's Phase 09
-  (`sdlc-kit#10`, the tenth report), against **0.30.0** — the first report in the lineage
-  that collides with nothing already shipped. Six findings, all standing, three needing
-  their fix re-aimed, plus a seventh the triage adds (§76.3). §76.5 reads the arc against
-  the clocks: the lens clock is **readable for two of three lenses** for the first time,
-  CONTRACT's **arc one is spent** with §56.2's second criterion met, IMPACT's arc one is
-  proposed **not to count** (whole-arc-stale graph), and `change-simplify`'s final clock
-  is **ambiguous by the kit's own fault**. Five rulings owed at §76.6.
-- **The Copilot bench is still standing** (§29.3): fixture repo
-  `D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot
-  CLI; neither is tracked, reversal steps recorded there. The ENF, OBS, VER.2, and
-  VER.3 trial artifacts stand on it (§31.16, §50.5, §52.7), including the backstop
-  trio in logging mode.
+  script verifies structurally but not semantically. Precondition (VER.1) met; opens
+  only when the owner schedules it.
+
+**Standing inputs:** none pending. Every field report through the tenth
+(`sdlc-kit#10`, §76) is triaged, ruled, and shipped (0.31.0); the #10 reply was posted
+2026-09-04. The next input is either adopter's next arc retro.
+
+**The Copilot bench is still standing** (§29.3): fixture repo
+`D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot CLI;
+neither is tracked, reversal steps recorded there. The ENF, OBS, VER.2, and VER.3 trial
+artifacts stand on it (§31.16, §50.5, §52.7), including the backstop trio in logging mode.
 
 ---
 
