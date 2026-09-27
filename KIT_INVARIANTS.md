@@ -224,7 +224,16 @@ classifier, the release workflow's manifest
 verification, the architecture-impact adapter's four-state taxonomy (0.28.0 — its
 negative cases live in `tools/impact-check.py`: a graph that will not parse must be
 seen to report ERROR rather than a silent COMPLETE, and an un-ignored UA directory
-must be seen to write no overlay), the `tools/` proof suites, and `/kit-check` itself — must state how it is
+must be seen to write no overlay), the hook launchers' **missing-script stop block**
+(0.31.1 — a stop launcher whose script is absent must be seen to block once naming it,
+and must be seen NOT to block when `stop_hook_active` is true or when the script is
+present; pre- and post-tool launchers must be seen to stay silent), the hooks'
+**git-directory resolution through a linked worktree's `.git` file** (0.31.1 — a real
+`git worktree add` fixture must be seen to keep state in the worktree's own git
+directory, and a `.git` naming no git directory must be seen to guard nothing at
+pre-write and to block at stop), the guard's **WSL mount candidate root** (0.31.1 — a
+drive-form path under a `/mnt/<drive>/` root must be seen to be production, not
+"outside the repository"), the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
 being added here is one the pass will not think to look for. Adding a check means

@@ -21,7 +21,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.github/hooks/sdlc-gate-claude.sh` + a bare launcher block in `.claude/settings.json`, `PostToolUse` (split 0.24.0 — the per-hook `"shell"` pin was measured never firing on Claude Code 2.1.231) | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
 | TDD-ordering guards (optional, per dialect since 0.21.0) | `.github/hooks/sdlc-tdd-guard.py` + four hook blocks in `.claude/settings.json` — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` |
-| Skill-activation ledger (optional, logging-only) | `.github/hooks/sdlc-skill-ledger.sh` + the `"Skill"`-matcher launcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` |
+| Skill-activation ledger (optional, logging-only) | `.github/hooks/sdlc-skill-ledger.sh` + the `"Skill"`-matcher launcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` + the same `.sh` (one body, both CLIs, since 0.31.1) |
 | Close-out evidence checker (always; a command step run by `/end-slice`, not a hook) | `.github/hooks/sdlc-close-out.sh`, invoked `sh …` from the Bash tool | the same file — but the shell tool resolves no `sh` (measured 2026-08-10, and its PATH's `bash` is WSL's, the corrupting route), so the invocation derives sh from the git on its PATH and `spec/SDLC.md` records the proven literal form |
 | Architecture-impact adapter (always; a command step the daily commands invoke, not a hook) | `.github/hooks/sdlc-impact.py`, invoked `python …` | **the same file and the same invocation** — it is Python rather than shell, so the `sh`-resolution problem in the row above does not arise, and no dialect fork exists. Inert without an Understand Anything graph on either CLI. |
 | Close-out stop-time backstop (optional, offered from 0.22.0; the same script's `stop-check` mode) | a launcher-neutral `sh -c` `Stop` block in `.claude/settings.json` — no `"shell"` pin, which was measured never firing on 2.1.231 (GATE_RECIPES, *The hook environment*) | `.github/hooks/sdlc-close-out.json`, `agentStop`, the guard JSON's `cat \| sh …` wrapper shape |
@@ -464,8 +464,9 @@ critiques the session's current plan, design, implementation, or tests — **not
 or PR reviewer**. Its critic deliberately runs on a model from a *different family*
 than the session orchestrator (changelog 2026-05-07: Claude critic for GPT sessions
 and the reverse), it is read-only, and it fires both automatically at moments the CLI
-chooses and on demand via `/rubber-duck`. Availability is constrained to Claude/GPT
-session models (concept page). Why it is not a step: the kit owns its reviewer
+chooses and on demand via `/rubber-duck`. Availability was constrained to Claude/GPT
+session models (concept page); the 1.0.87 changelog enables it for every model family.
+Why it is not a step: the kit owns its reviewer
 (`diff-review`, both CLIs), and a feature the kit can neither configure nor verify
 cannot carry a process obligation. Sharper than that: its critique is
 **conversation-only** — nothing lands on disk — so it can never satisfy an
@@ -713,7 +714,9 @@ suggestion absent from every official page checked).
 with `toolArgs` as an ordinary JSON-encoded string (`{"skill":"<name>"}`) and
 relevance-based activation logging identically to explicit `/name` invocation; hook
 payloads arrive **without a trailing newline**; the hook process's working directory is
-the session's cwd, in the executing shell's own path flavour. And the environment
+the session's cwd, in the executing shell's own path flavour (true of 1.0.64–1.0.87 for
+an entry with no `cwd`, and the defect 0.31.1 fixed — see the 2026-09-27 record below).
+And the environment
 hazard sharpened: **the hook shell follows the launching shell's `PATH`** — the same
 repo ran its hooks under WSL bash from a PowerShell launch and under Git Bash from a
 Git Bash launch — and the WSL launcher route **re-parses the hook command line**,
@@ -725,6 +728,44 @@ way **the same day** and re-proven live on both launcher routes; and the **gate 
 diagnostic — was split the same day into the script-plus-launcher pair above and
 proven live on both routes with real lint output, including path-flavour resolution
 for the absolute-Windows patch headers that arrive even when the hook runs in WSL.
+
+**Re-verified 2026-09-27 against 1.0.88** (the changelog 1.0.79–1.0.88 read in full;
+release builds 1.0.63, 1.0.78, 1.0.86 and 1.0.88 run side by side on the bench, both
+launcher routes). What moved:
+
+- **Where hooks start.** An entry with no `cwd` ran in the **session's** cwd on
+  1.0.64–1.0.87 and at the repository root on 1.0.63 and 1.0.88 (the 1.0.88 changelog:
+  *"again run in the project root"*). A documented entry field, `cwd` — *"relative to
+  repository root or absolute"* — pins it on every build measured, and resolves to the
+  worktree's own root in a linked worktree. Every kit entry carries `"cwd": "."` since
+  0.31.1; without it a session launched below the root ran with no gate, guard, or
+  backstop, silently (*Where the launchers start*, `GATE_RECIPES.md`).
+- **A linked worktree's `.git` is a file**, on every build — `/worktree`, `/move` and
+  `--worktree` left experimental mode in 1.0.85 — and a worktree made by Windows git
+  names a `D:/` gitdir that neither WSL bash nor WSL's own git can follow. The kit's
+  scripts read and translate it themselves since 0.31.1.
+- **Exit codes are not loud.** A hook's stderr and non-zero exit reach only the
+  session's own log (`~/.copilot/session-state/<id>/events.jsonl`); the agent reported
+  seeing no hook message. A `preToolUse` non-zero exit **denies the tool call**
+  (documented; exit 2 and any other non-zero alike). What reaches the agent without
+  blocking work: an `agentStop` block's reason, delivered as a new user turn.
+- **Quotes survive the WSL launcher route**; a `$var` defined in the body does not — the
+  outer layer expands it to empty. `$(command)` of an environment-independent command
+  survives, because either layer computes the same value.
+- **`exec` hooks do not fire on a PowerShell launch** — no `sh` on the path they resolve.
+- **Copilot CLI reads `.claude/settings.json` and `.claude/settings.local.json` as
+  repo config** (changelog 1.0.12) and runs their hook commands itself — through
+  PowerShell on Windows, where the kit's Claude-dialect shell launchers do not parse. On
+  a project carrying both dialects' hooks, Copilot sessions therefore also run the
+  Claude-dialect ones. Recorded, not yet designed around.
+- `/skills reload` and `/skills info <name>` still work (confirmed in a real interactive
+  session, 1.0.83 and 1.0.88); `copilot -p "/skills reload"` does **not** run the
+  command — the text goes to the model, which answers as if it had.
+- `/rubber-duck` runs for every model family since 1.0.87; `/plugins` was removed in
+  1.0.81 (resources moved to `/plugin`, `/mcp`, `/skills`); `copilot plugins install
+  --skill` became `copilot skill add [--project]` in 1.0.85.
+- Hook events inside a subagent are recorded since 1.0.81, so hooks do run there —
+  evidence for the `/fleet` question above, not an answer to it.
 
 Upstream issues, state as of **2026-08-07** (both moved since the 2026-08-03 record):
 `github/copilot-cli#618` (markdown prompt files) **closed 2026-03-05** — declined by a

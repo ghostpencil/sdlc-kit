@@ -65,18 +65,64 @@
 # failure. What that shell reported at setup is recorded in spec/SDLC.md beside the gate.
 
 MODE=$1
-# The hook config invokes this script from the repository root: the hook process's
-# working directory is the session's cwd, in the executing shell's own path flavour
-# (measured 2026-08-07 - and the reason the config passes nothing: anything richer
-# than a bare command is corrupted when the CLI's hook shell is the WSL launcher,
-# which re-parses the command line). An explicit SDLC_REPO_ROOT still wins so a
-# harness can pin it. With no root given and no .git here, do nothing rather than
-# write state to an unrelated directory.
+# The hook config invokes this script from the repository root: its entries carry
+# "cwd": ".", which the CLI resolves against the repository root - the worktree's own
+# root in a linked worktree - on every build measured, 1.0.63 to 1.0.88. Without it
+# the hook ran in the SESSION's cwd on 1.0.64-1.0.87, and a session started below
+# the root guarded nothing (fixed in 0.31.1). The config passes nothing else: a
+# richer command line is corrupted when the CLI's hook shell is the WSL launcher,
+# which re-parses it. An explicit SDLC_REPO_ROOT still wins so a harness can pin it.
+# With no root given and no .git here, do nothing rather than write state to an
+# unrelated directory.
 if [ -z "$SDLC_REPO_ROOT" ]; then
-  [ -d .git ] || exit 0
+  [ -e .git ] || exit 0
   SDLC_REPO_ROOT=$(pwd)
 fi
-S="$SDLC_REPO_ROOT/.git/sdlc-tdd"
+
+# The git directory. .git is a directory in an ordinary checkout and a one-line
+# "gitdir: <path>" FILE in a linked worktree, whose path the creating git wrote in
+# ITS flavour: a worktree made by Windows git names D:/..., which does not exist as
+# written under WSL bash - and WSL's own git cannot follow it either (measured
+# 2026-09-27). So the file is read here, not by git, and the path goes through the
+# same drive-letter translation the gate hook uses. Relative gitdirs resolve
+# against the root. In an ordinary checkout this is ROOT/.git, so every state path
+# is exactly what it always was.
+sdlc_git_dir() {
+  if [ -d "$1/.git" ]; then printf '%s' "$1/.git"; return 0; fi
+  [ -f "$1/.git" ] || return 1
+  g=$(sed -n 's/^gitdir:[[:space:]]*//p' "$1/.git" | tr -d '\r' | tr '\\' '/')
+  [ -n "$g" ] || return 1
+  case $g in /*|[A-Za-z]:/*) ;; *) g="$1/$g" ;; esac
+  if [ -d "$g" ]; then printf '%s' "$g"; return 0; fi
+  dl=$(printf '%s' "$g" | sed -n 's|^\([A-Za-z]\):/.*|\1|p' | tr 'A-Z' 'a-z')
+  rest=$(printf '%s' "$g" | sed -n 's|^[A-Za-z]:/\(.*\)|\1|p')
+  if [ -n "$dl" ]; then
+    for c in "/mnt/$dl/$rest" "/$dl/$rest"; do
+      if [ -d "$c" ]; then printf '%s' "$c"; return 0; fi
+    done
+  fi
+  return 1
+}
+GD=$(sdlc_git_dir "$SDLC_REPO_ROOT") || GD=""
+if [ -z "$GD" ]; then
+  # A .git that names no git directory: nowhere to keep state, so guard nothing -
+  # but say so at stop, the one seat measured to reach anyone (measured 2026-09-27).
+  if [ "$MODE" = "stop-check" ] && ! printf '%s' "$(cat)" | grep -q '"stop_hook_active"[[:space:]]*:[[:space:]]*true'; then
+    printf '{"decision":"block","reason":"SDLC TDD guard did not run: %s/.git names no git directory, so the writes in this session were not guarded. Tell the owner."}\n' "$SDLC_REPO_ROOT"
+  fi
+  exit 0
+fi
+S="$GD/sdlc-tdd"
+# The licence directory as the deny message names it: the familiar relative form in
+# an ordinary checkout, the real location in a worktree, where .git/ is a file.
+# The agent writes that licence with its own tools, which take drive paths - so a
+# worktree's git dir resolved under WSL (/mnt/d/...) is named in its drive form (D:/...).
+# SDLC_WSL_MOUNT exists so a harness without a /mnt can pin the prefix; nothing sets it.
+wm=${SDLC_WSL_MOUNT:-/mnt}
+if [ "$GD" = "$SDLC_REPO_ROOT/.git" ]; then LIC=.git/sdlc-tdd; else
+  LIC=$S
+  case "$LIC" in "$wm"/?/*) LIC=$(printf '%s' "${LIC#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;; esac
+fi
 mkdir -p "$S" 2>/dev/null
 LOG="$S/guard.log"
 IN=$(cat)
@@ -246,8 +292,20 @@ case "$MODE" in
       # it, the 0.25.0 body allowed it. A fix meant to narrow the guard's scope opened
       # a hole in it. Trying both flavours costs one subshell and cannot regress a
       # POSIX host, where the two answers are identical.
+      # ...and a THIRD, because `pwd -W` exists only in MSYS: under WSL bash - the
+      # hook shell whenever the CLI was launched from PowerShell - the root reads
+      # /mnt/d/foo, `pwd -W` prints nothing, and the same D:\foo matched neither, so
+      # the 0.28.1 fix left that route skipping every absolute-path write exactly as
+      # 0.25.0 had (measured live 2026-09-27: the Git Bash launch denied, the
+      # PowerShell launch of the same build logged "outside the repository" and let
+      # the write through). The mount form translates back to the drive form here
+      # ($wm is set beside the licence path, above).
+      wroot=""
+      case "$SDLC_REPO_ROOT" in
+        "$wm"/?/*) wroot=$(printf '%s' "${SDLC_REPO_ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;;
+      esac
       rel=""
-      for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; do
+      for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do
         [ -n "$cand" ] || continue
         c=$(printf '%s' "$cand" | tr '\\' '/'); c=${c%/}
         cl=$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')
@@ -300,7 +358,7 @@ PATHLIST
         log "OK production write ($which license: $(head -n 1 "$S/$which-license" 2>/dev/null | tr -d '\r')): $prod"
       elif [ -f "$S/deny-enabled" ]; then
         log "DENY production write without observed red: $prod"
-        emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&' or '|' separators - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING edit at any point in the cycle (refactor, simplification, mutation testing - including a temporary mutation to prove a test of existing behavior bites): declare it instead - write one line naming the step and move to .git/sdlc-tdd/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review. If you are running /end-slice, declare .git/sdlc-tdd/close-out-license instead - same rules, except a test edit does NOT revoke it, because close-out's own step order edits tests between its production writes; each test edit it survives is counted in the log."
+        emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&' or '|' separators - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING edit at any point in the cycle (refactor, simplification, mutation testing - including a temporary mutation to prove a test of existing behavior bites): declare it instead - write one line naming the step and move to $LIC/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review. If you are running /end-slice, declare $LIC/close-out-license instead - same rules, except a test edit does NOT revoke it, because close-out's own step order edits tests between its production writes; each test edit it survives is counted in the log."
       else
         touch "$S/prod-write-observed" 2>/dev/null
         log "VIOLATION production write without observed red: $prod"

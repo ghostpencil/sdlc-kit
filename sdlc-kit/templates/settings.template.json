@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c \"if [ -d .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh .github/hooks/sdlc-close-out.sh stop-check; fi\"",
+            "command": "sh -c \"if [ -e .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh .github/hooks/sdlc-close-out.sh stop-check; elif grep -q 'stop_hook_active.: *true'; then :; else echo '{\\\"decision\\\":\\\"block\\\",\\\"reason\\\":\\\"SDLC close-out backstop did not run: .github/hooks/sdlc-close-out.sh is missing, so no commit in this session was checked for its close-out record. Tell the owner.\\\"}'; fi\"",
             "timeout": 30,
             "statusMessage": "SDLC close-out backstop"
           }

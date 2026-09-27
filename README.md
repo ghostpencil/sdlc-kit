@@ -206,10 +206,10 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── tdd-guard.template.json      → .github/hooks/sdlc-tdd-guard.json (their hook config; no values)
 │   ├── tdd-guard-claude.template.py → .github/hooks/sdlc-tdd-guard.py (the same guards, Claude Code
 │   │                                   dialect: event-split observation, shell-neutral launcher)
-│   ├── skill-ledger.template.json   → .github/hooks/sdlc-skill-ledger.json (optional, logging-only:
-│   │                                   the skill-activation ledger, Copilot dialect; no values)
-│   ├── skill-ledger-claude.template.sh → .github/hooks/sdlc-skill-ledger.sh (the same ledger,
-│   │                                   Claude Code dialect: the logic; no values)
+│   ├── skill-ledger.template.sh     → .github/hooks/sdlc-skill-ledger.sh (optional, logging-only:
+│   │                                   the skill-activation ledger's body, both CLIs; no values)
+│   ├── skill-ledger.template.json   → .github/hooks/sdlc-skill-ledger.json (its Copilot launcher;
+│   │                                   no values)
 │   ├── close-out.template.sh        → .github/hooks/sdlc-close-out.sh (both CLIs, always: the
 │   │                                   close-out evidence checker /end-slice runs; no values)
 │   ├── close-out-hook.template.json → .github/hooks/sdlc-close-out.json (optional: the checker's
@@ -312,7 +312,7 @@ user-typed under `.claude/commands/`, once packaged under `.github/skills/` — 
 copies update.
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
-re-applied to an already-adopted project — with four exceptions, all of which track
+re-applied to an already-adopted project — with five exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
 gone); on Copilot projects `templates/explore.agent.template.md`, which is
@@ -320,7 +320,9 @@ copied verbatim rather than instantiated because it carries no placeholders;
 from 0.20.0, on both CLIs, `templates/close-out.template.sh`, copied verbatim to
 `.github/hooks/sdlc-close-out.sh` for the same reason; and — from 0.22.0, on a
 Copilot project that accepted the backstop offer — `templates/close-out-hook.template.json`,
-copied verbatim to `.github/hooks/sdlc-close-out.json`. A kit release that changes only
+copied verbatim to `.github/hooks/sdlc-close-out.json`; and — from 0.28.0, on both CLIs —
+`templates/sdlc-impact.template.py`, copied verbatim to `.github/hooks/sdlc-impact.py`.
+A kit release that changes only
 the non-installed templates and reference docs is an adoption-only change — it affects new
 adoptions, not yours, **with one standing exception**: a template change to a
 project-owned file you instantiated (the hook scripts, the spec files) reaches you
@@ -368,7 +370,8 @@ only as a hand-apply, and the per-version transition notes name each one.
    for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
                            .github/skills .github/agents \
                            .github/hooks/sdlc-close-out.sh \
-                           .github/hooks/sdlc-close-out.json                            .github/hooks/sdlc-impact.py); do
+                           .github/hooks/sdlc-close-out.json \
+                           .github/hooks/sdlc-impact.py); do
      have=""
      case "$f" in
        .github/hooks/sdlc-close-out.sh)
@@ -438,7 +441,8 @@ only as a hand-apply, and the per-version transition notes name each one.
      as above, rather than probing for it.
    - **Check the denominator.** The loop should report exactly as many files as
      `git ls-files` over the same pathspec list the loop walks (the five directories
-     plus `.github/hooks/sdlc-close-out.sh` and `.github/hooks/sdlc-close-out.json`).
+     plus `.github/hooks/sdlc-close-out.sh`, `.github/hooks/sdlc-close-out.json` and
+     `.github/hooks/sdlc-impact.py`).
      If it reports fewer,
      your prefix matching is dropping files — `tdd-references/` lives two directories
      down and is the usual casualty. A Copilot project counts files under `.github/`
@@ -680,7 +684,8 @@ only as a hand-apply, and the per-version transition notes name each one.
    `templates/claude-gate.template.sh` → `.github/hooks/sdlc-gate-claude.sh` with
    the values read out of your current settings-file hook body, make the
    `Edit|Write` block its bare launcher (`sh .github/hooks/sdlc-gate-claude.sh`);
-   where installed, `templates/skill-ledger-claude.template.sh` →
+   where installed, `templates/skill-ledger.template.sh` (named
+   `skill-ledger-claude.template.sh` through 0.31.0) →
    `.github/hooks/sdlc-skill-ledger.sh` (verbatim) with its block as
    `sh .github/hooks/sdlc-skill-ledger.sh`, and the backstop block as the
    launcher-neutral `sh -c "…stop-check…"` form; remove every `"shell"` key (the
@@ -821,6 +826,37 @@ only as a hand-apply, and the per-version transition notes name each one.
    Anything plugin that setting reminds rather than refreshes, and one of its two hooks
    matches the Bash tool only). The update command's 0.31.0 notes state the same
    procedure.
+
+   **0.31.1 re-arms every hook launcher that read "not at the root" as "not a
+   repo".** The launchers tested for a `.git` *directory* and exited 0 otherwise, so
+   two situations turned your controls off without a word: a Copilot session started
+   below the repository root on CLI builds 1.0.64–1.0.87 (hooks ran in the session's
+   cwd — no gate, guard, backstop, or ledger line), and a linked worktree on any build
+   and either CLI (its `.git` is a file). Proving the fix found a third, worse one:
+   **launched from PowerShell, where Copilot's hooks run under WSL bash, the TDD guard
+   has waved through every absolute-path write since 0.25.0** — 0.28.1's fix relied on
+   `pwd -W`, which exists only in Git Bash, so `D:\…` paths were logged "outside the
+   repository". Search your `guard.log` for that line against in-repository paths.
+   Every Copilot entry now carries
+   `"cwd": "."`, every test is `[ -e .git ]`, the scripts read a worktree's `.git` file
+   themselves, each stop launcher blocks once naming a missing script — an exit code
+   reaches only Copilot's session log, never the agent — and the skill ledger's body
+   now lives in `.github/hooks/sdlc-skill-ledger.sh` for both CLIs. The close-out
+   script and its Copilot JSON arrive with the update. **The rest is yours by hand**:
+   the gate and guard JSONs replaced from their templates, the guard script (either
+   dialect) as a template diff keeping your three values, the settings file's close-out
+   `Stop` command, and — ledger installs only — the shared ledger script installed
+   **before** the new ledger JSON, which is only its launcher. Nothing moves in an
+   ordinary checkout. On Claude Code, replace an existing `sdlc-skill-ledger.sh` with the
+   shared body too. State is per-worktree, so deny armed in the main checkout does not
+   arm a worktree. Re-prove from **each launch route you use** — on Windows both Git Bash
+   and PowerShell, since the WSL gap lived on the PowerShell route only: deny armed, a
+   Copilot session started in a subdirectory, an edit to an in-repository production file
+   by its absolute path, the verdict read from `guard.log` (and the same in a worktree,
+   if you use them; on Claude Code, from your own launch route). Then fold into
+   `spec/SDLC.md`: the guard note says what `.git/` means in a worktree and that the flag
+   is per-worktree, and a Copilot ledger note names the shared script beside the JSON.
+   The update command's 0.31.1 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """Re-runnable proof for the skill-activation ledger hook, both dialects.
 
-Drives the Copilot hook body (templates/skill-ledger.template.json) and the Claude Code
-body (templates/skill-ledger-claude.template.sh) with payload shapes measured on the
+Drives the Copilot launcher (templates/skill-ledger.template.json) and the body both
+CLIs share since 0.31.1 (templates/skill-ledger.template.sh - the Claude Code body
+alone, named skill-ledger-claude.template.sh, until then; FEATURE_PLAN.md 78) with
+payload shapes measured on the
 bench 2026-08-07 (FEATURE_PLAN.md 37.3 probes P1/P2) rather than invented ones. Every
 silent case is also run dirty, so silence means something: the loud no-root branch is
 exercised in each dialect, and the append is proven to end in a newline - the measured
@@ -27,7 +29,11 @@ import io, json, os, re, subprocess, sys, tempfile, traceback
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPILOT_TPL = os.path.join(REPO, "sdlc-kit", "templates", "skill-ledger.template.json")
 CLAUDE_TPL = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json")
-CLAUDE_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "skill-ledger-claude.template.sh")
+# The BODY both CLIs run since 0.31.1 (FEATURE_PLAN.md 78) - until then the Copilot
+# body was inline in the JSON and this file was Claude-only, named
+# skill-ledger-claude.template.sh.
+CLAUDE_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "skill-ledger.template.sh")
+COPILOT_LAUNCHER_SCRIPT = ".github/hooks/sdlc-skill-ledger.sh"
 SETUP_MD = os.path.join(REPO, "sdlc-kit", "commands", "sdlc-setup.md")
 LAUNCHER = "sh .github/hooks/sdlc-skill-ledger.sh"
 
@@ -132,15 +138,40 @@ def guarded(label, default, fn, *a, **kw):
 guarded.crashed = []
 
 
-def copilot_suite(cop_body, base, repo):
-    # The body must stay free of backslashes: a hook body crosses the Windows-to-WSL
-    # launcher boundary when the CLI was started from a shell whose PATH resolves bash
-    # to the WSL launcher, and that boundary re-parses the command line - measured
-    # 2026-08-07, it corrupted every backslash-carrying body it was given. The ledger
-    # therefore keys on the hook process cwd (measured: the session cwd, in the
-    # executing shell's own path flavour) rather than parsing the payload for a root.
-    case("copilot: body carries no backslash to be eaten at the WSL launcher boundary",
-         "\\" not in cop_body, cop_body)
+def install(root, script_src):
+    p = os.path.join(root, *COPILOT_LAUNCHER_SCRIPT.split("/"))
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    io.open(p, "w", encoding="utf-8", newline="\n").write(script_src)
+
+
+def real_worktree(base):
+    """A REAL linked worktree: main checkout, worktree root, and the worktree's own
+    git dir. Hand-made .git directories are the one configuration that cannot see
+    FEATURE_PLAN.md 78 - in a worktree .git is a FILE naming the git directory."""
+    main_r = os.path.join(base, "wtmain")
+    wt_r = os.path.join(base, "wt")
+    os.makedirs(main_r)
+    g = lambda *a: subprocess.run(["git"] + list(a), capture_output=True, text=True)
+    g("init", "-q", main_r)
+    g("-C", main_r, "-c", "user.email=b@b", "-c", "user.name=b",
+      "commit", "-q", "--allow-empty", "-m", "base")
+    g("-C", main_r, "worktree", "add", "-q", wt_r, "-b", "wt")
+    return main_r, wt_r, g("-C", wt_r, "rev-parse", "--absolute-git-dir").stdout.strip()
+
+
+def copilot_suite(cop_body, script_src, base, repo, entry):
+    # The launcher must stay free of backslashes and of $: a hook body crosses the
+    # Windows-to-WSL launcher boundary when the CLI was started from a shell whose PATH
+    # resolves bash to the WSL launcher, and that boundary re-parses the command line -
+    # measured 2026-08-07 corrupting every backslash, and 2026-09-27 expanding a $var to
+    # empty. Since 0.31.1 the body is a script file, as the other hooks' are, and the
+    # entry pins "cwd": "." so the CLI starts it at the repository root on every build
+    # (FEATURE_PLAN.md 78: builds 1.0.64-1.0.87 otherwise ran hooks in the SESSION cwd).
+    case("copilot: launcher carries no backslash and no $ to be eaten at the WSL boundary",
+         "\\" not in cop_body and "$" not in cop_body, cop_body)
+    case("copilot: the entry pins cwd to the repository root, and no .git DIRECTORY test",
+         entry.get("cwd") == "." and "-d .git" not in cop_body, json.dumps(entry))
+    install(repo, script_src)
     fwd = repo.replace("\\", "/")
     pay = copilot_payload(repo)  # backslashed Windows cwd, as measured
     rc, err = run(cop_body, pay, cwd=repo)
@@ -156,6 +187,19 @@ def copilot_suite(cop_body, base, repo):
     rc, err = run(cop_body, copilot_payload(nogit), cwd=nogit)
     case("copilot: a hook shell not at the repo root is LOUD - stderr + nonzero, nothing written",
          rc != 0 and "did NOT record" in err and not os.path.exists(ledger_of(nogit)), "rc=%s err=%s" % (rc, err))
+    noscript = os.path.join(base, "noscript"); os.makedirs(os.path.join(noscript, ".git"))
+    rc, err = run(cop_body, copilot_payload(noscript), cwd=noscript)
+    case("copilot: the config installed without its script is LOUD - stderr + nonzero",
+         rc != 0 and "did NOT record" in err and "missing" in err, "rc=%s err=%s" % (rc, err))
+    main_r, wt_r, gd = real_worktree(base)
+    install(wt_r, script_src)
+    pay = copilot_payload(wt_r)
+    rc, err = run(cop_body, pay, cwd=wt_r)
+    wl = os.path.join(gd, "sdlc-skill-ledger.jsonl")
+    wtext = io.open(wl, encoding="utf-8").read() if os.path.exists(wl) else ""
+    case("copilot: at a worktree root the line lands in the WORKTREE's git dir",
+         rc == 0 and pay in wtext and not os.path.exists(ledger_of(main_r)),
+         "rc=%s err=%s gd=%s" % (rc, err, gd))
 
 
 def claude_wiring():
@@ -193,12 +237,25 @@ def claude_suite(cla_body, base):
     rc, err = run(cla_body, pay2, env_extra={"CLAUDE_PROJECT_DIR": repo2})
     n = read_ledger(repo2).count("\n")
     case("claude: second activation is a second line", rc == 0 and n == 2, "n=%s" % n)
-    rc, err = run(cla_body, pay2)  # CLAUDE_PROJECT_DIR unset
-    case("claude: unset CLAUDE_PROJECT_DIR is LOUD - stderr + exit 2",
+    # CLAUDE_PROJECT_DIR unset: since 0.31.1 the script is shared, and the Copilot
+    # dialect has no such variable - it starts the hook AT the root instead. So an
+    # unset variable falls back to the cwd, and is loud only where the cwd is not a
+    # repository root. (Until 0.31.1 an unset variable was loud unconditionally.)
+    rc, err = run(cla_body, pay2, cwd=nogit)
+    case("claude: unset CLAUDE_PROJECT_DIR at a non-repo cwd is LOUD - stderr + exit 2",
          rc == 2 and "did NOT record" in err, "rc=%s err=%s" % (rc, err))
+    rc, err = run(cla_body, pay2, cwd=repo2)
+    case("claude: unset CLAUDE_PROJECT_DIR at a repo root records (the Copilot path)",
+         rc == 0 and read_ledger(repo2).count("\n") == 3, "rc=%s err=%s" % (rc, err))
     rc, err = run(cla_body, pay2, env_extra={"CLAUDE_PROJECT_DIR": nogit})
     case("claude: CLAUDE_PROJECT_DIR without .git is LOUD - exit 2",
          rc == 2 and "did NOT record" in err, "rc=%s" % rc)
+    main_r, wt_r, gd = real_worktree(os.path.join(base, "cwt"))
+    rc, err = run(cla_body, pay2, env_extra={"CLAUDE_PROJECT_DIR": wt_r})
+    wl = os.path.join(gd, "sdlc-skill-ledger.jsonl")
+    case("claude: a worktree's CLAUDE_PROJECT_DIR records into the worktree's git dir",
+         rc == 0 and os.path.exists(wl) and not os.path.exists(ledger_of(main_r)),
+         "rc=%s err=%s" % (rc, err))
 
 
 def main():
@@ -213,7 +270,8 @@ def main():
     repo = os.path.join(base, "proj")
     os.makedirs(os.path.join(repo, ".git"))
 
-    guarded("copilot", None, copilot_suite, cop_body, base, repo)
+    entry = json.load(io.open(COPILOT_TPL, encoding="utf-8"))["hooks"]["postToolUse"][0]
+    guarded("copilot", None, copilot_suite, cop_body, cla_body, base, repo, entry)
     guarded("claude wiring", None, claude_wiring)
     guarded("claude", None, claude_suite, cla_body, base)
 

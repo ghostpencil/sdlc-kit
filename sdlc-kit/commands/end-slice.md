@@ -90,7 +90,9 @@ that glanced.
 licence is declared — and it is the close-out licence, not the refactor one.** Where the
 TDD guards are installed, before the first edit here: write one line naming the step and
 move it to `.git/sdlc-tdd/close-out-license`, behind a counted green, exactly as a
-refactor licence is declared. **One declaration covers steps 3 through 6.** Use the
+refactor licence is declared — in a linked worktree `.git` is a file, and the directory
+is `$(git rev-parse --git-dir)/sdlc-tdd/` instead (the guard's refusal names it too).
+**One declaration covers steps 3 through 6.** Use the
 close-out licence because a test edit revokes the refactor one, and close-out's own
 mandated order puts test edits between its production writes — step 4's review fixes
 tests, step 5's mutation restores them, and a refactor licence declared here is revoked
@@ -257,7 +259,8 @@ config is wrong.
 
 **The close-out licence declared at step 3 covers this step — and this is the step that
 most needs it.** Where the TDD guards are installed and step 3 was skipped (so nothing
-was declared), declare `.git/sdlc-tdd/close-out-license` here before the first mutation.
+was declared), declare `.git/sdlc-tdd/close-out-license` here before the first mutation
+(in a linked worktree, under `$(git rev-parse --git-dir)/sdlc-tdd/`, as step 3 says).
 Do not fall back to the refactor licence: this step's own prescribed *restore* touches
 test files between its production writes, so a refactor licence declared here is revoked
 by the method it was declared for — which is what cost one arc three re-declarations

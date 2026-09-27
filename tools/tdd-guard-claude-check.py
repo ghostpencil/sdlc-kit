@@ -160,6 +160,15 @@ def stop(root, active=False, sid=SID):
     return d
 
 
+def reopen_git(root, mode, newline=None):
+    """Rewrite a worktree's .git FILE. Windows git marks it hidden, and a hidden file
+    cannot be opened for a truncating write there - so remove it, then create it."""
+    p = os.path.join(root, ".git")
+    if os.path.isfile(p):
+        os.remove(p)
+    return io.open(p, mode, newline=newline)
+
+
 def unit(guard_src, verbose=True, counter=None):
     """Returns the list of failed case names; counts every case into `counter`."""
     failures = []
@@ -448,6 +457,11 @@ def unit(guard_src, verbose=True, counter=None):
         b.run("pre-write", write(b.root, "pay.py"), root_env=False, cwd=outside)
         case("24 no root and no .git at cwd is a no-op",
              not os.path.exists(os.path.join(outside, ".git")))
+        # 24b: the same at STOP. Since 0.31.1 a .git that names no git directory blocks
+        # at stop ("did not run"), so declining to take a non-repo cwd as the root is
+        # what keeps a stop outside any repository silent.
+        out = b.run("stop-check", stop(b.root), root_env=False, cwd=outside)
+        case("24b ...and stop-check there is silent too - no block outside a repo", out == "")
 
         b.reset_state()
         b.run("pre-write", write(b.root, "pay.py"), root_env=False,
@@ -466,6 +480,80 @@ def unit(guard_src, verbose=True, counter=None):
         b.run("pre-write", write(b.root, "src/my module.py"))
         case("27 a path containing a space is one path",
              "VIOLATION production write" in b.tail() and "my module.py" in b.tail())
+
+        # --- linked worktrees (FEATURE_PLAN.md 78) ------------------------------
+        # A REAL worktree, because the Bench's hand-made .git directory is exactly
+        # the configuration that cannot see this defect: in a worktree .git is a
+        # file naming the git directory, and a directory test disarmed the guard.
+        wt_base = os.path.join(base, "wt-fixture")
+        main_r = os.path.join(wt_base, "main")
+        wt_r = os.path.join(wt_base, "wt")
+        os.makedirs(main_r)
+        g = lambda *a: subprocess.run(["git"] + list(a), capture_output=True, text=True)
+        g("init", "-q", main_r)
+        io.open(os.path.join(main_r, "README"), "w").write("x\n")
+        g("-C", main_r, "add", "README")
+        g("-C", main_r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "i")
+        g("-C", main_r, "worktree", "add", "-q", wt_r, "-b", "wt")
+        gd = g("-C", wt_r, "rev-parse", "--absolute-git-dir").stdout.strip()
+        wt_state = os.path.join(gd, "sdlc-tdd")
+        os.makedirs(os.path.join(wt_r, ".github", "hooks"))
+        shutil.copy(b.guard, os.path.join(wt_r, ".github", "hooks", "sdlc-tdd-guard.py"))
+
+        def wt_run(mode, payload):
+            if mode == "pre-write":
+                shutil.rmtree(wt_state, ignore_errors=True)
+            e = dict(os.environ)
+            e.pop("SDLC_REPO_ROOT", None)
+            e["CLAUDE_PROJECT_DIR"] = wt_r
+            p = subprocess.run([sys.executable, os.path.join(wt_r, ".github", "hooks",
+                                                             "sdlc-tdd-guard.py"), mode],
+                               input=json.dumps(payload).encode(), capture_output=True,
+                               env=e, cwd=wt_r)
+            return p.stdout.decode("utf-8", "replace").strip()
+
+        def wt_log():
+            f = os.path.join(wt_state, "guard.log")
+            return io.open(f, encoding="utf-8").read() if os.path.exists(f) else ""
+
+        wt_run("pre-write", write(wt_r, "pay.py"))
+        case("28 worktree via CLAUDE_PROJECT_DIR: guarded, state in the worktree's git dir",
+             os.path.isfile(os.path.join(wt_r, ".git"))
+             and "VIOLATION production write" in wt_log()
+             and not os.path.exists(os.path.join(main_r, ".git", "sdlc-tdd")))
+
+        rel = os.path.relpath(gd, wt_r).replace(os.sep, "/")
+        reopen_git(wt_r, "w", newline="\n").write("gitdir: %s\n" % rel)
+        wt_run("pre-write", write(wt_r, "pay.py"))
+        case("28b ...and through a RELATIVE gitdir",
+             "VIOLATION production write" in wt_log())
+
+        os.makedirs(wt_state, exist_ok=True)
+        io.open(os.path.join(wt_state, "deny-enabled"), "w").write("")
+        io.open(os.path.join(wt_state, "session"), "w").write(SID)
+        e = dict(os.environ)
+        e.pop("SDLC_REPO_ROOT", None)
+        e["CLAUDE_PROJECT_DIR"] = wt_r
+        p = subprocess.run([sys.executable, os.path.join(wt_r, ".github", "hooks",
+                                                         "sdlc-tdd-guard.py"), "pre-write"],
+                           input=json.dumps(write(wt_r, "pay.py")).encode(),
+                           capture_output=True, env=e, cwd=wt_r)
+        reason = p.stdout.decode("utf-8", "replace")
+        case("28c the deny names the worktree's REAL licence directory, not .git/",
+             "refactor-license" in reason and ".git/sdlc-tdd/" not in reason
+             and "/worktrees/" in reason.replace("\\\\", "/").replace("\\", "/"))
+
+        reopen_git(wt_r, "w", newline="\n").write(
+            "gitdir: %s\n" % os.path.join(wt_base, "nowhere").replace(os.sep, "/"))
+        out = wt_run("stop-check", stop(wt_r))
+        try:
+            j = json.loads(out)
+        except ValueError:
+            j = {}
+        case("28d a .git naming no git dir: stop-check blocks, saying the guard did not run",
+             j.get("decision") == "block" and "did not run" in (j.get("reason") or ""))
+        out = wt_run("stop-check", stop(wt_r, active=True))
+        case("28e ...and stands down on stop_hook_active", out == "")
     finally:
         shutil.rmtree(base, ignore_errors=True)
     return failures
@@ -538,9 +626,25 @@ MUTATIONS = [
      "the RED command counts as a test run)",
      'if not cmd or not match_any(probe, TEST_CMD_PATTERN):',
      'if not cmd or not match_any(cmd, TEST_CMD_PATTERN):'),
+    # RE-POINTED at 0.31.1: the cwd test became os.path.exists (a worktree's .git is a
+    # file); reported STALE by the suite rather than silently counted, as designed.
     ("trust any cwd when no root is given (state written to unrelated dirs)",
-     'if os.path.isdir(".git"):\n        return os.getcwd()',
-     'return os.getcwd()\n    if os.path.isdir(".git"):\n        return os.getcwd()'),
+     'if os.path.exists(".git"):\n        return os.getcwd()',
+     'return os.getcwd()\n    if os.path.exists(".git"):\n        return os.getcwd()'),
+    ("stop reading a worktree's .git file (every worktree session guarded nothing, "
+     "in silence - FEATURE_PLAN.md 78)",
+     '    if os.path.isdir(p):\n        return p\n    try:',
+     '    if os.path.isdir(p):\n        return p\n    return None\n    try:'),
+    ("keep state under the root's literal .git (a worktree's state has nowhere to go)",
+     'S = os.path.join(GD, "sdlc-tdd")',
+     'S = os.path.join(ROOT, ".git", "sdlc-tdd")'),
+    ("name the literal .git/ licence path in a worktree's deny (an instruction the "
+     "agent cannot follow - .git is a file there)",
+     '% (rel, LIC, LIC)',
+     '% (rel, ".git/sdlc-tdd", ".git/sdlc-tdd")'),
+    ("guard nothing in silence when the git dir cannot be resolved at stop",
+     """if not re.search(r'"stop_hook_active"\\s*:\\s*true', raw):""",
+     'if False:'),
 ]
 
 

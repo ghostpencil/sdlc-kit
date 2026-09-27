@@ -3,7 +3,8 @@
 #
 # Same state machine as the Copilot dialect (sdlc-tdd-guard.sh) - G1 observed-RED
 # write guard with the refactor license, G2 premature-stop guard, session-scoped
-# state in .git/sdlc-tdd/ - with every signal path rebuilt from a 2026-08-12
+# state in .git/sdlc-tdd/ (the git directory: in a linked worktree .git is a file
+# naming it - see git_dir below) - with every signal path rebuilt from a 2026-08-12
 # probe of the real hook payloads:
 #
 #   - Green and red arrive on DIFFERENT EVENTS, not as an exit-code trailer:
@@ -91,17 +92,57 @@ def repo_root():
     if r:
         return r
     r = os.environ.get("CLAUDE_PROJECT_DIR")
-    if r and os.path.isdir(os.path.join(r, ".git")):
+    if r and os.path.exists(os.path.join(r, ".git")):
         return r
-    if os.path.isdir(".git"):
+    if os.path.exists(".git"):
         return os.getcwd()
     return None
+
+
+# The git directory (0.31.1). .git is a directory in an ordinary
+# checkout and a one-line "gitdir: <path>" FILE in a linked worktree; testing for a
+# directory disarmed the guard in every worktree session. Read here rather than by
+# spawning git, which costs a process per tool call. In an ordinary checkout this is
+# ROOT/.git, so every state path is exactly what it always was.
+def git_dir(root):
+    p = os.path.join(root, ".git")
+    if os.path.isdir(p):
+        return p
+    try:
+        with open(p, encoding="utf-8") as f:
+            line = f.read().strip()
+    except OSError:
+        return None
+    if not line.startswith("gitdir:"):
+        return None
+    g = line[len("gitdir:"):].strip().replace("\\", "/")
+    if not os.path.isabs(g):
+        g = os.path.join(root, g)
+    return g if os.path.isdir(g) else None
 
 
 ROOT = repo_root()
 if not ROOT:
     sys.exit(0)
-S = os.path.join(ROOT, ".git", "sdlc-tdd")
+GD = git_dir(ROOT)
+if not GD:
+    # A .git that names no git directory: nowhere to keep state, so guard nothing -
+    # but say so at stop, the one seat measured to reach anyone (measured 2026-09-27).
+    if MODE == "stop-check":
+        raw = sys.stdin.buffer.read().decode("utf-8", "replace")
+        if not re.search(r'"stop_hook_active"\s*:\s*true', raw):
+            sys.stdout.write(json.dumps({
+                "decision": "block",
+                "reason": "SDLC TDD guard did not run: %s/.git names no git directory, "
+                          "so this session's writes were not guarded. Tell the owner."
+                          % ROOT.replace("\\", "/")}, separators=(",", ":")))
+    sys.exit(0)
+S = os.path.join(GD, "sdlc-tdd")
+# The licence directory as the deny message names it: the familiar relative form in
+# an ordinary checkout, the real location in a worktree, where .git/ is a file.
+LIC = (".git/sdlc-tdd" if os.path.normcase(os.path.abspath(GD)) ==
+       os.path.normcase(os.path.abspath(os.path.join(ROOT, ".git")))
+       else S.replace("\\", "/"))
 try:
     os.makedirs(S)
 except OSError:
@@ -294,14 +335,15 @@ if MODE == "pre-write":
                 "at any point in the cycle (refactor, simplification, mutation "
                 "testing - including a temporary mutation to prove a test of "
                 "existing behavior bites): declare it instead - write one line "
-                "naming the step and move to .git/sdlc-tdd/refactor-license, then "
+                "naming the step and move to %s/refactor-license, then "
                 "retry. That license requires a counted green run this session, is "
                 "revoked by the next test edit, ends with the session, and every "
                 "write made under it is logged for review. If you are running "
-                "/end-slice, declare .git/sdlc-tdd/close-out-license instead - "
+                "/end-slice, declare %s/close-out-license instead - "
                 "same rules, except a test edit does NOT revoke it, because "
                 "close-out's own step order edits tests between its production "
-                "writes; each test edit it survives is counted in the log." % rel}})
+                "writes; each test edit it survives is counted in the log."
+                % (rel, LIC, LIC)}})
     else:
         mark("prod-write-observed")
         log("VIOLATION production write without observed red: %s" % rel)

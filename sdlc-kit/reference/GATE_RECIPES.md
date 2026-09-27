@@ -270,9 +270,10 @@ environment* above) — the previous single-JSON body, whose logic was embedded 
 backslash-dense parser sources, arrived corrupted there and reported a **false** "no
 JSON parser (python or node) on the PATH" on every edit with python present. Now
 `sdlc-gate.json` carries only the bare launcher
-(`if [ -d .git ] && [ -f .github/hooks/sdlc-gate.sh ]; then cat | sh … ; fi` — no
-backslash, no `$`, no quotes, pinned by the proof suite so it cannot be silently
-re-cleverified) and everything with teeth lives in `sdlc-gate.sh`, which is read from
+(`if [ -e .git ] && [ -f .github/hooks/sdlc-gate.sh ]; then cat | sh … ; fi`, on an
+entry carrying `"cwd": "."` — no backslash, no `$`, no quotes, pinned by the proof
+suite so it cannot be silently re-cleverified; the `cwd` and the `-e` are 0.31.1's, see
+*Where the launchers start* below) and everything with teeth lives in `sdlc-gate.sh`, which is read from
 disk by the executing shell and never crosses the boundary. The script also resolves
 each touched path across path flavours (absolute-Windows headers arrive even when the
 hook runs in WSL — the same both-forms fact the guards normalise for), so the gate
@@ -375,9 +376,10 @@ the messages report what is now true, and the process files say what to do about
 
 Templates: `templates/tdd-guard.template.sh` → `.github/hooks/sdlc-tdd-guard.sh`, and
 `templates/tdd-guard.template.json` → `.github/hooks/sdlc-tdd-guard.json`. The JSON
-carries no project values, no absolute path — and since 2026-08-07 **no backslash, no
-`$`, and no quote character**: each hook body is the bare
-`if [ -d .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh … ; fi`,
+carries no project values, no absolute path — and since 2026-08-07 **no backslash and
+no `$`**: each hook body is the bare
+`if [ -e .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh … ; fi` on an
+entry carrying `"cwd": "."` (the stop entry adds one quoted `else` branch, below),
 because the launcher boundary above corrupts anything richer when the hook shell is
 the WSL launcher — the previous prelude (`$(cat)` plus backslash-carrying `sed`/`tr`
 deriving the root from the payload's `cwd`) came up empty on that route and **exited 0
@@ -385,15 +387,49 @@ without running the guard, silently**, which is exactly the failure mode it was 
 to prevent. The natural experiment that confirmed the diagnosis: on one day on the
 bench (the kit's pre-release test rig — `reference/COPILOT.md`, *Provenance*), the
 only session that produced guard-log lines was the only one launched from Git Bash.
-The root now comes from the hook process's working directory (measured: the session's
-cwd, in the executing shell's own path flavour), which the script trusts only when a
-`.git` sits there; the one contract this adds — sessions start at the repo root — is
-shared with the skill-activation ledger below. Proven on both launcher routes live,
-and offline by the suite's boundary-property case, which pins the no-backslash/no-`$`
-shape so it cannot be silently re-cleverified. The script takes the three
-placeholders below. State lives in `.git/sdlc-tdd/` (inside `.git`, so nothing to
-gitignore) and is **session-scoped**: a red observed yesterday does not license a write
-today. The guard reads its payload with the same dual python-or-node parser the gate
+The root comes from the hook process's working directory, which the entry's
+`"cwd": "."` pins to the repository root (*Where the launchers start*, below), and
+which the script trusts only when a `.git` — directory or file — sits there. Proven on
+both launcher routes live, and offline by the suite's boundary-property case, which
+pins the no-backslash/no-`$` shape so it cannot be silently re-cleverified. The script
+takes the three placeholders below. State lives in `.git/sdlc-tdd/` (inside the git
+directory, so nothing to gitignore — in a linked worktree that is the worktree's own
+git directory, read from its `.git` file) and is **session-scoped**: a red observed
+yesterday does not license a write today.
+
+**Where the launchers start, and what a broken install says (0.31.1).** Every Copilot hook entry the kit ships carries `"cwd": "."`, which the CLI
+resolves against the repository root — the *worktree's* root in a linked worktree.
+Without it, builds 1.0.64 through 1.0.87 ran hooks in the **session's** cwd, and a
+session started below the root ran with no gate, no guard, and no backstop: the
+launcher read "not at the root" as "not a repo" and exited 0 (measured on the bench,
+2026-09-27, on 1.0.63, 1.0.78, 1.0.86 and 1.0.88, both launcher routes; 1.0.63 and
+1.0.88 start hooks at the root either way). The test is `[ -e .git ]`, not `-d`,
+because in a linked worktree `.git` is a file — on every build. The scripts read that
+file themselves rather than asking git: a worktree made by Windows git names a `D:/`
+path that neither WSL bash nor WSL's own git can follow, so they translate it the way
+the gate script translates touched paths, and the close-out script points git at the
+result. A consequence worth stating wherever a mode is recorded: state is therefore
+**per-worktree** — deny armed in the main checkout does not arm a linked worktree. **Exit codes are not loud on Copilot**: a non-zero hook exit lands in the
+session's own log (`~/.copilot/session-state/<id>/events.jsonl`) and nowhere the agent
+or the operator reads (measured 2026-09-27). The one channel measured to reach the
+agent without blocking work is a stop hook's block, so each stop-bearing launcher —
+the guard's and the backstop's, in both dialects — carries an `else` branch that
+blocks once, naming the missing script, and stands down on `stop_hook_active`. That
+branch prints JSON, so it carries quotes; quotes were banned from launchers as a
+precaution, and a quoted branch was measured surviving both launcher routes.
+
+**Claude Code on Windows must find Git Bash, or every `sh` hook silently fails to run.**
+Measured 2026-09-27 on Claude Code 2.1.283 with Git for Windows installed at a
+non-default path: a session launched from **Git Bash** logged, for the `sh -c` close-out
+`Stop` command, *"requires bash but Git Bash was not found … or add \"shell\":
+\"powershell\""* — in the `--debug` log only; nothing reached the agent — while the
+`python …` guard commands ran. Launched from **PowerShell** on the same machine, the
+same hook ran. (Plausibly Claude Code derives Git Bash from the `git.exe` on `PATH`,
+which is `…\cmd\git.exe` from PowerShell and `…\mingw64\bin\git.exe` inside Git Bash;
+that is an inference, the behaviour is measured.) The kit's gate, ledger, and backstop
+launchers on Claude Code are all `sh` commands. Where Git is not at its default path, set
+`CLAUDE_CODE_GIT_BASH_PATH` to its `bin\bash.exe`, and prove the gate hook from the
+launch route the operator actually uses — the standing rule of *the hook environment*. The guard reads its payload with the same dual python-or-node parser the gate
 hooks use, detected the same way — so accepting the guards adds no dependency the gate
 hook did not already impose. With neither interpreter present it writes `GUARD ERROR` to
 its log and guards nothing: **the script never denies on its own failure**, because a
@@ -514,8 +550,11 @@ line states which) by the same record grammar `/end-slice`'s command step runs:
 `cat | sh …` wrapper shape as the guard JSON; the block schema
 (`{"decision":"block","reason":…}`) was measured on the bench 2026-08-05. Claude
 Code: a `Stop` block in `.claude/settings.json` carrying the **launcher-neutral**
-form — `sh -c "if [ -d .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh
-.github/hooks/sdlc-close-out.sh stop-check; fi"`, no `"shell"` key. Three dated
+form — `sh -c "if [ -e .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh
+.github/hooks/sdlc-close-out.sh stop-check; elif …; else …; fi"`, no `"shell"` key
+(the `-e` and the `else` branch that blocks once when the script is missing are
+0.31.1's — *Where the launchers start*, above; the Copilot JSON carries the same
+branch and `"cwd": "."`). Three dated
 measurements sit behind that shape, routes and versions named: 2026-08-13
 (interactive-route bench, CLI version unrecorded) the pinned `"shell": "bash"`
 block fired and delivered the payload on stdin; 2026-08-15 (headless, Claude Code
@@ -590,30 +629,31 @@ carries its own `timestamp`; Claude Code's does not, and neither payload ends wi
 newline — so the hook stamps the time itself and appends the newline itself, or the
 "JSONL" file becomes one unparseable line.
 
-**Dialects.** Copilot: `templates/skill-ledger.template.json` →
-`.github/hooks/sdlc-skill-ledger.json`, copied verbatim — it takes no values. Its body
-is deliberately primitive — no JSON parser, no payload parsing, no repo-root
-derivation, **no backslash anywhere, and stdin piped straight to the file rather than
-captured into a variable** — because of a boundary measured 2026-08-07: when the CLI
-was launched from a shell whose PATH resolves `bash` to the **WSL launcher**, the hook
-body is re-parsed on its way into WSL, and that re-parse corrupted every
-backslash-carrying body it was given and returned empty for `$(cat)` — while a bare
-`cat` received the payload intact. The same body proved out live on both measured
-routes (WSL bash via a PowerShell launch, Git Bash via a Git Bash launch). It keys on
-the hook process's working directory instead (measured: the session's cwd, in the
-executing shell's own path flavour), which adds one stated contract: **sessions start
-at the repo root**, and a session started elsewhere gets the loud line, not a silent
-miss. Claude Code: the `"Skill"`-matcher block in `.claude/settings.json` (part of
-`settings.template.json`) is a bare launcher, `sh .github/hooks/sdlc-skill-ledger.sh`,
-with the body in that script file (from `templates/skill-ledger-claude.template.sh`,
-no placeholders) — split 2026-08-15 with the gate hook, because the per-hook
-`"shell": "bash"` pin the inline body depended on was measured never firing (*The
-hook environment*). The script may use `$(cat)` and `\n` freely — it is read by `sh`,
-never re-parsed on a launcher boundary. Setup removes the settings block and skips
+**Dialects — one body, two launchers (since 0.31.1).** The body is
+`templates/skill-ledger.template.sh` → `.github/hooks/sdlc-skill-ledger.sh`, no
+placeholders, shared by both CLIs. It takes the root from `CLAUDE_PROJECT_DIR` where
+Claude Code sets it and from its working directory otherwise, resolves the git
+directory from `.git` — a directory, or a linked worktree's `.git` file — and appends
+there. It may use `$(cat)` and `\n` freely: it is read by `sh`, never re-parsed on a
+launcher boundary. Copilot: `templates/skill-ledger.template.json` →
+`.github/hooks/sdlc-skill-ledger.json`, copied verbatim — it takes no values, and is
+now a bare launcher on an entry carrying `"cwd": "."`, like the other Copilot hooks
+(*Where the launchers start*, above). Until 0.31.1 it carried the body inline —
+deliberately primitive, no backslash, stdin piped straight to the file, because the WSL
+launcher boundary (measured 2026-08-07) corrupted every backslash-carrying body and
+returned empty for `$(cat)`. An inline body cannot follow a worktree's `.git` file
+without a `$` that boundary also eats, so it moved into the script. Claude Code: the
+`"Skill"`-matcher block in `.claude/settings.json` (part of `settings.template.json`)
+is a bare launcher, `sh .github/hooks/sdlc-skill-ledger.sh` — split 2026-08-15 with the
+gate hook, because the per-hook `"shell": "bash"` pin the inline body depended on was
+measured never firing (*The hook environment*). Setup removes the launcher(s) and skips
 the script install if the ledger is declined — the *record* of the decline lives in
-`spec/SDLC.md`, never here. Both dialects are **loud when they
-cannot write**: a ledger that silently stopped recording would read as "no skill ever
-activated", which is precisely the false negative it exists to prevent.
+`spec/SDLC.md`, never here. Both dialects **report when they cannot write** —
+stderr and a non-zero exit — but only one of them is loud: on Claude Code that reaches
+the agent; on Copilot a post-tool-use exit reaches only the session's own log
+(measured 2026-09-27), which is as far as that event lets a hook speak. A ledger that
+silently stopped recording would read as "no skill ever activated", which is precisely
+the false negative it exists to prevent.
 
 **Prove it the way every check is proven.** In a session of each installed CLI —
 launched the way this project's operator actually launches it, since the hook shell

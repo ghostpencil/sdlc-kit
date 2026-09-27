@@ -5,8 +5,9 @@
       {
         "type": "command",
         "matcher": "edit|create|apply_patch",
+        "cwd": ".",
         "timeoutSec": 120,
-        "bash": "if [ -d .git ] && [ -f .github/hooks/sdlc-gate.sh ]; then cat | sh .github/hooks/sdlc-gate.sh; fi"
+        "bash": "if [ -e .git ] && [ -f .github/hooks/sdlc-gate.sh ]; then cat | sh .github/hooks/sdlc-gate.sh; fi"
       }
     ]
   }

@@ -66,6 +66,40 @@ MODE=$1
 
 cannot() { printf 'close-out record: CANNOT CHECK - %s\n' "$1"; exit 2; }
 
+# The git directory (0.31.1) - every .git/ path this script names means
+# it. .git is a directory in an ordinary checkout and a one-line "gitdir: <path>"
+# FILE in a linked worktree, whose path the creating git wrote in ITS flavour: a
+# worktree made by Windows git names D:/..., which does not exist as written under
+# WSL bash. Read here rather than by git, with the drive-letter translation the gate
+# hook uses; the TDD guard carries the same function. In an ordinary checkout it is
+# ./.git, so every state path is exactly what it always was.
+sdlc_git_dir() {
+  if [ -d "$1/.git" ]; then printf '%s' "$1/.git"; return 0; fi
+  [ -f "$1/.git" ] || return 1
+  g=$(sed -n 's/^gitdir:[[:space:]]*//p' "$1/.git" | tr -d '\r' | tr '\\' '/')
+  [ -n "$g" ] || return 1
+  case $g in /*|[A-Za-z]:/*) ;; *) g="$1/$g" ;; esac
+  if [ -d "$g" ]; then printf '%s' "$g"; return 0; fi
+  dl=$(printf '%s' "$g" | sed -n 's|^\([A-Za-z]\):/.*|\1|p' | tr 'A-Z' 'a-z')
+  rest=$(printf '%s' "$g" | sed -n 's|^[A-Za-z]:/\(.*\)|\1|p')
+  if [ -n "$dl" ]; then
+    for c in "/mnt/$dl/$rest" "/$dl/$rest"; do
+      if [ -d "$c" ]; then printf '%s' "$c"; return 0; fi
+    done
+  fi
+  return 1
+}
+GD=""
+if [ -e .git ]; then
+  GD=$(sdlc_git_dir "$(pwd)") || GD=""
+  # WSL's own git cannot follow a Windows-written gitdir either - "not a git
+  # repository" on every call - but works when pointed at the translated one
+  # (both measured 2026-09-27). Only a worktree git cannot resolve pays the spawn.
+  if [ -n "$GD" ] && [ -f .git ] && ! git rev-parse --git-dir >/dev/null 2>&1; then
+    GIT_DIR=$GD; GIT_WORK_TREE=$(pwd); export GIT_DIR GIT_WORK_TREE
+  fi
+fi
+
 # count_record <ref> - all eleven counters in ONE awk pass, into globals both
 # modes read: the ten record counters, plus whether every path the commit changed
 # is a process document this kit installs (anything under spec/, or the two root
@@ -103,8 +137,17 @@ if [ "$MODE" = "stop-check" ]; then
   # ---- the stop-time backstop: FAIL-OPEN from here on - every early return is
   # exit 0, and every error path logs rather than blocks.
   IN=$(cat 2>/dev/null)
-  [ -d .git ] || exit 0
-  SD=.git/sdlc-close-out
+  [ -e .git ] || exit 0
+  if [ -z "$GD" ]; then
+    # A .git that names no git directory: nothing can be checked, and a backstop
+    # that stands down here in silence is the defect 0.31.1 fixed in
+    # the launchers - so say so at the one seat measured to reach anyone.
+    if ! printf '%s' "$IN" | grep -q '"stop_hook_active"[[:space:]]*:[[:space:]]*true'; then
+      printf '{"decision":"block","reason":"SDLC close-out backstop did not run: .git in %s names no git directory, so no commit in this session was checked for its close-out record. Tell the owner."}\n' "$(pwd)"
+    fi
+    exit 0
+  fi
+  SD="$GD/sdlc-close-out"
   mkdir -p "$SD" 2>/dev/null
   slog() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$SD/log" 2>/dev/null; }
 
@@ -147,8 +190,8 @@ if [ "$MODE" = "stop-check" ]; then
   # consults it; where the guard is absent or this session made no guarded
   # writes, bare commits are noted, never flagged.
   GUARD_EVID=""
-  if [ -n "$SID" ] && [ "$(cat .git/sdlc-tdd/session 2>/dev/null)" = "$SID" ]; then
-    if [ -f .git/sdlc-tdd/prod-write-observed ] || [ -f .git/sdlc-tdd/last-test-edit ]; then
+  if [ -n "$SID" ] && [ "$(cat "$GD/sdlc-tdd/session" 2>/dev/null)" = "$SID" ]; then
+    if [ -f "$GD/sdlc-tdd/prod-write-observed" ] || [ -f "$GD/sdlc-tdd/last-test-edit" ]; then
       GUARD_EVID=yes
     fi
   fi
@@ -306,10 +349,10 @@ if [ "$MODE" = "docs-check" ]; then
 
   printf '%s
 ' "$MSG"
-  if [ -d .git ]; then
-    mkdir -p .git/sdlc-close-out 2>/dev/null
+  if [ -n "$GD" ]; then
+    mkdir -p "$GD/sdlc-close-out" 2>/dev/null
     printf '%s %s
-' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$MSG" >> .git/sdlc-close-out/log 2>/dev/null
+' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$MSG" >> "$GD/sdlc-close-out/log" 2>/dev/null
   fi
   exit 0
 fi

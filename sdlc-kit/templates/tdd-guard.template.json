@@ -5,23 +5,26 @@
       {
         "type": "command",
         "matcher": "edit|create|apply_patch",
+        "cwd": ".",
         "timeoutSec": 30,
-        "bash": "if [ -d .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh .github/hooks/sdlc-tdd-guard.sh pre-write; fi"
+        "bash": "if [ -e .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh .github/hooks/sdlc-tdd-guard.sh pre-write; fi"
       }
     ],
     "postToolUse": [
       {
         "type": "command",
         "matcher": "powershell|bash|shell",
+        "cwd": ".",
         "timeoutSec": 30,
-        "bash": "if [ -d .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh .github/hooks/sdlc-tdd-guard.sh observe-test; fi"
+        "bash": "if [ -e .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh .github/hooks/sdlc-tdd-guard.sh observe-test; fi"
       }
     ],
     "agentStop": [
       {
         "type": "command",
+        "cwd": ".",
         "timeoutSec": 30,
-        "bash": "if [ -d .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh .github/hooks/sdlc-tdd-guard.sh stop-check; fi"
+        "bash": "if [ -e .git ] && [ -f .github/hooks/sdlc-tdd-guard.sh ]; then cat | sh .github/hooks/sdlc-tdd-guard.sh stop-check; elif grep -q 'stop_hook_active.: *true'; then :; else echo '{\"decision\":\"block\",\"reason\":\"SDLC TDD guard did not run: .github/hooks/sdlc-tdd-guard.sh is missing, so no write in this session was guarded. Tell the owner.\"}'; fi"
       }
     ]
   }

@@ -432,7 +432,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      without its flag file is a number in prose drifting from the thing that enforces it.
      State the other half too: `.git/` is **not** committed, so the flag, the state and
      the log live in one clone only. This line is repo-wide and is therefore a claim
-     about the machine setup ran on — say whose, and let a teammate check their own. **A
+     about the machine setup ran on — say whose, and let a teammate check their own.
+     And say what `.git/` means in every kit path: the repository's git directory —
+     `.git/` itself in an ordinary checkout, and in a linked worktree (where `.git` is a
+     file) the directory `git rev-parse --git-dir` prints; so the flag, the state and
+     the log are per-WORKTREE too — a linked worktree keeps its own git directory, so
+     arming deny in one checkout does not arm another. **A
      decline is recorded too, with the date — never delete the line.** `/sdlc-update`
      re-offers the guards to a project that never had the choice, and reads this to tell
      that apart from an owner who considered them and said no; deleting the record
@@ -450,13 +455,14 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    leave no line — the recipe states the bound); the cost is one more hook and a
    per-clone log file. It never blocks anything.
    Default to offering, not to installing. If accepted:
+   - The body, both CLIs: `skill-ledger.template.sh` →
+     `.github/hooks/sdlc-skill-ledger.sh` (copied verbatim — no placeholders). One file
+     serves both CLIs; each side's wiring below is only a launcher for it.
    - Copilot side: `skill-ledger.template.json` → `.github/hooks/sdlc-skill-ledger.json`,
      copied verbatim — it takes no values; do not edit it.
-   - Claude Code side, a pair: `skill-ledger-claude.template.sh` →
-     `.github/hooks/sdlc-skill-ledger.sh` (copied verbatim — no placeholders), and the
-     `"Skill"`-matcher block already in the instantiated `.claude/settings.json` stays
-     as its bare launcher (Copilot-only adoptions have no such file and skip this
-     bullet).
+   - Claude Code side: the `"Skill"`-matcher block already in the instantiated
+     `.claude/settings.json` stays as its bare launcher (Copilot-only adoptions have no
+     such file and skip this bullet).
    - Prove it per the recipe: invoke any installed skill in a session of each installed
      CLI — launched the way this project's operator actually launches it — and read the
      ledger's last line back. No line → the hook is not firing; check
@@ -475,8 +481,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    write (this sentence sits outside the accepted-only list above for exactly that
    reason). Installed: which CLIs, **the hook artifact that makes it true** —
    `.github/hooks/sdlc-skill-ledger.json` on Copilot; the `"Skill"`-matcher block in
-   `.claude/settings.json` plus its body `.github/hooks/sdlc-skill-ledger.sh` on
-   Claude Code — the ledger path, that `.git/` is
+   `.claude/settings.json` on Claude Code; and on either, the shared body
+   `.github/hooks/sdlc-skill-ledger.sh` — the ledger path, that `.git/` is
    per-clone so the ledger describes one machine, and that it records
    tool-dispatched activations only, so a missing line for a slash-invocable
    command is no signal either way. Say in the same breath that adding

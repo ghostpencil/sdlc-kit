@@ -137,6 +137,15 @@ def stop(root, active=False, sid=SID):
     return d
 
 
+def reopen_git(root, mode, newline=None):
+    """Rewrite a worktree's .git FILE. Windows git marks it hidden, and a hidden file
+    cannot be opened for a truncating write there - so remove it, then create it."""
+    p = os.path.join(root, ".git")
+    if os.path.isfile(p):
+        os.remove(p)
+    return io.open(p, mode, newline=newline)
+
+
 def unit(guard_src, verbose=True, counter=None, parser=None):
     """Returns the list of failed case names; counts every case into `counter`.
 
@@ -374,9 +383,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
         # and must still deliver the payload into the script from a repo-root cwd.
         jtpl = json.load(io.open(JTPL, encoding="utf-8"))
         bodies = [h["bash"] for hs in jtpl["hooks"].values() for h in hs]
+        # Quotes were banned here as a precaution, never as a measurement; the
+        # measured corruptions are backslashes, $(cat), and a $var defined in the body
+        # (expanded to empty by the outer layer - 2026-09-27). D4's stop branch has to
+        # print JSON, and a quoted body was measured surviving both launcher routes the
+        # same day (FEATURE_PLAN.md 78.7), so the rule is now exactly what was measured.
         check("21 every hook-config body survives the WSL launcher boundary "
-              "(no backslash, no $, no quotes)",
-              bool(bodies) and all(not any(ch in bd for ch in "\\$'\"") for bd in bodies),
+              "(no backslash, no $)",
+              bool(bodies) and all(not any(ch in bd for ch in "\\$") for bd in bodies),
               " | ".join(bodies))
 
         pre_body = jtpl["hooks"]["preToolUse"][0]["bash"]
@@ -444,6 +458,52 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
                       "VIOLATION" in b.tail() and "outside the repository" not in b.tail(),
                       b.tail())
 
+            # 24d: the WSL route (FEATURE_PLAN.md 78.7). Under WSL bash the root reads
+            # /mnt/d/..., `pwd -W` is MSYS-only and prints nothing, and the CLI still
+            # reports D:\... - so 0.28.1's two candidates matched neither and every
+            # absolute write was "outside the repository". This host has no /mnt, so
+            # the fixture lives under a temp .../mnt/<drive>/ and SDLC_WSL_MOUNT pins
+            # the mount prefix there - the same kind of harness knob SDLC_REPO_ROOT is.
+            wsl_base = tempfile.mkdtemp(prefix="tddguard-wsl-")
+            try:
+                wroot = os.path.join(wsl_base, "mnt", "q", "proj")
+                os.makedirs(os.path.join(wroot, ".git"))
+                posix = lambda d: subprocess.run(["sh", "-c", 'cd "$1" && pwd', "_", d],
+                                                 capture_output=True, text=True).stdout.strip()
+                we = dict(e)
+                we["SDLC_REPO_ROOT"] = posix(wroot)
+                we["SDLC_WSL_MOUNT"] = posix(os.path.join(wsl_base, "mnt"))
+                subprocess.run(["sh", b.guard, "pre-write"],
+                               input=json.dumps(write("Q:\\proj", [("Update", "Q:\\proj\\payments.py")])).encode(),
+                               capture_output=True, env=we, cwd=wroot)
+                wlog = os.path.join(wroot, ".git", "sdlc-tdd", "guard.log")
+                wl = io.open(wlog, encoding="utf-8").read() if os.path.exists(wlog) else ""
+                check("24d a drive-form path is production under a WSL-mount root",
+                      "VIOLATION" in wl and "outside the repository" not in wl, wl)
+
+                # 24e: a WORKTREE under the WSL mount, deny armed. The refusal tells the
+                # agent where to declare a licence, and the agent writes it with its own
+                # tools, which take drive paths - so the mount form must not leak into
+                # that instruction (measured live: it named /mnt/d/..., 2026-09-27).
+                wt2 = os.path.join(wsl_base, "mnt", "q", "wtproj")
+                gd2 = os.path.join(wsl_base, "mnt", "q", "gd", "worktrees", "wt")
+                os.makedirs(wt2)
+                os.makedirs(os.path.join(gd2, "sdlc-tdd"))
+                io.open(os.path.join(gd2, "sdlc-tdd", "deny-enabled"), "w").write("")
+                io.open(os.path.join(wt2, ".git"), "w", newline="\n").write(
+                    "gitdir: %s\n" % posix(gd2))
+                we2 = dict(we)
+                we2["SDLC_REPO_ROOT"] = posix(wt2)
+                p = subprocess.run(["sh", b.guard, "pre-write"],
+                                   input=json.dumps(write("Q:\\wtproj", [("Update", "Q:\\wtproj\\payments.py")])).encode(),
+                                   capture_output=True, env=we2, cwd=wt2)
+                out = p.stdout.decode("utf-8", "replace")
+                check("24e a worktree's refusal under WSL names the licence in DRIVE form",
+                      "q:/gd/worktrees/wt/sdlc-tdd/refactor-license" in out
+                      and "/mnt/" not in out, out)
+            finally:
+                shutil.rmtree(wsl_base, ignore_errors=True)
+
             p = subprocess.run(["sh", b.guard, "pre-write"],
                                input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=elsewhere)
@@ -451,8 +511,156 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
                   p.stdout.decode().strip() == ""
                   and not os.path.exists(os.path.join(elsewhere, ".git")),
                   repr(p.stdout.decode()))
+            # 25b: the same, at STOP. Since 0.31.1 a .git that names no git directory
+            # blocks at stop ("did not run"), so the early no-.git exit is what keeps a
+            # stop OUTSIDE any repository silent - without it the guard would block
+            # every stop of a session that merely started somewhere else.
+            p = subprocess.run(["sh", b.guard, "stop-check"],
+                               input=json.dumps(stop(elsewhere)).encode(),
+                               capture_output=True, env=e, cwd=elsewhere)
+            check("25b ...and stop-check there is silent too - no block outside a repo",
+                  p.stdout.decode().strip() == "", repr(p.stdout.decode()))
         finally:
             shutil.rmtree(elsewhere, ignore_errors=True)
+
+        # FEATURE_PLAN.md 78: the launcher tested `[ -d .git ]` from whatever directory
+        # the CLI started the hook in, and read "not at the root" as "not a repo". Two
+        # measured ways to be there: a session launched below the root (every Copilot
+        # build 1.0.64-1.0.87 ran hooks in the session cwd), and a linked worktree,
+        # where .git is a FILE on every build. The entry now carries "cwd": "." and the
+        # script resolves the git directory through that file. These cases build a
+        # REAL worktree with git, because a hand-made .git directory - which is what
+        # the Bench above is - is exactly the configuration that cannot see the defect.
+        check("21b every hook-config entry pins cwd to the repository root and none "
+              "tests for a .git DIRECTORY",
+              all(h.get("cwd") == "." and "-d .git" not in h["bash"]
+                  for hs in jtpl["hooks"].values() for h in hs),
+              json.dumps(jtpl["hooks"]))
+
+        wt_base = tempfile.mkdtemp(prefix="tddguard-wt-")
+        try:
+            main_r = os.path.join(wt_base, "main")
+            wt_r = os.path.join(wt_base, "wt")
+            os.makedirs(main_r)
+            g = lambda *a, **k: subprocess.run(["git"] + list(a), capture_output=True,
+                                               text=True, **k)
+            g("init", "-q", main_r)
+            io.open(os.path.join(main_r, "README"), "w").write("x\n")
+            g("-C", main_r, "add", "README")
+            g("-C", main_r, "-c", "user.email=t@t", "-c", "user.name=t",
+              "commit", "-q", "-m", "init")
+            g("-C", main_r, "worktree", "add", "-q", wt_r, "-b", "wt")
+            gd = g("-C", wt_r, "rev-parse", "--absolute-git-dir").stdout.strip()
+            wt_state = os.path.join(gd, "sdlc-tdd")
+            wt_guard = os.path.join(wt_r, ".github", "hooks", "sdlc-tdd-guard.sh")
+            os.makedirs(os.path.dirname(wt_guard))
+            shutil.copy(b.guard, wt_guard)
+            check("36 fixture: the worktree's .git is a file naming its own git dir",
+                  os.path.isfile(os.path.join(wt_r, ".git")) and os.path.isdir(gd),
+                  gd)
+
+            def wt_log():
+                f = os.path.join(wt_state, "guard.log")
+                return io.open(f, encoding="utf-8").read() if os.path.exists(f) else ""
+
+            def wt_pre():
+                shutil.rmtree(wt_state, ignore_errors=True)
+                subprocess.run(["sh", "-c", pre_body],
+                               input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
+                               capture_output=True, env=e, cwd=wt_r)
+                return wt_log()
+
+            check("36a launcher at a worktree root runs the guard, state in the "
+                  "worktree's own git dir",
+                  "VIOLATION" in wt_pre()
+                  and not os.path.exists(os.path.join(main_r, ".git", "sdlc-tdd")),
+                  wt_log())
+
+            # The creating git writes the gitdir in ITS flavour; the guard must not
+            # need git to follow it (WSL's git cannot follow a Windows-written one -
+            # measured 2026-09-27). Two other forms a .git file legitimately takes:
+            rel = os.path.relpath(gd, wt_r).replace(os.sep, "/")
+            reopen_git(wt_r, "w", newline="\n").write("gitdir: %s\n" % rel)
+            check("36b ...and through a RELATIVE gitdir (worktree.useRelativePaths)",
+                  "VIOLATION" in wt_pre(), wt_log())
+            # 36f: a relative gitdir is relative to the ROOT, not to wherever the
+            # process happens to stand. Only observable with the root pinned and the
+            # cwd elsewhere - the harness's own configuration, so pin that too.
+            shutil.rmtree(wt_state, ignore_errors=True)
+            pe = dict(e)
+            pe["SDLC_REPO_ROOT"] = subprocess.run(["sh", "-c", 'cd "$1" && pwd', "_", wt_r],
+                                                  capture_output=True, text=True).stdout.strip()
+            subprocess.run(["sh", wt_guard, "pre-write"],
+                           input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
+                           capture_output=True, env=pe, cwd=wt_base)
+            check("36f a relative gitdir resolves against the root, not the cwd",
+                  "VIOLATION" in wt_log(), wt_log())
+            reopen_git(wt_r, "w", newline="\r\n").write(
+                "gitdir: %s\n" % gd.replace("/", "\\"))
+            check("36c ...and through a backslashed, CRLF-terminated gitdir",
+                  "VIOLATION" in wt_pre(), wt_log())
+
+            reopen_git(wt_r, "w", newline="\n").write(
+                "gitdir: %s\n" % os.path.join(wt_base, "nowhere").replace(os.sep, "/"))
+            shutil.rmtree(wt_state, ignore_errors=True)
+            p = subprocess.run(["sh", wt_guard, "pre-write"],
+                               input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
+                               capture_output=True, env=e, cwd=wt_r)
+            check("36d a .git file naming no git dir: pre-write is a silent no-op",
+                  p.returncode == 0 and p.stdout.decode().strip() == ""
+                  and not os.path.exists(os.path.join(wt_r, ".git", "sdlc-tdd")),
+                  repr(p.stdout.decode()))
+            p = subprocess.run(["sh", wt_guard, "stop-check"],
+                               input=json.dumps(stop(wt_r)).encode(),
+                               capture_output=True, env=e, cwd=wt_r)
+            out = p.stdout.decode().strip()
+            j = json.loads(out) if out.startswith("{") else {}
+            check("36e ...and stop-check says so, by block, rather than guarding nothing "
+                  "in silence",
+                  j.get("decision") == "block" and "did not run" in (j.get("reason") or ""),
+                  repr(out))
+        finally:
+            shutil.rmtree(wt_base, ignore_errors=True)
+
+        # D4: a broken install - the JSON present, the script not - must reach someone.
+        # Exit codes do not (measured: a non-zero exit lands in the session log only);
+        # an agentStop block does. Pre and post stay silent: a deny there would stop
+        # every write, and the stop hook of the same family reports the same fault.
+        broken = tempfile.mkdtemp(prefix="tddguard-broken-")
+        try:
+            os.makedirs(os.path.join(broken, ".git"))
+            stop_body = jtpl["hooks"]["agentStop"][0]["bash"]
+            p = subprocess.run(["sh", "-c", stop_body], input=json.dumps(stop(broken)).encode(),
+                               capture_output=True, env=e, cwd=broken)
+            out = p.stdout.decode().strip()
+            j = json.loads(out) if out.startswith("{") else {}
+            check("37 stop launcher with the guard script missing blocks, naming the fault",
+                  j.get("decision") == "block" and "did not run" in (j.get("reason") or ""),
+                  repr(out))
+            p = subprocess.run(["sh", "-c", stop_body],
+                               input=json.dumps(stop(broken, active=True)).encode(),
+                               capture_output=True, env=e, cwd=broken)
+            check("37b ...and stands down on stop_hook_active (one block, not eight)",
+                  p.stdout.decode().strip() == "", repr(p.stdout.decode()))
+            # ...and the other direction, which nothing else runs: at a root that HAS
+            # the script, the stop launcher must take the script branch. A typo in the
+            # launcher's -f path would otherwise block every stop of every session, and
+            # only the static shape check above would be looking - it cannot see that.
+            p = subprocess.run(["sh", "-c", stop_body], input=json.dumps(stop(R)).encode(),
+                               capture_output=True, env=e, cwd=R)
+            check("37d stop launcher with the script present runs the guard, no block",
+                  "did not run" not in p.stdout.decode("utf-8", "replace")
+                  and "stop:" in b.tail(), repr(p.stdout.decode()) + " | " + b.tail())
+            for ev in ("preToolUse", "postToolUse"):
+                body = jtpl["hooks"][ev][0]["bash"]
+                p = subprocess.run(["sh", "-c", body],
+                                   input=json.dumps(write(broken, [("Update", "x.py")])).encode(),
+                                   capture_output=True, env=e, cwd=broken)
+                check("37c %s launcher with the script missing is silent and exits 0" % ev,
+                      p.returncode == 0 and p.stdout.decode().strip() == "",
+                      repr(p.stdout.decode()))
+        finally:
+            shutil.rmtree(broken, ignore_errors=True)
 
         # The other refusal shape: a test-pattern command whose payload carries no
         # exit-code trailer. Same rule as the compound case - spoken, never silent -
@@ -610,8 +818,18 @@ MUTATIONS = [
      "in-repo path stops matching whenever the shell's pwd flavour differs from the "
      "CLI's, so the guard skips every write reported that way)",
      lambda s: s.replace(
-         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; do',
-         'for cand in "$SDLC_REPO_ROOT"; do')),
+         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do',
+         'for cand in "$SDLC_REPO_ROOT" "$wroot"; do')),
+    ("name a worktree's licence in WSL mount form (the agent's tools cannot write "
+     "/mnt/d/... - they take drive paths)",
+     lambda s: s.replace(
+         '  case "$LIC" in "$wm"/?/*) LIC=$(printf',
+         '  case "$LIC" in "@@never@@"/?/*) LIC=$(printf')),
+    ("drop the WSL mount candidate (the 0.28.1 fix's blind route: under WSL bash "
+     "every absolute write is 'outside the repository' - FEATURE_PLAN.md 78.7)",
+     lambda s: s.replace(
+         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do',
+         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; do')),
     ("drop the compound-command check (reintroduces the D3 false-GREEN defect)",
      lambda s: s.replace('*";"*|*"&"*|*"|"*)', '*"@@never@@"*)')),
     ("regress the separator list to the doubled-only 0.18.0 forms (a single '&' "
@@ -660,7 +878,16 @@ MUTATIONS = [
      "RED command counts as a test run)",
      lambda s: s.replace('    case "$PROBE" in', '    case "$CMD" in')),
     ("trust any cwd when SDLC_REPO_ROOT is unset (state written to unrelated dirs)",
-     lambda s: s.replace('  [ -d .git ] || exit 0\n', '')),
+     lambda s: s.replace('  [ -e .git ] || exit 0\n', '')),
+    ("test for a .git DIRECTORY again (a linked worktree, whose .git is a file, "
+     "disarms the guard in silence - FEATURE_PLAN.md 78)",
+     lambda s: s.replace('  [ -e .git ] || exit 0\n', '  [ -d .git ] || exit 0\n')),
+    ("keep state under the root's literal .git (a worktree's state has nowhere to go)",
+     lambda s: s.replace('S="$GD/sdlc-tdd"', 'S="$SDLC_REPO_ROOT/.git/sdlc-tdd"')),
+    ("resolve a relative gitdir against the cwd instead of the root",
+     lambda s: s.replace('*) g="$1/$g" ;;', '*) ;;')),
+    ("guard nothing in silence when the git dir cannot be resolved at stop",
+     lambda s: s.replace('  if [ "$MODE" = "stop-check" ] && ! printf', '  if false && ! printf')),
     ("re-silence the compound refusal (the 2026-08-08 field defect: the session "
      "thrashes and probes instead of complying)",
      lambda s: s.replace('        emit_context "TDD ordering: that test run was NOT counted',

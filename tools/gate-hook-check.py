@@ -214,9 +214,11 @@ def copilot_suite(parser, check):
         io.open(lint_path, "w", encoding="utf-8", newline="\n").write(LINTER)
 
         # The launcher JSON (FEATURE_PLAN.md 38.5.4): the WSL launcher boundary
-        # corrupts backslashes, $-expansions and quoting, so the config body must
-        # contain none of them - and must still hand the payload to the script from
-        # a repo-root cwd, and do nothing anywhere else.
+        # corrupts backslashes and $-expansions, so the config body must contain
+        # neither - and must still hand the payload to the script from a repo-root
+        # cwd, and do nothing anywhere else. Quotes were banned here too as a
+        # precaution; a quoted body was measured surviving both routes 2026-09-27
+        # (FEATURE_PLAN.md 78.7), and this launcher still carries none.
         launcher = json.load(io.open(COPILOT_TPL, encoding="utf-8"))
         lbodies = [h["bash"] for hs in launcher["hooks"].values() for h in hs]
         check("launcher body survives the WSL launcher boundary (no backslash/$/quotes)",
@@ -235,6 +237,24 @@ def copilot_suite(parser, check):
                            capture_output=True, env=lenv, cwd=pj.root)
         out = p.stdout.decode("utf-8", "replace")
         check("launcher at repo root pipes the payload into the gate script",
+              "E001" in out, repr(out[:120]))
+
+        # FEATURE_PLAN.md 78: the entry pins "cwd": "." (Copilot 1.0.64-1.0.87 ran
+        # hooks in the SESSION cwd otherwise), and the launcher must accept a .git
+        # FILE - a linked worktree's - where it used to demand a directory and stand
+        # the gate down in silence. The gate script itself reads no git state.
+        entries = [h for hs in launcher["hooks"].values() for h in hs]
+        check("launcher entry pins cwd to the repository root, no .git DIRECTORY test",
+              all(h.get("cwd") == "." and "-d .git" not in h["bash"] for h in entries),
+              json.dumps(entries))
+        os.rmdir(os.path.join(pj.root, ".git"))
+        io.open(os.path.join(pj.root, ".git"), "w", newline="\n").write(
+            "gitdir: ../main/.git/worktrees/wt\n")
+        p = subprocess.run(["sh", "-c", lbodies[0]],
+                           input=json.dumps(ap(("Update", "src/e.py"))).encode(),
+                           capture_output=True, env=lenv, cwd=pj.root)
+        out = p.stdout.decode("utf-8", "replace")
+        check("launcher at a worktree root (.git is a file) still runs the gate",
               "E001" in out, repr(out[:120]))
         elsewhere = tempfile.mkdtemp(prefix="gatehook-elsewhere-")
         try:

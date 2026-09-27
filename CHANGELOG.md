@@ -10,9 +10,101 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## Unreleased
+## 0.31.1 — 2026-09-27
+
+A patch for a silent disarm, on the 0.28.1 precedent (`FEATURE_PLAN.md` §78, ruled
+2026-09-27). Every hook launcher the kit ships tested for a `.git` **directory** from
+wherever the CLI started it, and exited 0 when there was none — reading "not at the
+root" as "not a repo". Two ordinary ways to be there were measured on the bench; proving
+the fix found a third, and it is the worst of them. **Most of this arrives only by
+hand** — the hook JSONs, the guard scripts and `.claude/settings.json` are project-owned —
+and `/sdlc-update`'s 0.31.1 note carries the procedure.
+
+### Fixed
+- **[adoption-only]** **A Copilot session started below the repository root ran with
+  no gate, no TDD guard, no backstop and no ledger line**, on CLI builds 1.0.64–1.0.87,
+  which ran hooks in the session's cwd (1.0.63 and 1.0.88 start them at the root; the
+  1.0.88 changelog says *"again"*). Measured on 1.0.63, 1.0.78, 1.0.83, 1.0.86 and
+  1.0.88, both launcher routes. Every Copilot entry now carries `"cwd": "."` —
+  documented as *"relative to repository root or absolute"* — which pins the root on
+  every build measured and resolves to a worktree's own root in a worktree. The fix
+  does not depend on the CLI version, so the 1.0.63 floor stands.
+- **[adoption-only]** **A linked worktree disarmed the guards and the backstop in both
+  dialects, on every build.** Its `.git` is a file (`gitdir: …`); the launchers tested
+  `-d`, and the scripts kept their state under a literal `.git/` that is not a directory
+  there. Every test is now `[ -e .git ]`, and the scripts resolve the git directory from
+  that file themselves — because a worktree made by Windows git names a `D:/` path that
+  neither WSL bash nor **WSL's own git** can follow (measured), they translate it the
+  way the gate script translates touched paths, and the close-out script points git at
+  the result. In an ordinary checkout every state path — licences, deny flags, logs, the
+  ledger — resolves exactly where it always did: no migration. The consequence to state
+  in a project's records: state is **per-worktree**, so deny armed in the main checkout
+  does not arm a linked worktree.
+- **[adoption-only]** **On the WSL launcher route — Copilot started from PowerShell —
+  the TDD guard waved through every absolute-path write, from 0.25.0 to 0.31.0.** Under
+  WSL bash the guard's root reads `/mnt/d/…`, and 0.28.1's second candidate root came
+  from `pwd -W`, which exists only in Git Bash; a `D:\…` path matched neither and was
+  logged *"write outside the repository - not production source"*. 0.28.1 was proven on
+  Git Bash. Found by this release's own pre-registered live pass: deny armed, the Git
+  Bash launch denied, the PowerShell launch of the same build **let the write through**.
+  A third candidate — the mount form translated back to drive form — closes it; a
+  project's `guard.log` shows the gap as that line against an in-repository path.
+- **[adoption-only]** **A broken install is now loud where it can be.** A Copilot hook's
+  stderr and non-zero exit reach only the session's own log
+  (`~/.copilot/session-state/<id>/events.jsonl`) — measured: the agent reported seeing
+  nothing — so each stop-bearing launcher, in both dialects, now blocks **once** naming a
+  missing script instead of exiting 0, and stands down on `stop_hook_active`. A worktree
+  whose `.git` names no git directory blocks the same way from inside the guard and
+  backstop. Pre- and post-tool launchers stay silent: a deny there would block every
+  write on a broken install.
+- **[adoption-only]** **The guard's refusal names a licence path the agent can write.**
+  In a worktree it names the real directory, not `.git/…`, and in drive form (`D:/…`)
+  even when the hook resolved it under WSL (`/mnt/d/…`), because the agent declares the
+  licence with its own tools.
+
+- **[installable]** **`/sdlc-update`'s classifier denominator never counted
+  `.github/hooks/sdlc-impact.py`** (since 0.28.0, found by this release's `/kit-check`):
+  the loop walks the adapter but the check's pathspec stopped at `sdlc-close-out.json`,
+  so on any project with the adapter the loop printed one line more than the check
+  expected — the check's own "the two cannot drift apart" claim, drifted. The root
+  README's copy had the same gap and had lost a line continuation; the bundle README's
+  kit-owned list and verbatim-copy count also omitted the adapter.
+
+### Changed
+- **[adoption-only]** **The skill ledger's body is one script for both CLIs** —
+  `templates/skill-ledger.template.sh` (renamed from `skill-ledger-claude.template.sh`)
+  → `.github/hooks/sdlc-skill-ledger.sh`. The Copilot JSON is now a bare launcher for it:
+  an inline body could not follow a worktree's `.git` file without a `$` the WSL launcher
+  boundary eats. With `CLAUDE_PROJECT_DIR` unset the script falls back to its working
+  directory — the Copilot path — and is loud only where that is not a repository root.
+- **[adoption-only]** **Launcher bodies may carry quotes.** They were banned as a
+  precaution; the measured corruptions on the WSL route are backslashes, `$(cat)`, and a
+  `$var` defined in the body (expanded to empty — new, 2026-09-27). The loud branch prints
+  JSON, and a quoted branch was measured surviving both routes.
+- **`reference/COPILOT.md`** re-verified against 1.0.88 (changelog 1.0.79–1.0.88 read in
+  full): where hooks start, worktrees, exit-code loudness, the WSL `$var` expansion,
+  `exec` hooks not firing on a PowerShell launch, `/skills reload` and `/skills info`
+  confirmed working in a real interactive session, `/rubber-duck` on every model family,
+  `/plugins` removed, and — filed as `FEATURE_PLAN.md` §79, not yet designed around —
+  **Copilot reads `.claude/settings.json` as repo config and runs the Claude-dialect
+  hooks too**, through PowerShell on Windows.
 
 ### Repo (not shipped in the bundle)
+- **Real worktrees in every hook suite** (`FEATURE_PLAN.md` §78). Every fixture the
+  suites built was an ordinary checkout whose `.git` is a directory — the one
+  configuration that cannot see this defect. `tdd-guard-check.py`,
+  `tdd-guard-claude-check.py`, `close-out-check.py` (a new worktree + launcher pass,
+  also in its mutation fallback chain), `gate-hook-check.py` and
+  `skill-ledger-check.py` now build a real `git worktree add` and assert state lands
+  in the worktree's own git directory, plus relative and backslashed gitdir forms, the
+  WSL mount root (via a harness knob, `SDLC_WSL_MOUNT`, since the host has no `/mnt`),
+  and the loud stop branches. Each new case failed against the committed 0.31.0
+  templates before the fix. Windows git marks a worktree's `.git` file hidden, which a
+  truncating write cannot open — the fixtures remove and recreate it. The pre-tag full
+  run caught four mutations these cases could not see (§78.8) — each repaired with a
+  case that can: a stop outside any repository must stay silent (25b, 24b), a relative
+  gitdir resolves against the root (36f), and a mutation re-aimed at the log write.
+  `KIT_INVARIANTS.md` invariant 13's denominator names the three new checks.
 - **`tools/close-out-check.py`'s stop budget reads the MEDIAN, not the slowest**
   (`FEATURE_PLAN.md` §77, ruled 2026-09-04). It read the slowest for five releases and
   failed every run at a suspiciously stable ~6.3 s, blamed first on load (§71) and then

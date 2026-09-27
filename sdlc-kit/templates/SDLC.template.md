@@ -193,7 +193,8 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      simplification, mutation testing, including a temporary mutation to prove a
      test of existing behavior bites, at any point in the cycle, not only at
      close-out — is licensed without a fresh red by declaring it:
-     one line naming the step and move to `.git/sdlc-tdd/refactor-license`, valid only
+     one line naming the step and move to `.git/sdlc-tdd/refactor-license` (the git
+     directory's — see below for a linked worktree), valid only
      behind a counted green, revoked by the next test edit, every write under it
      logged — **except during `/end-slice`, which has its own licence and needs one**:
      close-out's mandated order edits tests *between* its production writes (the review
@@ -213,7 +214,15 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      also names the artifact that decides the mode (`.git/sdlc-tdd/deny-enabled`,
      present means deny — arming or disarming means updating the line), records the
      proof run that was made to fail, and says `.git/` is per-clone: the flag, state,
-     and log describe the machine that wrote the note, not this checkout.
+     and log describe the machine that wrote the note, not this checkout. It also says
+     what `.git/` MEANS in every kit path — the licences, the flag, the state, the logs:
+     the repository's git directory, which is `.git/` itself in an ordinary checkout
+     and, in a linked worktree, where `.git` is a file, the directory
+     `git rev-parse --git-dir` prints. A licence declared at the literal `.git/...` path
+     in a worktree fails to write; the guard's own refusal names the real path
+     (0.31.1). And the flag, the state and the log are per-WORKTREE too: a linked
+     worktree keeps its own git directory, so arming deny in one checkout does not arm
+     another, and a note that says "deny" is a claim about the checkout it was armed in.
      If they were declined, it says so WITH THE DATE — it does not delete this line. A
      missing line and a declined offer are different facts: /sdlc-update re-offers the
      guards when this project never had the choice, and must not badger an owner who
@@ -237,10 +246,11 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      2026-08-11 — four phases of slash-typed slice closes, zero ledger lines), so the
      note must also say that a missing line for a slash-invocable command is no
      signal either way. The note names the hook
-     artifact that makes "installed" true (the Copilot hook JSON; on Claude Code the
-     pair — the settings-file launcher block AND its body script
-     `.github/hooks/sdlc-skill-ledger.sh`, since a launcher with no script errors and
-     a script with no block never fires — adding or removing any of them later means
+     artifact that makes "installed" true (on each CLI a pair: that CLI's launcher —
+     the Copilot hook JSON, or the Claude Code settings-file block — AND the body
+     script both share since 0.31.1, `.github/hooks/sdlc-skill-ledger.sh`, since a
+     launcher with no script errors and a script with no launcher never fires — adding
+     or removing any of them later means
      updating this line,
      because nothing else will), names the ledger
      file, and says in the same breath that `.git/` is per-clone: the ledger records
@@ -286,7 +296,8 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      seen to arise on its own), logging or armed
      (the flag file `.git/sdlc-close-out/deny-enabled`, present means armed — arming
      or disarming means updating this line, because nothing else will), and that the log lives at
-     `.git/sdlc-close-out/log`, per-clone like everything under `.git/`. Declined:
+     `.git/sdlc-close-out/log`, per-clone like everything under `.git/` — and
+     per-worktree, as the guard note says. Declined:
      say so WITH THE DATE — never delete the line; /sdlc-update reads it exactly as
      it reads the guard note's decline. Unlike the command step above, the backstop
      fails OPEN (a hook that errors must not block work), and its bare-commit class

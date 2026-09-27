@@ -139,7 +139,14 @@ clock, not by its build state; the history of each entry lives in the section it
   1.0.88; a linked worktree disarms them on every build (measured, §78.2) and the Claude
   dialect's guard and backstop by reading. `/skills reload`/`info` confirmed working
   (§78.4). Launcher fix DESIGNED and bench-measured (§78.5: `"cwd": "."` + `[ -e .git ]`,
-  state in `git rev-parse --git-dir`); all three rulings taken (§78.6) — build next, as 0.31.1.
+  state in `git rev-parse --git-dir`); all three rulings taken (§78.6); BUILT 2026-09-27
+  (§78.7), which also found the 0.28.1 guard fix blind on the WSL route and fixed it.
+  Claude Code worktree session run live (guard + backstop pass from PowerShell; a Git
+  Bash launch cannot find Git Bash here — §78.7). `/kit-check` run, eleven findings fixed
+  (§78.8); all six suites exit 0 — tagging as 0.31.1.
+- **§79 — Copilot runs the Claude-dialect hooks from `.claude/settings.json`, filed
+  2026-09-27, not ruled.** Both-dialect projects only; neither adopter exposed. Owed:
+  a design and a ruling.
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -4737,3 +4744,182 @@ fixture and the `[ -d .git ]` mutation must fail on today's templates), then D1,
 D5, D4, D3, then the live bench pass (1.0.63 and 1.0.88, both routes, subfolder and
 worktree, real templates) and a Claude Code worktree session, then `/kit-check`
 pre-tag.
+
+### 78.7 Built 2026-09-27 — and four things the build found that the design did not
+
+**Built as ruled (§78.6), proofs first.** Every new case was run against the committed
+templates before the fix and failed there, then passed after: the Copilot guard (21b,
+26a–26c, 26e, 27), the Claude guard (28–28d), the close-out worktree pass (four cases),
+and the gate launcher (two cases, under both JSON parsers). D1–D5 are in the templates;
+the ledger body moved to `templates/skill-ledger.template.sh` (renamed from
+`skill-ledger-claude.template.sh`), shared by both CLIs.
+
+**1. Path flavour inside a worktree — a design gap, measured before it was coded.** A
+worktree made by Windows git writes `gitdir: D:/…` into its `.git` file. Under WSL bash
+that path does not exist as written, and **WSL's own git cannot follow it either** —
+`fatal: not a git repository: …/.wt-probe/D:/AICourse/…` on `rev-parse` and `rev-list`
+alike — while the same git works when `GIT_DIR` points at the translated `/mnt/d/…`
+path and `GIT_WORK_TREE` at the worktree. So §78.5's "use `git rev-parse --git-dir`"
+could not be taken literally on the adopters' route. The scripts read the `.git` file
+themselves, with the gate's drive-letter translation, and the close-out script exports
+`GIT_DIR`/`GIT_WORK_TREE` when — and only when — it is in a worktree git cannot resolve.
+
+**2. Quotes in a launcher — measured, and the suites' rule narrowed to match.** Three
+suites banned quote characters from launcher bodies "as a precaution"; the 2026-08-07
+measurements were backslashes and `$(cat)`, and 2026-09-27 added a `$var` defined in the
+body. D4's else-branch has to print JSON. Probed first on both routes (1.0.88) with the
+exact branch: the block reached the agent (`D4-SEEN`), once, standing down on
+`stop_hook_active` via `grep -q 'stop_hook_active.: *true'`.
+The guard suite's case 21 now asserts what was measured — no backslash, no `$`. The gate
+and ledger launchers still carry no quotes at all.
+
+**3. The 0.28.1 guard fix was blind on the WSL route — found by the pre-registered live
+pass, and the most serious thing in this batch.** Under WSL bash the guard's root reads
+`/mnt/d/…`, the second candidate root comes from `pwd -W`, which is MSYS-only and
+prints nothing, and the CLI still reports `D:\…`. So every absolute-path write matched
+neither candidate and fell to *"write outside the repository - not production source"* —
+**the §72 defect, live on exactly the route the adopters launch by**, since 0.25.0.
+0.28.1's re-arm was proven on Git Bash. Measured 2026-09-27 on the real templates, deny
+armed: the Git Bash launch denied, the PowerShell launch of the same build logged
+*outside the repository* and **let the write through** (three bench edits, reverted).
+Fixed with a third candidate — the mount form translated back to drive form — behind a
+harness knob, `SDLC_WSL_MOUNT`, because the suite's host has no `/mnt` to build a
+fixture in; proof case 24d fails on the committed guard and passes on the fix, and a
+mutation dropping the candidate is caught by it.
+
+**4. The licence path the refusal names must be one the agent can write.** Live under
+WSL in a worktree, the fixed guard's refusal named
+`/mnt/d/…/worktrees/-wt-probe/sdlc-tdd/refactor-license` — correct for the hook shell,
+unusable for the agent, whose tools take drive paths. The display path now translates
+back to drive form; case 24e pins it, with a mutation.
+
+**The live pass (pre-registered in §78.5), on the real templates, deny armed:**
+
+| build | route | from | verdict | where logged | licence path named |
+|---|---|---|---|---|---|
+| 1.0.63 | Git Bash | `spec/` | DENY | main git dir | `.git/sdlc-tdd/…` |
+| 1.0.63 | Git Bash | worktree | DENY | worktree git dir | worktree git dir, drive form |
+| 1.0.86 | Git Bash | `spec/` | DENY | main git dir | `.git/sdlc-tdd/…` |
+| 1.0.88 | Git Bash | `spec/` | DENY | main git dir | `.git/sdlc-tdd/…` |
+| 1.0.88 | Git Bash | worktree | DENY | worktree git dir | worktree git dir, drive form |
+| 1.0.86 | PowerShell → WSL | `spec/` | DENY (after fix 3) | main git dir | `.git/sdlc-tdd/…` |
+| 1.0.86 | PowerShell → WSL | worktree | DENY (after fix 3) | worktree git dir | `/mnt/…` → fix 4 |
+| 1.0.88 | PowerShell → WSL | `spec/` | DENY (after fix 3) | main git dir | `.git/sdlc-tdd/…` |
+| 1.0.88 | PowerShell → WSL | worktree | DENY (after fix 3) | worktree git dir | `/mnt/…` → fix 4 |
+
+1.0.86 from `spec/` is the row that exercises `"cwd": "."` itself — 1.0.63 and 1.0.88
+start hooks at the root either way. The skill ledger recorded into the main git dir from
+`spec/` and into the worktree's from the worktree, on 1.0.63 and 1.0.88. Two method notes:
+a run from `spec/` needs `--allow-all-paths`, or Copilot's own path sandbox refuses to
+read `../payments.js` and the guard never sees an edit (the first `spec/` pass was void
+for that reason, not a guard miss); and the probe skill's own text ("do not run any
+tools") suppressed the edit in the first combined run — a fixture defeating its own case,
+the §72 lesson again.
+
+**The Claude Code worktree session (D5's live proof, owed by §78.5).** Claude Code
+2.1.283, a real headless session in the probe worktree, the new Python guard and the new
+`Stop` launcher installed there, deny armed in the worktree's git dir: the guard
+**denied** the edit, logged `[claude:pre-write] DENY` in the worktree's own git dir, and
+its refusal named `D:/AICourse/copilot-ci-test/.git/worktrees/-wt-probe/sdlc-tdd/
+refactor-license`. The close-out `Stop` hook logged `stop: clean` in the same git dir —
+**but only when the session was launched from PowerShell.** Launched from Git Bash it
+never ran: *"requires bash but Git Bash was not found"*, visible only under `--debug`.
+Git for Windows is at a non-default path on this machine; the plausible mechanism is
+Claude Code deriving Git Bash from the `git.exe` on `PATH`, which is `cmd\git.exe` from
+PowerShell and `mingw64\bin\git.exe` inside Git Bash. **Every `sh`-form Claude hook the
+kit ships — gate, ledger, backstop — fails the same way on that route**, while the
+`python …` guard commands run. Not a 0.31.1 regression (the old `sh -c` form needs bash
+too), and TFit-Foundation lives on this machine — whether its operator ever launches
+from Git Bash is unknown. Recorded in `GATE_RECIPES.md` with the documented remedy
+(`CLAUDE_CODE_GIT_BASH_PATH`) and the standing prove-from-the-real-route rule; not
+otherwise acted on.
+
+**Shipped-citation check.** The build first wrote eight `FEATURE_PLAN.md` citations into
+shipped templates and one into `GATE_RECIPES.md`; invariant 5 (pointers in installed
+files must resolve in the installed world) and the 0.29.0/d014dc2 cleanup rule them out.
+Replaced with the release tag or the measurement date before commit; the bundle carries
+none.
+
+## 79. Copilot CLI runs the Claude-dialect hooks too — `.claude/settings.json` is
+## Copilot repo config, so a project carrying both dialects runs both in every Copilot
+## session — filed 2026-09-27, not ruled
+
+**Found during §78's bench work.** A Copilot session's `agentStop` record showed a
+failure from `"source": "repo settings"`: the kit's Claude-dialect close-out `Stop`
+command, run by Copilot **through PowerShell**, which cannot parse `if [ … ]` —
+*"ParserError: Missing '(' after 'if' in if statement"*. The changelog is explicit:
+1.0.12 (2026-03-26) — *"Read .claude/settings.json and .claude/settings.local.json as
+additional repo config sources."* `COPILOT.md` never recorded it.
+
+**Measured consequences on the bench (1.0.88):** the Claude guard's Python body runs in
+Copilot sessions — `[claude:pre-write] no path parsed from the write payload`,
+`[claude:stop-check] stop: clean` lines appear beside the Copilot guard's own — against
+a payload shape it was not written for, sharing the same `sdlc-tdd/` state directory;
+and the shell-form Claude launchers fail to parse under PowerShell, adding a failed hook
+record to every stop. Nothing observed was *harmful* on the bench — the Python guard
+found no path and did nothing; the shell ones failed — but "harmless by accident" is not
+a design, and the two guards writing one state directory in one session is exactly where
+an accident would stop being harmless.
+
+**Exposure:** projects that installed **both** dialects' hooks and run Copilot there.
+Neither adopter is exposed today: ai-news-dashboard has no `.claude/settings.json`, and
+TFit-Foundation runs Claude Code only. The bench is exposed by construction.
+
+**Not designed yet** — the options are real and not obvious: make each Claude-dialect
+command a no-op under a Copilot payload; move the Claude hooks to a file Copilot does not
+read (`.claude/settings.local.json` is also read, so not that one); or state in setup
+that a both-CLIs project should expect the doubling. Recorded in `COPILOT.md`'s
+2026-09-27 re-verification; owed a design and a ruling.
+
+### 78.8 The pre-0.31.1 `/kit-check` — run 2026-09-27: eleven findings, all fixed
+### in-session, and the full suite run caught four mutations the new cases could not see
+
+The reading passes ran as three parallel read-only agents (invariants 7/8/12,
+1/2/5/6/14/15/16, 3/4/11/13 plus the lens↔rule map); the mechanical checks and the six
+suites ran here.
+
+**Findings, by where they came from:**
+
+- **Introduced by 0.31.1 and fixed:** (2) setup's guard-note list restated the note's
+  contents without the new `.git/`-in-a-worktree definition, so a fresh setup would omit
+  it — the §76.3 "command restates half the contract" class, a fourth time; (2) two
+  licence-declaring sites (end-slice step 5, the SDLC template) still named the bare
+  path; (8) the README's 0.31.1 note lacked the update note's record step; (14) Copilot
+  adopters' ledger note would name only the JSON after the body moved to a script; (14/15)
+  **per-worktree state was an unstated consequence of D2** — deny armed in the main
+  checkout does not arm a worktree — now said wherever a mode is recorded; (15) the
+  re-prove step named no launch route, although finding (c) lived on the PowerShell
+  route only and a Git Bash re-prove would pass over it; (7) the bundle README still
+  called the ledger script Claude-side.
+- **Pre-existing, fixed:** (7) `sdlc-impact.py` (0.28.0) was missing from the bundle
+  README's kit-owned list and verbatim-copy count, from the "four exceptions" (five), and
+  from **both** update-procedure denominator checks — so on any project with the adapter
+  the classifier loop printed one line more than its check expected; the README's loop
+  had also lost a line continuation.
+- **Invariant 13:** the ledger's denominator list named none of the three new checks
+  (extended); no case ran a stop launcher **with** its script present (37d and two
+  close-out cases added — a typo in the launcher's `-f` path would have blocked every
+  stop); case labels 26/27 were duplicated (the new blocks moved to 36/37).
+
+**The full suite run** — the first with `-u`, sequential, ~80 minutes — exited 1 on three
+suites, and every one was a real gap in this batch's own proofs rather than a product
+defect: two guard mutations survived (removing the no-`.git` early exit; resolving a
+relative gitdir against the cwd), one Claude mutation went stale (the `isdir` → `exists`
+change moved its anchor — reported STALE by design, not counted), and one close-out
+mutation survived (it mutated a `mkdir` whose directory an earlier case had already
+made). The two "trust any cwd" mutants were not equivalent: git-dir resolution now
+absorbs the non-repo *pre-write*, but at *stop* the early exit is what keeps a session
+started outside any repository from being blocked with "did not run" — cases 25b
+(Copilot) and 24b (Claude) pin that. 36f pins root-relative gitdir resolution; the
+close-out mutation was re-aimed at the write. Each re-verified caught before the final
+run. Passing on the first full run were `gate-hook-check`, `skill-ledger-check` and
+`impact-check` (rc 0), and every unit case in the other three.
+
+**The final run, after the repairs — all six exit 0.** `close-out-check`: 26 unit + 7
+docs + 20 stop cases plus the 13-case worktree/launcher pass, 32 mutations caught, median
+stop 886 ms against 1500 (cap-20 walk 3179 ms against 5000). `tdd-guard-check`: 80 cases
+under each of python and node, 30 mutations caught. `tdd-guard-claude-check`: 51/51, 22
+mutations caught. From the first run, unchanged since: `gate-hook-check` OK (both
+parsers), `skill-ledger-check` 17/17, `impact-check` 17 cases and 13 mutations caught.
+Manifest regenerated and verified 44/44 against the working tree and the git index (the
+binary-mode `*` trap recurred on the first attempt and was caught before install).

@@ -162,7 +162,7 @@ result rather than an error:
 - **Denominator.** The loop must print exactly as many lines as
   `git ls-files .claude/commands .claude/skills .claude/agents .github/skills
   .github/agents .github/hooks/sdlc-close-out.sh .github/hooks/sdlc-close-out.json
-  | wc -l` — the same pathspec list
+  .github/hooks/sdlc-impact.py | wc -l` — the same pathspec list
   the loop walks, so the two cannot
   drift apart. Fewer means the matching dropped files (`tdd-references/` lives two
   directories down and is the usual casualty). On a Copilot project the count includes
@@ -574,7 +574,8 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `.github/hooks/sdlc-gate-claude.sh`, instantiated with the values read out of the
   current settings-file hook body before replacing it; the `Edit|Write` block
   becomes the bare launcher `sh .github/hooks/sdlc-gate-claude.sh`. (b) Where the
-  ledger is installed: `templates/skill-ledger-claude.template.sh` →
+  ledger is installed: `templates/skill-ledger.template.sh` (named
+  `skill-ledger-claude.template.sh` through 0.31.0) →
   `.github/hooks/sdlc-skill-ledger.sh` (verbatim), the `"Skill"` block becomes
   `sh .github/hooks/sdlc-skill-ledger.sh`. (c) Where the backstop is installed: the
   `Stop` block becomes the launcher-neutral
@@ -741,6 +742,56 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   and is unchanged, so **existing records stay valid and nothing fails** — but slices
   closed after this update should carry the new halves. Do not retrofit old commit
   bodies; the record describes the session that wrote it.
+- **0.31.1 re-arms every hook launcher that read "not at the root" as "not a repo", and
+  most of it arrives only by hand.** Two measured ways to be there, both silent — the
+  launchers tested for a `.git` *directory* and exited 0 otherwise. (a) **A Copilot
+  session started below the repository root**, on CLI builds 1.0.64 through 1.0.87,
+  ran every hook in the session's cwd: no gate, no TDD guard, no backstop, no ledger
+  line. 1.0.63 and 1.0.88 start hooks at the root, but the fix does not depend on the
+  build. (b) **A linked worktree**, on every build and in both dialects: its `.git` is a
+  file, and the guard and backstop kept their state under a `.git/` that is not a
+  directory there. (c) **Found while proving the fix, and the most serious of the
+  three: the Copilot TDD guard has waved through every absolute-path write on the WSL
+  route since 0.25.0.** When Copilot is launched from PowerShell its hooks run under WSL
+  bash, where the guard's root reads `/mnt/d/…`; 0.28.1's second candidate root comes
+  from `pwd -W`, which exists only in Git Bash — so a `D:\…` path matched neither and
+  was logged *"write outside the repository - not production source"*. Measured live
+  2026-09-27, deny armed: the Git Bash launch denied, the PowerShell launch of the same
+  build let the write through. Read the project's `guard.log` for that line against an
+  in-repository path: each one is a write the guard should have judged. State the
+  consequence plainly at the halt: **on an affected route,
+  those controls may never have run, and nothing said so.** What changed: every Copilot
+  entry carries `"cwd": "."`; every test is `[ -e .git ]`; the scripts resolve the git
+  directory from a worktree's `.git` file themselves (translating a Windows `D:/` path
+  under WSL, where WSL's own git cannot follow it); each stop launcher blocks once,
+  naming a missing script, where it used to exit 0 — a hook's exit code reaches only
+  Copilot's session log, never the agent (measured); and the skill ledger's body moved
+  out of the Copilot JSON into `.github/hooks/sdlc-skill-ledger.sh`, which both CLIs now
+  share. **Arrives with the update:** `.github/hooks/sdlc-close-out.sh` and
+  `sdlc-close-out.json` (kit-owned). **By hand, all project-owned:** on Copilot, replace
+  `sdlc-gate.json` and `sdlc-tdd-guard.json` from their templates (no values), apply
+  `templates/tdd-guard.template.sh` as a template diff keeping the three placeholder
+  values, and — where the ledger is installed — install `templates/skill-ledger.template.sh`
+  → `.github/hooks/sdlc-skill-ledger.sh` **before** replacing `sdlc-skill-ledger.json`,
+  because the new JSON is only a launcher for that script and says so, loudly, when it
+  is missing. On Claude Code, apply `templates/tdd-guard-claude.template.py` as a
+  template diff keeping the three values, replace the `Stop` block's close-out command
+  from `templates/settings.template.json`, and replace `sdlc-skill-ledger.sh` with the
+  shared body (it now falls back to its working directory when `CLAUDE_PROJECT_DIR` is
+  unset). **No state moves**: in an ordinary checkout every path — licences, deny
+  flags, logs, the ledger — resolves exactly where it did. **But state is per-worktree**:
+  a linked worktree has its own git directory, so deny armed in the main checkout does
+  not arm a worktree. Re-prove afterwards the way the defect hid, **from each launch
+  route the team uses** — on Windows both Git Bash and PowerShell, since (c) existed on
+  the PowerShell route only: with deny armed, start a Copilot session in a
+  subdirectory, ask for an edit to an in-repository production file by its **absolute**
+  path, and read the verdict from `guard.log`; where the team uses worktrees, repeat in
+  one (armed there); on Claude Code, repeat from the operator's own launch route. Then
+  fold into `spec/SDLC.md` by hand: the guard note says what `.git/` means in a worktree
+  and that the flag is per-worktree (the template's guidance now asks for both), and —
+  where the ledger is installed on Copilot — the ledger note names the shared body
+  `.github/hooks/sdlc-skill-ledger.sh` beside the JSON, since that pair is now what
+  makes "installed" true.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

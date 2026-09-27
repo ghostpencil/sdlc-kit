@@ -43,11 +43,12 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
   templates/*.template.*                     CLAUDE.md, README.md (when absent), spec/*.md
                                              (Claude Code: .claude/settings.json — bare
                                               launchers only — plus .github/hooks/
-                                              sdlc-gate-claude.sh, sdlc-tdd-guard.py,
-                                              sdlc-skill-ledger.sh where accepted)
+                                              sdlc-gate-claude.sh, sdlc-tdd-guard.py)
                                              (Copilot: .github/hooks/, .github/agents/)
                                              (both CLIs: .github/hooks/sdlc-close-out.sh
-                                              and .github/hooks/sdlc-impact.py)
+                                              and .github/hooks/sdlc-impact.py, plus
+                                              sdlc-skill-ledger.sh where accepted —
+                                              one body for both since 0.31.1)
   commands/*.md                              .claude/commands/*.md
                                              (Copilot: .github/skills/<name>/SKILL.md)
   skills/<name>/SKILL.md                     .claude/skills/<name>/SKILL.md

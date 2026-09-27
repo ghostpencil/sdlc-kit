@@ -30,7 +30,7 @@ Four passes, and the last is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/close-out-check.py
 """
-import io, json, os, subprocess, sys, tempfile, time, traceback
+import io, json, os, shutil, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "close-out.template.sh")
@@ -277,11 +277,23 @@ MUTATIONS = [
      'if [ -n "$GUARD_EVID" ]; then bare_flagged="$bare_flagged $C"',
      'if [ -n "" ]; then bare_flagged="$bare_flagged $C"'),
     ("guard_session_not_matched",
-     '[ "$(cat .git/sdlc-tdd/session 2>/dev/null)" = "$SID" ]',
-     '[ -d .git/sdlc-tdd ]'),
+     '[ "$(cat "$GD/sdlc-tdd/session" 2>/dev/null)" = "$SID" ]',
+     '[ -d "$GD/sdlc-tdd" ]'),
     ("block_regardless_of_flag",
      'if [ -f "$SD/deny-enabled" ]; then',
      'if [ ! -f "$SD/deny-enabled.never" ]; then'),
+    # --- linked worktrees (FEATURE_PLAN.md 78).
+    ("stop_tests_for_git_directory", '  [ -e .git ] || exit 0\n  if [ -z "$GD" ]; then',
+     '  [ -d .git ] || exit 0\n  if [ -z "$GD" ]; then'),
+    ("stop_state_under_literal_dotgit", 'SD="$GD/sdlc-close-out"', 'SD=.git/sdlc-close-out'),
+    # Aimed at the WRITE, not the mkdir: the worktree pass's earlier stop cases create
+    # the log directory, so a mutated mkdir alone changes nothing observable and first
+    # survived the full run (0.31.1).
+    ("docs_log_under_literal_dotgit", '"$MSG" >> "$GD/sdlc-close-out/log" 2>/dev/null',
+     '"$MSG" >> .git/sdlc-close-out/log 2>/dev/null'),
+    ("unresolvable_gitdir_silent",
+     "printf '{\"decision\":\"block\",\"reason\":\"SDLC close-out backstop did not run",
+     "true '{\"decision\":\"block\",\"reason\":\"SDLC close-out backstop did not run"),
     ("cap_unbounded", "rev-list --abbrev-commit -n 20", "rev-list --abbrev-commit -n 9999"),
     ("scope_ignores_upstream", "-n 20 '@{u}..HEAD'", "-n 20 HEAD"),
     ("red_treated_singleton", 'pk RED "$red_n" "$red_e" ""', 'pk RED "$red_n" "$red_e" s'),
@@ -786,6 +798,149 @@ def unit_pass(src, verbose):
     return failures, slowest
 
 
+# --- linked worktrees and the launchers (FEATURE_PLAN.md 78) ------------------------
+# Every other pass builds an ordinary checkout, whose .git is a directory - the one
+# configuration that cannot see this defect. In a linked worktree .git is a FILE
+# naming the git directory: the launchers tested for a directory and stood down in
+# silence, and the script kept its state under a literal .git/ that is not a
+# directory there. These cases build a REAL worktree with git.
+HOOK_JSON = os.path.join(REPO, "sdlc-kit", "templates", "close-out-hook.template.json")
+SETTINGS = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json")
+
+
+def _reopen_git(root, text):
+    """Rewrite a worktree's .git FILE. Windows git marks it hidden, and a hidden file
+    cannot be opened for a truncating write there - so remove it, then create it."""
+    p = os.path.join(root, ".git")
+    if os.path.isfile(p):
+        os.remove(p)
+    io.open(p, "w", newline="\n").write(text)
+
+
+def wt_pass(src, verbose):
+    """Returns (failures, 0.0) in the shape the other passes use."""
+    failures = []
+
+    def check(name, cond, detail=""):
+        if verbose:
+            print("  %-52s %s" % (name, "ok" if cond else "FAILED"))
+        if not cond:
+            failures.append((name, ["expectation not met"], detail))
+
+    base = tempfile.mkdtemp(prefix="closeout-wt-")
+    try:
+        main_r = os.path.join(base, "main")
+        wt_r = os.path.join(base, "wt")
+        os.makedirs(main_r)
+        g = lambda *a, **k: subprocess.run(["git"] + list(a), capture_output=True, **k)
+        g("init", "-q", main_r)
+        g("-C", main_r, "-c", "user.email=b@b", "-c", "user.name=b",
+          "commit", "-q", "--allow-empty", "-m", "chore: base")
+        g("-C", main_r, "worktree", "add", "-q", wt_r, "-b", "wt")
+        gd = g("-C", wt_r, "rev-parse", "--absolute-git-dir").stdout.decode().strip()
+        script = os.path.join(wt_r, ".github", "hooks", "sdlc-close-out.sh")
+        os.makedirs(os.path.dirname(script))
+        io.open(script, "w", encoding="utf-8", newline="\n").write(src)
+
+        def commit(message):
+            g("-C", wt_r, "-c", "user.email=b@b", "-c", "user.name=b", "commit", "-q",
+              "--allow-empty", "--cleanup=verbatim", "-F", "-", input=message.encode())
+
+        def stop(pl):
+            p = subprocess.run(["sh", script, "stop-check"], cwd=wt_r,
+                               input=pl.encode(), capture_output=True)
+            f = os.path.join(gd, "sdlc-close-out", "log")
+            return (p.stdout.decode("utf-8", "replace"),
+                    io.open(f, encoding="utf-8").read() if os.path.exists(f) else "")
+
+        os.makedirs(os.path.join(gd, "sdlc-close-out"))
+        io.open(os.path.join(gd, "sdlc-close-out", "deny-enabled"), "w").write("")
+        commit(DEFECTIVE_BODY)
+        out, log = stop(payload())
+        check("wt_stop_blocks_from_worktree_gitdir",
+              out.strip().startswith("{") and '"decision":"block"' in out
+              and "stop: BLOCK - defective record on" in log
+              and not os.path.exists(os.path.join(main_r, ".git", "sdlc-close-out")),
+              out + "\n--- log ---\n" + log)
+
+        os.remove(os.path.join(gd, "sdlc-close-out", "deny-enabled"))
+        os.makedirs(os.path.join(gd, "sdlc-tdd"))
+        io.open(os.path.join(gd, "sdlc-tdd", "session"), "w", newline="\n").write(SID)
+        io.open(os.path.join(gd, "sdlc-tdd", "prod-write-observed"), "w").write("")
+        commit(BARE_BODY)
+        out, log = stop(payload())
+        check("wt_stop_reads_guard_evidence_from_worktree_gitdir",
+              "stop: WOULD-BLOCK (bare, log-only by design)" in log, log)
+
+        idx = os.path.join(wt_r, "spec", "PROJECT_INDEX.md")
+        os.makedirs(os.path.dirname(idx))
+        io.open(idx, "w", newline="\n").write("a\nb\nc\n")
+        g("-C", wt_r, "add", "spec/PROJECT_INDEX.md")
+        commit("docs: close\n")
+        p = subprocess.run(["sh", script, "docs-check"], cwd=wt_r, capture_output=True)
+        f = os.path.join(gd, "sdlc-close-out", "log")
+        log = io.open(f, encoding="utf-8").read() if os.path.exists(f) else ""
+        check("wt_docs_check_logs_to_worktree_gitdir",
+              p.returncode == 0 and "docs budget: OK - 3 lines added" in log, log)
+
+        _reopen_git(wt_r, "gitdir: %s\n" % os.path.join(base, "nowhere").replace(os.sep, "/"))
+        p = subprocess.run(["sh", script, "stop-check"], cwd=wt_r,
+                           input=payload().encode(), capture_output=True)
+        out = p.stdout.decode("utf-8", "replace")
+        check("wt_unresolvable_gitdir_blocks_saying_it_did_not_run",
+              '"decision":"block"' in out and "did not run" in out, out)
+        p = subprocess.run(["sh", script, "stop-check"], cwd=wt_r,
+                           input=payload(active=True).encode(), capture_output=True)
+        check("wt_unresolvable_gitdir_stands_down_when_active",
+              p.stdout.decode().strip() == "", p.stdout.decode())
+
+        # The launchers. A broken install - the config present, the script not - must
+        # reach someone: an exit code does not (measured: session log only); a stop
+        # block does. Both dialects' stop launchers carry the same branch.
+        broken = os.path.join(base, "broken")
+        os.makedirs(os.path.join(broken, ".git"))
+        hj = json.load(io.open(HOOK_JSON, encoding="utf-8"))
+        entries = [h for hs in hj["hooks"].values() for h in hs]
+        check("launcher_copilot_pins_cwd_and_no_dir_test",
+              all(h.get("cwd") == "." and "-d .git" not in h["bash"]
+                  and not any(c in h["bash"] for c in "\\$") for h in entries),
+              json.dumps(entries))
+        st = json.load(io.open(SETTINGS, encoding="utf-8"))
+        claude_cmd = [h["command"] for blk in st["hooks"]["Stop"] for h in blk["hooks"]
+                      if "sdlc-close-out.sh" in h["command"]]
+        check("launcher_claude_no_dir_test", len(claude_cmd) == 1
+              and "-d .git" not in claude_cmd[0], repr(claude_cmd))
+        for label, argv in (("copilot", ["sh", "-c", entries[0]["bash"]]),
+                            ("claude", ["sh", "-c", claude_cmd[0] if claude_cmd else "false"])):
+            p = subprocess.run(argv, cwd=broken, input=payload().encode(), capture_output=True)
+            out = p.stdout.decode("utf-8", "replace").strip()
+            try:
+                j = json.loads(out)
+            except ValueError:
+                j = {}
+            check("launcher_%s_missing_script_blocks" % label,
+                  j.get("decision") == "block" and "did not run" in (j.get("reason") or ""),
+                  out)
+            p = subprocess.run(argv, cwd=broken, input=payload(active=True).encode(),
+                               capture_output=True)
+            check("launcher_%s_missing_script_stands_down_when_active" % label,
+                  p.stdout.decode().strip() == "", p.stdout.decode())
+            # The other direction: at a root that HAS the script (the worktree above,
+            # its .git a file), the launcher must take the script branch - a typo in its
+            # -f path would otherwise block every stop, unseen by the shape check.
+            _reopen_git(wt_r, "gitdir: %s\n" % gd.replace(os.sep, "/"))
+            f = os.path.join(gd, "sdlc-close-out", "log")
+            n0 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
+            p = subprocess.run(argv, cwd=wt_r, input=payload().encode(), capture_output=True)
+            n1 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
+            check("launcher_%s_present_script_runs_it_no_block" % label,
+                  "did not run" not in p.stdout.decode("utf-8", "replace") and n1 > n0,
+                  p.stdout.decode("utf-8", "replace"))
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+    return failures, 0.0
+
+
 def main():
     src = io.open(TPL, encoding="utf-8").read()
 
@@ -875,6 +1030,13 @@ def main():
     if cap_t >= 5.0:
         perf.append("cap-20 stop walk %.2f s (budget 5.00 s)" % cap_t)
 
+    print("\n== worktree + launcher pass (FEATURE_PLAN.md 78) ==")
+    failures, _ = guarded("worktree pass", ([], 0.0), wt_pass, src, verbose=True)
+    if failures:
+        for name, problems, out in failures:
+            print("\nFAILED %s: %s\n--- detail ---\n%s" % (name, "; ".join(problems), out))
+        sys.exit(1)
+
     print("\n== mutation pass (%d mutations, count derived) ==" % len(MUTATIONS))
     survivors = []
     stale = []
@@ -896,6 +1058,9 @@ def main():
         if not broke:
             broke, _ = guarded("mutation (stop): %s" % name, ([], {}), stop_pass, mutated, verbose=False)
             where = "stop"
+        if not broke:
+            broke, _ = guarded("mutation (worktree): %s" % name, ([], 0.0), wt_pass, mutated, verbose=False)
+            where = "worktree"
         print("  %-38s %s" % (name, "caught (%d %s case%s)" % (len(broke), where, "s" if len(broke) != 1 else "") if broke else "SURVIVED"))
         if not broke:
             survivors.append(name)
