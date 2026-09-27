@@ -136,8 +136,9 @@ clock, not by its build state; the history of each entry lives in the section it
   that case alone, not a raised budget.
 - **§78 — the hook launchers' silent not-at-root skip, filed 2026-09-27, not ruled.**
   Measured: every Copilot hook but the ledger is inert below the root on builds before
-  1.0.88; a linked worktree disarms both dialects. Owed: the worktree probe (owner
-  trust), the `/skills reload`/`info` check, then the launcher design (§78.3).
+  1.0.88; a linked worktree disarms them on every build (measured, §78.2) and the Claude
+  dialect's guard and backstop by reading. Owed: the `/skills reload`/`info` check, then
+  the launcher design (§78.3).
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -4515,13 +4516,23 @@ This got more pressing, not less: Copilot 1.0.85 took `/worktree`, `/move`, and
 already solved this once — IMPACT's slice-base capture is worktree-safe (§66.2 (e)) —
 and the hooks never got the same treatment.
 
-**Not measured end to end.** The live worktree probe needs a trusted folder: Copilot
-loads repo hooks only from `trustedFolders`, and adding the scratch probe repo to that
+**Measured end to end, 2026-09-27 — owner-approved probe inside the trusted bench.**
+Copilot loads repo hooks only from `trustedFolders`, and adding a scratch folder to that
 list was refused by the session's permission policy (config verified restored,
-byte-identical). The `.git`-is-a-file fact was confirmed on the probe worktree; what
-remains open is only whether Copilot loads a worktree's hooks at all — either answer
-leaves the kit's hooks not running. Owed before the fix is proven: (a) the owner trusts
-the probe worktree, or (b) the probe runs inside the trusted bench, owner-approved.
+byte-identical), so the probe ran in a linked worktree created *inside* the bench
+(`copilot-ci-test/.wt-probe`, branch `wt-probe`, both removed after), probe hooks copied
+in, launched from the worktree root:
+
+| build | route | hook cwd | `.git` dir | `.git` exists | kit launcher |
+|---|---|---|---|---|---|
+| 1.0.88 | Git Bash | worktree root | n | y | **silent skip** |
+| 1.0.78 | Git Bash | worktree root | n | y | **silent skip** |
+| 1.0.88 | PowerShell → WSL | `/mnt/d/…/.wt-probe` | n | y | **silent skip** |
+
+The worktree's hooks load and fire at the worktree's own root on every build and route;
+the launcher skips because `.git` is a file. **Updating the CLI does not fix this case**
+— 1.0.88 skips exactly as 1.0.78 does. The Claude-dialect half (the `Stop` block and
+`repo_root()`) is established by reading, not yet by a Claude Code run.
 
 ### 78.3 Fix direction — not ruled
 
