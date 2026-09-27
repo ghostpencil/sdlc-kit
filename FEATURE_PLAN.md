@@ -138,7 +138,8 @@ clock, not by its build state; the history of each entry lives in the section it
   Measured: every Copilot hook but the ledger is inert below the root on builds before
   1.0.88; a linked worktree disarms them on every build (measured, §78.2) and the Claude
   dialect's guard and backstop by reading. `/skills reload`/`info` confirmed working
-  (§78.4). Owed: the launcher design (§78.3).
+  (§78.4). Launcher fix DESIGNED and bench-measured (§78.5: `"cwd": "."` + `[ -e .git ]`,
+  state in `git rev-parse --git-dir`); three rulings owed there before any build.
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -4565,7 +4566,8 @@ the launcher skips because `.git` is a file. **Updating the CLI does not fix thi
 - **Proof cases in both guard suites** for a subfolder cwd and a `.git` file, with a
   mutation that restores `[ -d .git ]` — so the proof can fail on the old launcher.
 - **The version floor.** 1.0.63 stays the hard floor (the matcher); 1.0.88 becomes the
-  *recommended* floor, stated with this section's reason. The launcher fix is what makes
+  *recommended* floor, stated with this section's reason. **Withdrawn in §78.5** — the
+  `cwd` fix holds from 1.0.63, and 1.0.88 does not fix the worktree case. The launcher fix is what makes
   older builds safe; the floor is not the fix.
 
 ### 78.4 Two re-verification items the same check raised
@@ -4593,3 +4595,129 @@ the launcher skips because `.git` is a file. **Updating the CLI does not fix thi
   `copilot skill add [--project]`, 1.0.85). New evidence for the `/fleet` question: hook
   lifecycle events inside a subagent are recorded since 1.0.81, so hooks do run there —
   still a bench question before any use.
+
+### 78.5 The launcher fix designed — four shapes measured, one survives every build and
+### route, and "loud" turned out to mean something narrower than the kit assumed —
+### 2026-09-27
+
+**The candidates, measured before choosing.** One probe JSON carrying four launcher
+shapes side by side, each calling a script that logs its cwd, `[ -d .git ]`,
+`[ -e .git ]`, the stdin byte count, and `uname -s`. Run on the trusted bench from `spec/`
+and from a linked worktree created inside it (owner-approved, removed after), on the
+genuine release zips:
+
+- **V0** — today: `if [ -d .git ] && [ -f .github/hooks/<s> ]; then cat | sh …; fi`
+- **V1** — `"cwd": "."` on the entry (documented: *"relative to repository root or
+  absolute"*), test `[ -e .git ]`, body otherwise unchanged and `$`-free
+- **V2** — `cd "$(git rev-parse --show-toplevel)" && if [ -f … ]; then cat | sh …; fi`
+- **V3** — `"exec": "sh"`, `"args": [".github/hooks/<s>", …]`, `"cwd": "."` (no shell)
+
+| build | route | from `spec/` | from a worktree |
+|---|---|---|---|
+| 1.0.63 | Git Bash | V0 V1 V2 V3 all ran at root | V1 V2 V3 ran; V0 skipped |
+| 1.0.78 | Git Bash | V1 V2 V3 ran; V0 skipped | V1 V2 V3 ran; V0 skipped |
+| 1.0.86 | Git Bash | V1 V2 V3 ran; V0 skipped | V1 V2 V3 ran; V0 skipped |
+| 1.0.86 | PowerShell → WSL | V1 V2 ran; V0 skipped; **V3 never fired** | V1 V2 ran; V0 V3 did not |
+| 1.0.88 | Git Bash | all four ran | V1 V2 V3 ran; V0 skipped |
+| 1.0.88 | PowerShell → WSL | V0 V1 V2 ran; **V3 never fired** | V1 V2 ran; V0 V3 did not |
+
+Every firing variant received the full payload on stdin. Three facts fall out:
+
+1. **V1 is the fix: declarative, `$`-free, and correct on every supported build and
+   both routes**, subfolder and worktree alike — from the kit's floor (1.0.63) to the
+   latest. `"cwd": "."` resolves to the *worktree's* root in a worktree, which is what
+   the hooks need.
+2. **The subfolder defect was a regression, not the original behaviour:** on 1.0.63 V0
+   ran at the root from `spec/`. Somewhere in 1.0.64–1.0.77 hooks started inheriting the
+   session cwd; 1.0.88 restored the root. So a "recommended floor of 1.0.88" (§78.3) is
+   **withdrawn** — V1 makes every build from 1.0.63 safe, and 1.0.88 does not fix the
+   worktree case anyway.
+3. **V2 survived the WSL route** — `$(git rev-parse …)` evaluates to the same path in
+   whichever layer expands it, unlike a `$var` defined in the body. It works, but it
+   leans on a re-parse the kit has measured misbehaving three ways; V1 needs nothing
+   from it. **V3 is out:** on a PowerShell launch there is no `sh` on the path it
+   resolves, and it fails without a trace.
+
+**"Loud" measured (1.0.88, 2026-09-27).** A `preToolUse` hook writing stderr and
+exiting 0, and `postToolUse` / `agentStop` hooks writing stderr and exiting 1:
+
+| hook outcome | reached the agent or the `-p` output | recorded |
+|---|---|---|
+| `preToolUse`, stderr, exit 0 | no | **nowhere** |
+| `postToolUse`, stderr, exit 1 | no — the agent reported *"no hook messages appeared"* | session `events.jsonl`, process log |
+| `agentStop`, stderr, exit 1 | no | session `events.jsonl`, process log |
+
+So an exit-code failure is a log line nobody reads. That includes **the skill ledger's
+not-at-root branch**, which the kit describes as its one loud launcher: it is loud to
+`~/.copilot/session-state/<id>/events.jsonl` and nowhere else. The channels measured to
+reach the agent are a `preToolUse` **deny** (the reference: exit 2 or any other non-zero
+denies the call — it blocks work) and an `agentStop` **block** with a reason (the
+close-out backstop's schema, bench-measured in §52; the CLI ends a turn after 8
+consecutive blocks and passes `stop_hook_active`).
+
+**The design, as proposed:**
+
+- **D1 — every Copilot launcher gains `"cwd": "."` and tests `[ -e .git ]`.** Four JSON
+  templates (gate, TDD guard ×3, close-out, skill ledger). The bodies stay `$`-free.
+- **D2 — state lives in the per-worktree git directory, `git rev-parse --git-dir`** —
+  the IMPACT precedent (§66.2 (e), `sdlc-impact.template.py:272`). In an ordinary
+  checkout that *is* `.git`, so every existing path, licence, and log resolves exactly
+  as today: **no migration for either adopter.** Touches the three script templates'
+  root/state lines (`tdd-guard.template.sh:76–79`, `close-out.template.sh:106–107,
+  150–151, 309–312`), `tdd-guard-claude.template.py`'s `repo_root()` and `S`, and the
+  skill ledger, whose Copilot body writes `.git/sdlc-skill-ledger.jsonl` inline — it moves
+  to a script file on the Claude dialect's `skill-ledger-claude.template.sh` pattern
+  rather than growing a `$(…)` in a launcher.
+- **D3 — the prose names the location once, and the ~30 `.git/sdlc-*` references
+  stand.** `SDLC.template.md` states that `.git/` in every kit path means the repository's
+  git directory — `git rev-parse --git-dir`, which is `.git/` except in a linked worktree.
+  The licence-writing sites (`end-slice.md` §3/§5/§6, `SDLC.template.md:196–203`) name
+  the command, because those are the paths an agent *writes*; in a worktree the literal
+  path fails with an error rather than silently, which is the right failure but not a
+  usable instruction.
+- **D4 — the one loud branch sits on the stop hooks.** A stop-bearing launcher (TDD
+  guard's `agentStop`, close-out's) whose `[ -e .git ] && [ -f … ]` test fails emits
+  `{"decision":"block","reason":"SDLC hooks did not run: …"}` instead of falling through
+  — reaching the agent, which reports it. Pre and post launchers stay exit-0 on that
+  branch: a deny there would block every write on a broken install, and the stop hook of
+  the same family reports the same fault a turn later. With D1 in place this branch
+  fires only on a broken install (script missing), so its cost is paid only where it is
+  deserved; the 8-block cap bounds it. The ledger's exit-1 branch gets its description
+  corrected (loud to the session log, not to anyone reading) in the same batch.
+- **D5 — the Claude dialect:** the close-out `Stop` block's `sh -c "if [ -d .git ] …"`
+  becomes `[ -e .git ]`; `repo_root()` accepts a `.git` file; `sdlc-gate-claude.sh` and
+  `skill-ledger-claude.template.sh`'s `-d "$CLAUDE_PROJECT_DIR/.git"` become `-e`. No cwd
+  change — Claude Code runs hooks at the project root (measured), so it was never
+  exposed to the subfolder half. **Its worktree behaviour is read, not run** — a Claude
+  Code worktree session is owed as a live proof.
+
+**Proofs, pre-registered.** In each of the four suites (`tdd-guard-check.py`,
+`close-out-check.py`, `gate-hook-check.py`, `skill-ledger-check.py`): a template-shape
+assertion that every Copilot launcher carries `"cwd": "."` and no `[ -d .git ]`; a
+fixture where `.git` is a *file* from a real `git worktree add`, driving each body and
+script and asserting state lands in the per-worktree git dir; a mutation restoring
+`[ -d .git ]` that the fixture must kill. Then live, on the bench: 1.0.63 and 1.0.88,
+both routes, from `spec/` and from a worktree, with the real templates rather than a
+probe — the guard denying (in deny mode) and the ledger recording, not merely firing.
+
+**Cost.** Six template files, four proof suites, three prose sites with real edits
+(the definition in `SDLC.template.md`, the licence lines, the ledger's loudness claim),
+`GATE_RECIPES.md`'s launcher description (lines 273, 380, 517) and `COPILOT.md`'s
+hooks section. `sdlc-update.md` classifies the hook JSONs as kit-owned verbatim files, so
+the fix reaches both adopters by an ordinary update; the instantiated guard body is the
+one piece that needs the re-instantiation path the 0.28.1 fix used.
+
+**Rulings owed:**
+
+1. **Worktree scope — full support (D2 + D3), or a loud refusal?** The refusal is
+   cheaper in prose but not in scripts: detecting a worktree and saying so needs the same
+   root and state lines touched, and leaves `/worktree` sessions — standard on Copilot
+   since 1.0.85, and the isolation mode Claude Code's own subagents use — running
+   unguarded, loudly. **Recommend full support.** No adopter is known to use worktrees,
+   but a silent disarm is exactly the defect whose absence of evidence is its signature.
+2. **D4's loud channel — `agentStop` block, as proposed, or log-only?** Recommend the
+   block: it is the one channel measured to reach anyone, and it fires only on a broken
+   install.
+3. **Release shape — a patch (0.31.1), on the 0.28.1 precedent for a silent disarm of
+   the guard,** or folded into the next minor with whatever the adopters' next arcs
+   bring. Recommend the patch.
