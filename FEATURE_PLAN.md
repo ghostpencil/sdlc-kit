@@ -137,8 +137,8 @@ clock, not by its build state; the history of each entry lives in the section it
 - **§78 — the hook launchers' silent not-at-root skip, filed 2026-09-27, not ruled.**
   Measured: every Copilot hook but the ledger is inert below the root on builds before
   1.0.88; a linked worktree disarms them on every build (measured, §78.2) and the Claude
-  dialect's guard and backstop by reading. Owed: the `/skills reload`/`info` check, then
-  the launcher design (§78.3).
+  dialect's guard and backstop by reading. `/skills reload`/`info` confirmed working
+  (§78.4). Owed: the launcher design (§78.3).
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -4478,12 +4478,22 @@ A probe hook (logs `pwd`, `[ -d .git ]`, `[ -e .git ]`) beside a copy of the kit
 launcher, on the trusted bench `copilot-ci-test`, one shell-tool turn per run. Builds run
 side by side from the release zips, SHA256-checked, `--no-auto-update`.
 
+**A labelling trap, caught the same day and corrected here.** The WinGet-installed
+`copilot.exe` is itself a **1.0.83** binary: a plain launch loads a newer self-downloaded
+build (`--version` said 1.0.86, later 1.0.88), but `--no-auto-update` pins the build
+bundled in the binary. The first pass ran that exe with the flag and labelled the rows
+"1.0.86"; they were **1.0.83**. The genuine 1.0.86 zip was then measured separately. The
+conclusion did not move — every pre-1.0.88 build measured skips — but a version claim
+from this bench is only as good as `--version --no-auto-update` **on the exe that ran**.
+
 | build | launched from | route | hook cwd | `.git` dir | kit launcher |
 |---|---|---|---|---|---|
 | 1.0.88 | root (control) | Git Bash | root | y | **ran** |
 | 1.0.78 | `spec/` | Git Bash | `spec/` | n | **silent skip** |
+| 1.0.83 | `spec/` | Git Bash | `spec/` | n | **silent skip** |
+| 1.0.83 | root (control) | PowerShell → WSL | root | — | **ran** |
+| 1.0.83 | `spec/` | PowerShell → WSL | `/mnt/d/…/spec` | n | **silent skip** |
 | 1.0.86 | `spec/` | Git Bash | `spec/` | n | **silent skip** |
-| 1.0.86 | root (control) | PowerShell → WSL | root | — | **ran** |
 | 1.0.86 | `spec/` | PowerShell → WSL | `/mnt/d/…/spec` | n | **silent skip** |
 | 1.0.88 | `spec/` | Git Bash | root | y | **ran** |
 | 1.0.88 | `spec/` | PowerShell → WSL | root | y | **ran** |
@@ -4495,8 +4505,8 @@ no TDD guard, and no close-out backstop**, and said nothing. 1.0.78 is affected,
 is not a recent regression: it is the whole of the kit's measured Copilot history, and
 the 2026-08-07 record (*"the hook process's working directory is the session's cwd"*) was
 the fact, measured, with its consequence for the guard never drawn. One unexplained
-detail, recorded rather than smoothed: the 1.0.86 WSL-route subfolder run logged the
-`agentStop` probe but not the `preToolUse` one; the Git Bash route logged both.
+detail, recorded rather than smoothed: one 1.0.83 WSL-route subfolder run logged the
+`agentStop` probe but not the `preToolUse` one; every other run logged both.
 
 Whether either adopter ever launched below the root is **unknown**; both habitually
 start at the root, which may be why no arc surfaced it.
@@ -4525,9 +4535,14 @@ in, launched from the worktree root:
 
 | build | route | hook cwd | `.git` dir | `.git` exists | kit launcher |
 |---|---|---|---|---|---|
-| 1.0.88 | Git Bash | worktree root | n | y | **silent skip** |
 | 1.0.78 | Git Bash | worktree root | n | y | **silent skip** |
+| 1.0.83 | Git Bash | worktree root | n | y | **silent skip** |
+| 1.0.83 | PowerShell → WSL | `/mnt/d/…/.wt-probe` | n | y | **silent skip** |
+| 1.0.88 | Git Bash | worktree root | n | y | **silent skip** |
 | 1.0.88 | PowerShell → WSL | `/mnt/d/…/.wt-probe` | n | y | **silent skip** |
+
+(The 1.0.83 rows were first recorded as 1.0.88 — the §78.1 labelling trap; the genuine
+1.0.88 rows are from the release zip, re-run in a recreated probe worktree.)
 
 The worktree's hooks load and fire at the worktree's own root on every build and route;
 the launcher skips because `.git` is a file. **Updating the CLI does not fix this case**
@@ -4559,7 +4574,19 @@ the launcher skips because `.git` is a file. **Updating the CLI does not fix thi
   `SKILLS.md:24` as the install check. `/skills` became a dashboard in 1.0.81, and
   neither subcommand can be confirmed without an interactive session (not greppable in
   the binaries; GitHub's command reference is too incomplete to show absence — it omits
-  `/plugin` too). **Owner check owed:** type both in a real session.
+  `/plugin` too). **CONFIRMED 2026-09-27, both still work, on 1.0.83 and on 1.0.88**, in
+  ai-news-dashboard: `/skills reload` prints *"Skills reloaded. Found 26 skills."* and
+  `/skills info diff-review` prints Source (Project), Location
+  (`.claude\skills\diff-review\SKILL.md`), and Description. The setup step stands as
+  written. **Method, because the first attempt was void:** `copilot -p "/skills reload"`
+  does **not** run the slash command — the text goes to the model, which answered
+  *"Skills reloaded"* itself (20.8k tokens) and, for `info`, searched for and read the
+  SKILL.md and summarized it: authoring hazard 4, a report of the action instead of the
+  action. The confirmation came from a real interactive session driven through a
+  pseudo-terminal (`pywinpty` + `pyte` in a scratch venv), the rendered screen read back,
+  `0 AIC used`. The same screen shows a vendor defect worth knowing: the Understand
+  Anything plugin's `understand` skill **fails to load** on Copilot (*"argument-hint must
+  be a string"*).
 - **`COPILOT.md` has not been re-verified since 1.0.78.** Stale as of this date:
   `/rubber-duck`'s Claude/GPT-only constraint (every family since 1.0.87); the
   `/plugins` dashboard (removed 1.0.81) and `copilot plugins install --skill` (now
