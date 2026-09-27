@@ -134,6 +134,10 @@ clock, not by its build state; the history of each entry lives in the section it
   Apply the median treatment when either next breaches, not pre-emptively; a breach is
   this finding, not a new one. The cap-20 case's fallback, if it fires, is best-of-2 for
   that case alone, not a raised budget.
+- **§78 — the hook launchers' silent not-at-root skip, filed 2026-09-27, not ruled.**
+  Measured: every Copilot hook but the ledger is inert below the root on builds before
+  1.0.88; a linked worktree disarms both dialects. Owed: the worktree probe (owner
+  trust), the `/skills reload`/`info` check, then the launcher design (§78.3).
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -4445,3 +4449,109 @@ slowest invocation, so fixing them means returning per-case times from `unit_pas
 the stop budget breached every run and these two have breached once between them, so the
 evidence does not yet support the edit. Recorded here so the next breach is read as this
 finding rather than as a new one.
+
+---
+
+## 78. The hook launchers read "not at the root" as "not a repo" — every Copilot hook but
+## the ledger has been silently inert in any session launched below the root, on every
+## CLI build before 1.0.88, and a linked worktree disarms both dialects by construction —
+## filed 2026-09-27
+
+**How it was found.** A sanity check of Copilot CLI against the kit (installed 1.0.86,
+latest 1.0.88; `reference/COPILOT.md` last verified on 1.0.78). The 1.0.88 changelog
+reads: *"Hook commands without an explicit `cwd` again run in the project root instead of
+the session's current directory."* Every Copilot launcher the kit ships starts with the
+same guard, and the guard's failure branch is an exit 0:
+
+```
+if [ -d .git ] && [ -f .github/hooks/<script> ]; then cat | sh .github/hooks/<script> …; fi
+```
+
+That is `copilot-hook.template.json` (gate), `tdd-guard.template.json` (all three events),
+and `close-out-hook.template.json` (backstop). `skill-ledger.template.json` is the only
+launcher whose not-at-root branch is loud (`exit 1` with a named message).
+
+### 78.1 Measured — the bench, 2026-09-27
+
+A probe hook (logs `pwd`, `[ -d .git ]`, `[ -e .git ]`) beside a copy of the kit-shaped
+launcher, on the trusted bench `copilot-ci-test`, one shell-tool turn per run. Builds run
+side by side from the release zips, SHA256-checked, `--no-auto-update`.
+
+| build | launched from | route | hook cwd | `.git` dir | kit launcher |
+|---|---|---|---|---|---|
+| 1.0.88 | root (control) | Git Bash | root | y | **ran** |
+| 1.0.78 | `spec/` | Git Bash | `spec/` | n | **silent skip** |
+| 1.0.86 | `spec/` | Git Bash | `spec/` | n | **silent skip** |
+| 1.0.86 | root (control) | PowerShell → WSL | root | — | **ran** |
+| 1.0.86 | `spec/` | PowerShell → WSL | `/mnt/d/…/spec` | n | **silent skip** |
+| 1.0.88 | `spec/` | Git Bash | root | y | **ran** |
+| 1.0.88 | `spec/` | PowerShell → WSL | root | y | **ran** |
+
+The hook configuration *is* discovered from the repo root in every case — the hooks
+fire; they fire in the wrong directory, and the launcher reads that as "no repo here".
+So through 1.0.87, a Copilot session started anywhere below the root ran with **no gate,
+no TDD guard, and no close-out backstop**, and said nothing. 1.0.78 is affected, so this
+is not a recent regression: it is the whole of the kit's measured Copilot history, and
+the 2026-08-07 record (*"the hook process's working directory is the session's cwd"*) was
+the fact, measured, with its consequence for the guard never drawn. One unexplained
+detail, recorded rather than smoothed: the 1.0.86 WSL-route subfolder run logged the
+`agentStop` probe but not the `preToolUse` one; the Git Bash route logged both.
+
+Whether either adopter ever launched below the root is **unknown**; both habitually
+start at the root, which may be why no arc surfaced it.
+
+### 78.2 The worktree case — by construction, and in both dialects
+
+In a linked worktree `.git` is a **file** (`gitdir: …`), so `[ -d .git ]` is false at the
+worktree's own root, and every launcher above skips there on any build. The Claude Code
+dialect has the same test in two places: the close-out `Stop` block
+(`settings.template.json`, `sh -c "if [ -d .git ] && …"`) and the TDD guard's
+`repo_root()` (`tdd-guard-claude.template.py`, `os.path.isdir(".git")` for both the
+`CLAUDE_PROJECT_DIR` and the cwd branch), which returns `None` and does nothing. The
+subfolder case (78.1) is Copilot-only; Claude Code runs hooks at the project root.
+
+This got more pressing, not less: Copilot 1.0.85 took `/worktree`, `/move`, and
+`--worktree` out of experimental mode, and 1.0.87 added `worktreePathTemplate`. The kit
+already solved this once — IMPACT's slice-base capture is worktree-safe (§66.2 (e)) —
+and the hooks never got the same treatment.
+
+**Not measured end to end.** The live worktree probe needs a trusted folder: Copilot
+loads repo hooks only from `trustedFolders`, and adding the scratch probe repo to that
+list was refused by the session's permission policy (config verified restored,
+byte-identical). The `.git`-is-a-file fact was confirmed on the probe worktree; what
+remains open is only whether Copilot loads a worktree's hooks at all — either answer
+leaves the kit's hooks not running. Owed before the fix is proven: (a) the owner trusts
+the probe worktree, or (b) the probe runs inside the trusted bench, owner-approved.
+
+### 78.3 Fix direction — not ruled
+
+- **Resolve the root, don't test the cwd.** `git rev-parse --show-toplevel` answers both
+  cases (subfolder and worktree). **The hard part is the launcher, not the script:** from
+  a subfolder the relative `.github/hooks/<script>` path does not resolve either, so the
+  launcher must find its script without the root — and it must stay `$`-free for the
+  WSL route (re-measured 2026-09-27: that route expands `$var` to empty before the hook
+  shell runs, on top of the known backslash and `$(cat)` corruption), while keeping
+  stdin for the payload. That is a bench design question, not a text edit; the Claude
+  dialect (`CLAUDE_PROJECT_DIR`, Python) has the easier half.
+- **A not-at-root outcome must be loud**, the skill ledger's shape: a hook that cannot
+  find its repo says so on stderr rather than exiting 0. A silent skip is the §61 PIN
+  defect and the 0.28.1 guard defect, a third time.
+- **Proof cases in both guard suites** for a subfolder cwd and a `.git` file, with a
+  mutation that restores `[ -d .git ]` — so the proof can fail on the old launcher.
+- **The version floor.** 1.0.63 stays the hard floor (the matcher); 1.0.88 becomes the
+  *recommended* floor, stated with this section's reason. The launcher fix is what makes
+  older builds safe; the floor is not the fix.
+
+### 78.4 Two re-verification items the same check raised
+
+- **`/skills reload` and `/skills info`** — named by `sdlc-setup.md:801` and
+  `SKILLS.md:24` as the install check. `/skills` became a dashboard in 1.0.81, and
+  neither subcommand can be confirmed without an interactive session (not greppable in
+  the binaries; GitHub's command reference is too incomplete to show absence — it omits
+  `/plugin` too). **Owner check owed:** type both in a real session.
+- **`COPILOT.md` has not been re-verified since 1.0.78.** Stale as of this date:
+  `/rubber-duck`'s Claude/GPT-only constraint (every family since 1.0.87); the
+  `/plugins` dashboard (removed 1.0.81) and `copilot plugins install --skill` (now
+  `copilot skill add [--project]`, 1.0.85). New evidence for the `/fleet` question: hook
+  lifecycle events inside a subagent are recorded since 1.0.81, so hooks do run there —
+  still a bench question before any use.
