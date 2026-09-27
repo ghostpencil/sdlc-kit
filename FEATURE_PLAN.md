@@ -139,7 +139,7 @@ clock, not by its build state; the history of each entry lives in the section it
   1.0.88; a linked worktree disarms them on every build (measured, §78.2) and the Claude
   dialect's guard and backstop by reading. `/skills reload`/`info` confirmed working
   (§78.4). Launcher fix DESIGNED and bench-measured (§78.5: `"cwd": "."` + `[ -e .git ]`,
-  state in `git rev-parse --git-dir`); three rulings owed there before any build.
+  state in `git rev-parse --git-dir`); all three rulings taken (§78.6) — build next, as 0.31.1.
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -4721,3 +4721,19 @@ one piece that needs the re-instantiation path the 0.28.1 fix used.
 3. **Release shape — a patch (0.31.1), on the 0.28.1 precedent for a silent disarm of
    the guard,** or folded into the next minor with whatever the adopters' next arcs
    bring. Recommend the patch.
+
+### 78.6 Ruled 2026-09-27 — all three, as recommended
+
+1. **Worktree scope — RULED: full support.** D2 (state in `git rev-parse --git-dir`) and
+   D3 (the location named once; the licence-writing sites name the command) are built,
+   not a refusal.
+2. **Loud channel — RULED: the `agentStop` block (D4).** Pre and post launchers stay
+   exit-0 on the broken-install branch; the stop hooks of the same family report it.
+3. **Release — RULED: patch 0.31.1**, on the 0.28.1 precedent, then an ordinary adopter
+   update (the instantiated guard body re-instantiated as in 0.28.1).
+
+Build order, as §78.5 pre-registered it: proofs first in the four suites (the worktree
+fixture and the `[ -d .git ]` mutation must fail on today's templates), then D1, D2,
+D5, D4, D3, then the live bench pass (1.0.63 and 1.0.88, both routes, subfolder and
+worktree, real templates) and a Claude Code worktree session, then `/kit-check`
+pre-tag.
