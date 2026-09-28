@@ -76,7 +76,8 @@ re-denominated form, and every clock in this section was already counted in arcs
 **Refreshed 2026-09-27, against the tree at 0.31.0.** Shipped machinery is listed by its
 clock, not by its build state; the history of each entry lives in the section it cites.
 
-**Clocks the next field arc reads** (both adopters are on 0.31.0, merged 2026-09-04):
+**Clocks the next field arc reads** (both adopters are on 0.31.2, merged 2026-09-28 —
+ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
 
 - **The three STD lenses — one final ATTRIBUTED clock, two arcs, no further extension**
   (§54 (b), ruled 2026-08-14; restarted §70.7 (i) once the denominator became
@@ -144,7 +145,11 @@ clock, not by its build state; the history of each entry lives in the section it
   Claude Code worktree session run live (guard + backstop pass from PowerShell; a Git
   Bash launch cannot find Git Bash here — §78.7). `/kit-check` run, eleven findings fixed
   (§78.8); RELEASED as 0.31.1. A harness-contract regression it shipped, caught by
-  TFit's own tests during its update, is fixed as 0.31.2 (§78.9).
+  TFit's own tests during its update, is fixed as 0.31.2 (§78.9). **CLOSED 2026-09-28:**
+  both adopters updated and MERGED onto 0.31.2, verified after merge; ai-news' guard.log
+  showed the WSL gap had been live there (24 `.ua/` writes, no source escaped). On this
+  machine `CLAUDE_CODE_GIT_BASH_PATH` is now set at user scope (owner's go), so a Git
+  Bash-launched Claude Code session runs its `sh` hooks — recorded in TFit's spec.
 - **§79 — Copilot runs the Claude-dialect hooks from `.claude/settings.json`, filed
   2026-09-27, not ruled.** Both-dialect projects only; neither adopter exposed. Owed:
   a design and a ruling.
