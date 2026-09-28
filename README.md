@@ -858,6 +858,14 @@ only as a hand-apply, and the per-version transition notes name each one.
    is per-worktree, and a Copilot ledger note names the shared script beside the JSON.
    The update command's 0.31.1 note states the same procedure.
 
+   **0.31.2 fixes a regression 0.31.1 put into both TDD-guard dialects.** A harness that
+   pins `SDLC_REPO_ROOT` to a directory with no `.git` — your own guard tests, if you have
+   them, likely do — got no guarding at all under 0.31.1, silently; 0.31.2 restores the
+   old behavior. Real hook invocations were never affected. Apply the 0.31.1 → 0.31.2
+   template diff to your installed guard, keeping your three values and any local
+   amendments, and run your own guard tests. The update command's 0.31.2 note states the
+   same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,

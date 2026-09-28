@@ -10,6 +10,26 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.31.2 — 2026-09-28
+
+A same-day fix for a regression 0.31.1 introduced, caught by an adopter's own test
+suite during its 0.31.1 update rather than by the kit's (`FEATURE_PLAN.md` §78.9).
+
+### Fixed
+- **[adoption-only]** **A harness-pinned `SDLC_REPO_ROOT` with no `.git` guarded
+  nothing, silently, in both TDD-guard dialects.** The guards promise that an explicit
+  `SDLC_REPO_ROOT` wins so a harness can pin it, and through 0.31.0 a pinned bare
+  directory got its state created under `ROOT/.git`. 0.31.1's worktree-aware git-dir
+  resolution returned nothing when `.git` did not exist at all, so the guard exited
+  before doing anything — 8 of one adopter's own guard tests (which pin a bare
+  `tmp_path`) went red. A pinned root with **no `.git` at all** now falls back to
+  `ROOT/.git` as before; a `.git` *file* naming no git directory still guards nothing
+  and says so at stop. **Real hook invocations were never affected** — the CLIs never
+  pin the root, and 0.31.1's live proofs all passed — so this is a harness-contract
+  fix. Every kit fixture created a `.git`, which is why the kit's own suites could not
+  see it; case 25c in both suites now pins a bare directory, and a mutation dropping
+  the fallback is caught by it. Adopter's full suite with the fix: 845 passed.
+
 ## 0.31.1 — 2026-09-27
 
 A patch for a silent disarm, on the 0.28.1 precedent (`FEATURE_PLAN.md` §78, ruled

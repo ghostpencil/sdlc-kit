@@ -125,6 +125,12 @@ ROOT = repo_root()
 if not ROOT:
     sys.exit(0)
 GD = git_dir(ROOT)
+# A harness-pinned SDLC_REPO_ROOT with no .git at all keeps its pre-0.31.1 meaning:
+# state under ROOT/.git, created on demand (an adopter's own guard tests pin a bare
+# temp directory - 0.31.1 made that guard nothing, silently, and 0.31.2 restores it).
+# The other two roots cannot reach this: both require a .git to exist.
+if not GD and not os.path.exists(os.path.join(ROOT, ".git")):
+    GD = os.path.join(ROOT, ".git")
 if not GD:
     # A .git that names no git directory: nowhere to keep state, so guard nothing -
     # but say so at stop, the one seat measured to reach anyone (measured 2026-09-27).

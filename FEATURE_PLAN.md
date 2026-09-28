@@ -143,7 +143,8 @@ clock, not by its build state; the history of each entry lives in the section it
   (§78.7), which also found the 0.28.1 guard fix blind on the WSL route and fixed it.
   Claude Code worktree session run live (guard + backstop pass from PowerShell; a Git
   Bash launch cannot find Git Bash here — §78.7). `/kit-check` run, eleven findings fixed
-  (§78.8); all six suites exit 0 — tagging as 0.31.1.
+  (§78.8); RELEASED as 0.31.1. A harness-contract regression it shipped, caught by
+  TFit's own tests during its update, is fixed as 0.31.2 (§78.9).
 - **§79 — Copilot runs the Claude-dialect hooks from `.claude/settings.json`, filed
   2026-09-27, not ruled.** Both-dialect projects only; neither adopter exposed. Owed:
   a design and a ruling.
@@ -4923,3 +4924,30 @@ mutations caught. From the first run, unchanged since: `gate-hook-check` OK (bot
 parsers), `skill-ledger-check` 17/17, `impact-check` 17 cases and 13 mutations caught.
 Manifest regenerated and verified 44/44 against the working tree and the git index (the
 binary-mode `*` trap recurred on the first attempt and was caught before install).
+
+### 78.9 A regression 0.31.1 shipped, caught by an adopter's own tests — 0.31.2, same day
+
+During TFit-Foundation's 0.31.1 update the project's gate went red: **8 of its own
+`tests/test_tdd_guard.py` cases** failed, every one with the guard printing nothing. Their
+harness pins `SDLC_REPO_ROOT` to a bare `tmp_path` with no `.git` — the kit's own stated
+contract ("an explicit SDLC_REPO_ROOT wins so a harness can pin it"), and through 0.31.0 the
+guard created `ROOT/.git/sdlc-tdd/` there. 0.31.1's git-dir resolution (D2) returns nothing
+when `.git` does not exist at all, so a pinned bare root now exited before guarding — in
+both dialects. **Real hook invocations were never affected**: no CLI pins the root, and
+every 0.31.1 live proof passed. It is a harness-contract regression, and invisible to the
+kit's suites for one reason: **every fixture they build creates a `.git`**. The same
+blind spot §78 itself was about — a fixture shaped like the one configuration that cannot
+exhibit the defect — one level down, in this batch's own proofs.
+
+**Fixed as 0.31.2**: a pinned root with no `.git` at all falls back to `ROOT/.git` (created
+on demand, as before); a `.git` file naming no git directory still guards nothing and says
+so at stop; the close-out checker and the ledger keep their stricter behavior (neither has a
+pin, and the ledger must stay loud outside a repository). Case 25c in both guard suites pins
+a bare directory — it fails on the published 0.31.1 templates and passes now — and a
+mutation dropping the fallback is caught by it in each. **Acceptance: TFit's full suite
+with the fix applied as a hunk (its amendments kept) — 845 passed, its recorded baseline.**
+
+The lesson worth keeping is procedural, not technical: the adopter's gate is a proof suite
+the kit does not own, and it ran a configuration no kit fixture did. An update's gate run
+is therefore not a formality to skip on a hook-only release — it is the one place a
+project's own tests exercise the kit's contracts.

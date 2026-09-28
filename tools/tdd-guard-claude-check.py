@@ -469,6 +469,21 @@ def unit(guard_src, verbose=True, counter=None):
         case("25 CLAUDE_PROJECT_DIR locates the root when the env var is all there is",
              "VIOLATION production write" in b.tail())
 
+        # 25c: the harness contract. A PINNED SDLC_REPO_ROOT with no .git at all still
+        # guards, state created under it - the exact harness an adopter's own guard
+        # tests use (a bare tmp_path), which 0.31.1 made guard nothing, silently.
+        bare = os.path.join(base, "bare-root")
+        os.makedirs(bare)
+        e = dict(os.environ)
+        e.pop("CLAUDE_PROJECT_DIR", None)
+        e["SDLC_REPO_ROOT"] = bare
+        subprocess.run([sys.executable, b.guard, "pre-write"],
+                       input=json.dumps(write(bare, "pay.py")).encode(),
+                       capture_output=True, env=e, cwd=bare)
+        bl = os.path.join(bare, ".git", "sdlc-tdd", "guard.log")
+        case("25c a pinned root with NO .git still guards, state created under it",
+             os.path.exists(bl) and "VIOLATION" in io.open(bl, encoding="utf-8").read())
+
         b.reset_state()
         p = subprocess.run([sys.executable, b.guard, "pre-write"], input=b"not json",
                            capture_output=True,
@@ -635,6 +650,10 @@ MUTATIONS = [
      "in silence - FEATURE_PLAN.md 78)",
      '    if os.path.isdir(p):\n        return p\n    try:',
      '    if os.path.isdir(p):\n        return p\n    return None\n    try:'),
+    ("drop the pinned-root fallback (a harness pinning a bare directory guards nothing, "
+     "silently - the 0.31.1 regression an adopter's own tests caught)",
+     'if not GD and not os.path.exists(os.path.join(ROOT, ".git")):\n    GD = os.path.join(ROOT, ".git")\n',
+     ''),
     ("keep state under the root's literal .git (a worktree's state has nowhere to go)",
      'S = os.path.join(GD, "sdlc-tdd")',
      'S = os.path.join(ROOT, ".git", "sdlc-tdd")'),

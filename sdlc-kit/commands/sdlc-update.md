@@ -792,6 +792,15 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   where the ledger is installed on Copilot — the ledger note names the shared body
   `.github/hooks/sdlc-skill-ledger.sh` beside the JSON, since that pair is now what
   makes "installed" true.
+- **0.31.2 fixes a regression 0.31.1 put into both TDD-guard dialects, and it arrives only
+  by hand — the instantiated guard is project-owned.** A harness that pins
+  `SDLC_REPO_ROOT` to a directory with no `.git` (a project's own guard tests typically
+  do, with a bare temp directory) got **no guarding at all** under 0.31.1, silently;
+  0.31.2 restores the pre-0.31.1 behavior. Real hook invocations were never affected. Apply
+  the 0.31.1 → 0.31.2 template diff to the installed guard, keeping the three placeholder
+  values and any local amendments; a project taking 0.31.1 and 0.31.2 in one hop applies
+  the combined diff. **If the project has its own guard tests, run them** — that is how this
+  was found.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

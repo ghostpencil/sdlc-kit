@@ -520,6 +520,24 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
                                capture_output=True, env=e, cwd=elsewhere)
             check("25b ...and stop-check there is silent too - no block outside a repo",
                   p.stdout.decode().strip() == "", repr(p.stdout.decode()))
+            # 25c: the harness contract. A PINNED SDLC_REPO_ROOT with no .git at all
+            # still guards, state created under it - an adopter's own guard tests pin a
+            # bare temp directory, and 0.31.1 made that guard nothing, silently. Every
+            # other fixture here creates a .git, which is why the suite could not see it.
+            bare = tempfile.mkdtemp(prefix="tddguard-bare-")
+            try:
+                be = dict(e)
+                be["SDLC_REPO_ROOT"] = subprocess.run(["sh", "-c", 'cd "$1" && pwd', "_", bare],
+                                                      capture_output=True, text=True).stdout.strip()
+                subprocess.run(["sh", b.guard, "pre-write"],
+                               input=json.dumps(write(bare, [("Update", "payments.py")])).encode(),
+                               capture_output=True, env=be, cwd=bare)
+                bl = os.path.join(bare, ".git", "sdlc-tdd", "guard.log")
+                blog = io.open(bl, encoding="utf-8").read() if os.path.exists(bl) else ""
+                check("25c a pinned root with NO .git still guards, state created under it",
+                      "VIOLATION" in blog, blog)
+            finally:
+                shutil.rmtree(bare, ignore_errors=True)
         finally:
             shutil.rmtree(elsewhere, ignore_errors=True)
 
@@ -884,6 +902,10 @@ MUTATIONS = [
      lambda s: s.replace('  [ -e .git ] || exit 0\n', '  [ -d .git ] || exit 0\n')),
     ("keep state under the root's literal .git (a worktree's state has nowhere to go)",
      lambda s: s.replace('S="$GD/sdlc-tdd"', 'S="$SDLC_REPO_ROOT/.git/sdlc-tdd"')),
+    ("drop the pinned-root fallback (a harness pinning a bare directory guards nothing, "
+     "silently - the 0.31.1 regression an adopter's own tests caught)",
+     lambda s: s.replace(
+         '[ -z "$GD" ] && [ ! -e "$SDLC_REPO_ROOT/.git" ] && GD="$SDLC_REPO_ROOT/.git"\n', '')),
     ("resolve a relative gitdir against the cwd instead of the root",
      lambda s: s.replace('*) g="$1/$g" ;;', '*) ;;')),
     ("guard nothing in silence when the git dir cannot be resolved at stop",

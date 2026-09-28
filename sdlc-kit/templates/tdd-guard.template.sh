@@ -104,6 +104,11 @@ sdlc_git_dir() {
   return 1
 }
 GD=$(sdlc_git_dir "$SDLC_REPO_ROOT") || GD=""
+# A harness-pinned SDLC_REPO_ROOT with no .git at all keeps its pre-0.31.1 meaning:
+# state under ROOT/.git, created on demand (an adopter's own guard tests pin a bare
+# temp directory - 0.31.1 made that guard nothing, silently, and 0.31.2 restores it).
+# Unpinned, this cannot trigger: the no-.git exit above has already run.
+[ -z "$GD" ] && [ ! -e "$SDLC_REPO_ROOT/.git" ] && GD="$SDLC_REPO_ROOT/.git"
 if [ -z "$GD" ]; then
   # A .git that names no git directory: nowhere to keep state, so guard nothing -
   # but say so at stop, the one seat measured to reach anyone (measured 2026-09-27).
