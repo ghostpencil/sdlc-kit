@@ -210,6 +210,20 @@ except Exception:
     log("GUARD ERROR: could not parse the hook payload - not guarding this call")
     sys.exit(0)
 
+# Copilot CLI reads .claude/settings.json as repo config (1.0.12+) and runs these
+# hooks too, handing them its payload TRANSLATED into this dialect's shape - so a
+# project carrying both dialects would have this guard reading Copilot's events
+# into the state directory the Copilot guard owns, and a failing Copilot test run
+# arrives here as a PostToolUse success, i.e. as a green. The Copilot guard is the
+# one guarding that session; this one stands down, silently, before touching state.
+# The translated payload is the only one carrying hook_event_name AND timestamp
+# without permission_mode (measured 2026-09-28, Copilot 1.0.88 / Claude Code
+# 2.1.283; Copilot's native payload is camelCase with no hook_event_name). Should
+# Claude Code ever add a timestamp it still carries permission_mode, so a misfire
+# here keeps guarding rather than going quiet.
+if "hook_event_name" in D and "timestamp" in D and "permission_mode" not in D:
+    sys.exit(0)
+
 # Observations are SESSION-scoped: a red observed in an earlier session does not
 # license a production write in this one. A new session_id resets them.
 SID = D.get("session_id") or ""

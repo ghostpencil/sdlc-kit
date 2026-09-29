@@ -231,7 +231,9 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      sdlc-tdd-guard.sh` + `.json`), Claude Code (`.github/hooks/sdlc-tdd-guard.py`
      plus the four hook blocks in `.claude/settings.json`) — and on a project running
      both CLIs says which sides are covered; the deny flag and state are shared, so
-     arming deny arms every installed dialect. Never describe a guard this project
+     arming deny arms every installed dialect. With both dialects installed it also
+     says a Copilot contributor needs `python` on PATH: Copilot runs the Claude
+     dialect's launchers too, and one that cannot start denies the edit. Never describe a guard this project
      does not have. -->
 
 {{SKILL_LEDGER_NOTE}}

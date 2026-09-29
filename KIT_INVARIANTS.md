@@ -233,7 +233,10 @@ present; pre- and post-tool launchers must be seen to stay silent), the hooks'
 directory, and a `.git` naming no git directory must be seen to guard nothing at
 pre-write and to block at stop), the guard's **WSL mount candidate root** (0.31.1 — a
 drive-form path under a `/mnt/<drive>/` root must be seen to be production, not
-"outside the repository"), the `tools/` proof suites, and `/kit-check` itself — must state how it is
+"outside the repository"), the Claude-dialect hooks' **Copilot-payload stand-down**
+(0.31.3 — a Copilot-translated payload must be seen to stand down silently on a case
+that would otherwise log, gate, or block, and a native Copilot payload and a Claude
+payload carrying `timestamp` must be seen still to act), the `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
 being added here is one the pass will not think to look for. Adding a check means

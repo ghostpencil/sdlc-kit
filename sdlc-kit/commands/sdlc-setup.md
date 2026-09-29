@@ -373,6 +373,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      is PowerShell, so nothing POSIX may live in a hook command. **If the guards are
      declined, or the project runs no Claude Code, REMOVE those four blocks** — the
      same two-state handling as the skill ledger's block, recorded the same way.
+   - **Both CLIs, both dialects installed: `python` on PATH becomes a Copilot
+     requirement too.** Copilot reads `.claude/settings.json` as repo config and runs
+     these blocks in its own sessions. The Claude-dialect scripts recognize its payload
+     and stand down, but the launcher has to start before any script can: under Copilot
+     an erroring PreToolUse hook **denies the edit**, so a Copilot contributor without
+     `python` gets every edit refused (measured, `COPILOT.md`). Tell the owner, and
+     record it beside the guards' installed note.
    - Both dialect scripts take `{{TEST_PATH_PATTERN}}`, `{{TEST_CMD_PATTERN}}` and
      `{{SOURCE_GLOB}}` — resolve them identically in both. **Do not ask for these cold and do not invent them from the
      language.** You already know the answers: the test framework came from Round 2, and
@@ -443,8 +450,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      that apart from an owner who considered them and said no; deleting the record
      erases the difference and turns a decision into a recurring question. Never
      describe guards the project does not have. On a project answering **both** CLIs,
-     the note must say the backstop covers the Copilot side only — an unqualified "TDD
-     ordering is enforced" is false in half the sessions the team will run.
+     the note says which sessions each installed dialect covers — the `.sh` guard
+     Copilot's, the `.py` guard Claude Code's, each standing down in the other CLI's
+     sessions — because an unqualified "TDD ordering is enforced" is false in every
+     session whose CLI has no dialect installed.
 
    **Then offer the skill-activation ledger — both CLIs, optional, logging-only.** *The
    skill-activation ledger* in `reference/GATE_RECIPES.md` is the recipe and carries the

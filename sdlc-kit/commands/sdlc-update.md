@@ -109,7 +109,7 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
       base=sdlc-impact.py
       # the third kit-owned file: the architecture-impact adapter (0.28.0), copied
       # verbatim on both CLIs. A project updating FROM a pre-0.28.0 kit has no such
-      # file, so git ls-files skips it and the add happens at step 6 like any other
+      # file, so git ls-files skips it and the add happens at step 5 like any other
       # new install — this branch classifies it on every update after that.
       want=$(awk '$2 == "templates/sdlc-impact.template.py" {print $1}' "$MAN") ;;
     .claude/commands/*)
@@ -801,6 +801,22 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   values and any local amendments; a project taking 0.31.1 and 0.31.2 in one hop applies
   the combined diff. **If the project has its own guard tests, run them** — that is how this
   was found.
+- **0.31.3 makes the Claude-dialect hooks stand down under Copilot, which also reads
+  `.claude/settings.json`.** It matters only to a project with both dialects' hooks
+  installed; a single-CLI project applies it for currency and sees no change. The
+  close-out checker is kit-owned and replaced as usual. The Claude guard
+  (`.github/hooks/sdlc-tdd-guard.py`) and the Claude gate body
+  (`.github/hooks/sdlc-gate-claude.sh`) are instantiated, so their change arrives **by
+  hand**: apply the 0.31.2 → 0.31.3 template diff to each, keeping the placeholder values
+  and any local amendments. **Then re-prove both from a Claude Code session** — a
+  deliberate lint error must still be refused by the gate, and the guard's proof step
+  must still catch — because a hand-apply that drops the `permission_mode` clause
+  silences both controls in every Claude Code session. On a both-dialect project, also
+  make one edit from a Copilot session and confirm `guard.log` holds the Copilot guard's
+  line and no Claude-guard line; and tell the owner the one thing no script can fix — a
+  Copilot contributor needs `python` on PATH, because an erroring PreToolUse launcher
+  denies the edit under Copilot — handing them the line to fold into `spec/SDLC.md`
+  beside the guards' installed note.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

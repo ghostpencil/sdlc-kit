@@ -866,6 +866,20 @@ only as a hand-apply, and the per-version transition notes name each one.
    amendments, and run your own guard tests. The update command's 0.31.2 note states the
    same procedure.
 
+   **0.31.3 makes the Claude-dialect hooks stand down under Copilot**, which reads
+   `.claude/settings.json` too and obeys what those hooks answer. It matters only if you
+   installed both dialects' hooks. The close-out checker arrives with the update; apply
+   the 0.31.2 → 0.31.3 template diff by hand to the Claude guard and the Claude gate body,
+   keeping your values and amendments, then re-prove both from a Claude Code session (a
+   deliberate lint error still refused, the guard's proof step still catching) — a
+   hand-apply that drops the `permission_mode` clause silences both there. A single-CLI
+   project applies it for currency and sees no change. On a both-dialect project, also
+   make one edit from a Copilot session and confirm `guard.log` holds only the Copilot
+   guard's line; and every Copilot contributor needs `python` on PATH — an erroring
+   edit-time launcher denies the edit under Copilot — which you fold into `spec/SDLC.md`
+   beside the guards' installed note yourself. The update command's 0.31.3 note states
+   the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,

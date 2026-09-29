@@ -336,6 +336,24 @@ def claude_suite(parser, check):
               rc == 2 and "no JSON parser" in err and "python or node" in err,
               "rc=%s err=%r" % (rc, err[:80]))
 
+        # FEATURE_PLAN.md 79: Copilot reads .claude/settings.json and runs this hook
+        # on its own edits, payload translated into this shape plus `timestamp`,
+        # never `permission_mode` (measured 2026-09-28, 1.0.88). The Copilot gate
+        # gates that session; this one exits 0 at once - on a DIRTY file, so the
+        # silence proves the stand-down rather than a clean lint. Run dirty below:
+        # the same payload from Claude Code (permission_mode present) still gates.
+        pj.put("src/a.py", True)
+        cop = {"hook_event_name": "PostToolUse", "session_id": "s",
+               "timestamp": "2026-09-28T14:34:35.696Z", "cwd": pj.root,
+               "tool_name": "Write", "tool_input": {"path": "src/a.py", "file_text": "BAD\n"},
+               "tool_result": {"result_type": "success"}}
+        rc, err = run(cop)
+        check("Copilot-translated payload on a dirty file -> silent stand-down",
+              rc == 0 and err == "", "rc=%s err=%r" % (rc, err[:80]))
+        rc, err = run(dict(cop, permission_mode="default"))
+        check("...and the same payload carrying permission_mode still gates (run dirty)",
+              rc == 2 and "E001" in err, "rc=%s err=%r" % (rc, err[:80]))
+
         pj.put("src/a.py", True)
         rc, err = run(edit("src/a.py"), e={"CLAUDE_PROJECT_DIR": os.path.join(base, "nope")})
         check("unusable CLAUDE_PROJECT_DIR -> LOUD, not a silent skip",

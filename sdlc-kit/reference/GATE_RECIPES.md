@@ -802,7 +802,8 @@ retirement reading. It is a map of *coverage*, not a claim that any lens is redu
 a lens whose mechanizable half is fully adopted is a lens whose value is now exactly
 its residue, and that is the question its clock should be answering.
 
-The rules named per language are drawn from the starting points above; where a language
+The rules named per language are drawn from the starting points above plus the additions
+named here; where a language
 has no equivalent the row says so, because an omission that reads as an oversight gets
 filled in with an invented rule ID the next time someone edits this file.
 

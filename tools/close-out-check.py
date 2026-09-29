@@ -248,6 +248,15 @@ MUTATIONS = [
     ("ref_guard_bypassed", '--verify --quiet "$REF^{commit}"', "--verify --quiet HEAD"),
     ("mode_gate_loosened", '[ "$MODE" = "check" ]', '[ -n "$MODE" ]'),
     # --- stop-check (§52). Each models a plausible backstop defect.
+    ("copilot_standdown_disabled",
+     """    *'"hook_event_name"'*) case "$IN" in *'"timestamp"'*) exit 0 ;; esac ;;
+""",
+     ""),
+    ("copilot_standdown_ignores_permission_mode",
+     """    *'"permission_mode"'*) ;;
+""", ""),
+    ("copilot_standdown_catches_native",
+     """    *'"hook_event_name"'*) case "$IN" in""", """    *'"timestamp"'*) case "$IN" in"""),
     ("standdown_disabled",
      '"stop_hook_active"[[:space:]]*:[[:space:]]*true',
      '"stop_hook_active_never"[[:space:]]*:[[:space:]]*true'),
@@ -544,6 +553,35 @@ def _s_dedup_never_suppresses_block(b, base):
     b.arm(); b.seen(SID)
     return payload()
 
+# FEATURE_PLAN.md 79: Copilot reads .claude/settings.json, so a both-dialect
+# project can reach stop-check from the Claude Stop entry with Copilot's payload
+# translated into Claude's shape (measured 2026-09-28, 1.0.88). That call stands
+# down - armed and defective, so a missing stand-down BLOCKS - while the two
+# payloads it must not be confused with still check.
+COPILOT_TRANSLATED = ('{"hook_event_name":"Stop","session_id":"%s",'
+                      '"timestamp":"2026-09-28T14:40:02.101Z","cwd":"D:\\p",'
+                      '"transcript_path":"x","stop_reason":"end_turn",'
+                      '"stop_hook_active":false}' % SID)
+COPILOT_NATIVE = ('{"sessionId":"%s","timestamp":1790606402101,"cwd":"D:\\p",'
+                  '"transcriptPath":"x","stopReason":"end_turn",'
+                  '"stop_hook_active":false}' % SID)
+
+def _s_copilot_translated(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.arm()
+    return COPILOT_TRANSLATED
+
+def _s_copilot_native(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.arm()
+    return COPILOT_NATIVE
+
+def _s_claude_with_timestamp(b, base):
+    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.arm()
+    return ('{"session_id":"%s","hook_event_name":"Stop","permission_mode":"default",'
+            '"timestamp":"2026-09-28T14:40:02.101Z","stop_hook_active":false}' % SID)
+
 def _s_empty_payload(b, base):
     b.base_commit(); b.set_origin(base); b.commit(FULL_BODY)
     return ""
@@ -598,6 +636,14 @@ STOP_CASES = [
      ["stop: repeat (bare flag already logged this session on"], ["WOULD-BLOCK"]),
     ("stop_dedup_never_suppresses_block", _s_dedup_never_suppresses_block,
      "block-json", ["stop: BLOCK - defective record on"], ["repeat"]),
+    # --- Copilot running the Claude dialect's Stop entry (§79). The stand-down
+    # is silent: no stdout, no log line, on an armed defective commit.
+    ("stop_copilot_translated_stands_down", _s_copilot_translated, None,
+     [], ["stop:"]),
+    ("stop_copilot_native_still_checks", _s_copilot_native, "block-json",
+     ["stop: BLOCK - defective record on"], []),
+    ("stop_claude_with_timestamp_still_checks", _s_claude_with_timestamp,
+     "block-json", ["stop: BLOCK - defective record on"], []),
 ]
 
 

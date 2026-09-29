@@ -160,6 +160,15 @@ def stop(root, active=False, sid=SID):
     return d
 
 
+def copilot(root, event, sid="copilot-session", **fields):
+    """Copilot's payload as it reaches this dialect's hooks: translated into the
+    Claude shape, plus `timestamp`, never `permission_mode` (measured 2026-09-28)."""
+    d = {"hook_event_name": event, "session_id": sid,
+         "timestamp": "2026-09-28T14:34:33.394Z", "cwd": root}
+    d.update(fields)
+    return d
+
+
 def reopen_git(root, mode, newline=None):
     """Rewrite a worktree's .git FILE. Windows git marks it hidden, and a hidden file
     cannot be opened for a truncating write there - so remove it, then create it."""
@@ -496,6 +505,37 @@ def unit(guard_src, verbose=True, counter=None):
         case("27 a path containing a space is one path",
              "VIOLATION production write" in b.tail() and "my module.py" in b.tail())
 
+        # --- Copilot running this dialect (FEATURE_PLAN.md 79) -------------------
+        # Copilot reads .claude/settings.json and hands these hooks its payload
+        # translated into this shape - measured 2026-09-28, 1.0.88. The guard must
+        # stand down before touching state: a new session id would clear the
+        # Copilot guard's observations, and a failing test run arrives as a
+        # PostToolUse success, i.e. as a green.
+        b.reset_state()
+        b.seed("red-observed")
+        b.run("pre-write", copilot(b.root, "PreToolUse", tool="Write",
+                                   tool_input={"path": win(b.root, "pay.py"),
+                                               "file_text": "a\n"}))
+        b.run("observe-test", copilot(b.root, "PostToolUse", tool="Bash",
+                                      tool_input={"command": "pytest -q"},
+                                      tool_result={"result_type": "success",
+                                                   "text_result_for_llm": "1 failed"}))
+        b.arm_deny()
+        b.seed("prod-write-observed")
+        out = b.run("stop-check", copilot(b.root, "Stop", stop_hook_active=False,
+                                          stop_reason="end_turn"))
+        case("29 a Copilot-translated payload: no log, no state change, no block",
+             b.loglines() == [] and out == "" and b.state_has("red-observed")
+             and not b.state_has("green-observed")
+             and io.open(os.path.join(b.state, "session")).read() == SID)
+
+        b.reset_state()
+        p = write(b.root, "pay.py")
+        p.update(timestamp="2026-09-28T14:34:33.394Z", permission_mode="default")
+        b.run("pre-write", p)
+        case("30 a Claude payload that gains a timestamp still guards",
+             "VIOLATION production write" in b.tail())
+
         # --- linked worktrees (FEATURE_PLAN.md 78) ------------------------------
         # A REAL worktree, because the Bench's hand-made .git directory is exactly
         # the configuration that cannot see this defect: in a worktree .git is a
@@ -661,6 +701,15 @@ MUTATIONS = [
      "agent cannot follow - .git is a file there)",
      '% (rel, LIC, LIC)',
      '% (rel, ".git/sdlc-tdd", ".git/sdlc-tdd")'),
+    ("guard Copilot's translated payloads (its failing run records a green, its "
+     "session id clears the Copilot guard's state - FEATURE_PLAN.md 79)",
+     'if "hook_event_name" in D and "timestamp" in D and "permission_mode" not in D:\n'
+     '    sys.exit(0)',
+     ''),
+    ("stand down on ANY payload with a timestamp (a Claude session that gains the "
+     "key would go unguarded, in silence)",
+     'if "hook_event_name" in D and "timestamp" in D and "permission_mode" not in D:',
+     'if "hook_event_name" in D and "timestamp" in D:'),
     ("guard nothing in silence when the git dir cannot be resolved at stop",
      """if not re.search(r'"stop_hook_active"\\s*:\\s*true', raw):""",
      'if False:'),

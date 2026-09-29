@@ -10,6 +10,40 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.31.3 — 2026-09-29
+
+Copilot CLI runs the Claude-dialect hooks too (`FEATURE_PLAN.md` §79, ruled and
+bench-measured 2026-09-28).
+
+### Fixed
+- **Copilot reads `.claude/settings.json` as repo config (since 1.0.12) and obeys the
+  Claude-dialect hooks it finds there** — a deny stops the edit, a Stop block holds the
+  session, and an erroring PreToolUse command denies the edit. On a project carrying both
+  dialects, the Claude guard read Copilot's events into the state directory the Copilot
+  guard owns: a new session id cleared its observations, and a failing test run arrived
+  as a `PostToolUse` success — a green. Copilot hands these hooks its payload translated
+  into the Claude shape plus a `timestamp` and never a `permission_mode`; every
+  Claude-dialect script now stands down, silently, on exactly that signature — the
+  guard, the gate body (**[adoption-only]**, hand-applied), and the shared close-out
+  checker's `stop-check` (kit-owned, replaced at update). A Claude payload that ever
+  gains a `timestamp` still carries `permission_mode`, so a misfire keeps guarding.
+  New cases in all three suites; five new mutations, each caught, plus a hand mutation
+  of the gate body caught under both parsers.
+- **[installable]** `/sdlc-update`'s 0.31.3 note: the hand-apply, its re-proof from
+  both CLIs, and the `python` line handed to the owner to fold into `spec/SDLC.md`.
+- **[installable]** Found by the release's `/kit-check`: `/end-slice`'s commit skeleton
+  now carries the `reuse:` and `not exercised:` halves its own steps require;
+  `/sdlc-retro` lists `lenses:` among the evidence lines; `/sdlc-update` names step 5,
+  not 6, for a new install; `/sdlc-setup`'s both-CLI guard note no longer says the
+  guard covers the Copilot side only (wrong since 0.21.0). **[adoption-only]** the
+  `SDLC.template.md` guard-note guidance and `PROJECT_INDEX.template.md`'s deploy forms
+  (`deploy NOT verified` was missing); `GATE_RECIPES.md`'s lens map no longer claims
+  every rule is drawn from the starting points.
+- **[installable]** `/sdlc-setup` now tells a both-dialect project that a Copilot
+  contributor needs `python` on PATH — the one consequence no script can remove, since
+  the launcher must start before any script can stand down. `COPILOT.md` records the
+  measurement.
+
 ## 0.31.2 — 2026-09-28
 
 A same-day fix for a regression 0.31.1 introduced, caught by an adopter's own test

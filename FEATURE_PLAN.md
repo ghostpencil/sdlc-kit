@@ -151,8 +151,13 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
   machine `CLAUDE_CODE_GIT_BASH_PATH` is now set at user scope (owner's go), so a Git
   Bash-launched Claude Code session runs its `sh` hooks — recorded in TFit's spec.
 - **§79 — Copilot runs the Claude-dialect hooks from `.claude/settings.json`, filed
-  2026-09-27, not ruled.** Both-dialect projects only; neither adopter exposed. Owed:
-  a design and a ruling.
+  2026-09-27; direction RULED 2026-09-28 (§79.1): each Claude hook detects a Copilot
+  payload and does nothing. Bench-measured (§79.2): the discriminator is `timestamp`
+  without `permission_mode`, and Copilot obeys this file's outputs — a PreToolUse
+  launcher that errors *denies the edit*. Launchers ruled (A), BUILT 2026-09-28 as 0.31.3
+  (§79.3). Both-dialect projects only; neither adopter exposed.
+- **§79.4 — invariant 16 in three setup-written control records**, found by 0.31.3's
+  `/kit-check`, pre-existing: each settles reach by silence. Owed: a small batch.
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -4876,6 +4881,118 @@ command a no-op under a Copilot payload; move the Claude hooks to a file Copilot
 read (`.claude/settings.local.json` is also read, so not that one); or state in setup
 that a both-CLIs project should expect the doubling. Recorded in `COPILOT.md`'s
 2026-09-27 re-verification; owed a design and a ruling.
+
+### 79.1 Ruled 2026-09-28 — each Claude-dialect hook detects a Copilot payload and does
+### nothing
+
+The owner took the first option. The third (state the doubling) is disclosure, not a fix;
+the second has no file to move to. The build was to wait on the bench measurement below.
+
+### 79.2 Measured 2026-09-28 — Copilot 1.0.88 against Claude Code 2.1.283, capture
+### commands in place of every hook, on the bench
+
+**Copilot does not hand these hooks its own payload — it translates it into the Claude
+shape** (`hook_event_name`, `session_id`, `tool_name`, `tool_input`) and renames its tools:
+create→`Write`, edit→`Edit`, powershell→**`Bash`**, skill→**`skill`** (lowercase).
+
+| Event (template matcher) | Fires under Copilot | Copilot-only keys | Claude-only keys |
+|---|---|---|---|
+| PreToolUse `Edit\|Write` | yes | `timestamp`, `cwd`; `tool_input{path, file_text \| old_str, new_str}` | `permission_mode`, `prompt_id`, `tool_use_id`, `transcript_path`; `tool_input{file_path, content \| old_string, new_string}` |
+| PostToolUse `Bash\|PowerShell` | yes (as `Bash`) | `tool_result{result_type, text_result_for_llm}` | `tool_response`, `duration_ms` |
+| PostToolUse `Edit\|Write` | yes | as above | as above |
+| PostToolUse `Skill` | **no** — tool is `skill`, matcher case-sensitive | — | — |
+| PostToolUseFailure | **never** — a failing test run arrived as PostToolUse, `result_type:"success"` | — | — |
+| Stop | yes | `timestamp`, `stop_reason`; `transcript_path` is Copilot's `events.jsonl` | `permission_mode`, `prompt_id`, `last_assistant_message` |
+
+**Discriminator: `timestamp` present and `permission_mode` absent → Copilot.** Every Copilot
+payload carried `timestamp` and none carried `permission_mode`; no Claude payload carried
+`timestamp`, today or in the 2026-08-12 captures. If Claude ever adds `timestamp` it still
+carries `permission_mode`, so the hook keeps enforcing — the misfire direction is the
+safe one. Not usable: `transcript_path` (on Copilot's Stop too) and `CLAUDE_PROJECT_DIR`
+(**Copilot sets it**). Env vars (`COPILOT_CLI=1`, `CLAUDECODE=1`) are inherited when one
+CLI is launched from the other — the first probe run carried both — so secondary only.
+
+**Launchers.** Copilot runs every `.claude/settings.json` command through PowerShell,
+whichever shell launched it. `python …` launchers run cleanly. `sh …` launchers fail
+(*"sh: not recognized"*) when Copilot was launched from PowerShell, and **run for real**
+from Git Bash — where `sdlc-gate-claude.sh` exits 2 on the missing `file_path`. The
+0.31.2 close-out Stop launcher no longer hits the bench's old *"Missing '('"* (that was
+the pre-0.31.1 bare-`if` form) but fails on both routes: `sh` not found, or PowerShell's
+argument passing mangles the escaped quotes (*"unexpected EOF while looking for
+matching `''"*). `sdlc-close-out.sh` never runs.
+
+**Outputs are obeyed — the finding is worse than "harmless by accident".** A Claude-shape
+PreToolUse deny JSON is honored (the write did not happen). **A PreToolUse hook from this
+file fails CLOSED**: exit 2, exit 1, and a command not found each gave *"Denied by
+preToolUse hook from "repo settings" (hook errored)"* — so a Copilot session in a
+both-dialect project on a machine without `python` on PATH has **every edit denied** by
+the Claude guard's launcher. A Stop `{"decision":"block"}` is honored, re-entering with
+`stop_hook_active:true`. PostToolUse exit 2 is logged, never fed back.
+
+**Consequence for the design:** the check cannot live only inside the scripts. The
+PreToolUse launcher can fail closed before any code runs, and the `sh` launchers either
+never start or arrive mangled. The skill ledger and the failure observer are already dead
+under Copilot by the name mapping alone.
+
+**Launcher question ruled 2026-09-28: (A), checks in the scripts, launchers unchanged.**
+(B) — every Claude launcher to `python …` — would have removed only the `sh`
+launchers' failed-hook noise, at the cost of a `python` requirement on every Claude-only
+project (the gate body and the checker are `sh` today), and would still not have fixed
+the missing-`python` edit denials. That one residue is stated at setup instead.
+
+### 79.3 Built 2026-09-28 — and the shared checker needed a third key
+
+**The native payload, measured before touching the shared script.** `sdlc-close-out.sh`
+serves both CLIs, so a two-key test could have disarmed Copilot's own backstop if its
+native `agentStop` payload also matched. Captured on the bench (1.0.88): native
+`preToolUse` / `postToolUse` / `agentStop` payloads are camelCase — `sessionId`,
+`toolName`, `toolArgs`, `transcriptPath`, `stopReason` — with a `timestamp` and **no
+`hook_event_name`**. So the signature is three keys: `hook_event_name` and `timestamp`
+present, `permission_mode` absent. It matches only the translated call, never the
+native one and never Claude Code.
+
+**Where it landed:**
+- `tdd-guard-claude.template.py` — exits 0 right after the payload parses, **before** the
+  session-id block, since the translated payload's new session id would otherwise clear
+  the Copilot guard's observations.
+- `claude-gate.template.sh` — the parser prints `copilot` and the body exits 0; both
+  parser dialects (python, node).
+- `close-out.template.sh` `stop-check` — a fork-free `case` match on the raw payload,
+  first thing after reading it (a `grep` per key costs forks on every stop on Windows).
+- `sdlc-setup.md` — the `python`-on-PATH consequence for both-dialect projects;
+  `COPILOT.md` — the measurement; update note, README, CHANGELOG as 0.31.3.
+
+**Proof.** `tdd-guard-claude-check.py` 54/54, cases 29 (a translated pre-write,
+failing-run observe-test and armed stop: no log, no state change, no block) and 30 (a
+Claude payload that gains a `timestamp` still guards), and two mutations caught (drop
+the stand-down; drop its `permission_mode` clause). `gate-hook-check.py` green under
+both parsers with a silent stand-down on a *dirty* file plus the same payload run dirty
+with `permission_mode`; that suite has no mutation pass, so the stand-down was removed by
+hand and the case failed under both parsers. `close-out-check.py`: three stop cases
+(translated stands down on an armed defective commit; native still blocks; Claude with a
+`timestamp` still blocks) and three mutations, including one that matches the native
+payload — all green, 26 unit + 7 docs + 23 stop cases, 35 mutations caught.
+
+### 79.4 The release `/kit-check`, 2026-09-29 — fixed in-session, one pre-existing gap held
+
+Fixed as 0.31.3 edits: the ledger's invariant-13 denominator and `/kit-check`'s restated
+list (the latter stale since 0.28.0 — it lacked all three 0.31.1 checks); the update
+note's missing re-proof (a hand-apply dropping the `permission_mode` clause silences
+both Claude controls) and its un-sanctioned `spec/` write (now handed to the owner to
+fold, the 0.31.1 style); the payload versions in two script comments. Pre-existing and
+small, fixed alongside: `/end-slice`'s commit skeleton lacked the `reuse:` and `not
+exercised:` halves (the §76.3 restate-half class, again); `/sdlc-retro` omitted
+`lenses:`; `/sdlc-update` said step 6 for a step-5 install; `/sdlc-setup`'s both-CLI
+guard note still said "Copilot side only" (wrong since 0.21.0); the index template's
+deploy forms lacked `deploy NOT verified`; the lens map claimed every rule came from the
+starting points.
+
+**Held — invariant 16, pre-existing:** three setup-written control records settle reach
+by silence — the edit-time hook proof (`{{HOOK_ENVIRONMENT}}` records the environment,
+not the catch), the close-out checker's install note (records that it ran, not the
+INCOMPLETE line it printed), and `{{ISOLATION_HARNESS}}` (names the catch, no reach
+note). Each needs the catch by name and a reach note in the template and in setup's
+writing step. Owed: a small batch, not this patch.
 
 ### 78.8 The pre-0.31.1 `/kit-check` — run 2026-09-27: eleven findings, all fixed
 ### in-session, and the full suite run caught four mutations the new cases could not see

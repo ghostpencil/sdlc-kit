@@ -93,7 +93,8 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      the project is visible, not because they followed this process ("pre-SDLC" is a
      fine PR value). New Project mode: leave empty. Deploying projects: /end-phase
      bookkeeping records the deploy outcome in Notes (`deployed+verified <date>` /
-     `deploy pending — <where tracked>` / `n/a — no deploy`). -->
+     `deploy pending — <where tracked>` / `deploy NOT verified — <what was seen>` /
+     `n/a — no deploy`). -->
 
 ## Kit friction log — *growing*
 

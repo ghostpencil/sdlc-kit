@@ -755,9 +755,26 @@ launcher routes). What moved:
 - **`exec` hooks do not fire on a PowerShell launch** — no `sh` on the path they resolve.
 - **Copilot CLI reads `.claude/settings.json` and `.claude/settings.local.json` as
   repo config** (changelog 1.0.12) and runs their hook commands itself — through
-  PowerShell on Windows, where the kit's Claude-dialect shell launchers do not parse. On
-  a project carrying both dialects' hooks, Copilot sessions therefore also run the
-  Claude-dialect ones. Recorded, not yet designed around.
+  PowerShell on Windows. On a project carrying both dialects' hooks, Copilot sessions
+  therefore also run the Claude-dialect ones — **and obey them** (measured 2026-09-28,
+  1.0.88): a Claude-shape deny stops the edit, a Stop block holds the session, and a
+  PreToolUse command that errors or cannot start **denies the edit**. Copilot hands
+  these hooks its payload translated into the Claude shape — `hook_event_name`,
+  `session_id`, `tool_name`, `tool_input`, tools renamed (create→`Write`,
+  edit→`Edit`, powershell→`Bash`, skill→`skill`) — plus a `timestamp` and never a
+  `permission_mode`; its native payload is camelCase with no `hook_event_name`. **Since
+  0.31.3 every Claude-dialect script stands down on that signature** (the guard, the
+  gate body, and the shared close-out checker's `stop-check`), so the Copilot hooks are
+  the only ones acting in a Copilot session. What remains, by launcher: `python …` runs
+  under PowerShell, so a Copilot contributor needs `python` on PATH or every edit is
+  denied; `sh …` launchers fail to start when Copilot was launched from PowerShell (a
+  logged failed hook, no effect), and run — then stand down — from Git Bash; the
+  close-out Stop launcher's quoting does not survive PowerShell on either route, so
+  that call never reaches the checker. The `Skill` matcher and `PostToolUseFailure`
+  never fire under Copilot at all (the tool arrives as lowercase `skill`; a failing
+  command arrives as a `PostToolUse` success). `CLAUDE_PROJECT_DIR` is set by Copilot
+  too, and `COPILOT_CLI` / `CLAUDECODE` leak across a nested launch — neither
+  discriminates.
 - `/skills reload` and `/skills info <name>` still work (confirmed in a real interactive
   session, 1.0.83 and 1.0.88); `copilot -p "/skills reload"` does **not** run the
   command — the text goes to the model, which answers as if it had.

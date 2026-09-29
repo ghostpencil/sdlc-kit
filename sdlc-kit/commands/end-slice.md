@@ -368,10 +368,12 @@ git commit -m "$(cat <<'EOF'
 <what and why, briefly>
 
 RED: <test command> — <the failing line> — exit <code>   (one per behavior batch)
-quality: <N moves applied | nothing to do | skipped — reason>
+quality: <N moves applied | nothing to do | skipped — reason>; reuse: <what was
+         searched, and against what | not searched — reason>
 lenses: <lens: finding | lens: clean, …  | no lens triggered>
 mutation: <N guards, each seen to fail | none — no new guards>
-verify: <ran — verdicts | skipped — reason>
+verify: <ran — verdict per behavior, naming the shell; not exercised: <what, why |
+        nothing> | skipped — reason>
 EOF
 )"
 ```

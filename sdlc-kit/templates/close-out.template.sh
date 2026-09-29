@@ -137,6 +137,18 @@ if [ "$MODE" = "stop-check" ]; then
   # ---- the stop-time backstop: FAIL-OPEN from here on - every early return is
   # exit 0, and every error path logs rather than blocks.
   IN=$(cat 2>/dev/null)
+  # Copilot CLI reads .claude/settings.json too, so a both-dialect project can
+  # reach this mode twice per Copilot stop: once from its own agentStop entry
+  # (native camelCase payload) and once from the Claude-dialect Stop entry, with
+  # the payload translated into Claude's shape - the only payload carrying
+  # hook_event_name AND timestamp without permission_mode (measured 2026-09-28,
+  # Copilot 1.0.88 / Claude Code 2.1.283).
+  # The translated call stands down; the native one is the check. A case match,
+  # not grep: a fork costs on Windows sh, and this runs on every stop.
+  case "$IN" in
+    *'"permission_mode"'*) ;;
+    *'"hook_event_name"'*) case "$IN" in *'"timestamp"'*) exit 0 ;; esac ;;
+  esac
   [ -e .git ] || exit 0
   if [ -z "$GD" ]; then
     # A .git that names no git directory: nothing can be checked, and a backstop

@@ -81,7 +81,7 @@ none of them writes anything.
   reviewer and its lenses, the mutation check, the verification pass, observed-RED) —
   and report each one's evidence in the window: **ran**, **caught** (ran and caught
   something — say what), **skipped with a stated reason**, or **no evidence**. Where to look: slice
-  commit bodies (the `RED:`, `quality:`, `mutation:`, and `verify:` evidence lines —
+  commit bodies (the `RED:`, `quality:`, `lenses:`, `mutation:`, and `verify:` evidence lines —
   `git log` carries them; where the process file names the close-out record check,
   that checker structurally prevents a missing line at slice close, so an absent
   line on such a slice means the checker itself was never run — a different and

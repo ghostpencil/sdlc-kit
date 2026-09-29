@@ -18,15 +18,24 @@
 # both parsers, every silent case also run dirty; the suite lives with the kit's
 # development tooling, not in the bundle - an adopter proves the instantiated
 # copy per the setup step, not this file.
+#
+# Copilot CLI also runs this hook: it reads .claude/settings.json as repo config
+# and hands over its payload translated into this dialect's shape. That payload is
+# the only one carrying hook_event_name AND timestamp without permission_mode
+# (measured 2026-09-28, Copilot 1.0.88 / Claude Code 2.1.283), and on it this hook
+# exits 0 at once - the Copilot gate is the one gating that session. Silent by
+# design: it is reached only on a payload that names its own CLI.
 i=$(cat); JP=""; JN=""; for c in python python3; do if command -v "$c" >/dev/null 2>&1; then JP=$c; break; fi; done; if [ -z "$JP" ] && command -v node >/dev/null 2>&1; then JN=node; fi; jr(){ if [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null | tr -d "\r"; elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null | tr -d "\r"; else return 127; fi; }; if [ -z "$JP" ] && [ -z "$JN" ]; then echo "SDLC gate hook did NOT run: no JSON parser (python or node) on the PATH of the shell Claude Code runs hooks in. The gate did not check this file." >&2; exit 2; fi; o=$(printf '%s' "$i" | jr '
 import sys,json
 d=json.loads(sys.stdin.buffer.read().decode("utf-8","replace"))
+if "hook_event_name" in d and "timestamp" in d and "permission_mode" not in d: sys.stdout.write("copilot\n"); sys.exit(0)
 a=d.get("tool_input") or {}
 p=a.get("file_path") or a.get("path") or a.get("filePath") or ""
 sys.stdout.write(("ok\n"+p+"\n") if p else "nopath\n")
 ' '
 const d=JSON.parse(require("fs").readFileSync(0,"utf8"));
+if("hook_event_name" in d&&"timestamp" in d&&!("permission_mode" in d)){process.stdout.write("copilot\n");process.exit(0);}
 const a=d.tool_input||{};
 const p=a.file_path||a.path||a.filePath||"";
 process.stdout.write(p?("ok\n"+p+"\n"):"nopath\n");
-'); st=$(printf '%s' "$o" | sed -n 1p); f=$(printf '%s' "$o" | sed -n 2p); if [ "$st" != "ok" ]; then echo "SDLC gate hook did NOT run on this edit: no file path found in the hook payload. The gate did not check this file - fix the hook before trusting it." >&2; exit 2; fi; case "$f" in {{SOURCE_GLOB}}) ;; *) exit 0 ;; esac; if [ -n "$CLAUDE_PROJECT_DIR" ]; then cd "$CLAUDE_PROJECT_DIR" || { echo "SDLC gate hook did NOT run: could not enter CLAUDE_PROJECT_DIR ($CLAUDE_PROJECT_DIR)." >&2; exit 2; }; fi; if [ ! -f "$f" ]; then echo "SDLC gate hook did NOT run: the edited file was not found from the project directory: $f" >&2; exit 2; fi; l=$({{HOOK_LINT_CMD}} 2>&1); lrc=$?; t=""; trc=0; {{HOOK_TYPECHECK_BLOCK}} if [ $lrc -ne 0 ] || [ $trc -ne 0 ]; then { echo "SDLC gate hook: lint/typecheck failed on the file just edited. Fix it before continuing: $f"; echo "$l"; if [ -n "$t" ]; then echo "$t"; fi; } >&2; exit 2; fi
+'); st=$(printf '%s' "$o" | sed -n 1p); f=$(printf '%s' "$o" | sed -n 2p); if [ "$st" = "copilot" ]; then exit 0; fi; if [ "$st" != "ok" ]; then echo "SDLC gate hook did NOT run on this edit: no file path found in the hook payload. The gate did not check this file - fix the hook before trusting it." >&2; exit 2; fi; case "$f" in {{SOURCE_GLOB}}) ;; *) exit 0 ;; esac; if [ -n "$CLAUDE_PROJECT_DIR" ]; then cd "$CLAUDE_PROJECT_DIR" || { echo "SDLC gate hook did NOT run: could not enter CLAUDE_PROJECT_DIR ($CLAUDE_PROJECT_DIR)." >&2; exit 2; }; fi; if [ ! -f "$f" ]; then echo "SDLC gate hook did NOT run: the edited file was not found from the project directory: $f" >&2; exit 2; fi; l=$({{HOOK_LINT_CMD}} 2>&1); lrc=$?; t=""; trc=0; {{HOOK_TYPECHECK_BLOCK}} if [ $lrc -ne 0 ] || [ $trc -ne 0 ]; then { echo "SDLC gate hook: lint/typecheck failed on the file just edited. Fix it before continuing: $f"; echo "$l"; if [ -n "$t" ]; then echo "$t"; fi; } >&2; exit 2; fi
