@@ -221,7 +221,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    its negative case**: add a deliberate violation (a real outbound call; a read of a
    real credential path), confirm the suite fails loudly naming what was attempted,
    remove the violation, confirm green. Resolve `{{ISOLATION_HARNESS}}` with where the
-   harness lives and each recorded proof. An unproven blocker is partial isolation
+   harness lives and each recorded proof, each with its reach note (*Records* in
+   `spec/SDLC.md` — constructed for the proof, until a real test trips it). An unproven blocker is partial isolation
    that reads as complete — the proof step is not optional.
 5. Install commands and skills — always project-scoped, so the team inherits them via
    git. **Where they go depends on the target CLI from preflight step 2**; this list is
@@ -345,7 +346,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the fast route is a budget for the wrong environment); a hook whose budget was never measured against a real run is
    a gate that goes quiet on the first cold typecheck. If nothing is reported at all,
    the matcher is the first suspect — `reference/COPILOT.md` has the discovery
-   procedure.
+   procedure. Add the catch to `{{HOOK_ENVIRONMENT}}` — the hook's own report line on
+   that edit, naming the file — with the reach note (*Records* in `spec/SDLC.md`): a
+   dirty lint arises in ordinary editing, so say whether a real edit has yet been seen
+   to trip it or only the constructed one.
 
    **Resolve `{{TDD_GUARD_NOTE}}` on every adoption.**
    The placeholder lives in `spec/SDLC.md`, which is instantiated on both CLIs, so a
@@ -527,7 +531,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    resolve `{{CLOSE_OUT_CHECK_NOTE}}` in `spec/SDLC.md`:
    one invocation line per installed CLI, each one actually run against a real
    commit — a recorded invocation that was never run is exactly the silent absence
-   the checker exists to catch, one layer up. The note is a claim about this
+   the checker exists to catch, one layer up — quoting the INCOMPLETE line the run
+   printed, with the reach note (constructed: the proof commit carries no record). The note is a claim about this
    machine and these CLIs: a teammate's clone re-proves before trusting it, and
    adding a CLI later means adding its proven line, because nothing else will.
    **That one line serves the script's `docs-check` mode too** — same invocation,
@@ -731,7 +736,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      boundary as the tests actually draw it), not aspirations.
    - The test-isolation harness (`spec/TESTING.md` §Test Isolation): author it — or
      extend what step 1 found — and prove each check by its negative case (deliberate
-     violation → loud failure naming the attempt → remove → green). If the owner
+     violation → loud failure naming the attempt → remove → green), recording each
+     proof with its reach note as New mode step 4 does. If the owner
      defers it, record the gap as a backlog item and resolve `{{ISOLATION_HARNESS}}`
      with what is actually enforced today — never describe enforcement that does not
      exist.
@@ -808,7 +814,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    deferred from step 6 runs now, against the initial commit just made** — it carries
    no slice record, so the checker must report INCOMPLETE naming all five keys,
    exit 1; quote that output and finalize the `{{CLOSE_OUT_CHECK_NOTE}}` line in
-   `spec/SDLC.md` from deferred to proven, in this same commit (amend it). If the
+   `spec/SDLC.md` from deferred to proven — the INCOMPLETE line as its catch, with the
+   reach note — in this same commit (amend it). If the
    owner declines the commit, the note keeps saying the proof is owed — a note
    claiming a proof that never ran is the exact defect the checker exists to catch.
 3. Report: what was generated, skill/plugin verification results — **file-level only:

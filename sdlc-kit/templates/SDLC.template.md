@@ -177,7 +177,9 @@ change under an auto-updating CLI, so the record below names the CLI version it
 measured and is a dated claim about that version, re-proven at every hook-touching
 update. What the hook environment measured at
 setup (launch route, shell, JSON parser, lint reachability, the dispatch check's
-verdict, CLI version): {{HOOK_ENVIRONMENT}}
+verdict, CLI version), the **catch** its proof saw (the hook's report on the deliberate
+lint error, naming the file), and the **reach note** the rule above requires:
+{{HOOK_ENVIRONMENT}}
 
 {{TDD_GUARD_NOTE}}
 <!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
@@ -267,7 +269,10 @@ verdict, CLI version): {{HOOK_ENVIRONMENT}}
      evidence checker (`.github/hooks/sdlc-close-out.sh`, installed verbatim on every
      adoption — it takes no per-project values), one line per installed CLI, each form
      actually RUN at setup against a real commit before being recorded — the same
-     discipline as the hook environment note above. `sh .github/hooks/sdlc-close-out.sh
+     discipline as the hook environment note above — and carrying the catch that run
+     printed (the INCOMPLETE line naming the missing keys) and its reach note: the proof
+     runs on a commit with no record by construction, so say whether a real slice commit
+     has yet come up INCOMPLETE on its own. `sh .github/hooks/sdlc-close-out.sh
      check` is the default wherever `sh` resolves in the agent's shell tool; measured
      2026-08-10, Copilot CLI's shell tool on Windows resolves no `sh` (and the `bash`
      on its PATH is WSL's, the route that corrupts hook bodies) — there the working
@@ -590,7 +595,9 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    see *Product contract* above), user-visible
    surface + acceptance-review checklist, slices with exit criteria that name **what
    observes them and when** (a criterion naming an observer that does not run at that
-   point — CI on an arc branch, typically — is a planning defect), risks. A behavior
+   point — CI on an arc branch, typically — is a planning defect) and a test approach
+   (`none` is reserved for a slice touching no production source and no test file — the
+   docs-only slice of *Slice loop* step 4), risks. A behavior
    assigned to the acceptance checklist rather than pinned by a test **names the path
    a real caller reaches it by, or is flagged test-only here** — the assignment is not
    terminal, and an item nothing downstream asks about reaches halt 4 as a checklist
@@ -649,6 +656,23 @@ Run `/next-slice` in a **fresh session**:
    It is recorded in the ordinary shape, marked as characterization — never with the
    zero-form, which belongs to a slice with no behavior batches at all. Design
    questions halt *(halt 3)*.
+
+   **A docs-only slice is declared here, not discovered at close-out.** When the phase
+   spec ratified the slice's test approach as `none` and the slice plans to touch no
+   production source and no test file, say so in one line citing the ratified
+   approach, and skip `spec/TESTING.md`, the TDD skill, and the loop: the record is the
+   zero-form `RED: none — no behavior batches this slice`, and `/end-slice` writes
+   steps 6 and 8 as their stated skips directly (`quality: skipped — docs-only slice;
+   reuse: not searched — docs-only slice`, `mutation: none — no new guards`) rather
+   than walking them to find nothing. Step 9 still runs, in its docs form. **A
+   docstring or comment inside a source file is not docs-only** — it is a
+   behavior-preserving production write, taken in the loop under the refactor licence
+   where the TDD guards are installed. The short-circuit needs no guard of its own — a
+   slice declared docs-only that writes source meets the guard and the gate exactly as
+   any production write does — and `/end-slice` confirms the declaration against
+   everything the slice will commit before writing a skip (`git status --short`, so an
+   untracked file counts, plus any commit the slice already made): a production source
+   or test file there voids it, and every step runs.
 
 `/next-slice` ends at the slice-ready hand-back — the executive summary per the
 hand-back standard — and **the owner runs `/end-slice`**. Close-out is never chained
@@ -765,6 +789,13 @@ Run `/end-slice` when the slice's exit criteria are met:
    does not stand in for halt 4's owner acceptance.
    A break it observes is fixed through the same loop as a review fix: apply, re-run
    the gate, and any new guard joins step 8's mutation obligation.
+   **On a docs-only slice (step 4) the step runs in a narrower form and is not
+   optional:** every command the diff adds or changes is run once and every file path
+   it adds is opened, each result quoted like any run — a documented command that does
+   not work is a docs slice's characteristic defect, and this is the one moment it is
+   cheap to catch. A command that would reach anything not disposable (a deploy, a data
+   reset, an outbound call) is not run; it goes under `not exercised:` with that reason.
+   A diff that adds neither records `verify: skipped — no command or path added`.
 10. Commit — the multi-line message written in the shell tool's own literal form: a
     heredoc on a POSIX shell tool (Claude Code's Bash), a single-quoted here-string
     on a PowerShell one (Copilot CLI's measured shell tool). Subject line in the

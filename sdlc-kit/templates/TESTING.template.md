@@ -148,7 +148,8 @@ The checks (specified by the kit; implemented for this stack by `/sdlc-setup`):
 {{ISOLATION_HARNESS}}
 <!-- Filled by /sdlc-setup: where the harness lives, what each check covers, and the
      recorded proof — the deliberate violation that made each check fail loudly (date +
-     observed error). A check that has never been seen to fail is not yet a check;
+     observed error) — and, per check, the reach note `spec/SDLC.md` *Records* requires:
+     whether a real test has yet been seen to trip it, or only the constructed violation. A check that has never been seen to fail is not yet a check;
      re-prove after any harness edit. If a check is deferred, say so here and put it in
      the backlog — never describe enforcement that does not exist. -->
 

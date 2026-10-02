@@ -131,6 +131,18 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
 
 ### 4. Enter the TDD loop
 
+**First, the one assessment that can skip it — a docs-only slice.** When the phase
+spec ratified this slice's test approach as `none` and the slice plans to touch no
+production source and no test file, state that in one line, citing the ratified
+approach, and make the edit without this loop: no `spec/TESTING.md`, no TDD skill. Its
+RED record is the zero-form `RED: none — no behavior batches this slice`, and
+`/end-slice` handles the rest. Both conditions, or it is not docs-only — and **a
+docstring or comment inside a source file never is**: that is a behavior-preserving
+production write, made in this loop under the refactor licence where the TDD guards
+are installed (`spec/SDLC.md`). It needs no guard of its own — a "docs-only" slice
+that writes source meets the guard and the gate exactly as any production write does —
+and `/end-slice` step 1 confirms it against the working tree before writing any skip.
+
 1. Read `spec/TESTING.md` — fresh, every time; do not rely on memory.
 2. Invoke the TDD skill.
 3. Implement the slice in small red–green–refactor cycles, one behavior at a time.

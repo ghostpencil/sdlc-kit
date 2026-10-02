@@ -29,7 +29,8 @@ a path you attempted and could not reach.
 ## How to use
 
 Invoked at slice close (`/end-slice` step 6 — optional on a small or mechanical slice,
-but a skip is stated, never silent) and at phase end for the phase-level verification
+but a skip is stated, never silent; on a docs-only slice its docs form below is not
+optional) and at phase end for the phase-level verification
 `/end-phase` step 2 calls for. It can also be run directly on any change.
 
 Arguments, all optional:
@@ -37,6 +38,17 @@ Arguments, all optional:
 - **What to exercise** — a behavior, an entry point, or a criterion. Default is what the
   current slice's exit criteria describe.
 - **A run command** — defaults to the one `CLAUDE.md` records for the project.
+
+**The docs form.** A slice declared docs-only (`/next-slice` §4) has no behavior to
+exercise, and the workflow below narrows to the one thing its diff can assert that a
+run can settle: **each command the diff adds or changes is run once, and each file path
+it adds is opened.** Step 1 still pins the change set; steps 2 and 3 apply per command
+— what output would count, then the real run; step 4 does not apply; step 5 does. A
+command that would reach anything not disposable — a deploy, a data reset, an outbound
+call — is not run, and is reported *not exercised* with that reason. Prose claims —
+numbers, described behavior — are out of scope here; the retro's sweep reads those. A
+diff that adds no command and no path has nothing for this form to run, and the record
+says so (`verify: skipped — no command or path added`).
 
 ## What this skill is not
 

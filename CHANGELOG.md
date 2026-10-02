@@ -10,6 +10,38 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.32.0 — 2026-10-02
+
+The docs-only slice (`FEATURE_PLAN.md` §80, the tenth report's finding 4), and reach
+notes for three setup records (§79.4).
+
+### Added
+- **[installable]** **A docs-only slice is declared, not discovered.** When the phase
+  spec ratified a slice's test approach as `none` — which `/plan-phase` now reserves for
+  exactly this — and it plans to touch no production source and no test file,
+  `/next-slice` §4 says so in one line and skips `TESTING.md`, the TDD skill, and the
+  loop. `/end-slice` step 1 confirms it against everything the slice will commit (`git
+  status --short`, so an untracked file counts, plus any commit the slice already made);
+  a source or test file voids it, otherwise the quality and mutation steps are written
+  as their stated skips. A docstring inside a source file is **not** docs-only — it
+  stays in the loop under the refactor licence. Nothing else needs to police the
+  declaration: a slice declared docs-only that writes source meets the guard and the
+  gate like any other. Canonical in `SDLC.template.md` slice-loop steps 4 and 9 —
+  **[adoption-only]**, folded by hand at update.
+- **[installable]** **`change-verify` has a docs form**, run on every docs-only slice:
+  each command the diff adds or changes is run once and each path it adds is opened,
+  quoted like any run; a command reaching anything not disposable is named under `not
+  exercised:`, never run. A diff adding neither records `verify: skipped — no command or
+  path added`. Carries a two-arc §16 clock from this release.
+
+### Changed
+- **[adoption-only]** Three setup-written control records now carry the catch by name
+  and a reach note, as `SDLC.template.md` *Records* requires of every control row: the
+  hook-environment line (the hook's report on the deliberate lint error), the close-out
+  checker note (the INCOMPLETE line its proof printed), and `TESTING.template.md`'s
+  harness record (per check, whether a real test has tripped it). Found by 0.31.3's
+  `/kit-check`.
+
 ## 0.31.3 — 2026-09-29
 
 Copilot CLI runs the Claude-dialect hooks too (`FEATURE_PLAN.md` §79, ruled and

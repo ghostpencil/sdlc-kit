@@ -236,7 +236,11 @@ drive-form path under a `/mnt/<drive>/` root must be seen to be production, not
 "outside the repository"), the Claude-dialect hooks' **Copilot-payload stand-down**
 (0.31.3 — a Copilot-translated payload must be seen to stand down silently on a case
 that would otherwise log, gate, or block, and a native Copilot payload and a Claude
-payload carrying `timestamp` must be seen still to act), the `tools/` proof suites, and `/kit-check` itself — must state how it is
+payload carrying `timestamp` must be seen still to act), the **docs-only slice's
+confirmation** at `/end-slice` step 1 and its verification's docs form (0.32.0 — a
+source or test file in the diff must be seen to void the declaration, and a documented
+command that fails must be reported broken, never folded into a skip), the `tools/`
+proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
 being added here is one the pass will not think to look for. Adding a check means

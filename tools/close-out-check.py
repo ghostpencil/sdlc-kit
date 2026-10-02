@@ -778,10 +778,13 @@ def docs_pass(src, verbose):
     return failures, slowest
 
 
-def stop_pass(src, verbose):
-    """Runs every stop case in its own bench repo; returns (failures, {name: secs})."""
+def stop_pass(src, verbose, only=None):
+    """Runs every stop case (or just the one named by `only`) in its own bench repo;
+    returns (failures, {name: secs})."""
     failures, times = [], {}
     for name, setup, stdout_kind, contains, absent in STOP_CASES:
+        if only is not None and name != only:
+            continue
         with tempfile.TemporaryDirectory() as base:
             b = StopBench(base, src)
             pl = setup(b, base)
@@ -815,7 +818,7 @@ def stop_pass(src, verbose):
 
 def unit_pass(src, verbose):
     """Runs every case; returns (failures, max_seconds)."""
-    failures, slowest = [], 0.0
+    failures, slowest, times = [], 0.0, []
     with tempfile.TemporaryDirectory() as base:
         b = Bench(base, src)
         # One uncounted warmup: the first sh spawn on Windows pays a cold-start
@@ -828,6 +831,7 @@ def unit_pass(src, verbose):
                 b.commit(message)
             code, out, dt = b.run(args)
             slowest = max(slowest, dt)
+            times.append(dt)
             first = out.splitlines()[0] if out.splitlines() else ""
             problems = []
             if code != exp_exit:
@@ -841,7 +845,12 @@ def unit_pass(src, verbose):
                 failures.append((name, problems, out))
             if verbose:
                 print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
+    times.sort()
+    unit_pass.median = times[len(times) // 2] if times else 0.0
     return failures, slowest
+
+
+unit_pass.median = 0.0
 
 
 # --- linked worktrees and the launchers (FEATURE_PLAN.md 78) ------------------------
@@ -1019,14 +1028,20 @@ def main():
 
     print("== unit pass (%d cases) ==" % len(CASES))
     failures, slowest = guarded("unit pass", ([], 0.0), unit_pass, src, verbose=True)
-    print("slowest warm invocation: %.0f ms (S2 budget: 1000 ms; cold first spawn: %.0f ms, uncounted)"
-          % (slowest * 1000, unit_pass.cold * 1000))
+    # The verdict reads the MEDIAN, as the stop pass's has since §77: this machine adds
+    # about one +5 s stall per suite run, landing on a random case, and a max over the
+    # unit pass's ~26 samples catches it nearly every time. Ruled 2026-09-04 (§77.7) to
+    # apply on this pass's first breach - which came at 0.32.0, 5340 ms slowest against
+    # a sub-second typical. The slowest stays printed: a real regression moves both.
+    print("median warm invocation: %.0f ms (S2 budget: 1000 ms; slowest: %.0f ms, observed"
+          " not asserted; cold first spawn: %.0f ms, uncounted)"
+          % (unit_pass.median * 1000, slowest * 1000, unit_pass.cold * 1000))
     if failures:
         for name, problems, out in failures:
             print("\nFAILED %s: %s\n--- output ---\n%s" % (name, "; ".join(problems), out))
         sys.exit(1)
-    if slowest >= 1.0:
-        perf.append("unit invocation %.2f s (budget 1.00 s)" % slowest)
+    if unit_pass.median >= 1.0:
+        perf.append("median unit invocation %.2f s (budget 1.00 s)" % unit_pass.median)
 
     print("\n== docs pass (%d cases) ==" % len(DOCS_CASES))
     failures, slowest = guarded("docs pass", ([], 0.0), docs_pass, src, verbose=True)
@@ -1073,6 +1088,15 @@ def main():
         sys.exit(1)
     if typical >= 1.5:
         perf.append("median stop invocation %.2f s (budget 1.50 s)" % typical)
+    if cap_t >= 5.0:
+        # Best-of-2 for this one case (§77.7): it is a single sample, so the one stall
+        # per run can land on it. A second walk that also breaches is a real breach.
+        _, again = guarded("cap-20 re-walk", ([], {}), stop_pass, src, verbose=False,
+                           only="stop_candidate_cap_20")
+        retry = again.get("stop_candidate_cap_20", cap_t)
+        print("cap-20 walk breached at %.0f ms; best-of-2 re-walk: %.0f ms"
+              % (cap_t * 1000, retry * 1000))
+        cap_t = min(cap_t, retry)
     if cap_t >= 5.0:
         perf.append("cap-20 stop walk %.2f s (budget 5.00 s)" % cap_t)
 

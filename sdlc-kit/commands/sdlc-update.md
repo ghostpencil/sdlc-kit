@@ -817,6 +817,21 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   Copilot contributor needs `python` on PATH, because an erroring PreToolUse launcher
   denies the edit under Copilot — handing them the line to fold into `spec/SDLC.md`
   beside the guards' installed note.
+- **0.32.0 adds the docs-only slice, and its rule lives in `spec/SDLC.md`.** The
+  updated `/next-slice` §4 lets a slice whose ratified test approach is `none` and which
+  touches no source or test file skip the TDD loop, and `/end-slice` confirms that
+  against the diff and runs `change-verify`'s new docs form (each command the diff adds
+  is run, each path it adds is opened). The commands and the skill arrive with the
+  update; the canonical statement is in `templates/SDLC.template.md` slice-loop steps 4
+  and 9, which an update never re-instantiates. Until the owner folds that diff, the
+  project's process file says every slice runs the loop and **wins** — the safe
+  direction: the shortcut stays off. Hand the owner the template diff; never edit
+  `spec/SDLC.md`. **The same release asks three setup-written records for their reach
+  note** — the hook-environment line, the close-out checker note, and
+  `spec/TESTING.md`'s harness record (*Records*: the catch named, and whether it has
+  arisen on its own or only in the proof). Nothing re-proves; the owner adds what the
+  proofs already saw when folding. The close-out checker is unchanged, so existing
+  records stay valid.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

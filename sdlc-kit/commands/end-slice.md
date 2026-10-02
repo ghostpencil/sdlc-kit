@@ -24,6 +24,16 @@ operator-performed, the policy names the moment to set it).
   uncommitted, report that there is no slice to close and stop.
 - Confirm you are NOT on the main branch. If you are, stop and say so — slices live on
   a phase or cleanup branch.
+- **A slice `/next-slice` declared docs-only** (its §4 — ratified test approach `none`,
+  no source or test file planned) is confirmed here against **everything the slice
+  will commit**: `git status --short` — not `git diff --stat`, which does not list an
+  untracked file, so a newly created source file would pass unseen — plus the files of
+  any commit this slice already made on the arc branch. No production source, no test
+  file, tracked or untracked; if either appears, it is not docs-only and every step
+  runs as written. If it holds, steps 3 and 5 are written as their stated skips
+  without being walked — `quality: skipped — docs-only slice; reuse: not searched —
+  docs-only slice` and `mutation: none — no new guards` — step 4's review runs as
+  ever, and step 6 runs in its docs form.
 
 ### 2. Run the gate
 
@@ -317,8 +327,16 @@ fix commits later. The skill is installed at
 applies (a transcript block per run — a pass not observed is not a pass).
 
 Same contract as step 3: **skipping is legitimate; skipping silently is not.** On a
-small or mechanical slice — docs, config, a change the gate fully pins — state the skip
-and its reason in the hand-back (step 10). Either way the one-line outcome goes into the
+small or mechanical slice — config, a change the gate fully pins — state the skip and
+its reason in the hand-back (step 10).
+
+**A docs-only slice (step 1) does not skip — it runs the docs form.** Every command the
+diff adds or changes is run once and every file path it adds is opened, each result
+quoted as the skill's report contract requires: the documented command that does not
+work is a docs slice's characteristic defect, and this is the one moment it is cheap. A
+command that would reach anything not disposable — a deploy, a data reset, an outbound
+call — is not run; name it under `not exercised:` with that reason. A diff adding
+neither writes `verify: skipped — no command or path added`. Either way the one-line outcome goes into the
 slice commit body (step 7), so the record outlives the session:
 
 ```

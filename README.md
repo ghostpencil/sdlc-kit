@@ -880,6 +880,17 @@ only as a hand-apply, and the per-version transition notes name each one.
    beside the guards' installed note yourself. The update command's 0.31.3 note states
    the same procedure.
 
+   **0.32.0 adds the docs-only slice.** A slice whose ratified test approach is `none`
+   and which touches no source or test file skips the TDD loop; `/end-slice` confirms
+   that against the diff and runs `change-verify`'s docs form (each command the diff adds
+   is run, each path it adds is opened). The commands and skill arrive with the update,
+   but the rule lives in `SDLC.template.md` slice-loop steps 4 and 9: fold that diff into
+   `spec/SDLC.md` yourself — until you do, your process file keeps every slice in the
+   loop and wins, so nothing breaks. While folding, add a reach note to three records
+   setup wrote (the hook environment, the close-out checker note, `spec/TESTING.md`'s
+   harness): what each proof caught, and whether it has arisen on its own. The update
+   command's 0.32.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,

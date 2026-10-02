@@ -112,6 +112,9 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
 - **Bare-flagging arming bar (§52.2) — log-only.** Unmet at 4 false candidates
   (§70.7 (iv)). It re-opens at the first arc whose false count is zero under the 0.29.0
   filter, and not before (§73.8).
+- **The docs-only verification form — §16 clock, two arcs, from the release carrying it**
+  (§80.3). Catch: a documented command or path a docs slice added, run or opened and
+  found broken. No confirmed catch in two arcs → deletion candidate.
 - **§76.9(d) — the two 0.31.0 record-line halves have no observer.** Ruled (α) then (β):
   read arc two's records first; build a log-only observer only if the restatement was not
   enough.
@@ -129,12 +132,12 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
 
 **Held work — owed, not scheduled:**
 
-- **§76 finding 4 — OUT of 0.31.0 and held for the next batch** (§76.7 ruling 1): its
-  short-circuit must be one a code slice cannot take, which is its own design question.
-- **§77's residue — the unit and docs perf passes still assert on `max()`** (§77.7).
-  Apply the median treatment when either next breaches, not pre-emptively; a breach is
-  this finding, not a new one. The cap-20 case's fallback, if it fires, is best-of-2 for
-  that case alone, not a raised budget.
+- **§76 finding 4 — the docs-only slice: RULED (§80.2, §80.3) and BUILT 2026-10-02**
+  (§80.4), unreleased; ships with §79.4 as 0.32.0.
+- **§77's residue — the docs perf pass still asserts on `max()`** (§77.7). The unit
+  pass breached first, at 0.32.0's release run (5340 ms slowest, one stall), and got the
+  median treatment then; the cap-20 walk breached in the same run (8.29 s, single sample)
+  and got its ruled best-of-2 (§80.7). The docs pass gets the median on its first breach.
 - **§78 — the hook launchers' silent not-at-root skip, filed 2026-09-27, not ruled.**
   Measured: every Copilot hook but the ledger is inert below the root on builds before
   1.0.88; a linked worktree disarms them on every build (measured, §78.2) and the Claude
@@ -156,8 +159,8 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
   without `permission_mode`, and Copilot obeys this file's outputs — a PreToolUse
   launcher that errors *denies the edit*. Launchers ruled (A), BUILT 2026-09-28 as 0.31.3
   (§79.3). Both-dialect projects only; neither adopter exposed.
-- **§79.4 — invariant 16 in three setup-written control records**, found by 0.31.3's
-  `/kit-check`, pre-existing: each settles reach by silence. Owed: a small batch.
+- **§79.4 — invariant 16 in three setup-written control records** — BUILT 2026-10-02
+  with §80 (§80.5), unreleased.
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -5073,3 +5076,105 @@ The lesson worth keeping is procedural, not technical: the adopter's gate is a p
 the kit does not own, and it ran a configuration no kit fixture did. An update's gate run
 is therefore not a formality to skip on a hook-only release — it is the one place a
 project's own tests exercise the kit's contracts.
+
+---
+
+## 80. The docs-only slice (§76 finding 4) — the escape hatch is already closed by the
+## guard, so the fix is text — designed and ruled 2026-09-30
+
+**The owner's framing:** a short assessment before the TDD loop decides whether a slice
+needs it. **The design question it had to answer** (§76.7 ruling 1): a short-circuit a
+code slice cannot take.
+
+### 80.1 What a docstring-only edit costs today — walked, not assumed
+
+`/next-slice` §4 reads `TESTING.md` and invokes the TDD skill (nothing to test). The edit
+to a `.py` file is a production write with no observed red: logged in logging mode,
+refused when deny is armed — where the existing route is the refactor licence
+(`SDLC.template.md`: a behavior-preserving edit "is licensed without a fresh red by
+declaring it", behind a counted green, every write logged). The stop guard has its
+green from that run. `/end-slice`'s gate does real work (an unclosed triple quote, a
+broken doctest); the record carries the zero-forms; the checker passes. Cost: one test
+run, one licence line, five empty-form lines — nothing breaks, nothing is misrecorded,
+and the guard log carries the behavior-preserving claim for review.
+
+### 80.2 Ruled 2026-09-30
+
+1. **No new check.** The considered options for a docstring inside a source file —
+   a per-language AST comparison, a review-asserted quoted-hunks record, or both —
+   would build machinery to save one test run and one licence line. Declined. A
+   docstring slice stays in the loop and takes the refactor licence; the text says so.
+2. **The short-circuit is safe without one**: the guard ignores non-source files, and a
+   "docs-only" slice that writes source meets the guard exactly as any production write
+   does. Where the guard was declined, such a slice has the protection every slice
+   there has — the gate and the review. The question of lifting the source/test
+   patterns out of the guard (needed only for a close-out path check) **dissolves**.
+3. **The fix:** `/next-slice` §4 — when the phase spec's ratified test approach is
+   `none` and the slice plans to touch no source or test file, skip `TESTING.md` and
+   the TDD skill, stating so in one line citing the ratified approach. `/end-slice` —
+   such a slice writes the zero-forms directly rather than walking steps 3, 5 and 6 to
+   discover them empty; every record line stays, so the checker and the retro sweep
+   are untouched. `SDLC.template.md` states the same (it wins).
+
+### 80.3 Change-verify on a docs slice — RULED 2026-10-02: (ii), the light docs form
+
+Three options were put: (i) keep the skip; (ii) run each command the diff adds or
+changes and open each path it adds, quoted like any run; (iii) also recount numbers and
+check described behavior. **(ii) taken.** (iii) builds ahead of evidence — no field
+report shows a docs slice shipping a false claim; the false numbers in the lineage all
+came from bookkeeping — and "does this sentence describe the behavior" is a judgment
+check, JUDGE's territory (§37.5). (ii) is mechanical: a documented command runs or it
+does not. A command reaching anything not disposable is named under `not exercised:`,
+never run. **§16 clock attached from day one:** no confirmed docs-form catch in two
+field arcs makes it a deletion candidate.
+
+### 80.4 Built 2026-10-02
+
+`SDLC.template.md` slice-loop steps 4 and 9 (the canonical statement); `/next-slice` §4
+opens with the docs-only assessment; `/end-slice` step 1 confirms the declaration
+against `git diff --stat` (a source or test file voids it) and writes steps 3 and 5 as
+stated skips, step 6 carries the docs form and drops "docs" from its skip examples;
+`change-verify` gains *The docs form* under *How to use*; `reference/SKILLS.md`'s row
+notes it; the invariant-13 denominator gains the confirmation and the docs form, in the
+ledger and in `/kit-check`'s list.
+
+### 80.5 §79.4 built alongside — the three records get their catch and reach note
+
+`SDLC.template.md` *Records*: the hook-environment line now asks for the catch (the
+hook's report on the deliberate lint error) and the reach note, and the close-out
+checker note's comment asks for the INCOMPLETE line its proof printed and its reach
+note (constructed by definition — the proof commit carries no record).
+`TESTING.template.md`'s harness comment asks, per check, whether a real test has
+tripped it. `sdlc-setup.md`'s three writing steps (New mode 4 and 6, close-out step 2,
+and the Existing-mode harness bullet) say the same. Adopters fold it with §80's diff;
+nothing re-proves.
+
+### 80.6 The release `/kit-check`, 2026-10-02 — four findings, all fixed in-session
+
+All in the new text. **(15, two readers independently) the docs-only confirmation
+checked `git diff --stat`, which lists no untracked file** — a slice declared docs-only
+that created a new source file would have passed and skipped quality and mutation; it
+now confirms against `git status --short` plus any commit the slice already made.
+(2) The template said the short-circuit "needs no check of its own" while `/end-slice`
+ran one — the template now states the confirmation. (14) `none` as a test approach was
+a value no planning step defined — `plan-phase.md` and the template's phase start now
+reserve it for the docs-only slice. (2, minor) `change-verify`'s *How to use* still
+called step 6 optional with no docs-form exception. Invariants 3–5, 7–12, 16 and the
+lens map pass; §79.4's invariant-16 gap verified closed.
+
+### 80.7 The close-out suite's timing budgets breached — §77.7's ruled response applied
+
+The release run of `close-out-check.py` was first stopped by the harness at mutation 14
+of 35 (machine low on memory, session idle). Re-run on the owner's word: every case and
+all 35 mutations green, exit 1 on two timing budgets — the unit pass's **slowest** warm
+invocation 5340 ms (budget 1000) and the cap-20 walk 8288 ms (budget 5000, one sample),
+with the stop pass's median at 943 ms and its slowest at 5922 ms: the one ~5 s stall per
+run that §77.6 measured, landing on two max-or-single-sample readings. §77.7 ruled the
+response in advance — median for the unit pass on its next breach, best-of-2 for the cap
+case alone, no raised budget — and both are now in `tools/close-out-check.py`. The docs
+pass keeps `max()` until it breaches.
+Re-run with both in place: exit 0, all green, 35 mutations caught — unit median 288 ms
+(slowest 381), stop median 939 ms (slowest 1061), cap-20 walk 3268 ms. **No stall landed
+in this run, so neither new path was exercised**: the budgets passed on their first
+reading, and the best-of-2 re-walk never fired.
+
