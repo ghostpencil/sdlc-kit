@@ -112,6 +112,11 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
 - **Bare-flagging arming bar (§52.2) — log-only.** Unmet at 4 false candidates
   (§70.7 (iv)). It re-opens at the first arc whose false count is zero under the 0.29.0
   filter, and not before (§73.8).
+- **The slice-end graph refresh — §16 clock, two arcs, from 0.33.0** (§81). Catch: a
+  slice preview that reads `current at the base` because the previous slice refreshed,
+  where it would otherwise have read `may be stale`. No such reading in two arcs (the
+  post-commit tooling alone keeping it current, or the refresh never run) → deletion
+  candidate.
 - **The docs-only verification form — §16 clock, two arcs, from the release carrying it**
   (§80.3). Catch: a documented command or path a docs slice added, run or opened and
   found broken. No confirmed catch in two arcs → deletion candidate.
@@ -5177,4 +5182,52 @@ Re-run with both in place: exit 0, all green, 35 mutations caught — unit media
 (slowest 381), stop median 939 ms (slowest 1061), cap-20 walk 3268 ms. **No stall landed
 in this run, so neither new path was exercised**: the budgets passed on their first
 reading, and the best-of-2 re-walk never fired.
+
+---
+
+## 81. The architecture graph refreshes at every slice end — ruled and built 2026-10-03
+
+**The ask (owner, 2026-10-03):** Understand Anything should update the graph at the end
+of each slice. **Scope ruled: kit-wide (a)**, over a TFit-only amendment — the TFit
+reconcile the same day had just removed that class of divergence.
+
+**Why slice end is safe, against §76.7's phase-boundary reasoning.** The phase boundary
+was chosen as "the one place a regeneration cannot invalidate work in progress". After
+`/end-slice` commits, nothing is in progress either. The plugin's `/understand` has an
+incremental path (re-analyses changed files only; zero tokens on a cosmetic change; its
+own note puts a structural run at ~158 s, plugin 2.9.4). TFit's own post-commit tooling
+(`scripts/ua_post_commit.mjs`) already advances the baseline for free on non-structural
+commits and prints a reminder on structural ones — compatible; the slice-end step is
+what acts on that reminder.
+
+**Two design consequences, found by reading the adapter before building:**
+1. **Order inside `/end-slice`.** Freshness diffs the graph's build commit against the
+   base. Refresh *before* the slice view and the slice's own files read as stale;
+   *after* (and after `clear-base`), the next slice's base equals the build commit.
+2. **The phase-scope view would have regressed.** Its base is where the arc branched; a
+   graph refreshed at the arc's last slice diffs against it as the whole arc, so
+   `/end-phase` steps 2 and 6 would read `may be stale` on every refreshed project. The
+   adapter now treats a build commit with base ⊑ commit ⊑ HEAD as current ("built inside
+   this change set"); a sibling-branch graph (descends from base, not in HEAD) still
+   reads stale. Two cases and two mutations pin both directions.
+
+**Built:** `SDLC.template.md` *Architecture impact view* (two triggers, the order, the
+cost, the CLI caveat); `/end-slice` (the refresh paragraph, last); `/end-phase` (step 2's
+stale note, the boundary bullet as the second trigger); `/sdlc-setup` (the autoUpdate
+offer names both); the adapter and `tools/impact-check.py`; update note, README,
+CHANGELOG as 0.33.0. §16 clock in the standing clocks.
+
+**Release `/kit-check`, 2026-10-03 — five findings, all fixed in-session.** Two were
+proven on a scratch repo by the reader: (F1) the stated reason for the refresh order
+became false once the adapter's inside-the-change-set rule landed — the real reason is
+that the close-out footprint is drawn from the same graph as the preview; (F2) a
+tracked graph directory's own refresh commit read as staleness, because `freshness()`
+did not exclude UA's files the way `change_set()` does — a defect the phase-boundary
+regeneration already had, unnoticed, which every slice would now have hit. Also: (F3)
+`/end-phase`'s stale note named the wrong cause; (F4) the tracked-directory commit rule
+lived only in the command; (F5) the template's freshness paragraph and both invariant-13
+denominators lacked the new rule. The F2 edit staled one mutation anchor, which the
+suite reported rather than skipped; re-pointed. Suites: impact 20 cases / 16 mutations
+on the fixed code; gate-hook, tdd-guard, tdd-guard-claude, skill-ledger (17/17),
+close-out (35 mutations, all budgets inside) all exit 0. Manifest 44/44.
 

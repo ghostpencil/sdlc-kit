@@ -572,8 +572,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `autoUpdate` is absent or `false`, offer to set it `true` at the feedback halt.
    Never set it silently: it is the project's file, not the kit's. Say all three of
    these when you offer it, because the name overpromises and an owner who believes
-   the name will not run the phase-boundary regeneration that actually keeps the graph
-   current (`spec/SDLC.md`, *Architecture impact view*):
+   the name will not run the slice-end and phase-boundary regenerations that actually
+   keep the graph current (`spec/SDLC.md`, *Architecture impact view*):
 
    - It **reminds; it does not refresh.** Measured against the Understand Anything
      plugin at kit 0.31.0: the flag defaults to off, and turning it on enables two
@@ -583,8 +583,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      shell is PowerShell, a commit fires nothing at all — worth saying explicitly when
      the runtime interview established a non-Bash shell.
    - Turning it on is still worth doing: the session-start staleness check is a real
-     signal, and it costs one boolean. It is a supplement to the phase-boundary
-     regeneration, never a substitute for it.
+     signal, and it costs one boolean. It is a supplement to the process's own
+     regenerations, never a substitute for them.
 
    **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
    optional where the checker itself is not.** The same script's `stop-check` mode,

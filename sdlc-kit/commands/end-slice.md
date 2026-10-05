@@ -564,6 +564,19 @@ the commit body's evidence keys, and an `UNAVAILABLE` is one stated line. A proj
 whose `spec/SDLC.md` has no such section predates the adapter — say so rather than
 guessing an invocation.
 
+**Then refresh the graph — last, and only after the base is cleared.** Run the graph
+tool's own incremental analysis (for Understand Anything, `/understand` with a graph
+already present re-analyses only the changed files). It runs after the block above so
+the close-out footprint is drawn from the same graph as the preview, and "changed from
+the preview" compares like with like; the next slice then starts exactly where the graph
+was built, and its preview reads `current at the base`.
+State one line in the hand-back — what it re-analysed, or that nothing structural
+changed. A refresh that writes into a **tracked** graph directory leaves the tree dirty;
+commit it on its own (`chore(graph): refresh after <slice>`) and push, rather than
+letting the next slice inherit it. Where the tool cannot run in this CLI, or the
+project has no graph, say so in one line — `spec/SDLC.md`, *Architecture impact view*,
+is the canonical statement.
+
 ## Notes
 
 - Never mark the slice done if the gate is red or the review left unfixed CRITICAL items.

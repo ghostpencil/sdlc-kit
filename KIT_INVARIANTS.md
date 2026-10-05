@@ -224,7 +224,10 @@ classifier, the release workflow's manifest
 verification, the architecture-impact adapter's four-state taxonomy (0.28.0 — its
 negative cases live in `tools/impact-check.py`: a graph that will not parse must be
 seen to report ERROR rather than a silent COMPLETE, and an un-ignored UA directory
-must be seen to write no overlay), the hook launchers' **missing-script stop block**
+must be seen to write no overlay; 0.33.0 — a graph built inside the change set must be
+seen to read current, one built on a sibling branch to read stale, and a tracked
+graph directory's own refresh commit must be seen not to count), the hook launchers'
+**missing-script stop block**
 (0.31.1 — a stop launcher whose script is absent must be seen to block once naming it,
 and must be seen NOT to block when `stop_hook_active` is true or when the script is
 present; pre- and post-tool launchers must be seen to stay silent), the hooks'

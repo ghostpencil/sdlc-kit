@@ -198,6 +198,9 @@ def layers_for(graph, node_ids):
 def freshness(root, ua_path, base):
     """v1 freshness: had the tree already moved on from the graph BEFORE this work began?
 
+    A graph built between the base and HEAD answers no: it is newer than the start of
+    the work (the slice-end refresh, `spec/SDLC.md` *Architecture impact view*).
+
     The comparison is graph-commit against the BASE, never against the working tree.
     That distinction is the whole rule: this change set's own edits are unseen by the
     graph by definition - that is what the overlay exists to draw - so measuring
@@ -227,9 +230,24 @@ def freshness(root, ua_path, base):
     code, out = git("-C", root, "diff", "--name-only", commit, base, "--")
     if code != 0:
         return "unknown - could not diff graph commit %s against the base" % commit[:8], False
-    since = [f for f in out.split("\n") if f] if out else []
+    # The graph directory's own files are excluded here exactly as change_set() excludes
+    # them: where that directory is tracked, a refresh commit touches only UA files, and
+    # counting them would call the graph stale for having been refreshed.
+    ua_name = os.path.basename(ua_path)
+    since = [f for f in out.split("\n")
+             if f and f != ua_name and not f.startswith(ua_name + "/")] if out else []
     if not since:
         return "current at the base (graph at %s)" % commit[:8], False
+    # A graph built INSIDE this change set - after the base, on the line HEAD is on - is
+    # newer than the tree the work started from, never older: the slice-end refresh puts
+    # it there by design, and the phase view's base is where the arc branched. Both
+    # ancestry tests are needed: a graph built on a sibling branch descends from the base
+    # too, but describes a tree this branch never had.
+    inside = (git("-C", root, "merge-base", "--is-ancestor", base, commit)[0] == 0
+              and git("-C", root, "merge-base", "--is-ancestor", commit, "HEAD")[0] == 0)
+    if inside:
+        return ("current - graph at %s, built inside this change set after the base"
+                % commit[:8]), False
     return ("may be stale - %d project files changed between graph commit %s and the base"
             % (len(since), commit[:8])), True
 

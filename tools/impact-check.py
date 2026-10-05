@@ -294,6 +294,55 @@ def c_phase_scope(b):
     return ("phase", "main")
 
 
+def c_graph_inside_change_set(b):
+    """The slice-end refresh: the graph was rebuilt at a commit INSIDE the arc. The
+    phase view's base is where the arc branched, so the plain diff is non-empty - and
+    reading that as stale would call every refreshed graph stale at every phase close."""
+    b.install_graph()
+    b.write("usage_store.py", "original\n")
+    b.commit("main")
+    run_git(b.root, "branch", "-M", "main")
+    b.branch("feat/phase-99")
+    b.write("usage_store.py", "slice 1\n")
+    s1 = b.commit("slice 1 - the graph is refreshed here")
+    b.set_meta_commit(s1)
+    b.write("tfit_qa_server.py", "slice 2\n")
+    b.commit("slice 2")
+    return ("phase", "main")
+
+
+def c_tracked_graph_refresh_commit(b):
+    """A TRACKED graph directory: the slice-end refresh lands as its own commit, which
+    touches only UA files. The next slice's base is that commit; the graph was built one
+    commit earlier. Counting UA's own files would call a just-refreshed graph stale."""
+    b.install_graph()
+    b.write("usage_store.py", "original\n")
+    built = b.commit("the slice the graph was rebuilt at")
+    b.set_meta_commit(built)
+    b.commit("chore(graph): refresh after the slice")
+    b.adapt("record-base")
+    b.write("usage_store.py", "the next slice's change\n")
+    return ("slice",)
+
+
+def c_graph_on_sibling_branch(b):
+    """A graph built on ANOTHER branch also descends from the base, but describes a
+    tree this branch never had - the ancestor test against HEAD is what refuses it."""
+    b.install_graph()
+    b.write("usage_store.py", "original\n")
+    b.commit("main")
+    run_git(b.root, "branch", "-M", "main")
+    b.branch("elsewhere")
+    b.write("usage_store.py", "a change this arc never had\n")
+    other = b.commit("graph built on a sibling branch")
+    run_git(b.root, "checkout", "-q", "main")
+    b.branch("feat/phase-99")
+    b.set_meta_commit(other)
+    b.write("tfit_qa_server.py", "arc work\n")
+    b.commit("slice 1")
+    return ("phase", "main")
+
+
 def c_phase_bad_ref(b):
     base_slice(b)
     return ("phase", "no-such-ref")
@@ -364,6 +413,15 @@ CASES = [
     ("phase_scope_spans_the_arc", c_phase_scope,
      ["scope: phase", "changed-files: 2"], ["scope: slice"], None),
 
+    ("graph_refreshed_inside_the_arc_is_current", c_graph_inside_change_set,
+     ["built inside this change set"], ["may be stale"], None),
+
+    ("tracked_graph_refresh_commit_is_not_staleness", c_tracked_graph_refresh_commit,
+     ["current at the base"], ["may be stale"], None),
+
+    ("graph_from_a_sibling_branch_is_stale", c_graph_on_sibling_branch,
+     ["may be stale"], ["built inside this change set"], None),
+
     ("phase_bad_ref_is_unavailable", c_phase_bad_ref,
      ["SDLC IMPACT: UNAVAILABLE", "does not resolve"], ["COMPLETE"], None),
 
@@ -417,7 +475,8 @@ CASES.append(("ua_files_excluded_even_when_git_sees_them",
 # contents and the adapter's own path rules are the only thing standing between
 # UA's artifacts and the project's denominator.
 UNIGNORED = {"not_ignored_ua_dir_writes_nothing",
-             "ua_files_excluded_even_when_git_sees_them"}
+             "ua_files_excluded_even_when_git_sees_them",
+             "tracked_graph_refresh_commit_is_not_staleness"}
 
 
 def case_pass(adapter_src, verbose=True):
@@ -477,12 +536,23 @@ MUTATIONS = [
     ("wrong_branch_base_accepted",
      '    if current != branch:',
      '    if False:'),
+    # RE-POINTED at 0.33.0: the since-list gained the graph-directory exclusion, so the
+    # old anchor no longer applied - reported STALE by the suite, as designed.
     ("staleness_never_detected",
-     '    since = [f for f in out.split("\\n") if f] if out else []',
-     '    since = []'),
+     '    if not since:\n        return "current at the base',
+     '    since = []\n    if not since:\n        return "current at the base'),
     ("freshness_measured_against_the_working_tree",
      '    code, out = git("-C", root, "diff", "--name-only", commit, base, "--")',
      '    code, out = git("-C", root, "diff", "--name-only", commit, "--")'),
+    ("graph_refresh_commit_counted_as_staleness",
+     '             if f and f != ua_name and not f.startswith(ua_name + "/")] if out else []',
+     '             if f] if out else []'),
+    ("graph_inside_the_arc_called_stale",
+     '    if inside:',
+     '    if False:'),
+    ("sibling_branch_graph_called_current",
+     '              and git("-C", root, "merge-base", "--is-ancestor", commit, "HEAD")[0] == 0)',
+     '              and True)'),
     ("overlay_written_into_tracked_dir",
      '    if not is_ignored(root, ua_name):',
      '    if False:'),

@@ -10,6 +10,28 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.33.0 — 2026-10-03
+
+The architecture graph refreshes at every slice end (`FEATURE_PLAN.md` §81, ruled by the
+owner 2026-10-03).
+
+### Changed
+- **[installable]** **`/end-slice` refreshes the graph as its last act**, where the
+  project carries one — the graph tool's own incremental analysis, run *after* the
+  slice's impact view is drawn and its base cleared, so the next slice starts exactly
+  where the graph was built and its preview reads current. A tracked graph directory
+  gets its own refresh commit. The phase-boundary regeneration stays: the merge moves
+  the main branch. `/end-phase` and `/sdlc-setup` name both triggers. Canonical in
+  `SDLC.template.md` *Architecture impact view* — **[adoption-only]**, folded by hand.
+- **The impact adapter reads a graph built inside the change set as current** (kit-owned,
+  replaced at update): a build commit that descends from the base and is an ancestor of
+  HEAD is newer than the start of the work, never older. Without this, every refreshed
+  graph would read `may be stale` at the phase close, whose base is where the arc
+  branched. A graph built on a sibling branch still reads stale, and a tracked graph
+  directory's own refresh commit no longer counts as staleness (it did at the phase
+  boundary too, unnoticed; every slice would have hit it). `tools/impact-check.py`: 20
+  cases, 16 mutations, three of each new.
+
 ## 0.32.0 — 2026-10-02
 
 The docs-only slice (`FEATURE_PLAN.md` §80, the tenth report's finding 4), and reach

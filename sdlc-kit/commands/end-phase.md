@@ -68,8 +68,11 @@ invocation.
 
 **If the block reports `graph-freshness: may be stale`, say so in the hand-back and name
 step 7's regeneration** — the picture the owner is about to accept against was drawn from
-a tree older than this arc. Do not regenerate here: mid-arc is the wrong moment
-(`spec/SDLC.md`, *Architecture impact view*), and the trigger is the phase boundary.
+a tree older than this arc. Under the slice-end refresh any slice's refresh reads
+current here, so a stale line means no `/end-slice` in this arc refreshed the graph, or
+the main branch has moved since the arc branched (a hotfix merged in) — say which. Do not regenerate here: the owner is
+mid-review (`spec/SDLC.md`, *Architecture impact view*), and the next triggers are the
+phase boundary and the next slice end.
 
 This is what step 3 draws on. An arc that reaches the acceptance halt with nothing
 observed puts the owner in front of a system no one has run, and the halt passes
@@ -474,10 +477,10 @@ read before it is reconciled is a decision taken twice.
   re-instantiated — add it in this docs commit, or every retired item becomes
   unfindable by the rule that was supposed to make retirement safe.
 - Trim/align the phase spec if the review changed behavior described there.
-- **Regenerate the architecture graph**, where the project carries one — this is the
-  trigger, and this is the moment it belongs (`spec/SDLC.md`, *Architecture impact
-  view*): the branch is merged, the tree is settled, and no slice is mid-flight, which
-  is true nowhere else in the loop. Run the graph tool's own analysis, then re-run
+- **Regenerate the architecture graph**, where the project carries one — the second of
+  its two triggers (`spec/SDLC.md`, *Architecture impact view*; the first is every
+  `/end-slice`): the merge has moved the main branch the next arc will branch from,
+  the tree is settled, and no slice is mid-flight. Run the graph tool's own analysis, then re-run
   `python .github/hooks/sdlc-impact.py phase <main>` once and state the freshness line
   it now prints. Do not skip this because the tool advertises an auto-update — that
   setting reminds rather than refreshes, and the template says why. A project that lets

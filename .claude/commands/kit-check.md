@@ -109,7 +109,7 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.32.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.33.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe and its
   dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
@@ -133,7 +133,8 @@ For each, read the named files in full — do not sample — and cite evidence p
   the phase close, the retro's open-ruling sweep and its age-rule upstream re-check,
   the update
   classifier, the release workflow's manifest verification, the impact adapter's
-  four-state taxonomy (0.28.0; negative cases in `tools/impact-check.py`), the hook
+  four-state taxonomy (0.28.0; negative cases in `tools/impact-check.py`) and its
+  inside-the-change-set freshness rule (0.33.0), the hook
   launchers' missing-script stop block, git-directory resolution through a linked
   worktree's `.git` file, and the guard's WSL mount candidate root (all 0.31.1), the
   Claude-dialect hooks' Copilot-payload stand-down (0.31.3), the docs-only slice's

@@ -832,6 +832,16 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   arisen on its own or only in the proof). Nothing re-proves; the owner adds what the
   proofs already saw when folding. The close-out checker is unchanged, so existing
   records stay valid.
+- **0.33.0 refreshes the architecture graph at every slice end**, not only at the phase
+  boundary. It matters only to a project carrying an Understand Anything graph; for any
+  other project it is currency only. `/end-slice` gains the refresh as its last act, and
+  the adapter (`.github/hooks/sdlc-impact.py`, kit-owned, replaced as usual) now reads a
+  graph built **inside** the change set — between the base and HEAD — as current, which
+  the phase-scope view needs once slices refresh it. The rule lives in
+  `SDLC.template.md` *Architecture impact view*: hand the owner that diff to fold into
+  `spec/SDLC.md`; until it is folded the project's process file names only the phase
+  boundary and wins, so the slice-end refresh stays off. Where the graph directory is
+  **tracked**, say so: each refresh then needs its own commit.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

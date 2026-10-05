@@ -521,15 +521,26 @@ Its four states are worth knowing apart:
   belongs in the friction log; a graph that exists and will not parse reports here and
   never as a silent COMPLETE.
 
-**Regenerate the graph at the phase boundary — that is the trigger, and it is this
-process's, not the graph tool's.** Run the tool's own analysis after `/end-phase`'s
-post-merge bookkeeping, before the next `/plan-phase`. That is the only moment in the
-loop where the tree is settled, the branch is merged, and no slice is mid-flight, so it
-is the one place a regeneration cannot invalidate work in progress. Without a stated
-trigger the graph ages silently and every run of the view reports `PARTIAL` for the whole
-arc: one real adoption ran a seven-slice phase against a graph built before the
-*previous* phase merged, so the view was degraded at every site that draws it and the
-freshness line was the only thing that said so (field, 2026-09-01).
+**Regenerate the graph at every slice end and at the phase boundary — those are the
+triggers, and they are this process's, not the graph tool's.** Both are moments where
+the work is committed and nothing is mid-flight, so a regeneration cannot invalidate
+work in progress. **At slice end**, `/end-slice` runs the tool's own incremental
+analysis as its last act — *after* it has drawn the slice's view and cleared the spent
+base, so the close-out footprint is drawn from the same graph as `/next-slice`'s preview
+and "changed from the preview" compares like with like. The next slice then starts
+exactly where the graph was built, and its view reads `current at the base`. Where the
+graph directory is **tracked**, the refresh is its own commit (`chore(graph): refresh
+after <slice>`), pushed with the slice; freshness ignores the graph directory's own
+files, so that commit does not read as staleness. An incremental run re-analyses only changed files and spends nothing on a
+cosmetic change; the Understand Anything plugin's own estimate for a structural one is
+about 160 s. **At the phase boundary**, after `/end-phase`'s post-merge bookkeeping and
+before the next `/plan-phase`, the same analysis runs once more, because the merge moves
+the main branch the next arc branches from. Without a stated trigger the graph ages
+silently and every run of the view reports `PARTIAL`: one real adoption ran a
+seven-slice phase against a graph built before the *previous* phase merged, so the view
+was degraded at every site that draws it and the freshness line was the only thing that
+said so (field, 2026-09-01). Where the graph tool cannot run in the session's CLI, say
+so in the hand-back; the next session that can, runs it.
 
 **Do not rely on the graph tool's own auto-update to do this.** Where the tool offers
 such a setting, turn it on — it is strictly better than nothing — but treat it as a
@@ -540,15 +551,19 @@ those hooks matches the **Bash** tool only, so on a project whose primary shell 
 PowerShell a commit fires nothing at all, and the plugin's own prompt describes itself as
 triggered by a post-commit hook the plugin does not ship. A setting named auto-update
 that reminds rather than updates is exactly the kind of claim this process re-derives
-rather than trusts. The phase-boundary regeneration above is what makes the view's
+rather than trusts. The regenerations above are what make the view's
 freshness a property of this process instead of a property of a vendor's hook matcher.
 
 **Freshness answers one question only:** had the tree already moved on from the graph
 *before this work began*? It compares the graph's build commit against the slice or
 phase **base**, never against the working tree — this change set's own edits are unseen
 by the graph by definition, and measuring against the tree would call every slice stale
-and make COMPLETE unreachable. No build metadata means `freshness unknown` with the
-reason, never "current".
+and make COMPLETE unreachable. A graph built **inside** the change set — its commit after
+the base and on the line HEAD is on, which is where the slice-end refresh puts it — is
+newer than the start of the work and reads current; one built on a sibling branch also
+descends from the base but describes a tree this branch never had, and reads stale. The
+graph directory's own files never count. No build metadata means `freshness unknown`
+with the reason, never "current".
 
 **The overlay is written only where the UA directory is git-ignored.** *Phase end*
 requires a clean tree and re-asserts it before the merge, so writing into a tracked UA
@@ -559,8 +574,9 @@ UA's own generated files out of the project's changed-file denominator.
 
 Where the view fits: `/next-slice` records the slice base once the branch is settled and
 previews the footprint into the slice-ready hand-back; `/end-slice` regenerates after
-the record check, states **whether the footprint changed from that preview**, and clears
-the spent base in the same pass, so the next slice can never compute against an old one;
+the record check, states **whether the footprint changed from that preview**, clears
+the spent base in the same pass, so the next slice can never compute against an old one,
+and then refreshes the graph;
 `/end-phase` runs it against the main branch the project's own records name for the
 acceptance hand-back, and regenerates before the merge halt, stating any change since
 acceptance. The two changed-from statements are the ones that earn the view its place:

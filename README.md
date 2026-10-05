@@ -891,6 +891,14 @@ only as a hand-apply, and the per-version transition notes name each one.
    harness): what each proof caught, and whether it has arisen on its own. The update
    command's 0.32.0 note states the same procedure.
 
+   **0.33.0 refreshes the architecture graph at every slice end**, as `/end-slice`'s last
+   act, and the impact adapter now reads a graph built inside the change set as current.
+   It matters only if your project carries an Understand Anything graph. The adapter
+   arrives with the update; fold the `SDLC.template.md` *Architecture impact view* diff
+   into `spec/SDLC.md` yourself — until you do, your process file names only the phase
+   boundary and wins. If your graph directory is tracked, each refresh needs its own
+   commit. The update command's 0.33.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
