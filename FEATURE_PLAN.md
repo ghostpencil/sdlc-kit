@@ -169,10 +169,15 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
+- **COSMETIC — opened 2026-10-19, direction ruled, build not started** (§82): the TDD
+  guard exempts a comment- or formatting-only write to Python, Java, C# or TypeScript
+  source, judged by a parser comparison plus a directive-line check; difftastic
+  measured and not adopted. Six decisions owed (§82.7), the ramp first.
 
-**Standing inputs:** none pending. Every field report through the tenth
-(`sdlc-kit#10`, §76) is triaged, ruled, and shipped (0.31.0); the #10 reply was posted
-2026-09-04. The next input is either adopter's next arc retro.
+**Standing inputs:** issues **#11–#16** (filed 2026-10-15 → 10-18; five field reports
+and one enhancement) are open and **not yet triaged**. §82 measured around #14–#16 but
+triages none of them. Every field report through the tenth (`sdlc-kit#10`, §76) is
+triaged, ruled, and shipped (0.31.0); the #10 reply was posted 2026-09-04.
 
 **The Copilot bench is still standing** (§29.3): fixture repo
 `D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot CLI;
@@ -5231,3 +5236,218 @@ suite reported rather than skipped; re-pointed. Suites: impact 20 cases / 16 mut
 on the fixed code; gate-hook, tdd-guard, tdd-guard-claude, skill-ledger (17/17),
 close-out (35 mutations, all budgets inside) all exit 0. Manifest 44/44.
 
+## 82. COSMETIC opened — the TDD guard learns to tell a comment or formatting edit from
+## a code change: measured for six languages, scoped by the owner to four (Python, Java,
+## C#, TypeScript) — 2026-10-19, direction ruled, build not started
+
+**The ask (owner, 2026-10-19, prompted by the open issues #14–#16).** Two recurring frictions:
+(1) the guard cannot tell a comment or formatting edit from a code change, so a comment
+fix costs the same red-first ceremony (or a refactor licence) as new behavior; (2) the
+guard is active for the whole slice, and a slice can mix TDD and non-TDD work. The
+owner proposed difftastic (`--check-only`) for (1). This section is the measurement and
+the design that came out of it.
+
+**This reopens §80.2 ruling 1, by the owner, on new evidence.** That ruling declined "a
+per-language AST comparison" for a *docstring* edit, as machinery built to save one
+test run and one licence line. Two things have changed. First, the friction is not only
+docstrings: every comment and formatting edit to a source file pays it. Second, the
+measurement below shows both classifiers count a docstring edit as a **real** change (it
+is a string literal in the tree, readable at runtime). So §80.2's docstring route — stay
+in the loop, take the refactor licence — is untouched by this work and stays exactly as
+built. COSMETIC covers the class §80.2 did not price: comments, layout, quote style,
+line wrapping.
+
+**Point (2) is held — the guard is already per-file.** G1 classifies each write by path:
+a file that does not match `SOURCE_GLOB` (a generated `summary.md`, a `.json` data file)
+is never guarded, so in the owner's example only the validation script would demand a
+red. The friction must come from something else — the summary file matching the source
+pattern, the stop guard's green demand, or `/end-slice`'s whole-slice steps — and the
+owner has been asked for the concrete instance. Nothing is designed for (2) until it
+arrives.
+
+### 82.1 Measured — difftastic 0.71.0, 35 edits in six languages, 2026-10-19
+
+Windows x86_64 release binary (`difft-0.71.0-x86_64-pc-windows-msvc.zip`, published
+2026-09-18). Each case carries a ground truth: *cosmetic* (comment or layout only) or
+*real* (can change behavior or what the gate checks). An **unsafe miss** is a real edit
+classed as cosmetic — the guard would wave it through. A **safe extra** is a cosmetic
+edit classed as real — it costs today's ceremony, no more.
+
+| Classifier | Unsafe misses | Safe extras |
+|---|---|---|
+| `difft --check-only --exit-code --ignore-comments` | 4 | 3 |
+| `difft --check-only --exit-code` (comments count) | 0 | 13 — every comment edit |
+| `difft --exit-code --ignore-comments` (full diff) | **5** | 3 |
+| Python `ast.dump(ast.parse(...))` (Python cases only) | 2 | 0 |
+
+- **All four `--check-only --ignore-comments` misses are directive comments:**
+  `# type: ignore`, `# noqa`, `// @ts-expect-error`, `//go:build`. They read as comments
+  and change what the type checker, linter or build does.
+- **The full-diff mode is unsafe for this use.** It printed "No syntactic changes" for
+  a Python statement dedented out of an `if` block; `--check-only` caught the same
+  edit. Upstream: Wilfred/difftastic#587 (open) is that display defect. #411 (open,
+  Kotlin, a dropped `?`) is a false "no change" in the comparison itself, which
+  `--check-only` would share for any grammar that drops anonymous tokens.
+- **Safe extras:** a quote-style swap, redundant parentheses, a dropped TypeScript
+  semicolon.
+- **Got right:** comment edits, black-style re-wrapping, operator spacing, blank lines,
+  CRLF line endings, a new file, a syntax error in the edited file (falls back to a line
+  diff under the default `--parse-error-limit 0` and counts as a change).
+- **Cost:** median 94 ms, max 293 ms per call over 105 calls, process start included.
+  The binary is **116 MB**.
+
+### 82.2 Measured — Python `ast`, the same cases plus an indentation sweep
+
+- `ast.dump` compare: **0 safe extras** (quote style and redundant parentheses
+  correctly cosmetic), **2 unsafe misses**, both directives. `ast.parse(...,
+  type_comments=True)` records `# type: ignore` as a `TypeIgnore` node and catches it
+  (verified). `# noqa` is an ordinary comment to every parser; only a directive-line
+  check catches it.
+- **Nine indentation-only edits that change behavior** (a statement moved into or out
+  of `if`, `for`, `while`, `with`, `try`, `except`; a `return` into `except`; a method
+  out of a class): `ast.dump` and `difft --check-only` both caught **9 of 9**.
+- Standard library, in the guard's own process: no binary, no subprocess, no new
+  dependency in either dialect (the Copilot guard already requires python or node for
+  its JSON parsing).
+
+### 82.3 Measured — a Python-`ast` equivalent per language
+
+Comparators prototyped and run against comment-only, reformat, operator-change,
+redundant-parens and directive fixtures. TS, Java and C# measured here (typescript
+5.9.3 on node 25.8.2; JDK 20.0.1; .NET SDK 7.0.203); Go and Rust have no toolchain on
+this machine, so those rows come from documentation only.
+
+| Language | Parser | Ships with | Cost per call | Verdict |
+|---|---|---|---|---|
+| TypeScript | `ts.createSourceFile` + `forEachChild` walk of node kinds and token text | the project's own `typescript` package | **274 ms** measured (bare `node` ~100 ms) | no new dependency |
+| Java | `JavacTask.parse()` + `TreeScanner` (`jdk.compiler`) | any JDK — every Maven/Gradle build has one | **730 ms** single-file launch; **355 ms** precompiled; **320 ms** with `-XX:TieredStopAtLevel=1` | no new dependency, costly |
+| C# | Roslyn `CSharpSyntaxTree.ParseText` + `SyntaxTree.IsEquivalentTo(topLevel: false)` | the .NET SDK (`sdk/<ver>/Roslyn/bincore/`), compiled once with the SDK's own `csc.dll` — no NuGet restore, no project file | **185 ms**; one-time compile ~0.8 s | no new dependency; the DLL path is SDK-version-specific |
+| Go | `go/parser` without `ParseComments` | stdlib | not measured | no new dependency — **out of scope by ruling** |
+| plain JS | none in Node | — | — | only if `typescript`, acorn or babel happens to be installed |
+| Rust | none on stable (`-Zunpretty` is nightly-only) | — | — | needs the `syn` crate |
+
+Gotchas the prototypes found:
+- **C# misses real code in an inactive `#if` block.** `ParseText` defines no
+  preprocessor symbols, so the body of `#if DEBUG` is disabled-text trivia and an edit
+  inside it compared **equal**. The comparator must also compare every directive and
+  disabled-text trivia span verbatim.
+- **Directive comments are missed in every language:** `// @ts-expect-error`,
+  `// NOPMD`, `//noinspection`, `// CHECKSTYLE:OFF`, `#pragma warning disable`. Java's
+  `@SuppressWarnings` is an annotation and is correctly a change.
+- **Redundant parentheses stay in the tree** in TS, Java and C# — a safe extra.
+- **TS:** compare node kinds plus token text, never positions; `forEachChild` does not
+  visit JSDoc, so a JSDoc type edit in a `checkJs` project is invisible; pick the script
+  kind by extension (`.ts`, `.tsx`, `.js`); a parse error counts as a change.
+
+### 82.4 Measured — what Copilot CLI's edit tools carry, 2026-10-19
+
+Copilot CLI 1.0.88. Counted read-only from the local session logs
+(`~/.copilot/session-state/*/events.jsonl`, 199 sessions, 2026-08-03 → 2026-09-28):
+
+| Tool | Models | Calls | Arguments | Rebuild the post-edit file? |
+|---|---|---|---|---|
+| `edit` | claude-sonnet-4.6, claude-haiku-4.5, kimi-k2.7-code, kimi-k3 | 322 | `{path, old_str, new_str}` — no `replace_all` seen | easy: require exactly one match, replace literally |
+| `create` | claude-sonnet-4.6, kimi-k3, kimi-k2.7-code | 80 | `{path, file_text}` | trivial |
+| `apply_patch` | gpt-5.3-codex (159), gpt-5.4-mini (64) | 223 | raw V4A patch text; bare `@@` separators only, no `@@ <anchor>`, no `*** Move to:` | possible, risky |
+
+- **Which tool fires depends on the model, not the CLI.** `COPILOT.md`'s rows "`edit` —
+  did not fire" and "`create` — did not fire" (bench, 1.0.77, 2026-08-05) were almost
+  certainly the model in use at the time. **Re-verification item:** correct that table
+  when this ships. The guard's matcher `edit|create|apply_patch` is right as it stands.
+- **These shapes are from the session log, not from hook stdin.** The third-party Probity
+  adapter treats the two as identical; for 1.0.88 that is inferred, not measured.
+- **`apply_patch` is defined only by implementations.** References: OpenAI's MIT
+  `apply_diff.py` (openai-agents-python) and Codex's `codex-rs/apply-patch`. Codex
+  matches context in loosening passes (exact, then trailing whitespace, then trimmed,
+  then Unicode punctuation folded). Copilot's own applier is closed, so a port can
+  rebuild a file Copilot would not produce.
+- **The fail direction matters here:** documented, a Copilot command hook that crashes
+  or exits non-zero **denies** the call; a timeout fails open. Every new path in the
+  shell guard must keep exiting 0 on its own failure — §46.3's hook-fails-open rule,
+  which on Copilot the script has to enforce rather than assume of the CLI.
+
+### 82.5 Prior art — nobody classifies edits deterministically
+
+- **nizos/tdd-guard** (a Claude Code PreToolUse hook) now points new users to
+  **nizos/Probity** (Claude Code, Codex, Copilot CLI). Probity asks an **LLM** to judge
+  each diff against the transcript and allows refactors under green; it has no
+  comment/format classifier. Its Copilot adapter handles `bash`, `create` and `edit`;
+  **`apply_patch` falls through to a no-op**, so its TDD rule silently does not apply
+  under GPT models — the gap 82.6 step 4 would close for the kit.
+- No deterministic cosmetic-vs-behavioral classifier (AST or difftastic) was found in a
+  TDD hook. Reddit turned up nothing usable. The recorded complaints are GitHub issues:
+  agents writing through the shell to get around Edit/Write guards (the class in #15),
+  and false "no failing test" blocks from stale state (adjacent to #16).
+
+### 82.6 Ruled 2026-10-19 — the direction, with the owner's language scope
+
+The owner accepted the recommended direction with one change: the first build supports
+**Python, Java, C# and TypeScript**. **difftastic is not adopted:** a 116 MB optional
+binary with known grammar-level misses, whose only unique coverage was plain JS and
+Rust, both outside the ruled scope.
+
+1. **The classifier runs only where the write would otherwise be denied or logged as a
+   violation** — G1's last two branches, never on a write already licensed. The cost
+   lands only on edits that today cost a licence declaration, which is what makes
+   Java's 320–730 ms affordable.
+2. **Rebuild the post-edit file from the payload.** Claude Code: `Write` (`content`),
+   `Edit` (`old_string`, `new_string`, `replace_all`). Copilot: `create` (`file_text`),
+   `edit` (`old_str`, `new_str`). Read the file on disk, require the match the tool
+   requires, replace literally. `apply_patch` keeps today's behavior until step 4.
+3. **Classify by extension:** `.py` in-process (`ast` with `type_comments=True`); `.ts`
+   and `.tsx` via node and the project's own `typescript`; `.java` via the JDK's
+   compiler API; `.cs` via the SDK's Roslyn, with directive and disabled-text trivia
+   compared verbatim. **Plus a directive-line check for every language:** the multiset
+   of lines matching that language's directive patterns must be identical before and
+   after.
+4. **Copilot `apply_patch` rebuild — later, after a shape-only live probe** (key names
+   and line prefixes, no content) settling: hook-stdin vs session-log shape, `@@`
+   anchors, `*** Move to:` and `*** End of File`, CRLF, and Copilot's match leniency.
+   Running the probe is the owner's call.
+
+**The invariant every step keeps: a classifier can only *grant* the exemption.** A
+missing toolchain, a parse error, a failed or ambiguous match, a timeout, an unknown
+extension — each means "real change", today's rule applies, and the reason is logged.
+The worst case is today's friction, never a write let through that should not be. A
+cosmetic write is logged (`OK production write (cosmetic: <classifier>)`), and both
+dialects exit 0 on every path.
+
+### 82.7 Decisions owed
+
+1. **The ramp (§31.8→§31.10).** This is an exemption, not new enforcement, but it
+   changes what the guard lets through. Proposed: ship log-only first — the guard
+   records `WOULD-EXEMPT (cosmetic: <classifier>)` beside today's outcome for one arc —
+   with pre-registered criteria. **Value:** a stated count of would-exempt writes per
+   arc that today needed a licence or were denied. **Safety:** zero would-exempt writes
+   the owner, reading the log against the diff, judges behavioral. Then arm it, with
+   the §16 clock from the release that arms it.
+2. **Does a cosmetic write arm the stop guard?** Proposed **no**: nothing about it
+   needs a green, and G2 already treats a docs session as clean.
+3. **Where the Java, C# and TS comparators live and how they are cached.** They are new
+   kit-owned hook files (today `.github/hooks/` holds exactly three). The C# and Java
+   comparators compile once; the cache would sit in the guard's state directory, keyed
+   by toolchain version. Derive the ripple (setup's install list, `/sdlc-update`,
+   `MANIFEST`, both READMEs, `COPILOT.md`, the CLAUDE.md layout text) mechanically at
+   build time (§4a), not from this list.
+4. **The docs-only rule.** `SDLC.template.md`, `/next-slice` §4 and `/end-slice` step 1
+   say any source file voids a docs-only slice. Should a classifier-verified cosmetic
+   source edit keep a slice docs-only? `/end-slice` confirms from `git status`, not the
+   guard, so a yes means running the classifier at close-out too. Docstrings are
+   unaffected either way (see the reopening note above).
+5. **The directive pattern lists per language** — a starting set is in 82.1 and 82.3;
+   needs the owner's sign-off as a list, because a missed directive is the one known
+   unsafe miss.
+6. **Point (2), mixed slices** — awaiting the owner's concrete instance.
+
+### 82.8 Artifacts
+
+Prototypes in this session's scratchpad (temporary — copy whatever becomes the build's
+proof into the root `tools/`, beside the other re-runnable proofs):
+- `difft-probe/probe.py` (the 35 cases, three difftastic modes and `ast.dump`) and
+  `difft-probe/indent.py` (the nine-edit indentation sweep);
+- `ast-langs/tscmp.js`, `ast-langs/JavaAstCmp.java`, `ast-langs/cs/CsAstCmp.cs` (build
+  arguments in `ast-langs/cs/build.rsp`), fixtures in `ast-langs/fx/`. Each exits 0 for
+  equal, 1 for different, 2 for a parse error.
+
+Scratchpad root:
+`C:\Users\ljfan\AppData\Local\Temp\claude\D--AICourse-sdlc-kit\1d771998-10a9-4a34-ba94-b997f082295f\scratchpad\`
