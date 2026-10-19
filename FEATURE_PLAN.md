@@ -5705,8 +5705,11 @@ sentence names only Claude paths.
     own proofs never run a linter over the shipped hooks.
   - **0.34.1** renames the variable and rewords the comment; behavior unchanged.
   - The other shipped Python templates were already ruff-clean.
-- **Worth a proof later:** a suite case that runs `ruff check --isolated` over every
-  shipped `.py`, so this class is caught before an adopter catches it.
+- **Proof added, same day (owner-directed):** `tools/shipped-lint-check.py` runs
+  `ruff check --isolated` over every `git ls-files sdlc-kit '*.py'`, the guard template
+  instantiated with the recipe's Python row. It runs 5 planted mutations, and the real
+  specimen: the 0.34.0 classifier read from its tag must fail (it does, with 4
+  problems). It is `/kit-check`'s eighth suite and in invariant 13's list.
 - **Two TFit-specific calls, left to the owner:**
   - 0.33.0's slice-end graph refresh is not folded. TFit keeps graph regeneration
     owner-run.

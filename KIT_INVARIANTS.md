@@ -250,8 +250,11 @@ answer "not cosmetic", and both guard suites must see a real edit still denied a
 crashing classifier still exit 0), the guard patterns' **shell-case-pattern check**
 (0.34.0 — `sh -n` on the instantiated shell guard at setup and update;
 `tools/tdd-guard-check.py` P2: a spaced `TEST_CMD_PATTERN` must be seen to fail it, and
-P1: every row of the recipe's table must be seen to pass it), the `tools/`
-proof suites, and `/kit-check` itself — must state how it is
+P1: every row of the recipe's table must be seen to pass it), the **shipped-Python lint
+check** (0.34.1, `tools/shipped-lint-check.py` — the 0.34.0 classifier as tagged must be
+seen to fail stock ruff, and a planted E741, unused import, malformed `noqa`, syntax
+error and unresolvable placeholder must each be seen to fail every shipped file), the
+`tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
 being added here is one the pass will not think to look for. Adding a check means

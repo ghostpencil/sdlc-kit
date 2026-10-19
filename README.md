@@ -242,6 +242,7 @@ tools/close-out-check.py             ← proves the close-out evidence checker, 
 tools/impact-check.py                ← proves the architecture-impact adapter, cases + mutations
 tools/cosmetic-check.py              ← proves the cosmetic-edit classifier, corpus + mutations
                                        (TypeScript installs passed in with --ts; not vendored)
+tools/shipped-lint-check.py          ← lints every shipped .py with stock ruff, + mutations
 tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
                                        Understand Anything graph + overlay (SEED.md has provenance)
 tools/cosmetic-prototypes/           ← COSMETIC's measurement prototypes (FEATURE_PLAN §82.8):
