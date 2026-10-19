@@ -5638,3 +5638,8 @@ deny: every write refused, `Denied by preToolUse hook: hook exited with code 2`,
 guard log line. `sdlc-setup` says to resolve the pattern identically in both dialects,
 and the recipe's suggested values carry no space, so no adopter is known to hold one;
 but nothing states that the value must be a valid shell case pattern.
+**Fixed for 0.34.0 (owner-directed, same day):** `GATE_RECIPES.md` states the rule
+(no spaces, `|` between alternatives, the same value in both dialects, `sh -n` the
+instantiated script) and `sdlc-setup`'s guard bullet repeats it. `tools/tdd-guard-check.py`
+gains P1 — every row of the recipe's per-language table instantiates into a script
+`sh -n` accepts — and P2, a spaced control it must reject.

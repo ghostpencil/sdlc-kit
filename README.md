@@ -923,7 +923,9 @@ only as a hand-apply, and the per-version transition notes name each one.
    carried over, and a guard left as it is keeps today's rule. Fold the
    `SDLC.template.md` docs-only diff (slice loop step 4) into `spec/SDLC.md` yourself;
    until you do, your process file says a source comment voids a docs-only slice, and
-   wins. The update command's 0.34.0 note states the same procedure.
+   wins. Where the shell guard is installed, `sh -n .github/hooks/sdlc-tdd-guard.sh`:
+   a pattern value with a space is a syntax error that denies every Copilot write. The
+   update command's 0.34.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,

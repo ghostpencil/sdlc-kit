@@ -862,7 +862,9 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `SDLC.template.md` step 4 of the slice loop: hand the owner that diff to fold into
   `spec/SDLC.md`; until it is folded the project's process file says a source comment
   voids a docs-only slice, and wins. Name in one line which of the project's languages
-  the classifier will cover on this machine; install nothing for it.
+  the classifier will cover on this machine; install nothing for it. Where the shell
+  guard is installed, run `sh -n .github/hooks/sdlc-tdd-guard.sh`: a pattern value with
+  a space is a syntax error that denies every Copilot write (the recipe now says so).
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

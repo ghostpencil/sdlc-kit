@@ -391,7 +391,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      both patterns from those, show the owner the two literal patterns you resolved, and
      have them confirm — the recipe's per-language table is the starting point, the
      project's actual layout wins. A project whose layout no case-pattern can express is
-     a finding to report, not a pattern to approximate.
+     a finding to report, not a pattern to approximate. **No spaces in any of the
+     three** — the Copilot script pastes each into a shell `case` arm, where a space is a
+     syntax error that denies every write; a `*` spans the gap (`*node*test*`, never
+     `*node *test*`). Where the shell dialect is installed, `sh -n` it after
+     instantiating (the recipe states why).
    - They install in **logging mode** and stay there. Never create the
      `.git/sdlc-tdd/deny-enabled` flag during setup: deny is armed by the owner after
      reading a few sessions of `.git/sdlc-tdd/guard.log` and confirming the guard

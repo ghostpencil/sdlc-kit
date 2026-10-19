@@ -20,6 +20,35 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.sh")
 JTPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.json")
 COSMETIC = os.path.join(REPO, "sdlc-kit", "templates", "sdlc-cosmetic.template.py")
+RECIPES = os.path.join(REPO, "sdlc-kit", "reference", "GATE_RECIPES.md")
+
+
+def recipe_pattern_rows():
+    """The recipe's per-language (TEST_PATH_PATTERN, TEST_CMD_PATTERN) table, as setup
+    reads it: every row whose two pattern cells are code spans, markdown's `\\|` unescaped."""
+    rows, inside = [], False
+    for line in io.open(RECIPES, encoding="utf-8"):
+        if line.startswith("| Language | `{{TEST_PATH_PATTERN}}`"):
+            inside = True
+            continue
+        if inside and not line.startswith("|"):
+            break
+        cells = [c.strip() for c in line.strip().strip("|").split(" | ")]
+        if inside and len(cells) == 3 and cells[1].startswith("`"):
+            rows.append([cells[0]] + [c.strip("`").replace("\\|", "|") for c in cells[1:]])
+    return rows
+
+
+def sh_parses(guard_src, tpp, tcp, where):
+    """Instantiate the guard with these patterns and ask sh -n whether it parses."""
+    body = guard_src
+    for k, v in (("{{TEST_PATH_PATTERN}}", tpp), ("{{TEST_CMD_PATTERN}}", tcp),
+                 ("{{SOURCE_GLOB}}", "*.x")):
+        body = body.replace(k, v)
+    f = os.path.join(where, "parse-probe.sh")
+    io.open(f, "w", encoding="utf-8", newline="\n").write(body)
+    return subprocess.run([shutil.which("sh") or "sh", "-n", f], stdin=subprocess.DEVNULL,
+                          capture_output=True).returncode == 0
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -909,6 +938,16 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
             check("C10 a write already licensed never consults the classifier",
                   "red observed since last test edit" in c.tail()
                   and not any("cosmetic" in l for l in c.loglines()[n:]), c.tail())
+
+        # P: pattern values are pasted into `case` arms unquoted, so a space is a syntax
+        # error that Copilot reads as deny-everything (bench, 2026-10-19). Every row the
+        # recipe offers setup must parse; the spaced control proves the probe bites.
+        rows = recipe_pattern_rows()
+        bad = [r[0] for r in rows if not sh_parses(guard_src, r[1], r[2], base)]
+        check("P1 every pattern row in the recipe's table instantiates into a script sh -n accepts",
+              len(rows) >= 6 and not bad, "rows=%d unparsable=%r" % (len(rows), bad))
+        check("P2 ...and a spaced TEST_CMD_PATTERN does not (the probe bites)",
+              not sh_parses(guard_src, "tests/*", "*node *test*", base))
 
         return failed
     finally:

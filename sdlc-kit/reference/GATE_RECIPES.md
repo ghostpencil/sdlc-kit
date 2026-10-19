@@ -480,6 +480,16 @@ version matched `node test…` as adjacent words and was blind to `node .\test-x
 `.\` prefix sat between them. Wildcards spanning the runner and the word `test`
 (`*node*test*`) match every invocation form; a pattern anchored on a path does not.
 
+**Every pattern value must be a valid shell `case` pattern — no spaces, `|` between
+alternatives — and the same in both dialects.** The Copilot script pastes the value
+into a `case` arm unquoted, so a space is a **syntax error**: the script dies before it
+logs anything, and Copilot reads the non-zero exit as deny — every write refused with
+`hook exited with code 2` and an empty `guard.log` (measured on the bench, 2026-10-19,
+with `*node *test*`). The Claude script matches with `fnmatch` and tolerates the
+space, so a value that works in one dialect proves nothing about the other. Where a
+space seems needed, a `*` spans it. Check the instantiated script with
+`sh -n .github/hooks/sdlc-tdd-guard.sh` before the logging ramp.
+
 **The patterns above are matched against the command with quoted arguments
 removed** — both guard dialects strip `"…"` and `'…'` before the `case`, so the
 table's substring shape stays as written and needs no anchoring. It exists because a
