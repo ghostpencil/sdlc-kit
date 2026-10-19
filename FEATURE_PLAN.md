@@ -5677,9 +5677,10 @@ Suites run at the release:
   slowest docs invocation took 5.41 s under concurrent suite load; the unit pass in
   the same run had a median of 303 ms and a 5.3 s stall. Re-run alone three times,
   the docs pass was green each time, its slowest invocation 412–424 ms.
-  `close-out.template.sh` is unchanged since 0.33.0. **Open, for a later batch:** the
-  docs budget still asserts the maximum, the artifact §77 removed from the stop
-  budget; it should read the median too.
+  `close-out.template.sh` is unchanged since 0.33.0. **Fixed the same day
+  (owner-directed):** the docs budget now reads the median, as the unit and stop
+  budgets have since §77; the slowest is still printed but not asserted. With 7
+  samples the median is the 4th, which a single stall cannot move.
 - **The Copilot guard suite's mutation pass was not re-run** (owner-directed: it
   takes about 1.5 h). Its unit pass ran on the final bytes, 94/94 python and 89/89
   node. Its mutation result, 34/34, is from the full run at 13:12 that day, on a
@@ -5732,7 +5733,96 @@ sentence names only Claude paths.
   - Canary, the Copilot `edit` payload under Git Bash `sh` with JDK 20 `javac`: a
     Javadoc and a line comment were allowed; `!=` → `==` was denied.
 - **Two owner rulings ride on the PRs.** 0.33.0's slice-end graph refresh is unfolded
-  in both TFit and ai-news, which carry `.ua/` graphs. TFit's freshness amendment is
-  now redundant except for its wording.
+  in both TFit and ai-news, which carry `.ua/` graphs. TFit's freshness amendment was
+  called redundant except for its wording here — **wrong, corrected in §83.1 (5)**.
 - **C# remains covered only by the suites and the bench**, as ruled; no adopter uses
   it.
+
+---
+
+## 83. GRAPH — the graph refreshes cheaply at every slice end and fully at the phase
+## end only when code went missing; two switches an adopter can turn off — ruled
+## 2026-10-19
+
+Opened from the two owner decisions the 0.34.1 adopter PRs carried (§82.10, 7.4), and
+walked through with the owner one decision at a time.
+
+### 83.1 What was wrong, measured before ruling
+
+1. **0.33.0's slice-end refresh is unconditional in the command.** `end-slice.md` ends
+   with "Then refresh the graph", and nothing checks whether the project's `spec/SDLC.md`
+   took the rule. Only the general "the process file wins" rule held it off in a
+   project that had not folded it — which no command enforces. The adopter PRs' "stays
+   off until folded" was therefore not reliably true.
+2. **An incremental `/understand` never adds a file.** Understand Anything 2.9.4's
+   incremental path re-analyses `git diff <graph commit>..HEAD`, but `compute-batches`
+   batches only files in the saved `scan-result.json` inventory. TFit measured this at
+   its Phase 12 close: ten files absent from a graph whose stamp read current. Only
+   `--full` re-lists the files.
+3. **Detection exists and costs nothing.** The plugin's `scan-project.mjs` enumerates
+   files deterministically (no model) and gives each a `fileCategory`: `code`,
+   `script`, `docs`, `config`, `infra`, and others. `code` is also its fallback for an
+   unrecognized extension, and `LICENSE` counts as code. TFit's
+   `scripts/ua_graph_coverage.py` already compares the scanner's list with the graph's
+   file nodes.
+4. **`/understand` with the graph already at HEAD asks the user a question** ("full
+   rebuild, review, or nothing?"). An automated call must not be made in that state,
+   or the close-out stalls on a prompt.
+5. **TFit's freshness amendment is not just a wording difference.** It runs before the
+   kit's check and returns "current" for any graph descending from the base. That skips
+   0.33.0's second ancestry test (the graph's commit on HEAD's line), so a graph built
+   on a sibling branch reads current, where the kit says `may be stale`.
+6. **The plugin is installed on both CLIs on the owner's machine:**
+   - Copilot CLI: 2.9.4, direct from GitHub, 2026-08-29, enabled, with a
+     `.copilot-plugin` manifest. That is how ai-news's graph was built.
+   - Claude Code: 2.9.4 at TFit project scope, and 2.9.7 at user scope since
+     2026-10-16.
+   - Whether a Copilot session can invoke the `understand` skill is **inferred, not
+     measured**.
+7. **The adopters start from three different places:**
+   - chainmail: an owner ruling against the slice-end refresh (Phase 01 retro, its
+     finding 5), made on the premise that a refresh needs `--full`; a **tracked** `.ua/`.
+   - TFit: owner-run `--full` at the phase end.
+   - ai-news: no regeneration in practice; its graph has been stale since 2026-09-01.
+
+### 83.2 Rulings (owner, 2026-10-19)
+
+1. **Two switches, one line in `spec/SDLC.md`** *Architecture impact view*, e.g.
+   `Graph refresh: slice-end incremental on · phase-end full-when-code-missing on`. The
+   commands read it, and an adopter edits it to turn either off. Where the line is
+   absent, the commands state that the project predates the rule and refresh nothing —
+   this closes 83.1 (1).
+2. **The phase-end trigger:** `code`- and `script`-category files that the full scan
+   covers but the graph lacks. That is "missing from the graph", not "added this
+   phase", so an earlier gap heals. Docs, config and the rest never trigger it; a doc
+   absent from the graph shows in the impact view as unmapped (`PARTIAL`), stated.
+3. **The agent runs the refresh where the plugin is available; otherwise, one stated
+   line plus a marked owner action in the hand-back. It never blocks.** Detection is a
+   new mode of the kit-owned adapter, `python .github/hooks/sdlc-impact.py coverage`,
+   which:
+   - finds the scanner in either plugin home;
+   - uses the newest version and names it;
+   - says "cannot check" without node or the plugin.
+4. **Existing adopters carry their recorded rulings over** at `/sdlc-update`, rather
+   than being re-asked. New adoptions get both switches on from setup.
+5. **Two values only, `on` and `off`** — no owner-run value. **TFit gets both on**: the
+   owner overrides TFit's owner-run ruling deliberately ("we are starting from messy
+   circumstances"), and its update replaces that ruling's text so the two cannot
+   disagree. chainmail carries slice-end off and phase-end on; ai-news gets both on.
+6. **TFit's freshness amendment is retired** at its next update. The update removes the
+   hunk and changes the one expected string in `tests/test_sdlc_impact_freshness.py` to
+   the kit's wording; the test's scenario (a graph ahead of the base on HEAD's line)
+   still passes.
+
+### 83.3 Build notes (to derive mechanically at build time, §4a)
+
+- **Slice end, switch on:** skip when the graph commit is HEAD (83.1 (4)); otherwise
+  `/understand`. A tracked graph keeps its own refresh commit.
+- **Phase end, switch on:** after the post-merge bookkeeping, run `coverage`; if code or
+  script files are missing, `/understand --full`, else "complete".
+- **The ripple:** `end-slice.md`, `end-phase.md`, `SDLC.template.md`, the adapter and
+  `tools/impact-check.py`, setup, `/sdlc-update` with its carry-over rules, both READMEs
+  where they describe the refresh.
+- **Test plan:** cases and mutations in `tools/impact-check.py` for the `coverage` mode,
+  with a fixture scanner; one live `/understand` run from a Copilot session on the
+  bench; the adopters as canaries at their next update.
