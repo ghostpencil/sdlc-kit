@@ -239,6 +239,9 @@ tools/close-out-check.py             ← proves the close-out evidence checker, 
 tools/impact-check.py                ← proves the architecture-impact adapter, cases + mutations
 tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
                                        Understand Anything graph + overlay (SEED.md has provenance)
+tools/cosmetic-prototypes/           ← COSMETIC's measurement prototypes (FEATURE_PLAN §82.8):
+                                       the difftastic/ast probes, the TS/Java/C# comparators,
+                                       fixtures — the seed for the build's cosmetic-check proof
 .gitattributes                       ← pins LF — the manifest hashes depend on it
 .gitignore
 README.md                            ← you are here

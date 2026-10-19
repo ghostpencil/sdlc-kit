@@ -5443,16 +5443,23 @@ dialects exit 0 on every path.
 
 ### 82.8 Artifacts
 
-Prototypes in this session's scratchpad (temporary — copy whatever becomes the build's
-proof into the root `tools/`, beside the other re-runnable proofs):
-- `difft-probe/probe.py` (the 35 cases, three difftastic modes and `ast.dump`) and
-  `difft-probe/indent.py` (the nine-edit indentation sweep);
-- `ast-langs/tscmp.js`, `ast-langs/JavaAstCmp.java`, `ast-langs/cs/CsAstCmp.cs` (build
-  arguments in `ast-langs/cs/build.rsp`), fixtures in `ast-langs/fx/`. Each exits 0 for
-  equal, 1 for different, 2 for a parse error.
+The prototypes are in the repo at **`tools/cosmetic-prototypes/`** (copied from the
+measuring session's scratchpad 2026-10-19, sources and fixtures only — no compiled
+output, no `node_modules`). They are the seed for the build's `tools/cosmetic-check.py`,
+not a proof themselves:
+- `probe.py` (the 35 cases, three difftastic modes and `ast.dump`) and `indent.py` (the
+  nine-edit indentation sweep) — `python -I probe.py <difft> <work-dir>`; difftastic is
+  not vendored (0.71.0 release zip, 82.1);
+- `tscmp.js` — resolves `typescript` from the cwd, then its own directory (`npm install`
+  there per `package.json`, which pins the measured 5.9.x);
+- `JavaAstCmp.java` — `java JavaAstCmp.java <a> <b>`;
+- `cs/CsAstCmp.cs` with `cs/build.rsp` (the `csc` arguments, run from the prototype
+  root; its reference paths are this machine's .NET SDK 7.0.5 packs) and
+  `cs/CsAstCmp.runtimeconfig.json`; it also needs the SDK's two
+  `Microsoft.CodeAnalysis*.dll` beside the built DLL;
+- `fx/` — the per-language fixtures.
 
-Scratchpad root:
-`C:\Users\ljfan\AppData\Local\Temp\claude\D--AICourse-sdlc-kit\1d771998-10a9-4a34-ba94-b997f082295f\scratchpad\`
+Each comparator exits 0 for equal, 1 for different, 2 for a parse error.
 
 ### 82.9 Ruled 2026-10-19 — all six, and a third adopter changes the coverage picture
 
