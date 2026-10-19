@@ -665,7 +665,8 @@ def unit(src, ts_dirs, verbose=True, counter=None):
         code, detail = cw("create", {"path": win, "file_text": PY.replace("a + b", "b + a")})
         case("rebuild: Copilot create over code is real", code == REAL, detail)
         code, detail = cw("apply_patch", "*** Begin Patch\n*** Update File: calc.py\n")
-        case("rebuild: apply_patch is today's rule (cannot tell)", code == CANNOT, detail)
+        case("rebuild: apply_patch is today's rule (cannot tell), and the log says why",
+             code == CANNOT and "apply_patch" in detail, detail)
         code, detail = cw("Write", {"content": PY}, os.path.join(proj, "new.py"))
         case("rebuild: a new file is real", code == REAL, detail)
         code, detail = cw("Edit", {"old_string": "# sum them", "new_string": "# x"},

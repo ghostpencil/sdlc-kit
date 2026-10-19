@@ -5604,3 +5604,37 @@ started.
   `--ts`). The version is written as 0.34.0 throughout — provisional until release;
   MANIFEST and VERSION are left for the release commit.
 - **Still open:** 7.3 (the live bench) and 7.4 (the adopters).
+
+**7.3 run on the bench, 2026-10-19 — all five writes as ruled.** `D:\AICourse\copilot-ci-test`
+(JS, `SOURCE_GLOB` `*.js`), both dialects instantiated from the committed templates, the
+classifier installed, a stub `node_modules/typescript` loading 6.0.3, deny armed; one
+`cli.js` line per session. Claude Code 2.1.303 (Sonnet), Copilot CLI 1.0.88 launched
+from Git Bash:
+
+| Route | Write | Tool fired | Guard log | Outcome |
+|---|---|---|---|---|
+| Claude Code | comment line | `Edit` | `OK production write (cosmetic: typescript 6.0.3)` | allowed; stop clean |
+| Claude Code | `/ 100` added | `Edit` | `not cosmetic (… the syntax tree differs)`, `DENY` | denied, file unchanged |
+| Copilot, claude-sonnet-5.5 | comment line | `edit` | `OK production write (cosmetic: typescript 6.0.3)` | allowed; stop clean |
+| Copilot, claude-sonnet-5.5 | `/ 100` added | `edit` | `not cosmetic (… differs)`, `DENY` | denied |
+| Copilot, gpt-5.3-codex | comment line | `apply_patch` | `not cosmetic (no rebuild for the apply_patch tool)`, `DENY` | denied — today's rule |
+
+Under Copilot the Claude-dialect blocks stood down silently, as 0.31.3 requires.
+`claude-sonnet-4.6`, the model 82.4 counted, is no longer offered; `claude-sonnet-5.5`
+is. The bench was restored afterwards (hooks, `cli.js`, deny flag, the stub); its guard
+log keeps the lines.
+
+**One defect found and fixed:** the `apply_patch` session first logged `not cosmetic (no
+tool arguments in the payload)` — true of the code path, false of the payload, which
+carries raw patch text. `rebuild` now names the tool first ("no rebuild for the
+apply_patch tool"), the cosmetic-check case pins that wording, and the `apply_patch` row
+above is the re-run.
+
+**One hazard observed, for triage, not fixed:** the bench's two dialects had been
+instantiated with different `{{TEST_CMD_PATTERN}}` values — `*node *test*` in the
+Python dialect, `*node*test*` in the shell. The spaced value is harmless to `fnmatch`
+and a **syntax error** in a shell `case` arm, and Copilot reads the shell's exit 2 as
+deny: every write refused, `Denied by preToolUse hook: hook exited with code 2`, no
+guard log line. `sdlc-setup` says to resolve the pattern identically in both dialects,
+and the recipe's suggested values carry no space, so no adopter is known to hold one;
+but nothing states that the value must be a valid shell case pattern.

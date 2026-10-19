@@ -610,6 +610,8 @@ def classify(path, before, after, cache=None, root=None):
 def rebuild(before, tool, args):
     """The file as the write would leave it. -> (text, None) or (None, reason). Requires
     exactly the match the tool itself requires; anything else is "cannot tell"."""
+    if tool not in ("Write", "create", "Edit", "edit"):
+        return None, "no rebuild for the %s tool" % (tool or "unnamed")
     if not isinstance(args, dict):
         return None, "no tool arguments in the payload"
     if tool in ("Write", "create"):
@@ -629,7 +631,6 @@ def rebuild(before, tool, args):
         if n != 1:
             return None, "the old text matches %d times, the tool requires exactly one" % n
         return before.replace(old, new, 1), None
-    return None, "no rebuild for the %s tool" % (tool or "unnamed")
 
 
 def check_write(root, path, tool, args, cache=None):
