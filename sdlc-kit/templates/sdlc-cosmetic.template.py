@@ -88,8 +88,8 @@ LANG = {
 }
 
 # Matched case-insensitively against each line with all whitespace removed from both
-# sides, so `#noqa` and `# noqa` are one directive. The lists are owner-approved
-# (owner-approved 2026-10-19); C# also counts every preprocessor line except the
+# sides, so a noqa written with or without its space is one directive. The lists are
+# owner-approved (2026-10-19); C# also counts every preprocessor line except the
 # #region pair, and Python a line-1 shebang and a coding line on lines 1-2.
 DIRECTIVES = {
     "python": ("# noqa", "# ruff:", "# type:", "# pyright:", "# mypy:", "# pylint:",
@@ -131,13 +131,13 @@ def _comment_only(line, lang):
 
 def _directive_view(text, lang):
     """Each directive line with the nearest code line above and below it, in order."""
-    lines = [l.strip() for l in text.splitlines()]
-    hits = [i for i, l in enumerate(lines) if l and _is_directive(i, l, lang)]
+    lines = [ln.strip() for ln in text.splitlines()]
+    hits = [i for i, ln in enumerate(lines) if ln and _is_directive(i, ln, lang)]
     if not hits:
         return []
     hit = set(hits)
-    code = [i for i, l in enumerate(lines)
-            if l and i not in hit and not _comment_only(l, lang)]
+    code = [i for i, ln in enumerate(lines)
+            if ln and i not in hit and not _comment_only(ln, lang)]
     view = []
     for i in hits:
         k = bisect_left(code, i)

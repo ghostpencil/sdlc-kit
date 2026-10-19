@@ -10,6 +10,20 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.34.1 — 2026-10-19
+
+The cosmetic classifier now passes a Python adopter's lint (found by the first adopter
+canary of 0.34.0).
+
+### Fixed
+- **[installable]** **`.github/hooks/sdlc-cosmetic.py` failed ruff's default rules** —
+  three `E741` (a loop variable named `l`) and a comment ruff read as a malformed
+  `noqa`. A project whose lint covers `.github/hooks/` (the first adopter's does) turned
+  its gate red on updating to 0.34.0. The other shipped Python hooks were already clean.
+  Behavior is unchanged.
+- **[adoption-only]** Two `SDLC.template.md` paragraphs 0.34.0 left over-long are
+  rewrapped; the words are identical.
+
 ## 0.34.0 — 2026-10-19
 
 Comment- and layout-only source edits are exempt from the TDD guard (`FEATURE_PLAN.md`

@@ -873,6 +873,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `sh -n .github/hooks/sdlc-tdd-guard.sh` with an `sh` that resolves (Git Bash's on
   Windows): a pattern value with a space is a syntax error that denies every Copilot
   write (the recipe now says so).
+- **0.34.1 makes the classifier lint-clean**: 0.34.0's `.github/hooks/sdlc-cosmetic.py`
+  failed ruff's default `E741`, which turns a gate red wherever lint covers
+  `.github/hooks/`. It is kit-owned, so it is replaced like any other; take 0.34.1
+  rather than 0.34.0. Behavior is unchanged.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

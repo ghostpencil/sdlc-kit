@@ -928,8 +928,14 @@ only as a hand-apply, and the per-version transition notes name each one.
    `SDLC.template.md` docs-only diff (slice loop step 4) into `spec/SDLC.md` yourself;
    until you do, your process file says a source comment voids a docs-only slice, and
    wins. Where the shell guard is installed, `sh -n .github/hooks/sdlc-tdd-guard.sh`
-   with an `sh` that resolves (Git Bash's on Windows): a pattern value with a space is a syntax error that denies every Copilot write. The
-   update command's 0.34.0 note states the same procedure.
+   with an `sh` that resolves (Git Bash's on Windows): a pattern value with a space is
+   a syntax error that denies every Copilot write. The update command's 0.34.0 note
+   states the same procedure.
+
+   **0.34.1 makes the classifier lint-clean** — 0.34.0's copy failed ruff's default
+   `E741`, which turns a gate red wherever lint covers `.github/hooks/`. It is kit-owned
+   and replaced like any other; take 0.34.1 rather than 0.34.0. The update command's
+   0.34.1 note states the same.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,

@@ -5689,3 +5689,26 @@ Seen but left as they were, since they predate this release: `COPILOT.md`'s dete
 row counts `.github/hooks/` as a Copilot signal, though Claude Code installs there
 too since 0.24.0; and `sdlc-update.md`'s "Compare everything under `.claude/…`"
 sentence names only Claude paths.
+
+**7.4, the adopter canaries — the first one caught a release defect (2026-10-19).**
+- **chainmail (TypeScript, Claude Code)** → `chainmail-webfactory#2`.
+  - 18/18 kit-owned files UNCHANGED.
+  - The guard was pristine and is re-derived; the diff is the 32-line hunk only.
+  - Gate green, 216 tests.
+  - Canary on a real workspace package with deny armed, the package's own typescript
+    6.0.3: a JSDoc wording change was allowed as cosmetic; `??` → `||` and an added
+    JSDoc `@deprecated` were denied.
+- **TFit (Python, Claude Code)**: its update gate went **red on the kit's own file**.
+  - `.github/hooks/sdlc-cosmetic.py` failed ruff's default `E741` (a loop variable
+    `l`, three times), and a comment ruff read as a malformed `noqa`.
+  - TFit lints `.github/hooks/`; chainmail's eslint never sees Python, and the kit's
+    own proofs never run a linter over the shipped hooks.
+  - **0.34.1** renames the variable and rewords the comment; behavior unchanged.
+  - The other shipped Python templates were already ruff-clean.
+- **Worth a proof later:** a suite case that runs `ruff check --isolated` over every
+  shipped `.py`, so this class is caught before an adopter catches it.
+- **Two TFit-specific calls, left to the owner:**
+  - 0.33.0's slice-end graph refresh is not folded. TFit keeps graph regeneration
+    owner-run.
+  - Its own freshness amendment is kept, as a hunk. 0.33.0 returns the same "current"
+    verdict but different wording, which TFit's test pins.
