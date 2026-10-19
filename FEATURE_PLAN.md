@@ -5712,3 +5712,24 @@ sentence names only Claude paths.
     owner-run.
   - Its own freshness amendment is kept, as a hunk. 0.33.0 returns the same "current"
     verdict but different wording, which TFit's test pins.
+
+**7.4 complete, 2026-10-19 — all three adopters on 0.34.1, PRs open for the owner.**
+- **chainmail (TypeScript)** → `chainmail-webfactory#2`, as above, moved to 0.34.1.
+- **TFit (Python)** → `tfit-qa-app#32`.
+  - 0.32.0 → 0.34.1. Its four local amendments are kept:
+    - `end-slice.md` and `sdlc-impact.py`: carried as hunks;
+    - the guard: a 3-way merge with one insert/insert conflict, both blocks kept; the
+      residual is 190 lines both before and after.
+  - Gate: ruff, mypy, 1252 passed.
+  - Canary, through `python-ast`: a comment was allowed; a real change and a
+    docstring edit were denied.
+- **ai-news (Java, Copilot)** → `ai-news-dashboard#22`.
+  - 0.32.0 → 0.34.1, 20/20 UNCHANGED. The shell guard is re-derived, `sh -n` clean.
+  - Gate: 104 tests.
+  - Canary, the Copilot `edit` payload under Git Bash `sh` with JDK 20 `javac`: a
+    Javadoc and a line comment were allowed; `!=` → `==` was denied.
+- **Two owner rulings ride on the PRs.** 0.33.0's slice-end graph refresh is unfolded
+  in both TFit and ai-news, which carry `.ua/` graphs. TFit's freshness amendment is
+  now redundant except for its wording.
+- **C# remains covered only by the suites and the bench**, as ruled; no adopter uses
+  it.
