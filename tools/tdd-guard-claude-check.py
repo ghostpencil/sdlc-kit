@@ -29,6 +29,7 @@ import traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard-claude.template.py")
+COSMETIC = os.path.join(REPO, "sdlc-kit", "templates", "sdlc-cosmetic.template.py")
 
 # Instantiated for a Python project, using the recipe's own per-language row - the
 # same values the sh dialect's suite uses, because the placeholders are shared.
@@ -66,6 +67,7 @@ class Bench:
         p = subprocess.run([sys.executable, self.guard, mode],
                            input=json.dumps(payload).encode(),
                            capture_output=True, env=e, cwd=cwd or self.root)
+        self.rc = p.returncode
         return p.stdout.decode("utf-8", "replace").strip()
 
     def loglines(self):
@@ -609,6 +611,76 @@ def unit(guard_src, verbose=True, counter=None):
              j.get("decision") == "block" and "did not run" in (j.get("reason") or ""))
         out = wt_run("stop-check", stop(wt_r, active=True))
         case("28e ...and stands down on stop_hook_active", out == "")
+
+        # --- COSMETIC (FEATURE_PLAN.md 82): a comment or format edit needs no red ---
+        # Real payloads against a real file, deny armed. The classifier is the shipped
+        # sdlc-cosmetic.py beside the guard; tools/cosmetic-check.py proves it alone.
+        c = Bench(os.path.join(base, "cos"), guard_src)
+        hooks = os.path.dirname(c.guard)
+        shutil.copy(COSMETIC, os.path.join(hooks, "sdlc-cosmetic.py"))
+        body = "def pay(a, b):\n    # sum them\n    return a + b\n"
+        src_f = os.path.join(c.root, "pay.py")
+
+        def edit(old, new, tool="Edit", **extra):
+            io.open(src_f, "w", encoding="utf-8", newline="").write(body + extra.pop("tail", ""))
+            ti = {"file_path": win(c.root, "pay.py")}
+            if tool == "Write":
+                ti["content"] = new
+            else:
+                ti.update({"old_string": old, "new_string": new})
+            return {"session_id": SID, "cwd": c.root, "hook_event_name": "PreToolUse",
+                    "tool_name": tool, "tool_input": ti, "permission_mode": "default"}
+
+        c.reset_state()
+        c.arm_deny()
+        out = c.run("pre-write", edit("# sum them", "# add them"))
+        case("29 armed: a comment-only Edit is allowed and logged as cosmetic",
+             out == "" and "OK production write (cosmetic: python-ast): pay.py" in c.tail()
+             and not c.state_has("prod-write-observed"))
+        out = c.run("stop-check", stop(c.root))
+        case("29b ...and leaves the stop guard unarmed", out == ""
+             and "nothing to guard" in c.tail())
+        out = c.run("pre-write", edit(None, body.replace("# sum them", "# add them"),
+                                      tool="Write"))
+        case("29c armed: a comment-only Write is allowed", out == ""
+             and "cosmetic: python-ast" in c.tail())
+        out = c.run("pre-write", edit("a + b", "a - b"))
+        case("29d armed: a real Edit is denied exactly as today, and says why it was "
+             "not exempt",
+             '"permissionDecision":"deny"' in out
+             and any("not cosmetic (python-ast: the syntax tree differs)" in l
+                     for l in c.loglines())
+             and not c.state_has("prod-write-observed"))
+        out = c.run("pre-write", edit("# sum them", "# x", tail="# sum them\n"))
+        case("29e armed: an ambiguous old_string is denied (cannot tell)",
+             '"permissionDecision":"deny"' in out)
+        out = c.run("pre-write", edit("# sum them", "# add them"), cwd=c.root)
+        case("29f the import by path leaves no __pycache__ in the working tree",
+             not os.path.exists(os.path.join(hooks, "__pycache__")))
+        io.open(os.path.join(hooks, "sdlc-cosmetic.py"), "w").write(
+            "raise RuntimeError('broken classifier')\n")
+        out = c.run("pre-write", edit("# sum them", "# add them"))
+        case("29g a crashing classifier: exit 0, denied under today's rule, reason logged",
+             c.rc == 0 and '"permissionDecision":"deny"' in out
+             and any("cosmetic classifier failed" in l for l in c.loglines()))
+        os.remove(os.path.join(hooks, "sdlc-cosmetic.py"))
+        out = c.run("pre-write", edit("# sum them", "# add them"))
+        case("29h no classifier installed: today's rule", c.rc == 0
+             and '"permissionDecision":"deny"' in out)
+        shutil.copy(COSMETIC, os.path.join(hooks, "sdlc-cosmetic.py"))
+        c.reset_state()
+        out = c.run("pre-write", edit("# sum them", "# add them"))
+        case("29i logging mode: cosmetic is logged OK, not as a VIOLATION",
+             out == "" and "cosmetic: python-ast" in c.tail()
+             and not c.state_has("prod-write-observed"))
+        c.reset_state()
+        c.run("pre-write", write(c.root, "tests/test_pay.py"))
+        c.run("observe-test", red(c.root, "pytest -q"))
+        n = len(c.loglines())
+        c.run("pre-write", edit("a + b", "a - b"))
+        case("29j a write already licensed never consults the classifier",
+             "red observed since last test edit" in c.tail()
+             and not any("cosmetic" in l for l in c.loglines()[n:]))
     finally:
         shutil.rmtree(base, ignore_errors=True)
     return failures
@@ -710,6 +782,24 @@ MUTATIONS = [
      "key would go unguarded, in silence)",
      'if "hook_event_name" in D and "timestamp" in D and "permission_mode" not in D:',
      'if "hook_event_name" in D and "timestamp" in D:'),
+    ("let a cosmetic write arm the stop guard (a comment fix demands a green - "
+     "82.9 ruling 2)",
+     'log("OK production write (cosmetic: %s): %s" % (label, rel))',
+     'mark("prod-write-observed")\n        '
+     'log("OK production write (cosmetic: %s): %s" % (label, rel))'),
+    ("let 'cannot tell' grant the exemption (an ambiguous edit waves through)",
+     "if code == 0:\n        return detail",
+     "if code in (0, 2):\n        return detail"),
+    ("let a crashing classifier crash the guard (a broken file blocks real work)",
+     '    except Exception as e:\n        log("cosmetic classifier failed',
+     '    except ImportError as e:\n        log("cosmetic classifier failed'),
+    ("write bytecode on the import by path (__pycache__/ lands in the working tree)",
+     "sys.dont_write_bytecode = True",
+     "pass"),
+    ("consult the classifier on an already licensed write (cost on every write, and "
+     "a licensed write logged as something else)",
+     'label = "" if ok else cosmetic(p, rel)',
+     'label = cosmetic(p, rel)'),
     ("guard nothing in silence when the git dir cannot be resolved at stop",
      """if not re.search(r'"stop_hook_active"\\s*:\\s*true', raw):""",
      'if False:'),

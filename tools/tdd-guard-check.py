@@ -19,6 +19,7 @@ import io, json, os, shutil, subprocess, sys, tempfile, time, traceback
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.sh")
 JTPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.json")
+COSMETIC = os.path.join(REPO, "sdlc-kit", "templates", "sdlc-cosmetic.template.py")
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -95,6 +96,7 @@ class Bench:
             e.update(env)
         p = subprocess.run(["sh", self.guard, mode], input=json.dumps(payload).encode(),
                            capture_output=True, env=e)
+        self.rc = p.returncode
         return p.stdout.decode("utf-8", "replace").strip()
 
     def loglines(self):
@@ -826,6 +828,88 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
               "never-ran stop)",
               j.get("decision") == "block" and bool(j.get("reason")), repr(out))
 
+        # COSMETIC (FEATURE_PLAN.md 82): a comment or format edit needs no red. Real
+        # edit/create payloads against a real file, deny armed, the shipped classifier
+        # beside the guard (tools/cosmetic-check.py proves it alone). It needs python:
+        # under the node-only PATH the stated limit is today's rule, and is asserted.
+        has_py = parser != "node"
+        c = Bench(os.path.join(base, "cos"), guard_src)
+        c.path = b.path
+        hooks = os.path.dirname(c.guard)
+        shutil.copy(COSMETIC, os.path.join(hooks, "sdlc-cosmetic.py"))
+        body = "def pay(a, b):\n    # sum them\n    return a + b\n"
+        CR = c.root
+
+        def cedit(old, new, tool="edit", tail=""):
+            io.open(os.path.join(CR, "payments.py"), "w", encoding="utf-8",
+                    newline="").write(body + tail)
+            a = {"path": os.path.join(CR, "payments.py")}
+            if tool == "create":
+                a["file_text"] = new
+            else:
+                a.update({"old_str": old, "new_str": new})
+            return {"sessionId": SID, "cwd": CR, "toolName": tool,
+                    "toolArgs": json.dumps(a)}
+
+        def denied(out):
+            return '"permissionDecision":"deny"' in out
+
+        c.reset_state(); c.arm_deny()
+        out = c.run("pre-write", cedit("# sum them", "# add them"))
+        if has_py:
+            check("C1 armed: a comment-only edit is allowed and logged as cosmetic",
+                  out == "" and "OK production write (cosmetic: python-ast)" in c.tail()
+                  and not os.path.exists(os.path.join(c.state, "prod-write-observed")),
+                  c.tail() + " | " + repr(out))
+            out = c.run("stop-check", stop(CR))
+            check("C2 ...and leaves the stop guard unarmed",
+                  out == "" and "nothing to guard" in c.tail(), c.tail())
+            out = c.run("pre-write", cedit(None, body.replace("# sum them", "# add them"),
+                                           tool="create"))
+            check("C3 armed: a comment-only create is allowed",
+                  out == "" and "cosmetic: python-ast" in c.tail(), c.tail())
+        else:
+            check("C1 node-only: no python, no exemption - today's rule (stated limit)",
+                  denied(out), c.tail() + " | " + repr(out))
+        out = c.run("pre-write", cedit("a + b", "a - b"))
+        check("C4 armed: a real edit is denied exactly as today",
+              denied(out) and not os.path.exists(os.path.join(c.state,
+                                                              "prod-write-observed")),
+              c.tail() + " | " + repr(out))
+        if has_py:
+            check("C4b ...and the log says why it was not exempt",
+                  any("not cosmetic (python-ast: the syntax tree differs)" in l
+                      for l in c.loglines()), c.tail())
+        out = c.run("pre-write", cedit("# sum them", "# x", tail="# sum them\n"))
+        check("C5 armed: an ambiguous old_str is denied (cannot tell)", denied(out),
+              c.tail())
+        out = c.run("pre-write", write(CR, [("Update", "payments.py")]))
+        check("C6 apply_patch: exactly today's rule", denied(out)
+              and "cosmetic:" not in c.tail(), c.tail())
+        io.open(os.path.join(hooks, "sdlc-cosmetic.py"), "w").write(
+            "raise RuntimeError('broken classifier')\n")
+        out = c.run("pre-write", cedit("# sum them", "# add them"))
+        check("C7 a crashing classifier: exit 0, denied under today's rule",
+              c.rc == 0 and denied(out), "rc=%s %r" % (c.rc, out))
+        os.remove(os.path.join(hooks, "sdlc-cosmetic.py"))
+        out = c.run("pre-write", cedit("# sum them", "# add them"))
+        check("C8 no classifier installed: today's rule", c.rc == 0 and denied(out),
+              repr(out))
+        shutil.copy(COSMETIC, os.path.join(hooks, "sdlc-cosmetic.py"))
+        if has_py:
+            c.reset_state()
+            out = c.run("pre-write", cedit("# sum them", "# add them"))
+            check("C9 logging mode: cosmetic is logged OK, not as a VIOLATION",
+                  out == "" and "cosmetic: python-ast" in c.tail(), c.tail())
+            c.reset_state()
+            c.run("pre-write", write(CR, [("Update", "tests/test_payments.py")]))
+            c.run("observe-test", shell(CR, "pytest -q", 1))
+            n = len(c.loglines())
+            c.run("pre-write", cedit("a + b", "a - b"))
+            check("C10 a write already licensed never consults the classifier",
+                  "red observed since last test edit" in c.tail()
+                  and not any("cosmetic" in l for l in c.loglines()[n:]), c.tail())
+
         return failed
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -966,6 +1050,18 @@ MUTATIONS = [
     ("re-silence the counted RED observations, both variants (ditto)",
      lambda s: s.replace('emit_context "TDD ordering: RED counted',
                          ': "TDD ordering: RED counted')),
+    ("let a cosmetic write arm the stop guard (a comment fix demands a green - "
+     "82.9 ruling 2)",
+     lambda s: s.replace('        log "OK production write (cosmetic: $cos): $prod"',
+                         '        touch "$S/prod-write-observed" 2>/dev/null\n'
+                         '        log "OK production write (cosmetic: $cos): $prod"')),
+    ("read any classifier output as the verdict (a real edit, or a crash that "
+     "printed, waves through)",
+     lambda s: s.replace('if [ "$crc" = 0 ]; then cos=', 'if [ -n "$cout" ]; then cos=')),
+    ("consult the classifier on an already licensed write (cost on every write, and "
+     "a licensed write logged as something else)",
+     lambda s: s.replace('if [ -z "$ok" ] && [ "$nprod" = 1 ] && [ -n "$JP" ]',
+                         'if [ "$nprod" = 1 ] && [ -n "$JP" ]')),
 ]
 
 

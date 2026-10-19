@@ -75,7 +75,8 @@ copy), and the
 close-out evidence checker with its optional stop-hook wiring
 (`.github/hooks/sdlc-close-out.sh` on both CLIs, `.github/hooks/sdlc-close-out.json`
 on a Copilot project that accepted the backstop offer — verbatim copies holding no
-project values), and the architecture-impact adapter (`.github/hooks/sdlc-impact.py`,
+project values), the architecture-impact adapter (`.github/hooks/sdlc-impact.py`,
+both CLIs, verbatim), and the cosmetic classifier (`.github/hooks/sdlc-cosmetic.py`,
 both CLIs, verbatim) are **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything else `/sdlc-setup` writes into your project
 (`CLAUDE.md`, `spec/*.md`, the gate hook — `.github/hooks/sdlc-gate-claude.sh` +

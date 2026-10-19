@@ -261,7 +261,7 @@ case "$MODE" in
 
   pre-write)
     [ -n "$PATHS" ] || { log "no paths parsed from the write payload"; exit 0; }
-    prod=""; test_touched=""
+    prod=""; test_touched=""; nprod=0; pfile=""
     # One path per line, read with IFS cleared: a path containing a space is one path,
     # not two. The heredoc (rather than a pipe) keeps the loop in this shell, so what it
     # accumulates survives it.
@@ -332,7 +332,8 @@ case "$MODE" in
       case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
       case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
       case "$b" in {{SOURCE_GLOB}})
-        if [ -z "$prod" ]; then prod="$p"; else prod="$prod, $p"; fi ;;
+        if [ -z "$prod" ]; then prod="$p"; else prod="$prod, $p"; fi
+        nprod=$((nprod + 1)); pfile="$SDLC_REPO_ROOT/$n" ;;
       esac
     done <<PATHLIST
 $PATHS
@@ -350,6 +351,23 @@ PATHLIST
       # The close-out license answers here too; it differs only in what a test edit
       # does to it.
       if [ -z "$ok" ] && { [ -f "$S/refactor-license" ] || [ -f "$S/close-out-license" ]; } && [ -f "$S/green-observed" ]; then ok=lic; fi
+      # A comment or formatting edit needs no red (FEATURE_PLAN.md 82). Asked only of a
+      # write that would otherwise be denied or logged as a violation, and only of a
+      # single-file write: edit and create carry one path, and apply_patch keeps
+      # today's rule (the classifier answers "cannot tell" to it in any case). It can
+      # only GRANT - python missing, the file missing, any exit but 0 leaves today's rule.
+      # Its file is passed in the root's own flavour, which the hook shell's python can
+      # read; the payload's path may be a drive path a WSL python cannot. Needs python,
+      # not node: a node-only shell gets no exemption (stated in COPILOT.md).
+      cos=""
+      if [ -z "$ok" ] && [ "$nprod" = 1 ] && [ -n "$JP" ] && [ -f "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" ]; then
+        cout=$(printf '%s' "$IN" | "$JP" "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" write "$pfile" 2>/dev/null; printf '\n%s' "$?")
+        crc=$(printf '%s\n' "$cout" | tail -n 1 | tr -d '\r')
+        cdetail=$(printf '%s\n' "$cout" | sed '$d' | head -n 1 | tr -d '\r')
+        if [ "$crc" = 0 ]; then cos=${cdetail:-cosmetic}; ok=cosmetic
+        else log "not cosmetic (${cdetail:-classifier exit $crc}): $prod"
+        fi
+      fi
       # The marker below is what session-scopes G2: it records a production write that
       # actually WENT THROUGH. The deny branch sets nothing on purpose - a denied
       # write leaves the tree unchanged, and a stop guard armed by it would demand a
@@ -361,6 +379,10 @@ PATHLIST
         touch "$S/prod-write-observed" 2>/dev/null
         if [ -f "$S/close-out-license" ]; then which=close-out; else which=refactor; fi
         log "OK production write ($which license: $(head -n 1 "$S/$which-license" 2>/dev/null | tr -d '\r')): $prod"
+      elif [ "$ok" = "cosmetic" ]; then
+        # Logged, and arms nothing: a comment edit needs no green to stop on (82.9
+        # ruling 2), the same reason a docs session stops clean.
+        log "OK production write (cosmetic: $cos): $prod"
       elif [ -f "$S/deny-enabled" ]; then
         log "DENY production write without observed red: $prod"
         emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&' or '|' separators - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING edit at any point in the cycle (refactor, simplification, mutation testing - including a temporary mutation to prove a test of existing behavior bites): declare it instead - write one line naming the step and move to $LIC/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review. If you are running /end-slice, declare $LIC/close-out-license instead - same rules, except a test edit does NOT revoke it, because close-out's own step order edits tests between its production writes; each test edit it survives is counted in the log."

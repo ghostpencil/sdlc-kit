@@ -242,7 +242,12 @@ that would otherwise log, gate, or block, and a native Copilot payload and a Cla
 payload carrying `timestamp` must be seen still to act), the **docs-only slice's
 confirmation** at `/end-slice` step 1 and its verification's docs form (0.32.0 — a
 source or test file in the diff must be seen to void the declaration, and a documented
-command that fails must be reported broken, never folded into a skip), the `tools/`
+command that fails must be reported broken, never folded into a skip; since 0.34.0 a
+source file voids it unless the cosmetic classifier answers exit 0), the **cosmetic
+classifier** (0.34.0, `tools/cosmetic-check.py` — a code change, a moved directive, a
+parse error, a missing toolchain, a timeout and a broken cache must each be seen to
+answer "not cosmetic", and both guard suites must see a real edit still denied and a
+crashing classifier still exit 0), the `tools/`
 proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without

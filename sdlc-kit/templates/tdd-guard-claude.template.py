@@ -200,6 +200,33 @@ def emit(obj):
     sys.stdout.write(json.dumps(obj, separators=(",", ":")))
 
 
+# A comment or formatting edit needs no red (FEATURE_PLAN.md 82). Asked only of a write
+# that would otherwise be denied or logged as a violation, so a licensed write never pays
+# for it. The classifier can only GRANT: missing, broken, unsure - each returns "" and
+# today's rule applies. Imported in-process (no second python), with bytecode writing
+# off - an import by path would otherwise drop __pycache__/ into the working tree.
+def cosmetic(path, rel):
+    f = os.path.join(ROOT, ".github", "hooks", "sdlc-cosmetic.py")
+    if not os.path.isfile(f):
+        return ""
+    try:
+        import importlib.util
+        sys.dont_write_bytecode = True
+        spec = importlib.util.spec_from_file_location("sdlc_cosmetic", f)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        code, detail = m.check_write(ROOT, path, D.get("tool_name") or "", TOOL_INPUT,
+                                     os.path.join(S, "cosmetic"))
+    except Exception as e:
+        log("cosmetic classifier failed (%s) - today's rule applies: %s"
+            % (e.__class__.__name__, rel))
+        return ""
+    if code == 0:
+        return detail
+    log("not cosmetic (%s): %s" % (detail, rel))
+    return ""
+
+
 try:
     D = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
     if not isinstance(D, dict):
@@ -324,6 +351,7 @@ if MODE == "pre-write":
         # session there is no gate behind the claim. Both licenses answer here;
         # they differ only in what a test edit does to them.
         ok = "lic"
+    label = "" if ok else cosmetic(p, rel)
     # The marker records a production write that actually WENT THROUGH; the deny
     # branch sets nothing on purpose - a denied write leaves the tree unchanged,
     # and a stop guard armed by it would demand a green for code never written.
@@ -340,6 +368,10 @@ if MODE == "pre-write":
             pass
         log("OK production write (%s license: %s): %s" % (which, first, rel))
         mark("prod-write-observed")
+    elif label:
+        # Logged, and arms nothing: a comment edit needs no green to stop on (82.9
+        # ruling 2), the same reason a docs session stops clean.
+        log("OK production write (cosmetic: %s): %s" % (label, rel))
     elif present("deny-enabled"):
         log("DENY production write without observed red: %s" % rel)
         emit({"hookSpecificOutput": {

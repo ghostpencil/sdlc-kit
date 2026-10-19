@@ -364,6 +364,27 @@ fails open or closed (default timeout 10 minutes; the guard does state I/O only)
   that went through, or edited a test — a planning, docs, or bookkeeping session
   runs no tests by design and stops clean, and a denied write arms nothing.
 
+**The cosmetic exemption (owner-ruled, 2026-10-19).** A production write that G1
+would deny is let through when it changes **comments or layout only**, and logged
+`OK production write (cosmetic: <how it was told>)`. Both dialects ask one kit-owned
+file, `.github/hooks/sdlc-cosmetic.py` (copied verbatim, both CLIs): the Claude script
+imports it by path, the Copilot script runs `python .github/hooks/sdlc-cosmetic.py
+write <file>` with the payload on stdin. It rebuilds the file as the write would leave
+it and compares syntax trees with positions and comments ignored — Python in-process,
+TypeScript and the JS family through the project's own `typescript` (resolved upward
+from the edited file, so a workspace package's pin wins), Java through the JDK's
+compiler API, C# through the .NET SDK's Roslyn — and then compares the **directive
+lines** (`# noqa`, `// @ts-expect-error`, `#pragma`, every C# preprocessor line but
+`#region`, …), which must keep their text, their order and their neighbouring code
+lines. **It can only grant.** A missing toolchain, a parse error, an ambiguous or
+missing match, a timeout, an extension it does not know, a classifier that crashes —
+each is "not cosmetic", logged with the reason, and today's rule applies. A docstring
+is a string in the tree, so a docstring edit is real. A cosmetic write arms nothing:
+G2 does not bind a session for it. Stated limits: `apply_patch` and a Copilot project
+with node and no python get no exemption; compiled comparators are cached under
+`.git/sdlc-tdd/cosmetic/`, the first call per toolchain costs a compile (about 1.5 s
+for Java or C#), later ones about half a second.
+
 Every test-run observation is **spoken back as context, not only logged**. A refused
 run (compound command, missing exit-code trailer) is refused out loud with what is
 allowed stated — field-driven, 2026-08-08: a silently refused session thrashed and

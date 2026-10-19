@@ -5240,7 +5240,7 @@ close-out (35 mutations, all budgets inside) all exit 0. Manifest 44/44.
 
 ## 82. COSMETIC opened — the TDD guard learns to tell a comment or formatting edit from
 ## a code change: measured for six languages, scoped by the owner to four (Python, Java,
-## C#, TypeScript) — 2026-10-19, direction ruled, build not started
+## C#, TypeScript) — 2026-10-19, ruled; build started (82.10)
 
 **The ask (owner, 2026-10-19, prompted by the open issues #14–#16).** Two recurring frictions:
 (1) the guard cannot tell a comment or formatting edit from a code change, so a comment
@@ -5541,3 +5541,66 @@ notes it forces:
   and today's rule when it does not — no new parser, no new dependency. They use the
   TypeScript directive list, and the test plan's TS fixtures gain a JS-family case per
   extension.
+
+### 82.10 Built and ruled 2026-10-19 — the classifier and its proof; five departures confirmed
+
+**Built (uncommitted at time of writing):** `templates/sdlc-cosmetic.template.py` →
+`.github/hooks/sdlc-cosmetic.py`, and `tools/cosmetic-check.py` — the unit pass covers
+82.9 ruling 7.1 in full, every TS case runs on typescript 5.9.3 **and 6.0.3** (the third
+adopter's pin), and the mutation pass carries ruling 7.1's five mutations plus fifteen
+more. A missing toolchain reports SKIPPED and exits 1 as INCOMPLETE; typescript is not
+vendored (`--ts <dir>`). Cost on this machine: first call compiles (Java 1.4 s, C# 1.1 s),
+warm calls 0.36–0.51 s through the CLI, python startup included. The guard integration,
+both guard suites (7.2), ruling 4's `/end-slice` change and the install ripple are not
+started.
+
+**Five departures from 82.9, confirmed by the owner:**
+1. **Timeouts are 12 s compile + 8 s compare**, not ~30 s + ~5 s. Both hook configs
+   allow 30 s and a Copilot hook timeout fails open (82.4), so a 30 s compile could
+   carry the hook past its limit and wave the write through. 8 s, not 5, because a C#
+   compare passed 5 s under parallel load.
+2. **The directive check is ordered and anchored, not a multiset.** Each directive line
+   must keep its order and its nearest code line above and below. A multiset misses a
+   moved `// @ts-expect-error`, which then suppresses a different line. Cost: a reformat
+   beside a directive is a safe extra.
+3. **Directive matching ignores whitespace as well as case** — `#noqa` is `# noqa` to
+   every linter.
+4. **Two CLI modes beyond `<before> <after>`:** `write [<file>]` (a hook payload on
+   stdin, rebuilt and classified — so the Copilot shell guard carries no copy of the
+   rebuild) and `--as <path>` (the file a pair stands for — `/end-slice` compares a temp
+   copy of the base).
+5. **Java runs the `java` beside `javac`**, never PATH's: on this machine PATH's java is
+   a Java 8 JRE that cannot run what JDK 20 compiles.
+
+**Two calls on what the build noticed:**
+- **A Javadoc `@deprecated` stays cosmetic** — it does not change execution. A TS JSDoc
+  `@deprecated` **stays real**: the parser sets `NodeFlags.Deprecated` on the
+  declaration, and a lint gate (typescript-eslint `no-deprecated`) can fail on it. Both
+  pinned as cases.
+- **`.mts` and `.cts` are mapped** to the TypeScript comparator, for consistency with
+  ruling `.mjs`/`.cjs` in; no current adopter's `SOURCE_GLOB` covers them.
+
+**Then built the same day — 7.2, ruling 4 and the ripple (still uncommitted):**
+- **7.2 green in both dialects.** `tools/tdd-guard-claude-check.py` 64/64 cases, every
+  mutation caught (five new: a cosmetic write arms the stop guard; "cannot tell"
+  grants; a narrowed `except`; bytecode written into `.github/hooks/`; the classifier
+  consulted on a licensed write). `tools/tdd-guard-check.py` 92/92 under python, 87/87
+  under node-only (where C1 asserts the stated limit: denied), 34/34 mutations (three
+  new). A crashing classifier exits 0 and denies in both.
+- **Ruling 4 as written:** `/end-slice` step 1 shows each source file's pre-slice
+  content (`git show <base>:<path>`, base = `HEAD`, or the parent of the slice's first
+  commit) to the CLI with `--as`; `SDLC.template.md` slice-loop step 4 and `/next-slice`
+  §4 now say a *docstring* never keeps a slice docs-only and a comment/layout edit does
+  only on the classifier's word at close-out. Smoke-tested in a scratch repo: a CRLF
+  working copy against an LF blob reads cosmetic, a real change exits 1.
+- **Install: always, both CLIs, never offered** — the `sdlc-impact.py` pattern, not
+  tied to the guards' accept, because `/end-slice` asks it whether or not the guards
+  are installed. Rippled through setup's install list and close-out exit list (seven →
+  eight verbatim files), `/sdlc-update` (table, loop, denominator, a 0.34.0 note), the
+  root README (tree, table, loop, denominator, note), the shipped README, CLAUDE.md
+  (three → four kit-owned files), `COPILOT.md` (a mapping row with the node-only limit;
+  the `edit`/`create` rows corrected from 82.4's count), `GATE_RECIPES.md` (the
+  exemption under G2), invariant 13's denominator, and `/kit-check` (seven suites, with
+  `--ts`). The version is written as 0.34.0 throughout — provisional until release;
+  MANIFEST and VERSION are left for the release commit.
+- **Still open:** 7.3 (the live bench) and 7.4 (the adopters).

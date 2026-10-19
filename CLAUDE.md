@@ -45,8 +45,8 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
                                               launchers only — plus .github/hooks/
                                               sdlc-gate-claude.sh, sdlc-tdd-guard.py)
                                              (Copilot: .github/hooks/, .github/agents/)
-                                             (both CLIs: .github/hooks/sdlc-close-out.sh
-                                              and .github/hooks/sdlc-impact.py, plus
+                                             (both CLIs: .github/hooks/sdlc-close-out.sh,
+                                              sdlc-impact.py and sdlc-cosmetic.py, plus
                                               sdlc-skill-ledger.sh where accepted —
                                               one body for both since 0.31.1)
   commands/*.md                              .claude/commands/*.md
@@ -67,8 +67,10 @@ installs the close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, verb
 both CLIs), offers its stop-time backstop (`.github/hooks/sdlc-close-out.json` on
 Copilot, a `Stop` settings block on Claude Code), and installs the architecture-impact
 adapter (`.github/hooks/sdlc-impact.py`, verbatim, both CLIs, never offered — it is
-inert without an Understand Anything graph) — those three are the kit-owned files in
-that directory; every other file there is project-owned.
+inert without an Understand Anything graph) and the cosmetic classifier
+(`.github/hooks/sdlc-cosmetic.py`, verbatim, both CLIs, never offered — it can only
+grant the TDD guards' comment/format exemption) — those four are the kit-owned files
+in that directory; every other file there is project-owned.
 `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
 *Updating an adopted project* section state the same procedure and must agree.

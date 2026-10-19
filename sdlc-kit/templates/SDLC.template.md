@@ -681,14 +681,19 @@ Run `/next-slice` in a **fresh session**:
    steps 6 and 8 as their stated skips directly (`quality: skipped — docs-only slice;
    reuse: not searched — docs-only slice`, `mutation: none — no new guards`) rather
    than walking them to find nothing. Step 9 still runs, in its docs form. **A
-   docstring or comment inside a source file is not docs-only** — it is a
-   behavior-preserving production write, taken in the loop under the refactor licence
-   where the TDD guards are installed. The short-circuit needs no guard of its own — a
-   slice declared docs-only that writes source meets the guard and the gate exactly as
-   any production write does — and `/end-slice` confirms the declaration against
+   docstring inside a source file is not docs-only** — it is a behavior-preserving
+   production write, taken in the loop under the refactor licence where the TDD guards
+   are installed. **A comment- or layout-only edit to a source file can be**, and only
+   when the cosmetic classifier (`.github/hooks/sdlc-cosmetic.py`) says so at
+   close-out; where the guards are installed the same classifier lets that write
+   through without a licence. The short-circuit needs no guard of its own — a slice
+   declared docs-only that writes source meets the guard and the gate exactly as any
+   production write does — and `/end-slice` confirms the declaration against
    everything the slice will commit before writing a skip (`git status --short`, so an
-   untracked file counts, plus any commit the slice already made): a production source
-   or test file there voids it, and every step runs.
+   untracked file counts, plus any commit the slice already made): a test file there
+   voids it, and so does a production source file unless the classifier answers
+   cosmetic for it against its state before the slice. Any other answer — real, cannot
+   tell, a new or deleted file, no python — voids it, and every step runs.
 
 `/next-slice` ends at the slice-ready hand-back — the executive summary per the
 hand-back standard — and **the owner runs `/end-slice`**. Close-out is never chained

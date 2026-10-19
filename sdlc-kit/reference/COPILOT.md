@@ -24,6 +24,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Skill-activation ledger (optional, logging-only) | `.github/hooks/sdlc-skill-ledger.sh` + the `"Skill"`-matcher launcher block in `.claude/settings.json` | `.github/hooks/sdlc-skill-ledger.json` + the same `.sh` (one body, both CLIs, since 0.31.1) |
 | Close-out evidence checker (always; a command step run by `/end-slice`, not a hook) | `.github/hooks/sdlc-close-out.sh`, invoked `sh …` from the Bash tool | the same file — but the shell tool resolves no `sh` (measured 2026-08-10, and its PATH's `bash` is WSL's, the corrupting route), so the invocation derives sh from the git on its PATH and `spec/SDLC.md` records the proven literal form |
 | Architecture-impact adapter (always; a command step the daily commands invoke, not a hook) | `.github/hooks/sdlc-impact.py`, invoked `python …` | **the same file and the same invocation** — it is Python rather than shell, so the `sh`-resolution problem in the row above does not arise, and no dialect fork exists. Inert without an Understand Anything graph on either CLI. |
+| Cosmetic classifier (always, from 0.34.0; the TDD guards' comment/format exemption and `/end-slice`'s docs-only check) | `.github/hooks/sdlc-cosmetic.py`, imported by path by the guard script; `python …` from `/end-slice` | the same file, run `python … write <file>` by the shell guard and `python …` from `/end-slice`. **Stated limit:** a project with node and no python gets no exemption here — the shell guard falls back to node for its own parsing, but the classifier is Python, so every write is today's rule. `apply_patch` gets no exemption on either route |
 | Close-out stop-time backstop (optional, offered from 0.22.0; the same script's `stop-check` mode) | a launcher-neutral `sh -c` `Stop` block in `.claude/settings.json` — no `"shell"` pin, which was measured never firing on 2.1.231 (GATE_RECIPES, *The hook environment*) | `.github/hooks/sdlc-close-out.json`, `agentStop`, the guard JSON's `cat \| sh …` wrapper shape |
 | Session model pin | `.claude/settings.json` `"model"` | `/model`, or `COPILOT_MODEL` in the environment |
 | Read-only sweep agent | built-in `Explore` subagent | `.github/agents/explore.agent.md` |
@@ -223,18 +224,20 @@ flows it covered:
 | `view` | **measured** — the read tool | observed 2026-08-05 |
 | `skill` | **measured** — skill invocation, explicit `/name` and relevance-based alike; fires `preToolUse` and `postToolUse`; absent from the reference's own tool-name list | observed 2026-08-07 |
 | `bash` | the hooks reference's tool-name list and matcher example | documented, **not observed** (Windows shell is `powershell`) |
-| `edit` | the same list — yet its mapping table routes Edit to `apply_patch` | documented, **did not fire** on the tested flows |
-| `create` | the same list (was third-party-only before 2026-06-17) | documented, **did not fire** |
+| `edit` | the same list; `{path, old_str, new_str}` | **measured** — 322 calls in the local session logs, 2026-08-03 → 2026-09-28, under Claude and Kimi models; **did not fire** on the 2026-08-05 bench flows |
+| `create` | the same list (was third-party-only before 2026-06-17); `{path, file_text}` | **measured** — 80 calls, same logs and models; **did not fire** on the 2026-08-05 bench |
 
 Three traps this measurement exposed, each of which would have shipped silently:
 
 1. **The UI label is not the tool name.** Copilot displays "Edit" while the hook name is
    `apply_patch`. A matcher written from what the session shows you never fires.
-2. **The documented names are the ones that did not fire.** `edit` and `create` sit in
-   GitHub's own tool-name list; on 1.0.77 neither appeared for any file write. The
-   recipe's `edit|create|apply_patch` worked by its third alternative only — it would
-   have looked deliberate and been accidental. The reference's mapping table now says
-   the same thing from the other side: the row for Edit maps to `apply_patch`.
+2. **Which write tool fires depends on the model, not the CLI.** On the 2026-08-05
+   bench (1.0.77) neither `edit` nor `create` appeared for any file write, and the
+   recipe's `edit|create|apply_patch` worked by its third alternative only. A count of
+   the session logs on 1.0.88 (2026-10-19) settled it: GPT models write with
+   `apply_patch` (223 calls), Claude and Kimi models with `edit` and `create` (402). The
+   matcher needs all three, and a guard proven on one model's tool is proven on that
+   tool only.
 3. **`apply_patch` does not deliver JSON.** Its `toolArgs` is raw patch text
    (`*** Begin Patch` / `*** Add File: <path>`), not the JSON-encoded string every other
    tool sends. The 0.15.0 hook body JSON-parsed `toolArgs` unconditionally, so on the
@@ -620,7 +623,7 @@ is never evidence of the other.
 | Strong | `CLAUDECODE=1` (also `CLAUDE_CODE_ENTRYPOINT`, `CLAUDE_CODE_SESSION_ID`) | setup is running inside Claude Code |
 | Bonus | `AI_AGENT` — **prefix match only** | whichever CLI the prefix names |
 | Medium | `.claude/settings.json`, `.claude/commands/` | repo already set up for Claude Code |
-| Medium | `.github/hooks/` beyond `sdlc-close-out.sh` and `sdlc-impact.py` (both install on both CLIs — from 0.20.0 and 0.28.0 — and signal nothing), `.github/agents/`, `.github/copilot-instructions.md`, `.github/copilot/settings.json` | repo already set up for Copilot CLI |
+| Medium | `.github/hooks/` beyond `sdlc-close-out.sh`, `sdlc-impact.py` and `sdlc-cosmetic.py` (all three install on both CLIs — from 0.20.0, 0.28.0 and 0.34.0 — and signal nothing), `.github/agents/`, `.github/copilot-instructions.md`, `.github/copilot/settings.json` | repo already set up for Copilot CLI |
 | Weak | `claude` / `copilot` on `PATH` | installed on this machine; says nothing about this repo |
 
 Three traps, each of which has already caught someone:

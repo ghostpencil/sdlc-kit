@@ -44,13 +44,18 @@ Run these as commands; each states its negative case in the ledger.
   each referenced step and confirm it is the one the sentence means.
 - **13 — the `tools/` proof suites are RUN, not read:** invariant 13's population names
   them, and reading one establishes only that it *states* its negative cases. Run all
-  six — `python -u tools/{gate-hook,tdd-guard,tdd-guard-claude,skill-ledger,impact,close-out}-check.py`
-  — and quote each exit code beside its case and mutation counts. A suite that cannot
-  complete is the finding whatever it reads like: `skill-ledger-check.py` read as a
+  seven — `python -u tools/{gate-hook,tdd-guard,tdd-guard-claude,skill-ledger,impact,close-out}-check.py`,
+  and `python -u tools/cosmetic-check.py --ts <dir> --ts <dir>` with one directory per
+  supported `typescript` major (each holding `node_modules/typescript`; or
+  `COSMETIC_TS`, separated by `os.pathsep`) — and quote each exit code beside its case
+  and mutation counts. `cosmetic-check` also needs a JDK and a .NET SDK; a missing
+  toolchain or no `--ts` reports SKIPPED and exits 1 INCOMPLETE, which is a finding, not
+  a pass. A suite that cannot complete is the finding whatever it reads like: `skill-ledger-check.py` read as a
   model proof through five passes while crashing on its first Claude case, and three
   cases were unexercised for six releases (`FEATURE_PLAN.md` §75). Two costs to plan
   for rather than discover: the guard suites sleep 1.1 s per case and `close-out-check`
-  ran ~70 minutes under concurrent load, and all six buffer stdout — hence `-u`. A
+  ran ~70 minutes under concurrent load, `cosmetic-check` takes ~5 minutes, and all
+  seven buffer stdout — hence `-u`. A
   scoped run that skips them says so, in those words, because "13: pass" over unrun
   suites is exactly the all-clear this command's prime directive forbids.
 - **Lens↔rule map denominator** (`reference/GATE_RECIPES.md`, *The lens↔rule map*,

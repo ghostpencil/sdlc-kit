@@ -28,10 +28,16 @@ operator-performed, the policy names the moment to set it).
   no source or test file planned) is confirmed here against **everything the slice
   will commit**: `git status --short` — not `git diff --stat`, which does not list an
   untracked file, so a newly created source file would pass unseen — plus the files of
-  any commit this slice already made on the arc branch. No production source, no test
-  file, tracked or untracked; if either appears, it is not docs-only and every step
-  runs as written. If it holds, steps 3 and 5 are written as their stated skips
-  without being walked — `quality: skipped — docs-only slice; reuse: not searched —
+  any commit this slice already made on the arc branch. No test file, tracked or
+  untracked, and no production source file unless the cosmetic classifier answers
+  exit 0 for it. For each source file, write its content before the slice
+  (`git show <base>:<path>`, where `<base>` is `HEAD` when the slice has made no commit,
+  else the parent of its first commit) to a temp file outside the working tree and run
+  `python .github/hooks/sdlc-cosmetic.py <temp> <path> --as <path>`; quote the line it
+  prints. A file absent at the base or absent now, any exit other than 0, or no
+  classifier installed voids the declaration. If it is voided, it is not docs-only
+  and every step runs as written. If it holds, steps 3 and 5 are written as their
+  stated skips without being walked — `quality: skipped — docs-only slice; reuse: not searched —
   docs-only slice` and `mutation: none — no new guards` — step 4's review runs as
   ever, and step 6 runs in its docs form.
 

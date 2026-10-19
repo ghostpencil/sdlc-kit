@@ -18,8 +18,9 @@ the project owns.**
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
-| `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — one of the three kit-owned files in that directory; its other neighbors are project-owned |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — one of the four kit-owned files in that directory; its other neighbors are project-owned |
 | `.github/hooks/sdlc-impact.py` (both CLIs: the architecture-impact adapter, from 0.28.0) | kit | same rule; compared against `templates/sdlc-impact.template.py`, copied verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined |
+| `.github/hooks/sdlc-cosmetic.py` (both CLIs: the cosmetic-edit classifier, from 0.34.0) | kit | same rule; compared against `templates/sdlc-cosmetic.template.py`, copied verbatim. Installed unconditionally — it can only grant an exemption, so it is never offered or declined |
 | `.github/hooks/sdlc-close-out.json` (Copilot: the checker's stop-time backstop wiring, offered from 0.22.0 — present only where accepted) | kit | same rule; compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes the owner's accept; the update never adds or removes it — the 0.22.0 note below offers it where the choice was never put |
 | `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
@@ -90,12 +91,12 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
                         .github/skills .github/agents \
                         .github/hooks/sdlc-close-out.sh \
                         .github/hooks/sdlc-close-out.json \
-                        .github/hooks/sdlc-impact.py); do
+                        .github/hooks/sdlc-impact.py                         .github/hooks/sdlc-cosmetic.py); do
   have=""
   case "$f" in
     .github/hooks/sdlc-close-out.sh)
       base=sdlc-close-out.sh
-      # one of the THREE kit-owned files in .github/hooks/ — copied verbatim, no
+      # one of the FOUR kit-owned files in .github/hooks/ — copied verbatim, no
       # project values. Their neighbors are project-owned and deliberately NOT in
       # the pathspec above: this loop must never classify the gate, guard, or
       # ledger scripts.
@@ -112,6 +113,11 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
       # file, so git ls-files skips it and the add happens at step 5 like any other
       # new install — this branch classifies it on every update after that.
       want=$(awk '$2 == "templates/sdlc-impact.template.py" {print $1}' "$MAN") ;;
+    .github/hooks/sdlc-cosmetic.py)
+      base=sdlc-cosmetic.py
+      # the fourth: the cosmetic-edit classifier (0.34.0), verbatim on both CLIs;
+      # absent before 0.34.0, so it is added at step 5 the first time, like the third.
+      want=$(awk '$2 == "templates/sdlc-cosmetic.template.py" {print $1}' "$MAN") ;;
     .claude/commands/*)
       base=${f#.claude/commands/}
       # commands/ and reference/REVIEW_LENSES.md install here. So did skills/ on kits
@@ -162,7 +168,8 @@ result rather than an error:
 - **Denominator.** The loop must print exactly as many lines as
   `git ls-files .claude/commands .claude/skills .claude/agents .github/skills
   .github/agents .github/hooks/sdlc-close-out.sh .github/hooks/sdlc-close-out.json
-  .github/hooks/sdlc-impact.py | wc -l` — the same pathspec list
+  .github/hooks/sdlc-impact.py .github/hooks/sdlc-cosmetic.py | wc -l` — the same
+  pathspec list
   the loop walks, so the two cannot
   drift apart. Fewer means the matching dropped files (`tdd-references/` lives two
   directories down and is the usual casualty). On a Copilot project the count includes
@@ -842,6 +849,20 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `spec/SDLC.md`; until it is folded the project's process file names only the phase
   boundary and wins, so the slice-end refresh stays off. Where the graph directory is
   **tracked**, say so: each refresh then needs its own commit.
+- **0.34.0 exempts comment- and layout-only source edits from the TDD guard, and lets
+  them keep a slice docs-only.** One new kit-owned file, `.github/hooks/sdlc-cosmetic.py`,
+  copied verbatim and installed unconditionally like the impact adapter: it can only
+  grant, so every failure it has — no python, no `typescript`/JDK/.NET SDK for that
+  language, a parse error, a timeout — is today's rule. Two halves of the change live in
+  **project-owned** files, so the update replaces neither: the guard scripts
+  (`.github/hooks/sdlc-tdd-guard.py` / `.sh`) consult the classifier only once their
+  bodies are re-derived from the 0.34.0 templates with the project's three resolved
+  patterns carried over — offer that at the halt where the guards are installed, and
+  say a guard left as it is keeps today's rule exactly. The docs-only rule lives in
+  `SDLC.template.md` step 4 of the slice loop: hand the owner that diff to fold into
+  `spec/SDLC.md`; until it is folded the project's process file says a source comment
+  voids a docs-only slice, and wins. Name in one line which of the project's languages
+  the classifier will cover on this machine; install nothing for it.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

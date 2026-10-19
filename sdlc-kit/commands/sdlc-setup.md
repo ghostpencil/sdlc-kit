@@ -586,6 +586,19 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      signal, and it costs one boolean. It is a supplement to the process's own
      regenerations, never a substitute for them.
 
+   **Install the cosmetic classifier — both CLIs, always, and grant-only.**
+   `sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py`, copied verbatim; it
+   takes no values and is never edited. It answers one question — is this source edit
+   comments and layout only? — for the TDD guards (a cosmetic write needs no licence)
+   and for `/end-slice` step 1 (a cosmetic source edit keeps a slice docs-only). It is
+   installed whether or not the guards are, because `/end-slice` asks it either way.
+   Nothing is proven or offered for it: every failure it can have answers "not
+   cosmetic", which is the rule without it. It needs `python`, and per language the
+   project's own parser — `typescript` resolvable from the source tree, a JDK's
+   `javac`, a .NET SDK — and where one is missing that language simply gets no
+   exemption. Say so in the setup summary in one line naming which of the project's
+   languages it will cover; do not install a toolchain for it.
+
    **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
    optional where the checker itself is not.** The same script's `stop-check` mode,
    wired as a stop hook: at session end it classifies the *unpushed* commits by the
@@ -797,8 +810,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    and the guard's `.json` launchers take no values, and neither do the
    skill-ledger's — `sdlc-skill-ledger.json` and `sdlc-skill-ledger.sh` alike — the
    backstop's (`sdlc-close-out.json`),
-   `.github/hooks/sdlc-close-out.sh`, or `.github/hooks/sdlc-impact.py` — all copied
-   verbatim — so none of the seven is
+   `.github/hooks/sdlc-close-out.sh`, `.github/hooks/sdlc-impact.py`, or
+   `.github/hooks/sdlc-cosmetic.py` — all copied verbatim — so none of the eight is
    in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,

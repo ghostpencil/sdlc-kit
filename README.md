@@ -217,6 +217,9 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── sdlc-impact.template.py      → .github/hooks/sdlc-impact.py (both CLIs, always: the
 │   │                                   architecture-impact adapter; inert without an
 │   │                                   Understand Anything graph; no values)
+│   ├── sdlc-cosmetic.template.py    → .github/hooks/sdlc-cosmetic.py (both CLIs, always: the
+│   │                                   comment/format-only classifier the TDD guards and
+│   │                                   /end-slice ask — Python, TS/JS, Java, C#; no values)
 │   └── explore.agent.template.md    → .github/agents/explore.agent.md (Copilot only: read-only sweeps)
 ├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
@@ -237,6 +240,8 @@ tools/tdd-guard-check.py             ← proves the TDD guards, then mutates the
 tools/tdd-guard-claude-check.py      ← proves the Claude Code guard dialect the same two-pass way
 tools/close-out-check.py             ← proves the close-out evidence checker, corpus + mutations
 tools/impact-check.py                ← proves the architecture-impact adapter, cases + mutations
+tools/cosmetic-check.py              ← proves the cosmetic-edit classifier, corpus + mutations
+                                       (TypeScript installs passed in with --ts; not vendored)
 tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
                                        Understand Anything graph + overlay (SEED.md has provenance)
 tools/cosmetic-prototypes/           ← COSMETIC's measurement prototypes (FEATURE_PLAN §82.8):
@@ -303,9 +308,10 @@ The whole procedure rests on this split:
 | `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the eight `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
-| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the three kit-owned files in that directory (with `sdlc-close-out.json` and `sdlc-impact.py`) — every other file there is project-owned. |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the four kit-owned files in that directory (with `sdlc-close-out.json`, `sdlc-impact.py` and `sdlc-cosmetic.py`) — every other file there is project-owned. |
 | `.github/hooks/sdlc-close-out.json` (Copilot, offered from 0.22.0: the checker's stop-time backstop wiring — present only where accepted) | **kit** | Same rule — compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes your accept; the update never adds or removes it. |
 | `.github/hooks/sdlc-impact.py` (both CLIs, from 0.28.0: the architecture-impact adapter) | **kit** | Same rule — compared against `templates/sdlc-impact.template.py`, which it copies verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined. |
+| `.github/hooks/sdlc-cosmetic.py` (both CLIs, from 0.34.0: the cosmetic-edit classifier) | **kit** | Same rule — compared against `templates/sdlc-cosmetic.template.py`, which it copies verbatim. Installed unconditionally — it can only grant an exemption — so it is never offered or declined. |
 | `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
@@ -324,7 +330,9 @@ from 0.20.0, on both CLIs, `templates/close-out.template.sh`, copied verbatim to
 `.github/hooks/sdlc-close-out.sh` for the same reason; and — from 0.22.0, on a
 Copilot project that accepted the backstop offer — `templates/close-out-hook.template.json`,
 copied verbatim to `.github/hooks/sdlc-close-out.json`; and — from 0.28.0, on both CLIs —
-`templates/sdlc-impact.template.py`, copied verbatim to `.github/hooks/sdlc-impact.py`.
+`templates/sdlc-impact.template.py`, copied verbatim to `.github/hooks/sdlc-impact.py`;
+and — from 0.34.0, on both CLIs — `templates/sdlc-cosmetic.template.py`, copied verbatim
+to `.github/hooks/sdlc-cosmetic.py`.
 A kit release that changes only
 the non-installed templates and reference docs is an adoption-only change — it affects new
 adoptions, not yours, **with one standing exception**: a template change to a
@@ -374,11 +382,11 @@ only as a hand-apply, and the per-version transition notes name each one.
                            .github/skills .github/agents \
                            .github/hooks/sdlc-close-out.sh \
                            .github/hooks/sdlc-close-out.json \
-                           .github/hooks/sdlc-impact.py); do
+                           .github/hooks/sdlc-impact.py                            .github/hooks/sdlc-cosmetic.py); do
      have=""
      case "$f" in
        .github/hooks/sdlc-close-out.sh)
-         # one of the THREE kit-owned files in .github/hooks/ — copied verbatim, no
+         # one of the FOUR kit-owned files in .github/hooks/ — copied verbatim, no
          # project values. Their neighbors are project-owned and deliberately NOT in
          # the pathspec above: this loop must never classify the gate, guard, or ledger scripts.
          base=sdlc-close-out.sh
@@ -394,6 +402,11 @@ only as a hand-apply, and the per-version transition notes name each one.
          # skips it and it arrives as a new install like any other.
          base=sdlc-impact.py
          want=$(awk '$2 == "templates/sdlc-impact.template.py" {print $1}' "$MAN") ;;
+       .github/hooks/sdlc-cosmetic.py)
+         # the fourth: the cosmetic-edit classifier (0.34.0), verbatim on both CLIs;
+         # absent before 0.34.0, so it arrives as a new install the first time.
+         base=sdlc-cosmetic.py
+         want=$(awk '$2 == "templates/sdlc-cosmetic.template.py" {print $1}' "$MAN") ;;
        .claude/skills/*)
          base=${f#.claude/skills/}
          # skills/ installs one directory per skill here from 0.14.0 on.
@@ -444,8 +457,8 @@ only as a hand-apply, and the per-version transition notes name each one.
      as above, rather than probing for it.
    - **Check the denominator.** The loop should report exactly as many files as
      `git ls-files` over the same pathspec list the loop walks (the five directories
-     plus `.github/hooks/sdlc-close-out.sh`, `.github/hooks/sdlc-close-out.json` and
-     `.github/hooks/sdlc-impact.py`).
+     plus `.github/hooks/sdlc-close-out.sh`, `.github/hooks/sdlc-close-out.json`,
+     `.github/hooks/sdlc-impact.py` and `.github/hooks/sdlc-cosmetic.py`).
      If it reports fewer,
      your prefix matching is dropping files — `tdd-references/` lives two directories
      down and is the usual casualty. A Copilot project counts files under `.github/`
@@ -901,6 +914,16 @@ only as a hand-apply, and the per-version transition notes name each one.
    into `spec/SDLC.md` yourself — until you do, your process file names only the phase
    boundary and wins. If your graph directory is tracked, each refresh needs its own
    commit. The update command's 0.33.0 note states the same procedure.
+
+   **0.34.0 exempts comment- and layout-only source edits from the TDD guard, and lets
+   them keep a slice docs-only.** `.github/hooks/sdlc-cosmetic.py` arrives verbatim and
+   installs unconditionally: it can only grant, so a missing python or language
+   toolchain is today's rule. The guard scripts are project-owned — they consult the
+   classifier only once re-derived from the 0.34.0 templates with your three patterns
+   carried over, and a guard left as it is keeps today's rule. Fold the
+   `SDLC.template.md` docs-only diff (slice loop step 4) into `spec/SDLC.md` yourself;
+   until you do, your process file says a source comment voids a docs-only slice, and
+   wins. The update command's 0.34.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
