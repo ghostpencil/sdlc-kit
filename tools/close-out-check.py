@@ -746,18 +746,20 @@ DOCS_CASES = [
 
 
 def docs_pass(src, verbose):
-    """Runs every docs case in its own bench repo; returns (failures, slowest).
+    """Runs every docs case in its own bench repo; returns (failures, slowest), and
+    leaves the median in docs_pass.median - the number the S2 verdict reads.
 
     Every case asserts exit 0: this mode is log-only, so a non-zero exit would
     fail an /end-slice step over a bookkeeping observation - the one thing the
     §67.3 ruling forbids it to do."""
-    failures, slowest = [], 0.0
+    failures, slowest, times = [], 0.0, []
     for name, setup, contains, absent in DOCS_CASES:
         with tempfile.TemporaryDirectory() as base:
             b = DocsBench(base, src)
             argv = setup(b)
             code, out, dt = b.run(argv)
             slowest = max(slowest, dt)
+            times.append(dt)
             problems = []
             if code != 0:
                 problems.append("exit %d, expected 0 (docs-check is log-only)" % code)
@@ -775,7 +777,12 @@ def docs_pass(src, verbose):
                 failures.append((name, problems, out))
             if verbose:
                 print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
+    times.sort()
+    docs_pass.median = times[len(times) // 2] if times else 0.0
     return failures, slowest
+
+
+docs_pass.median = 0.0
 
 
 def stop_pass(src, verbose, only=None):
@@ -1045,13 +1052,19 @@ def main():
 
     print("\n== docs pass (%d cases) ==" % len(DOCS_CASES))
     failures, slowest = guarded("docs pass", ([], 0.0), docs_pass, src, verbose=True)
-    print("slowest docs invocation: %.0f ms (S2 budget: 1000 ms)" % (slowest * 1000))
+    # The MEDIAN, like the unit and stop passes (§77). This pass was the last to read
+    # its max, and failed the 0.34.0 release run on exactly the §77 artifact: 5409 ms
+    # slowest under concurrent suite load, against 412-424 ms slowest re-run idle three
+    # times (FEATURE_PLAN.md 82.10). With 7 samples the median is the 4th, which one
+    # stall cannot move. The slowest stays printed: a real regression moves both.
+    print("median docs invocation: %.0f ms (S2 budget: 1000 ms; slowest: %.0f ms,"
+          " observed not asserted)" % (docs_pass.median * 1000, slowest * 1000))
     if failures:
         for name, problems, out in failures:
             print("\nFAILED %s: %s\n--- output ---\n%s" % (name, "; ".join(problems), out))
         sys.exit(1)
-    if slowest >= 1.0:
-        perf.append("docs invocation %.2f s (budget 1.00 s)" % slowest)
+    if docs_pass.median >= 1.0:
+        perf.append("median docs invocation %.2f s (budget 1.00 s)" % docs_pass.median)
 
     print("\n== stop pass (%d cases) ==" % len(STOP_CASES))
     failures, times = guarded("stop pass", ([], {}), stop_pass, src, verbose=True)
@@ -1144,9 +1157,10 @@ def main():
         # cp1252 - an em dash or a section sign arrives as a replacement character,
         # which is the same encoding trap change-verify's own guidance names.
         print("  (the correctness results above are unaffected - these are timing"
-              " budgets. The stop budget now reads the median, so a single OS stall"
-              " no longer breaches it; a breach here means the typical invocation"
-              " really did slow down: FEATURE_PLAN 71, 77)")
+              " budgets. The unit, docs and stop budgets read the median, and the"
+              " cap walk gets a best-of-2, so a single OS stall no longer breaches"
+              " any of them; a breach here means the typical invocation really did"
+              " slow down: FEATURE_PLAN 71, 77, 82.10)")
 
     if guarded.crashed:
         print("\nCRASHED passes: %s - those cases did not run"
