@@ -395,7 +395,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      three** — the Copilot script pastes each into a shell `case` arm, where a space is a
      syntax error that denies every write; a `*` spans the gap (`*node*test*`, never
      `*node *test*`). Where the shell dialect is installed, `sh -n` it after
-     instantiating (the recipe states why).
+     instantiating, with an `sh` that resolves (on Windows, Git Bash's — Copilot's
+     shell tool resolves none, so a shell error there is not a syntax verdict); the
+     recipe states why.
    - They install in **logging mode** and stay there. Never create the
      `.git/sdlc-tdd/deny-enabled` flag during setup: deny is armed by the owner after
      reading a few sessions of `.git/sdlc-tdd/guard.log` and confirming the guard
@@ -411,7 +413,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      line appears, the guard is not firing: re-check the matcher and the hook
      environment above before adjusting anything else.
    - Record the outcome as `{{TDD_GUARD_NOTE}}` in `spec/SDLC.md`: installed or not,
-     which CLI they run on, logging or deny mode, the proof you just ran, and the
+     which CLI they run on, logging or deny mode, whether the installed guard bodies
+     consult the cosmetic classifier (every body instantiated from a 0.34.0 or later
+     template does), the proof you just ran, and the
      **reach note** *Records* requires — this proof constructs its own violation, so
      say whether one has been seen to arise on its own. **When
      installed, the note also states the four rules the guards impose on a coding
@@ -598,10 +602,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    installed whether or not the guards are, because `/end-slice` asks it either way.
    Nothing is proven or offered for it: every failure it can have answers "not
    cosmetic", which is the rule without it. It needs `python`, and per language the
-   project's own parser — `typescript` resolvable from the source tree, a JDK's
-   `javac`, a .NET SDK — and where one is missing that language simply gets no
-   exemption. Say so in the setup summary in one line naming which of the project's
-   languages it will cover; do not install a toolchain for it.
+   project's own parser — `node` plus `typescript` resolvable from the source tree, a
+   JDK's `javac`, a .NET SDK — and where one is missing that language simply gets no
+   exemption. Say in the setup summary, in one line, which of the project's languages
+   have that toolchain on the PATH of your shell tool — a claim, not a measurement: the
+   guards run it in the hook shell, which can differ, and the guard log's `not cosmetic
+   (…)` lines are where a missing toolchain shows. Do not install a toolchain for it.
 
    **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
    optional where the checker itself is not.** The same script's `stop-check` mode,

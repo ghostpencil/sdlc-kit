@@ -133,14 +133,17 @@ only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
 
 **First, the one assessment that can skip it — a docs-only slice.** When the phase
 spec ratified this slice's test approach as `none` and the slice plans to touch no
-production source and no test file, state that in one line, citing the ratified
-approach, and make the edit without this loop: no `spec/TESTING.md`, no TDD skill. Its
+production source beyond comments and layout and no test file, state that in one line,
+citing the ratified approach, and make the edit without this loop: no `spec/TESTING.md`, no TDD skill. Its
 RED record is the zero-form `RED: none — no behavior batches this slice`, and
-`/end-slice` handles the rest. Both conditions, or it is not docs-only — and **a
-docstring inside a source file never is**: that is a behavior-preserving production
-write, made in this loop under the refactor licence where the TDD guards are installed
-(`spec/SDLC.md`). A comment- or layout-only source edit may stay docs-only, but only on
-the cosmetic classifier's word at `/end-slice`, never on yours here. It needs no guard
+`/end-slice` handles the rest. Both conditions, or it is not docs-only. A comment- or
+layout-only source edit stays docs-only only on the cosmetic classifier's word at
+`/end-slice`, never on yours here — and only where `spec/SDLC.md` slice-loop step 4
+carries that clause; without it any source file voids. **A docstring never does**: a
+string literal the parser keeps, as Python's is, is code, so it is a
+behavior-preserving production write made in this loop under the refactor licence
+where the TDD guards are installed (`spec/SDLC.md`). A doc comment (Javadoc, JSDoc, C#
+`///`) is a comment, except a TypeScript `@deprecated` tag, which reads real. It needs no guard
 of its own — a "docs-only" slice that writes source meets the guard and the gate
 exactly as any production write does — and `/end-slice` step 1 confirms it against the
 working tree before writing any skip.

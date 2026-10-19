@@ -114,7 +114,7 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.33.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.34.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe and its
   dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
@@ -143,8 +143,10 @@ For each, read the named files in full — do not sample — and cite evidence p
   launchers' missing-script stop block, git-directory resolution through a linked
   worktree's `.git` file, and the guard's WSL mount candidate root (all 0.31.1), the
   Claude-dialect hooks' Copilot-payload stand-down (0.31.3), the docs-only slice's
-  confirmation and its verification's docs form (0.32.0), the `tools/` proof suites,
-  and this command.
+  confirmation and its verification's docs form (0.32.0) with its classifier clause,
+  the cosmetic classifier (negative cases in `tools/cosmetic-check.py`), and the guard
+  patterns' shell-case-pattern check (`sh -n`; P1/P2 in `tools/tdd-guard-check.py`)
+  (all 0.34.0), the `tools/` proof suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that

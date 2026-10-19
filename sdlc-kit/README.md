@@ -54,13 +54,14 @@ skills/                  ← TDD skill set + the three kit-written passes
                            (diff-review, change-simplify, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup; nine are
+templates/               ← instantiated into the project by /sdlc-setup; ten are
                            copied verbatim instead (the explore agent profile, the TDD
                            guards' hook JSON, the gate hook's launcher JSON, the
                            skill-ledger hook JSON, and the close-out backstop's hook
                            JSON — all Copilot-side — plus the skill-ledger script (both
                            CLIs since 0.31.1), the close-out evidence checker
-                           and the architecture-impact adapter, both CLIs, and
+                           the architecture-impact adapter and the cosmetic
+                           classifier, all three both CLIs, and
                            the product-contract seed →
                            spec/PRODUCT_CONTRACT.md, every adoption; none takes values)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
@@ -104,7 +105,8 @@ README — both state the same procedure. The short version: compare your instal
 `.claude/commands/*.md` and `.claude/skills/*/SKILL.md` (plus `.github/skills/` and
 `.github/agents/` on a Copilot CLI project, `.github/hooks/sdlc-close-out.sh` on
 kits ≥ 0.20.0, `.github/hooks/sdlc-close-out.json` where the ≥ 0.22.0 backstop
-offer was accepted, and `.claude/agents/*.md` on kits
+offer was accepted, `.github/hooks/sdlc-impact.py` on kits ≥ 0.28.0,
+`.github/hooks/sdlc-cosmetic.py` on kits ≥ 0.34.0, and `.claude/agents/*.md` on kits
 0.6.0–0.9.0) against the
 `MANIFEST.sha256` of the version you are currently
 on (recorded in your `spec/SDLC.md`). Files that match are provably unmodified and safe

@@ -5542,7 +5542,7 @@ notes it forces:
   TypeScript directive list, and the test plan's TS fixtures gain a JS-family case per
   extension.
 
-### 82.10 Built and ruled 2026-10-19 — the classifier and its proof; five departures confirmed
+### 82.10 Built and ruled 2026-10-19 — the classifier and its proof; five departures confirmed; shipped as 0.34.0
 
 **Built (uncommitted at time of writing):** `templates/sdlc-cosmetic.template.py` →
 `.github/hooks/sdlc-cosmetic.py`, and `tools/cosmetic-check.py` — the unit pass covers
@@ -5580,7 +5580,7 @@ started.
 - **`.mts` and `.cts` are mapped** to the TypeScript comparator, for consistency with
   ruling `.mjs`/`.cjs` in; no current adopter's `SOURCE_GLOB` covers them.
 
-**Then built the same day — 7.2, ruling 4 and the ripple (still uncommitted):**
+**Then built the same day — 7.2, ruling 4 and the ripple:**
 - **7.2 green in both dialects.** `tools/tdd-guard-claude-check.py` 64/64 cases, every
   mutation caught (five new: a cosmetic write arms the stop guard; "cannot tell"
   grants; a narrowed `except`; bytecode written into `.github/hooks/`; the classifier
@@ -5643,3 +5643,49 @@ but nothing states that the value must be a valid shell case pattern.
 instantiated script) and `sdlc-setup`'s guard bullet repeats it. `tools/tdd-guard-check.py`
 gains P1 — every row of the recipe's per-language table instantiates into a script
 `sh -n` accepts — and P2, a spaced control it must reject.
+
+**Released as 0.34.0, 2026-10-19.** The release `/kit-check` (three parallel reading
+passes plus the suites) found and fixed, in-session:
+- **The docs-only rule only reached unplanned edits.** `/plan-phase`, the template's
+  phase-spec line and slice-loop step 4, and `/next-slice` §4 still required "no
+  production source" to plan `none`. They now except comments and layout.
+- **"Docstring" was wrong outside Python.** Only a string literal the parser keeps is
+  code; Javadoc, JSDoc and C# `///` are comments, except a TS `@deprecated` tag.
+- **`/end-slice` step 1** now:
+  - writes the base byte-exact, because PowerShell's `>` re-encodes;
+  - quotes the classifier line in the hand-back;
+  - voids the declaration where `spec/SDLC.md` predates the clause.
+- **The template's guard claim is now conditional** ("where the installed guards
+  consult it"), and the guard note records whether they do, at setup and at update.
+- **Five shipped files pointed at the root-only `FEATURE_PLAN.md`.** None had at
+  0.33.0, and the pointers now name the shipped recipe.
+- **The update procedure's new-files clause never named the classifier**, nor the impact
+  adapter since 0.28.0. Also fixed in the same area:
+  - the README's exception count;
+  - the bundle README's verbatim count and update summary;
+  - a lost line continuation in both classifier loops.
+- **Invariant 13 and `/kit-check`'s mirror lacked the 0.34.0 controls.** Also fixed:
+  - the recipe's "state I/O only" timeout line;
+  - the `#region`/`#endregion` wording;
+  - `sh -n` now names an `sh` that resolves;
+  - node is named as a TS requirement;
+  - the language-coverage line is marked a claim.
+
+Suites run at the release:
+- gate-hook OK; skill-ledger 17; impact 20/16; cosmetic 343/20; Claude guard 64/30.
+- Close-out: 56 cases, 35/35 mutations, but **exit 1 on the S2 docs budget**. The
+  slowest docs invocation took 5.41 s under concurrent suite load; the unit pass in
+  the same run had a median of 303 ms and a 5.3 s stall. Re-run alone three times,
+  the docs pass was green each time, its slowest invocation 412–424 ms.
+  `close-out.template.sh` is unchanged since 0.33.0. **Open, for a later batch:** the
+  docs budget still asserts the maximum, the artifact §77 removed from the stop
+  budget; it should read the median too.
+- **The Copilot guard suite's mutation pass was not re-run** (owner-directed: it
+  takes about 1.5 h). Its unit pass ran on the final bytes, 94/94 python and 89/89
+  node. Its mutation result, 34/34, is from the full run at 13:12 that day, on a
+  template that differs only in one comment block.
+
+Seen but left as they were, since they predate this release: `COPILOT.md`'s detection
+row counts `.github/hooks/` as a Copilot signal, though Claude Code installs there
+too since 0.24.0; and `sdlc-update.md`'s "Compare everything under `.claude/…`"
+sentence names only Claude paths.

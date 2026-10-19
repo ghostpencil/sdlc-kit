@@ -178,8 +178,9 @@ step-6 approval), write `spec/PHASE_NN_<SLUG>.md`:
 ## User-Visible Surface (screens/endpoints/CLI touched + acceptance-review checklist
                          for /end-phase)
 ## Slices               (S1… in dependency order — scope, exit criteria, test approach;
-                         `none` only for a slice touching no production source and no
-                         test file — the docs-only slice, `spec/SDLC.md` slice loop)
+                         `none` only for a slice touching no production source —
+                         comments and layout excepted — and no test file: the
+                         docs-only slice, `spec/SDLC.md` slice loop)
 ## Risks & Deferred     (known risks, explicitly deferred items)
 ```
 

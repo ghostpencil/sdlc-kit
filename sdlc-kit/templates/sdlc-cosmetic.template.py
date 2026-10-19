@@ -28,7 +28,7 @@ TWO CHECKS, BOTH MUST PASS:
      A docstring is a string literal in the tree, so a docstring edit is REAL here.
   2. The directive lines match. Some comments steer a tool - `# noqa`,
      `// @ts-expect-error`, `#pragma warning disable` - and read as comments to every
-     parser. Each language has a list (owner-approved, FEATURE_PLAN.md 82.9 ruling 5);
+     parser. Each language has a list (owner-approved 2026-10-19);
      a line matching it, case- and whitespace-insensitively, must appear in the same
      order with the same nearest code line above and below it before and after the
      edit. Moving a directive moves what it governs, so a move is real too.
@@ -73,7 +73,7 @@ from bisect import bisect_left
 COSMETIC, REAL, CANNOT = 0, 1, 2
 
 # Together they stay inside the 30 s the hook configs allow, with room for the guard
-# itself. Measured: javac builds the comparator in ~2 s and csc in ~1 s, a compare
+# itself. Measured: javac builds the comparator in ~1.4 s and csc in ~1.1 s, a compare
 # costs 0.2-0.7 s; the margin is for a loaded machine, where a compare has been seen
 # past 5 s.
 COMPILE_TIMEOUT = 12
@@ -89,7 +89,7 @@ LANG = {
 
 # Matched case-insensitively against each line with all whitespace removed from both
 # sides, so `#noqa` and `# noqa` are one directive. The lists are owner-approved
-# (FEATURE_PLAN.md 82.9 ruling 5); C# also counts every preprocessor line except the
+# (owner-approved 2026-10-19); C# also counts every preprocessor line except the
 # #region pair, and Python a line-1 shebang and a coding line on lines 1-2.
 DIRECTIVES = {
     "python": ("# noqa", "# ruff:", "# type:", "# pyright:", "# mypy:", "# pylint:",
@@ -298,7 +298,7 @@ using Microsoft.CodeAnalysis.CSharp;
 static class SdlcCsCmp {
   // IsEquivalentTo ignores trivia, and to Roslyn a preprocessor directive and the body
   // of an inactive #if are trivia - so both are compared here, line by line, trimmed.
-  // #region and #endregion are layout (FEATURE_PLAN.md 82.9 ruling 5).
+  // #region and #endregion are layout (owner-approved 2026-10-19).
   static string Trivia(SyntaxTree t) {
     var sb = new StringBuilder();
     foreach (var tr in t.GetRoot().DescendantTrivia(descendIntoTrivia: true)) {

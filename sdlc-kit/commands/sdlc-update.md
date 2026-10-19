@@ -91,7 +91,8 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
                         .github/skills .github/agents \
                         .github/hooks/sdlc-close-out.sh \
                         .github/hooks/sdlc-close-out.json \
-                        .github/hooks/sdlc-impact.py                         .github/hooks/sdlc-cosmetic.py); do
+                        .github/hooks/sdlc-impact.py \
+                        .github/hooks/sdlc-cosmetic.py); do
   have=""
   case "$f" in
     .github/hooks/sdlc-close-out.sh)
@@ -218,8 +219,11 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   step 6's kit-owned artifacts, `templates/close-out.template.sh` →
   `.github/hooks/sdlc-close-out.sh` (both CLIs, verbatim) and, where the backstop
   offer was accepted, `templates/close-out-hook.template.json` →
-  `.github/hooks/sdlc-close-out.json` (Copilot, verbatim), which live outside the
-  step-5 table because they install beside the hooks** — the
+  `.github/hooks/sdlc-close-out.json` (Copilot, verbatim), and
+  `templates/sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py` (from 0.28.0)
+  and `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py` (from
+  0.34.0), both CLIs, verbatim — all of which live outside the step-5 table because
+  they install beside the hooks** — the
   *Agent CLI:* line says which column applies, and "both" gets both columns. Claude
   Code column: `sdlc-kit/commands/` into `.claude/commands/`. Copilot column: each
   command re-packaged into `.github/skills/<name>/SKILL.md` by that step's packaging
@@ -862,9 +866,13 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `SDLC.template.md` step 4 of the slice loop: hand the owner that diff to fold into
   `spec/SDLC.md`; until it is folded the project's process file says a source comment
   voids a docs-only slice, and wins. Name in one line which of the project's languages
-  the classifier will cover on this machine; install nothing for it. Where the shell
-  guard is installed, run `sh -n .github/hooks/sdlc-tdd-guard.sh`: a pattern value with
-  a space is a syntax error that denies every Copilot write (the recipe now says so).
+  have their toolchain on your shell's PATH (a claim — the guard log is the
+  measurement); install nothing for it. A re-derived guard changes the guard note
+  (`spec/SDLC.md` *Records*): it now consults the classifier, and the note says so —
+  a guard left as it is says it does not. Where the shell guard is installed, run
+  `sh -n .github/hooks/sdlc-tdd-guard.sh` with an `sh` that resolves (Git Bash's on
+  Windows): a pattern value with a space is a syntax error that denies every Copilot
+  write (the recipe now says so).
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts
@@ -952,7 +960,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   `templates/close-out.template.sh`, copied verbatim to
   `.github/hooks/sdlc-close-out.sh` on both CLIs; and from 0.22.0, on a Copilot
   project that accepted the backstop, so is `templates/close-out-hook.template.json`,
-  copied verbatim to `.github/hooks/sdlc-close-out.json`). If one fixes
+  copied verbatim to `.github/hooks/sdlc-close-out.json`; from 0.28.0
+  `templates/sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py`, and from 0.34.0
+  `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py`, both CLIs,
+  verbatim). If one fixes
   something the project cares about, raise it with the owner as a manual follow-up —
   never apply it automatically.
 - Skipping several versions is fine: classify against the version the project is on,

@@ -10,6 +10,68 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.34.0 — 2026-10-19
+
+Comment- and layout-only source edits are exempt from the TDD guard (`FEATURE_PLAN.md`
+§82, ruled by the owner 2026-10-19).
+
+### Added
+- **[installable]** **The cosmetic classifier, `.github/hooks/sdlc-cosmetic.py`** — a
+  new kit-owned file, copied verbatim and installed unconditionally on both CLIs, like
+  the impact adapter. It answers one question: does this edit change comments and
+  layout only? It compares syntax trees with positions and comments ignored — Python
+  in-process; TypeScript and `.js`/`.jsx`/`.mjs`/`.cjs`/`.mts`/`.cts` through the
+  project's own `typescript`, resolved from the edited file first (a workspace
+  package's pin wins; proven on 5.9.3 and 6.0.3); Java through the JDK's compiler
+  API; C# through the .NET SDK's Roslyn, with every preprocessor line and inactive
+  `#if` block compared verbatim — and then requires every **directive line** (`#
+  noqa`, `// @ts-expect-error`, `#pragma`, the approved per-language lists) to keep its
+  text, order and neighbouring code. **It can only grant:** a missing toolchain, a parse
+  error, an ambiguous match, a timeout, an unknown extension or a crash each answer
+  "not cosmetic". A docstring is a string in the tree, so it stays a real edit, and so
+  does a TS JSDoc `@deprecated` (it sets a flag a lint gate can read); a Javadoc
+  `@deprecated` is cosmetic. Compiled comparators are cached under
+  `.git/sdlc-tdd/cosmetic/`; the first call per toolchain compiles (about 1.5 s for
+  Java or C#), later ones take about half a second.
+- **[adoption-only]** **Both TDD-guard dialects consult it** on a production write they
+  would deny: a cosmetic write is allowed, logged `OK production write (cosmetic:
+  …)`, and arms nothing — the stop guard does not bind the session for it. A real edit
+  is denied exactly as before, now with `not cosmetic (<why>)` in the log. Stated
+  limits: `apply_patch` (Copilot's GPT-model write tool) and a Copilot project with
+  node but no python get no exemption. The guard scripts are project-owned, so an
+  update re-derives them from the templates with the project's patterns carried over,
+  or they keep today's rule.
+
+### Changed
+- **[installable]** **A classifier-verified cosmetic source edit keeps a slice
+  docs-only.** A docs-only slice may now plan comment and layout edits to source
+  (`/plan-phase`'s `none`, `/next-slice` §4), and `/end-slice` step 1 shows each source
+  file's pre-slice content to the classifier, byte for byte, quoting its line in the
+  hand-back; anything but exit 0 voids the declaration as a source file always did,
+  and so does a project whose `spec/SDLC.md` predates the clause. A docstring is still
+  code (a string literal the parser keeps); a doc comment — Javadoc, JSDoc, C# `///`
+  — is a comment, except a TypeScript `@deprecated` tag. Canonical in
+  `SDLC.template.md` slice-loop step 4 — **[adoption-only]**, folded by hand at update.
+- **`reference/COPILOT.md`'s `edit` and `create` rows** are corrected from "did not
+  fire": which write tool fires depends on the model — GPT models use `apply_patch`,
+  Claude and Kimi models `edit` and `create` (402 calls counted in the session logs).
+
+### Fixed
+- **[adoption-only]** **A guard pattern value with a space denied every Copilot
+  write.** The shell guard pastes `{{TEST_CMD_PATTERN}}` and its siblings into a `case`
+  arm unquoted, so `*node *test*` is a syntax error, and Copilot reads the hook's exit
+  2 as deny — with nothing in `guard.log`. The Claude dialect's `fnmatch` tolerated
+  the space, so a value that worked in one dialect proved nothing about the other.
+  `GATE_RECIPES.md` and `/sdlc-setup` now require valid shell case patterns and an `sh
+  -n` of the instantiated script; `tools/tdd-guard-check.py` checks every row of the
+  recipe's table. Found on the bench during this release's live run.
+
+### Proofs
+- `tools/cosmetic-check.py` (new): 343 cases across both typescript majors, 20
+  mutations. Both guard suites extended end to end (Claude 64 cases; Copilot 94 under
+  python, 89 node-only). Live on the bench: Claude Code `Edit`, Copilot `edit` and
+  `apply_patch`, each with a cosmetic write and a real-edit control.
+
 ## 0.33.0 — 2026-10-03
 
 The architecture graph refreshes at every slice end (`FEATURE_PLAN.md` §81, ruled by the

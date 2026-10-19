@@ -32,7 +32,7 @@ never overwriting). Either way it leaves the project with:
   Model-invocable; the daily commands name them by step. `python-pro` and
   `hypothesis-tests` install on Python projects only; `tdd-guide` is optional.
 - **The hook guards** — the edit-time gate hook (always offered), the TDD-ordering
-  guards (Copilot CLI only, optional, logging mode first), and the skill-activation
+  guards (both CLIs since 0.21.0, optional, logging mode first), and the skill-activation
   ledger (optional, logging-only, both CLIs). Detailed below.
 - **The architecture-impact adapter** (`.github/hooks/sdlc-impact.py`, both CLIs,
   from 0.28.0) — installed unconditionally and **inert unless the project carries an
@@ -40,6 +40,11 @@ never overwriting). Either way it leaves the project with:
   `/end-phase` quote a mechanical picture of what the slice or arc touched. A
   comprehension aid, never verification: it gates nothing, adds no halt, and its
   summary is deliberately not one of the close-out record's keys.
+- **The cosmetic classifier** (`.github/hooks/sdlc-cosmetic.py`, both CLIs, from
+  0.34.0) — installed unconditionally and grant-only: it tells a comment- or
+  layout-only source edit from a code change, so the TDD guards let such a write
+  through and `/end-slice` lets it keep a slice docs-only. Any failure — no toolchain,
+  a parse error, a timeout — answers "not cosmetic", which is the rule without it.
 - **A green gate** — the lint / typecheck / test commands recorded in `spec/SDLC.md`
   with their baseline (zero for a clean adoption, the measured counts for a project
   adopted red). The gate must match what CI already runs, or the gate lies.
@@ -219,7 +224,9 @@ recognizing the project's own test runs.
   revokes it, and it survives reds on purpose. **"Production source" means a file
   inside the repository** — an absolute path outside the root is neither licensed nor
   denied (0.25.0), so a scratch script under a session temp directory costs no
-  license, while a relative path always counts.
+  license, while a relative path always counts. **A comment- or layout-only write needs
+  no license** (0.34.0): the cosmetic classifier confirms it, the write is logged, and
+  it arms nothing.
 - **observe-test** (post-shell): records RED or GREEN from a test command's exit
   code — bare single commands only, matched against the command with **quoted
   arguments stripped** (0.25.0), so a `git commit -m` whose body quotes the RED

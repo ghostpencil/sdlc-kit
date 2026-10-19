@@ -200,9 +200,9 @@ def emit(obj):
     sys.stdout.write(json.dumps(obj, separators=(",", ":")))
 
 
-# A comment or formatting edit needs no red (FEATURE_PLAN.md 82). Asked only of a write
-# that would otherwise be denied or logged as a violation, so a licensed write never pays
-# for it. The classifier can only GRANT: missing, broken, unsure - each returns "" and
+# A comment or formatting edit needs no red (GATE_RECIPES.md, cosmetic exemption).
+# Asked only of a write that would otherwise be denied or logged as a violation, so a
+# licensed write never pays for it. The classifier can only GRANT: missing, broken, unsure - each returns "" and
 # today's rule applies. Imported in-process (no second python), with bytecode writing
 # off - an import by path would otherwise drop __pycache__/ into the working tree.
 def cosmetic(path, rel):

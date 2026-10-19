@@ -321,7 +321,7 @@ user-typed under `.claude/commands/`, once packaged under `.github/skills/` — 
 copies update.
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time and are never
-re-applied to an already-adopted project — with five exceptions, all of which track
+re-applied to an already-adopted project — with six exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
 gone); on Copilot projects `templates/explore.agent.template.md`, which is
@@ -382,7 +382,8 @@ only as a hand-apply, and the per-version transition notes name each one.
                            .github/skills .github/agents \
                            .github/hooks/sdlc-close-out.sh \
                            .github/hooks/sdlc-close-out.json \
-                           .github/hooks/sdlc-impact.py                            .github/hooks/sdlc-cosmetic.py); do
+                           .github/hooks/sdlc-impact.py \
+                           .github/hooks/sdlc-cosmetic.py); do
      have=""
      case "$f" in
        .github/hooks/sdlc-close-out.sh)
@@ -487,8 +488,10 @@ only as a hand-apply, and the per-version transition notes name each one.
    kit-owned artifacts, `templates/close-out.template.sh` →
    `.github/hooks/sdlc-close-out.sh`, both CLIs, and — where the ≥ 0.22.0 backstop
    offer was accepted — `templates/close-out-hook.template.json` →
-   `.github/hooks/sdlc-close-out.json`, Copilot; they live outside the step-5 table
-   because they install beside the hooks).
+   `.github/hooks/sdlc-close-out.json`, Copilot; and, both CLIs, verbatim,
+   `templates/sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py` (from 0.28.0)
+   and `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py` (from
+   0.34.0); they live outside the step-5 table because they install beside the hooks).
 
    The symmetric case: files **removed from the target's install set** — listed in your
    old version's manifest under an install mapping but absent from the target's. An
@@ -920,11 +923,12 @@ only as a hand-apply, and the per-version transition notes name each one.
    installs unconditionally: it can only grant, so a missing python or language
    toolchain is today's rule. The guard scripts are project-owned — they consult the
    classifier only once re-derived from the 0.34.0 templates with your three patterns
-   carried over, and a guard left as it is keeps today's rule. Fold the
+   carried over, and a guard left as it is keeps today's rule; re-deriving one changes
+   the guard note in `spec/SDLC.md`, which says whether the guard consults it. Fold the
    `SDLC.template.md` docs-only diff (slice loop step 4) into `spec/SDLC.md` yourself;
    until you do, your process file says a source comment voids a docs-only slice, and
-   wins. Where the shell guard is installed, `sh -n .github/hooks/sdlc-tdd-guard.sh`:
-   a pattern value with a space is a syntax error that denies every Copilot write. The
+   wins. Where the shell guard is installed, `sh -n .github/hooks/sdlc-tdd-guard.sh`
+   with an `sh` that resolves (Git Bash's on Windows): a pattern value with a space is a syntax error that denies every Copilot write. The
    update command's 0.34.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,

@@ -326,7 +326,9 @@ and the default Windows hook shell is PowerShell, so the hook command lines are
 shell-neutral `python` launchers with every branch of logic in the script. Deny uses
 the documented JSON `permissionDecision` form; Stop honors `stop_hook_active` under
 the documented 8-block cap. Undocumented and unmeasured: whether a timed-out hook
-fails open or closed (default timeout 10 minutes; the guard does state I/O only).
+fails open or closed (default timeout 10 minutes; the template sets 30 s). The guard
+does state I/O only, plus — on a write it would otherwise refuse — the cosmetic
+classifier's subprocesses, bounded at 12 s compile and 8 s compare.
 
 - **G1, the observed-RED write guard** (`preToolUse`) — a write to a production source
   file is a violation unless a test file has been edited **in this session** and a
@@ -375,7 +377,7 @@ TypeScript and the JS family through the project's own `typescript` (resolved up
 from the edited file, so a workspace package's pin wins), Java through the JDK's
 compiler API, C# through the .NET SDK's Roslyn — and then compares the **directive
 lines** (`# noqa`, `// @ts-expect-error`, `#pragma`, every C# preprocessor line but
-`#region`, …), which must keep their text, their order and their neighbouring code
+the `#region`/`#endregion` pair, …), which must keep their text, their order and their neighbouring code
 lines. **It can only grant.** A missing toolchain, a parse error, an ambiguous or
 missing match, a timeout, an extension it does not know, a classifier that crashes —
 each is "not cosmetic", logged with the reason, and today's rule applies. A docstring
@@ -488,7 +490,9 @@ logs anything, and Copilot reads the non-zero exit as deny — every write refus
 with `*node *test*`). The Claude script matches with `fnmatch` and tolerates the
 space, so a value that works in one dialect proves nothing about the other. Where a
 space seems needed, a `*` spans it. Check the instantiated script with
-`sh -n .github/hooks/sdlc-tdd-guard.sh` before the logging ramp.
+`sh -n .github/hooks/sdlc-tdd-guard.sh` before the logging ramp, using an `sh` that
+resolves — on Windows Git Bash's; Copilot's shell tool resolves none, and a shell error
+there is not a syntax verdict.
 
 **The patterns above are matched against the command with quoted arguments
 removed** — both guard dialects strip `"…"` and `'…'` before the `case`, so the

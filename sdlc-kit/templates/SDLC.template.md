@@ -612,8 +612,8 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    surface + acceptance-review checklist, slices with exit criteria that name **what
    observes them and when** (a criterion naming an observer that does not run at that
    point — CI on an arc branch, typically — is a planning defect) and a test approach
-   (`none` is reserved for a slice touching no production source and no test file — the
-   docs-only slice of *Slice loop* step 4), risks. A behavior
+   (`none` is reserved for a slice touching no production source — comment and layout
+   edits excepted — and no test file: the docs-only slice of *Slice loop* step 4), risks. A behavior
    assigned to the acceptance checklist rather than pinned by a test **names the path
    a real caller reaches it by, or is flagged test-only here** — the assignment is not
    terminal, and an item nothing downstream asks about reaches halt 4 as a checklist
@@ -675,25 +675,29 @@ Run `/next-slice` in a **fresh session**:
 
    **A docs-only slice is declared here, not discovered at close-out.** When the phase
    spec ratified the slice's test approach as `none` and the slice plans to touch no
-   production source and no test file, say so in one line citing the ratified
-   approach, and skip `spec/TESTING.md`, the TDD skill, and the loop: the record is the
+   production source beyond comments and layout and no test file, say so in one line
+   citing the ratified approach, and skip `spec/TESTING.md`, the TDD skill, and the loop: the record is the
    zero-form `RED: none — no behavior batches this slice`, and `/end-slice` writes
    steps 6 and 8 as their stated skips directly (`quality: skipped — docs-only slice;
    reuse: not searched — docs-only slice`, `mutation: none — no new guards`) rather
    than walking them to find nothing. Step 9 still runs, in its docs form. **A
-   docstring inside a source file is not docs-only** — it is a behavior-preserving
-   production write, taken in the loop under the refactor licence where the TDD guards
-   are installed. **A comment- or layout-only edit to a source file can be**, and only
-   when the cosmetic classifier (`.github/hooks/sdlc-cosmetic.py`) says so at
-   close-out; where the guards are installed the same classifier lets that write
-   through without a licence. The short-circuit needs no guard of its own — a slice
+   comment- or layout-only source edit stays docs-only only on the cosmetic
+   classifier's word at close-out** (`.github/hooks/sdlc-cosmetic.py`), never on the
+   planner's. **A docstring is not a comment**: a string literal the parser keeps, as
+   Python's is, is code to it, so a docstring edit is a behavior-preserving production
+   write, taken in the loop under the refactor licence where the TDD guards are
+   installed. A doc comment — Javadoc, JSDoc, C# `///` — is a comment and goes to the
+   classifier like any other, except that a TypeScript `@deprecated` tag reads real.
+   Where the installed guards consult the classifier (the guard note says so), it also
+   lets a cosmetic write through without a licence. The short-circuit needs no guard of its own — a slice
    declared docs-only that writes source meets the guard and the gate exactly as any
    production write does — and `/end-slice` confirms the declaration against
    everything the slice will commit before writing a skip (`git status --short`, so an
    untracked file counts, plus any commit the slice already made): a test file there
    voids it, and so does a production source file unless the classifier answers
-   cosmetic for it against its state before the slice. Any other answer — real, cannot
-   tell, a new or deleted file, no python — voids it, and every step runs.
+   cosmetic (exit 0) for it against its state before the slice. Anything else — real,
+   cannot tell, a new or deleted file, no python, no classifier installed — voids it,
+   and every step runs.
 
 `/next-slice` ends at the slice-ready hand-back — the executive summary per the
 hand-back standard — and **the owner runs `/end-slice`**. Close-out is never chained

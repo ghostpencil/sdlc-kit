@@ -25,21 +25,25 @@ operator-performed, the policy names the moment to set it).
 - Confirm you are NOT on the main branch. If you are, stop and say so — slices live on
   a phase or cleanup branch.
 - **A slice `/next-slice` declared docs-only** (its §4 — ratified test approach `none`,
-  no source or test file planned) is confirmed here against **everything the slice
-  will commit**: `git status --short` — not `git diff --stat`, which does not list an
-  untracked file, so a newly created source file would pass unseen — plus the files of
-  any commit this slice already made on the arc branch. No test file, tracked or
-  untracked, and no production source file unless the cosmetic classifier answers
-  exit 0 for it. For each source file, write its content before the slice
-  (`git show <base>:<path>`, where `<base>` is `HEAD` when the slice has made no commit,
-  else the parent of its first commit) to a temp file outside the working tree and run
-  `python .github/hooks/sdlc-cosmetic.py <temp> <path> --as <path>`; quote the line it
-  prints. A file absent at the base or absent now, any exit other than 0, or no
-  classifier installed voids the declaration. If it is voided, it is not docs-only
-  and every step runs as written. If it holds, steps 3 and 5 are written as their
-  stated skips without being walked — `quality: skipped — docs-only slice; reuse: not searched —
-  docs-only slice` and `mutation: none — no new guards` — step 4's review runs as
-  ever, and step 6 runs in its docs form.
+  no source edit beyond comments and layout and no test file planned) is confirmed here
+  against **everything the slice will commit**: `git status --short` — not `git diff
+  --stat`, which does not list an untracked file, so a newly created source file would
+  pass unseen — plus the files of any commit this slice already made on the arc branch.
+  No test file, tracked or untracked, and no production source file unless the cosmetic
+  classifier answers exit 0 for it. For each source file, in your shell tool, write its
+  content before the slice to a temp file outside the working tree, byte for byte
+  (`git show <base>:<path> > <temp>` from a POSIX shell — PowerShell's `>` re-encodes
+  it; `<base>` is `HEAD` when the slice has made no commit, else the parent of its
+  first commit), run `python .github/hooks/sdlc-cosmetic.py <temp> <path> --as <path>`,
+  and quote the line it prints in the hand-back (step 10). A file absent at the base or
+  absent now, any exit other than 0 (no python included), or no classifier installed
+  voids the declaration — and so does any source file at all where `spec/SDLC.md` slice-loop
+  step 4 does not yet carry the classifier clause: the project predates it, and its
+  process file wins. If it is voided, it is not docs-only and every step runs as
+  written. If it holds, steps 3 and 5 are written as their stated skips without being
+  walked — `quality: skipped — docs-only slice; reuse: not searched — docs-only slice`
+  and `mutation: none — no new guards` — step 4's review runs as ever, and step 6 runs
+  in its docs form.
 
 ### 2. Run the gate
 

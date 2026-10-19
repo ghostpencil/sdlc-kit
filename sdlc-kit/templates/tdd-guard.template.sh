@@ -351,11 +351,11 @@ PATHLIST
       # The close-out license answers here too; it differs only in what a test edit
       # does to it.
       if [ -z "$ok" ] && { [ -f "$S/refactor-license" ] || [ -f "$S/close-out-license" ]; } && [ -f "$S/green-observed" ]; then ok=lic; fi
-      # A comment or formatting edit needs no red (FEATURE_PLAN.md 82). Asked only of a
-      # write that would otherwise be denied or logged as a violation, and only of a
-      # single-file write: edit and create carry one path, and apply_patch keeps
-      # today's rule (the classifier answers "cannot tell" to it in any case). It can
-      # only GRANT - python missing, the file missing, any exit but 0 leaves today's rule.
+      # A comment or formatting edit needs no red (GATE_RECIPES.md, cosmetic
+      # exemption). Asked only of a write that would otherwise be denied or logged as a
+      # violation, and only of a single-file write: edit and create carry one path, and
+      # apply_patch keeps today's rule (the classifier answers "cannot tell" to it in
+      # any case). It can only GRANT - python missing, the file missing, any exit but 0 leaves today's rule.
       # Its file is passed in the root's own flavour, which the hook shell's python can
       # read; the payload's path may be a drive path a WSL python cannot. Needs python,
       # not node: a node-only shell gets no exemption (stated in COPILOT.md).
