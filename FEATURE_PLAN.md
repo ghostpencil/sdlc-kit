@@ -6359,3 +6359,85 @@ detector fix, D, B's text, E's line, and G. Every placeholder added is taught to
 `sdlc-setup.md` and documented in GATE_RECIPES (invariant 1); every project-owned file
 changed (`.claude/settings.json`, the gate hook body, the guard's instantiated
 placeholders) gets a manual `/sdlc-update` note.
+
+### 84.8 Measured 2026-10-20 — both CLIs keep the head of a failing run and lose the tail
+
+Ruling 2's precondition, run on the bench (`D:\AICourse\copilot-ci-test`, record in its
+`ENF_PROBE_NOTES.md`): temporary fixtures and a payload-dump hook, one live session per
+CLI on the cheapest model (Copilot 3.59 credits), the same three commands, everything
+removed afterwards.
+
+| command | Copilot 1.0.100 `textResultForLlm` | Claude Code 2.1.304 `error` |
+|---|---|---|
+| pytest red after ~1.3 MB of captured output (exit 1) | **replaced** by "Output too large … Saved to: <temp>" + the first 500 chars | **head-truncated at ~10,000 chars** |
+| pytest collection error (exit 2) | full | full |
+| `npm test` running a missing binary (exit 1) | full | full |
+
+**The runner's output does reach the hook in both dialects, so ruling 2's placeholder
+stands and the denylist fallback is not needed.** But neither CLI delivers the tail of a
+long run: on the long red, pytest's `short test summary` and `1 failed` were absent from
+both payloads, while `==== FAILURES ====` (printed before the details) survived in both.
+So the pattern examples #16 proposed — pytest `\d+ failed|short test summary`, vitest
+`Test Files .*failed`, jest `Tests?:.*failed` — are all **end-of-run summaries** and would
+refuse every long-output red. Build consequences:
+
+- `{{TEST_REPORT_PATTERN}}`'s recipe values are **head-of-report markers**: pytest
+  `=+ (FAILURES|ERRORS) =+` (both the assertion red and the collection red carry one);
+  vitest's ` RUN  v\d` start line and jest's `FAIL ` per-file line are candidates, not
+  measured. Matched over CRLF (Claude Code's `error` carries Windows line ends).
+- **Setup proves the pattern, not just records it:** with the guard installed, it runs
+  one deliberate red and one wrapper failure and confirms the pattern counts the first
+  and refuses the second, so a recipe value that does not fit the project's runner fails
+  loudly at setup rather than silently in the first slice.
+- The refusal message says what to do when a genuine red is refused: re-run quieter
+  (the runner's quiet flag or a single-test selector) — a red whose report starts after
+  10,000 characters of streamed output is the one shape head markers cannot see.
+- Copilot's `<shellId: N completed with exit code M>` trailer survives the replacement,
+  so the exit code is still read; its saved temp file is not a source (gone after the
+  session).
+- New harness fixtures use the measured shapes: a head-truncated red, a 500-char
+  Copilot preview, a full collection error, a wrapper failure.
+
+**vitest and jest, measured 2026-10-20 (owner's request).** vitest 4.1.12 and jest
+30.5.2 in a scratch project, each run on six shapes — an assertion red, the
+missing-module first red, a syntax error in the test file, a red after 20,000 lines of
+console output, a passing run, and "no test files found" — then the two measured
+truncations applied (Copilot's 500-char preview, Claude Code's ~10,000-char head). Live
+runs in both CLIs confirmed the delivered text: Claude Code's payload matches the
+offline capture; Copilot's (read from its session record, which equals the hook payload
+character for character — checked on the pytest session) **strips every ANSI code and
+trims leading whitespace off the whole output**.
+
+| marker | assertion / missing module / syntax red | noisy red, truncated | no test files | pass |
+|---|---|---|---|---|
+| vitest `RUN  v…` start line | yes | yes | **yes** (exit 1) | **yes** |
+| vitest `FAIL` line, `Test Files N failed` | yes | lost | no | no |
+| jest `FAIL` line, `Test Suites: N failed` | yes | lost | no | no |
+
+- **vitest's start line is not evidence.** It prints on every run, including "No test
+  files found, exiting with code 1" and a pass — it proves the runner started, not that a
+  test failed, and would count a runner-level failure as a RED. Not a recipe value.
+- **Recipe values** (matched after stripping ANSI and normalizing CRLF, leading
+  whitespace optional because Copilot trims it): vitest `^\s*FAIL\s|Test Files +\d+
+  failed`; jest `^\s*FAIL\s|Test Suites: \d+ failed`; pytest `=+ (FAILURES|ERRORS) =+`
+  (§84.8 above). Each counts all three red shapes and refuses "no tests found", a pass,
+  a wrapper's missing binary, and a vitest CLI usage error (`Unexpected value
+  "--silent=…"`, exit 1, caught by accident and correctly refused).
+- **The noisy red is refused in both runners** — its markers come after the console
+  output — so the refusal message's re-run advice is per runner, and was measured: jest
+  `--silent` (marker back at char 0); **vitest needs `--silent=true --reporter=dot`**
+  (marker at char 166) — in 4.1 `--silent` with the default reporter still prints a
+  failing test's console output, and a bare `--silent` before the path swallows the
+  path as its value. pytest prints `FAILURES` before captured output, so only `-s`
+  streaming defeats it.
+- **Strip ANSI before matching**: jest colours its code frame even without a terminal
+  (Claude Code delivers those codes); a project that forces colour would wrap the
+  `FAIL` token itself.
+- **Open, not explained:** in the last two live runs the probe's payload-dump hook wrote
+  nothing on either CLI, for commands that ran and failed — the earlier pytest probe, set
+  up the same way, captured every call. The session records made the hooks unnecessary
+  for this measurement, but the guard's own `observe-test` depends on those events
+  firing, so this is re-run on the bench before A ships (two parallel tool calls on
+  Copilot is the first suspect; neither CLI was asked to run them sequentially).
+
+Cost: 3.59 + 3.54 + 1.48 + 1.44 Copilot credits, four short Claude Code Haiku sessions.
