@@ -6433,11 +6433,17 @@ trims leading whitespace off the whole output**.
 - **Strip ANSI before matching**: jest colours its code frame even without a terminal
   (Claude Code delivers those codes); a project that forces colour would wrap the
   `FAIL` token itself.
-- **Open, not explained:** in the last two live runs the probe's payload-dump hook wrote
-  nothing on either CLI, for commands that ran and failed — the earlier pytest probe, set
-  up the same way, captured every call. The session records made the hooks unnecessary
-  for this measurement, but the guard's own `observe-test` depends on those events
-  firing, so this is re-run on the bench before A ships (two parallel tool calls on
-  Copilot is the first suspect; neither CLI was asked to run them sequentially).
+- **The silent probe was the probe's own bug — RESOLVED the same day.** In the last
+  two live runs the payload-dump hook wrote 0-byte files on both CLIs. Cause, reproduced:
+  on Windows, Python reads piped stdin as **cp1252 with `surrogateescape`**, so vitest's
+  `❯` and jest's `●` (UTF-8 bytes including `0x9D`) become lone surrogates, and the
+  probe's UTF-8 write then raised `UnicodeEncodeError` after creating the file. Every run
+  that captured had ASCII-only output (pytest; a Copilot call whose output was empty).
+  The hook events fired throughout. **The shipped hooks are immune** — every payload
+  read is `sys.stdin.buffer.read().decode("utf-8", "replace")`. One cosmetic neighbour,
+  a build note for A: the Copilot guard's `emit_deny`/`emit_block`/`emit_context`
+  helpers read their *message* with text-mode `sys.stdin.read()`, so a non-ASCII path
+  in the message arrives as mojibake (`src/café.py` → `cafÃ©`, measured); the
+  decision is unaffected. Read bytes there too.
 
 Cost: 3.59 + 3.54 + 1.48 + 1.44 Copilot credits, four short Claude Code Haiku sessions.
