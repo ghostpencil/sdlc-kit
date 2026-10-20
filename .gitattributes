@@ -1,3 +1,6 @@
 # Kit files are hashed in MANIFEST.sha256; line endings must be identical on
 # every platform or the checksums disagree. Text files are LF everywhere.
 * text=auto eol=lf
+# Verbatim from the plugin install, CRLF included: the plugin-fix proof checks that the
+# rewrite keeps every byte but the two commands, so the endings are the evidence.
+tools/impact-fixtures/ua-hooks.json -text

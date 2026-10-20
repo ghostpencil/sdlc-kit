@@ -231,7 +231,8 @@ fails or cannot run must be seen to report "cannot check" rather than a COMPLETE
 off an empty list, a missing doc must be seen NOT to call for a full rebuild, and a
 graph already at HEAD must be seen to skip the slice-end refresh, and `plugin-fix` must
 be seen to leave a Claude Code install and every line past the frontmatter
-byte-identical), the hook launchers'
+byte-identical, and the hooks it installs on Copilot must be seen to deliver top-level
+`additionalContext` from the project's directory, not the plugin's), the hook launchers'
 **missing-script stop block**
 (0.31.1 — a stop launcher whose script is absent must be seen to block once naming it,
 and must be seen NOT to block when `stop_hook_active` is true or when the script is

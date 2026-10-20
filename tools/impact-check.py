@@ -87,6 +87,16 @@ LISTED_SKILL = ("---\r\nname: understand\r\ndescription: Analyze a codebase to p
 FIXED_SKILL = LISTED_SKILL.replace('argument-hint: ["%s"]' % HINT,
                                    'argument-hint: "%s"' % HINT)
 STRING_SKILL = "---\nname: understand-chat\nargument-hint: \"[query]\"\n---\n\nbody\n"
+# plugin-fix's hooks half: the plugin's hooks.json verbatim (2.9.4 = 2.9.7, CRLF; see
+# tools/impact-fixtures/SEED.md), the script the adapter installs beside it, and a
+# hooks.json from a plugin that no longer ships the two auto-update hooks.
+with io.open(os.path.join(FIXTURES, "ua-hooks.json"), "rb") as _fh:
+    UA_HOOKS = _fh.read().decode("utf-8")
+HOOK_SCRIPT_NAME = "sdlc-kit-copilot-hooks.mjs"
+OTHER_HOOKS = ('{\r\n  "hooks": {\r\n    "SessionStart": [\r\n      {\r\n        "hooks": '
+               '[\r\n          {\r\n            "type": "command",\r\n            "command":'
+               ' "node \\"${CLAUDE_PLUGIN_ROOT}/hooks/welcome.mjs\\""\r\n          }\r\n'
+               '        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n')
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -576,12 +586,23 @@ def c_rc_no_graph(b):
 
 # ---- plugin-fix: Copilot CLI drops a skill whose argument-hint is a list.
 
-def plugin_fix_bench(b):
+def write_hooks(b, plugin_parts, text):
+    path = os.path.join(b.home, *(plugin_parts + ("hooks", "hooks.json")))
+    os.makedirs(os.path.dirname(path))
+    with io.open(path, "wb") as fh:
+        fh.write(text.encode("utf-8"))
+    return path
+
+
+def plugin_fix_bench(b, hooks=UA_HOOKS):
     b.commit("a repository")
     copilot = COPILOT_HOME + ("ua",)
     b.install_scanner(copilot, "2.9.4", files=IN_GRAPH)
     b.listed = b.write_skill(copilot, "understand", LISTED_SKILL)
     b.string = b.write_skill(copilot, "understand-chat", STRING_SKILL)
+    b.hooks = write_hooks(b, copilot, hooks)
+    b.hooks_text = hooks
+    b.script = os.path.join(os.path.dirname(b.hooks), HOOK_SCRIPT_NAME)
     return ("plugin-fix",)
 
 
@@ -600,6 +621,7 @@ def c_pf_claude_untouched(b):
     claude = CLAUDE_HOME + ("2.9.7",)
     b.install_scanner(claude, "2.9.7", files=IN_GRAPH)
     b.claude = b.write_skill(claude, "understand", LISTED_SKILL)
+    b.claude_hooks = write_hooks(b, claude, UA_HOOKS)
     return argv
 
 
@@ -609,22 +631,168 @@ def c_pf_no_install(b):
     return ("plugin-fix",)
 
 
+def c_pf_unrecognized_hooks(b):
+    return plugin_fix_bench(b, hooks=OTHER_HOOKS)
+
+
+def hook_project(b, auto_update=True, current=False):
+    """The bench as a project the hooks report on: a graph, autoUpdate as given, and a
+    build commit that is HEAD or is not."""
+    argv = plugin_fix_bench(b)
+    b.install_graph()
+    b.write(os.path.join(b.ua_dir, "config.json"),
+            json.dumps({"autoUpdate": auto_update}))
+    if current:
+        b.set_meta_commit(b.head())
+    return argv
+
+
+def c_pf_hooks_stale(b):
+    return hook_project(b)
+
+
+def c_pf_hooks_current(b):
+    return hook_project(b, current=True)
+
+
+def c_pf_hooks_auto_update_off(b):
+    return hook_project(b, auto_update=False)
+
+
 def read_text(path):
     with io.open(path, "rb") as fh:
         return fh.read().decode("utf-8")
 
 
+def fixed_hooks(bench):
+    """The plugin's hooks.json with exactly the two command lines replaced, CRLF kept."""
+    script = bench.script.replace(os.sep, "/")
+    lines = []
+    for line in UA_HOOKS.splitlines(True):
+        for marker, mode in (("post-tool-use-auto-update.mjs", "post-tool-use"),
+                             ("auto-update-prompt.md", "session-start")):
+            if marker in line:
+                line = ('            "command": "node \\"%s\\" %s"\r\n' % (script, mode))
+        lines.append(line)
+    return "".join(lines)
+
+
 def assert_skills_fixed(bench, out):
     """Byte-exact: the frontmatter hint is a string, CRLF kept, the body line and the
-    already-string skill untouched, and a Claude Code install never written."""
+    already-string skill untouched, hooks.json changed in its two commands only, and a
+    Claude Code install never written."""
     problems = []
     if read_text(bench.listed) != FIXED_SKILL:
         problems.append("understand/SKILL.md is not exactly the fixed text: %r"
                         % read_text(bench.listed)[:300])
     if read_text(bench.string) != STRING_SKILL:
         problems.append("a skill that needed no fix was rewritten")
+    if read_text(bench.hooks) != fixed_hooks(bench):
+        problems.append("hooks.json is not exactly the fixed text: %r"
+                        % read_text(bench.hooks)[:400])
+    if not os.path.isfile(bench.script):
+        problems.append("the hook script was not installed")
     if getattr(bench, "claude", None) and read_text(bench.claude) != LISTED_SKILL:
         problems.append("the Claude Code install was rewritten")
+    if (getattr(bench, "claude_hooks", None)
+            and read_text(bench.claude_hooks) != UA_HOOKS):
+        problems.append("the Claude Code install's hooks.json was rewritten")
+    return "; ".join(problems)
+
+
+def assert_hooks_untouched(bench, out):
+    problems = []
+    if read_text(bench.hooks) != bench.hooks_text:
+        problems.append("an unrecognized hooks.json was rewritten")
+    if os.path.isfile(bench.script):
+        problems.append("the hook script was installed with no hook pointing at it")
+    return "; ".join(problems)
+
+
+def run_hook(bench, mode, payload):
+    """The installed script as Copilot runs it: from the plugin's own directory, the
+    payload on stdin. Returns (stdout, the parsed context or None, problem)."""
+    p = subprocess.run(["node", bench.script, mode], cwd=os.path.dirname(bench.hooks),
+                       input=json.dumps(payload).encode("utf-8"), capture_output=True,
+                       env=dict(os.environ, HOME=bench.home, USERPROFILE=bench.home))
+    out = p.stdout.decode("utf-8", "replace").strip()
+    if p.returncode != 0:
+        return out, None, "%s exited %d: %s" % (mode, p.returncode, p.stderr[:200])
+    if not out:
+        return out, None, None
+    try:
+        parsed = json.loads(out)
+    except ValueError:
+        return out, None, "%s printed something Copilot discards (not JSON): %r" % (mode, out)
+    if not isinstance(parsed, dict) or set(parsed) != {"additionalContext"}:
+        return out, None, ("%s printed a form Copilot discards (not top-level "
+                           "additionalContext): %r" % (mode, out))
+    return out, parsed["additionalContext"], None
+
+
+# What Copilot 1.0.100 hands a plugin's PostToolUse hook, as recorded 2026-10-20: the
+# Claude payload, its powershell tool reported as Bash. Copilot's own hooks get
+# toolArgs, a JSON string (GATE_RECIPES.md), which the script reads as well.
+def tool_payload(bench, command):
+    return {"hook_event_name": "PostToolUse", "cwd": bench.root, "tool_name": "Bash",
+            "tool_input": {"command": command, "description": "a step"}}
+
+
+def hook_answers(bench):
+    """(problems, {name: context}) for the four payloads every hook case sends."""
+    commit = "git commit -q -m 'a slice'"
+    calls = {"session-start": ("session-start", {"hook_event_name": "SessionStart",
+                                                 "cwd": bench.root, "source": "new"}),
+             "commit": ("post-tool-use", tool_payload(bench, commit)),
+             "commit (toolArgs a JSON string)": ("post-tool-use",
+                                                 {"cwd": bench.root, "toolName":
+                                                  "powershell", "toolArgs":
+                                                  json.dumps({"command": commit})}),
+             "status": ("post-tool-use", tool_payload(bench, "git status --short"))}
+    problems, contexts = [], {}
+    for name, (mode, payload) in calls.items():
+        _, context, problem = run_hook(bench, mode, payload)
+        if problem:
+            problems.append(problem)
+        contexts[name] = context
+    return problems, contexts
+
+
+def assert_hooks_speak(bench, out):
+    """A stale graph with autoUpdate on: the session-start and commit hooks deliver the
+    plugin's message, naming the prompt by absolute path; a non-commit says nothing."""
+    problems, got = hook_answers(bench)
+    prompt = os.path.join(os.path.dirname(bench.hooks), "auto-update-prompt.md")
+    for name, phrase in (("session-start", "Knowledge graph is stale"),
+                         ("commit", "Commit detected"),
+                         ("commit (toolArgs a JSON string)", "Commit detected")):
+        context = got[name] or ""
+        if phrase not in context:
+            problems.append("%s did not deliver %r: %r" % (name, phrase, context))
+        elif prompt not in context:
+            problems.append("%s does not name the prompt at %s: %r"
+                            % (name, prompt, context))
+    if got["status"]:
+        problems.append("a non-commit command delivered a reminder")
+    return "; ".join(problems)
+
+
+def assert_hooks_silent(bench, out):
+    """autoUpdate off: no hook says anything, whatever the graph's state."""
+    problems, got = hook_answers(bench)
+    problems += ["%s delivered %r" % (name, context)
+                 for name, context in sorted(got.items()) if context]
+    return "; ".join(problems)
+
+
+def assert_hooks_commit_only(bench, out):
+    """A graph at HEAD: no session-start reminder, but a commit - which moves HEAD past
+    the graph - still gets one."""
+    problems, got = hook_answers(bench)
+    if got["session-start"]:
+        problems.append("session-start reminded with the graph at HEAD")
+    if "Commit detected" not in (got["commit"] or ""):
+        problems.append("the commit reminder did not arrive with the graph at HEAD")
     return "; ".join(problems)
 
 
@@ -770,19 +938,35 @@ CASES = [
 
     ("plugin_fix_makes_the_hint_a_string", c_pf_fixes_copilot,
      ["argument-hint made a string in understand,", "Copilot CLI plugins",
-      "next Copilot session"], ["understand-chat,", "nothing to fix"],
+      "next Copilot session", "auto-update hooks rewritten to run on Copilot"],
+     ["understand-chat,", "nothing to fix", "left as they were"],
      assert_skills_fixed),
 
     ("plugin_fix_is_idempotent", c_pf_idempotent,
-     ["nothing to fix (2 skills checked)"], ["made a string"], assert_skills_fixed),
+     ["nothing to fix (2 skills checked, hooks already fixed)"],
+     ["made a string", "rewritten"], assert_skills_fixed),
 
     ("plugin_fix_never_writes_the_claude_install", c_pf_claude_untouched,
-     ["made a string in understand,"], ["Claude Code plugin cache"],
-     assert_skills_fixed),
+     ["made a string in understand,", "hooks rewritten"],
+     ["Claude Code plugin cache"], assert_skills_fixed),
 
     ("plugin_fix_without_a_copilot_install", c_pf_no_install,
      ["no Understand Anything install in the Copilot CLI plugins home"],
-     ["made a string"], None),
+     ["made a string", "rewritten"], None),
+
+    ("plugin_fix_leaves_hooks_it_does_not_recognize", c_pf_unrecognized_hooks,
+     ["hooks left as they were: no auto-update hook recognized"],
+     ["hooks rewritten", "hooks already fixed"], assert_hooks_untouched),
+
+    # The installed script, run the way Copilot runs it (FEATURE_PLAN §83.4).
+    ("fixed_hooks_remind_on_a_stale_graph", c_pf_hooks_stale,
+     ["hooks rewritten"], [], assert_hooks_speak),
+
+    ("fixed_hooks_skip_session_start_at_head", c_pf_hooks_current,
+     ["hooks rewritten"], [], assert_hooks_commit_only),
+
+    ("fixed_hooks_obey_auto_update_off", c_pf_hooks_auto_update_off,
+     ["hooks rewritten"], [], assert_hooks_silent),
 ]
 
 
@@ -963,6 +1147,38 @@ MUTATIONS = [
     ("plugin_fix_never_writes",
      "                if changed:\n                    with open(path, \"wb\") as fh:",
      "                if changed:\n                    with open(os.devnull, \"wb\") as fh:"),
+    # plugin-fix: the hooks half, and the script it installs
+    ("hooks_rewrite_drops_the_crlf",
+     "                fh.write(new_text.encode(\"utf-8\"))",
+     "                fh.write(new_text.replace(\"\\r\\n\", \"\\n\").encode(\"utf-8\"))"),
+    ("hooks_rewrite_never_writes",
+     "        if new_text != text:\n            with open(path, \"wb\") as fh:",
+     "        if False:\n            with open(path, \"wb\") as fh:"),
+    ("hooks_rewrite_takes_any_command",
+     "                elif marker in command:",
+     "                elif command:"),
+    ("hook_reads_the_plugin_directory",
+     "  const project = payload.cwd || process.env.COPILOT_PROJECT_DIR || process.cwd();",
+     "  const project = process.cwd();"),
+    ("hook_prints_plain_text",
+     "  process.stdout.write(JSON.stringify({ additionalContext: message }));",
+     "  process.stdout.write(message);"),
+    ("hook_prints_the_claude_form",
+     "  process.stdout.write(JSON.stringify({ additionalContext: message }));",
+     "  process.stdout.write(JSON.stringify({ hookSpecificOutput: { additionalContext:"
+     " message } }));"),
+    ("hook_ignores_auto_update",
+     "?.autoUpdate !== true) return;",
+     "?.autoUpdate === 'never') return;"),
+    ("hook_ignores_tool_input",
+     "  let args = payload.tool_input ?? payload.toolArgs;",
+     "  let args = payload.toolArgs;"),
+    ("hook_misses_string_tool_args",
+     "  if (typeof args === 'string') {",
+     "  if (false) {"),
+    ("hook_reminds_at_head",
+     "    if (!meta || meta.gitCommitHash === headOf(project)) return;",
+     "    if (!meta) return;"),
 ]
 
 

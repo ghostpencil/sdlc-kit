@@ -5922,7 +5922,73 @@ suggestion it ran in ai-news (trusted, clean, `.ua/` ignored, backed up first), 
 - **Verified live:** a fresh Copilot 1.0.100 session in the bench listed `understand`
   with its description, without invoking it, and the session log carried no
   `argument-hint` diagnostic (5.2 credits). ai-news was not refreshed, per the owner.
-- **Left alone:** the plugin's failing session-start hook (bash syntax under PowerShell)
-  was not asked about and is not fixed.
+- **Left alone at first:** the plugin's failing session-start hook (bash syntax under
+  PowerShell). Fixed the next day, below.
+
+**The plugin's auto-update hooks on Copilot — measured 2026-10-20, then fixed.**
+The owner asked what fixing the session-start hook would take. Three live Copilot
+1.0.100 probes followed, each putting temporary hooks in the owner's install, with the
+file backed up first and restored to the same sha256 afterwards (about 9 credits):
+- **The first probe was read too fast.** It printed plain text and Claude's nested
+  `hookSpecificOutput.additionalContext` from a session-start hook in a `-p` session.
+  Neither arrived, and I proposed only silencing the error. The owner challenged that:
+  silencing a hook is not fixing it.
+- **The second probe ran interactively** (a real terminal, driven through pywinpty).
+  It tried session start, prompt submit and after-tool hooks in both forms. All fired,
+  and none of the five code words arrived.
+- **The third probe used top-level `{"additionalContext": …}`,** the form the kit's
+  own Copilot gate hook has always used (`GATE_RECIPES.md`). It was delivered on all
+  three events: at session start, appended to the prompt as a system reminder, and
+  after the tool result as "Additional guidance from postToolUse hooks". The lesson:
+  a channel that drops one format is not dead.
+- **The defects, three, all measured:**
+  - Copilot runs the bash session-start command in PowerShell (11 failures in the
+    owner's logs over two days).
+  - Copilot runs a plugin hook in the plugin's install directory, so both hooks look
+    for `.ua/` there and never find a graph. The project arrives as the payload's
+    `cwd` and as `COPILOT_PROJECT_DIR`. `CLAUDE_PLUGIN_ROOT` is set.
+  - Copilot discards the plugin's plain-text output, and would discard the nested
+    form too.
+  - **Not a defect, though I first said it was:** the commit hook's payload. I claimed
+    the hook reads `tool_input` where Copilot sends `toolArgs`, and wrote it into the
+    first draft of every document here. The probe's own stdin records, read before
+    applying the fix, showed otherwise: Copilot hands a plugin hook the Claude payload
+    (`tool_name: "Bash"` for its `powershell` tool, `tool_input.command`), which §79.2's
+    payload table had already recorded, for repo-level hooks, on 1.0.88. The plugin's matcher fires, and its
+    payload reading is correct.
+- **Built:** `plugin-fix` now also writes `hooks/sdlc-kit-copilot-hooks.mjs` into the
+  Copilot install and points the two `hooks.json` commands at it, as
+  `node "<absolute path>" session-start|post-tool-use`.
+  - The command has no shell syntax and no variable, so PowerShell and bash run it
+    alike.
+  - The script makes the plugin's own checks: `autoUpdate` true and a graph present;
+    at session start, a build commit other than HEAD; after a tool, a git
+    commit/merge/cherry-pick/rebase command, read from `tool_input` (what Copilot
+    sends a plugin hook) or from `toolArgs` (its own hooks' field, a JSON string).
+  - It prints the plugin's message unchanged, with the prompt's absolute path, as
+    top-level `additionalContext`.
+  - The rewrite changes only those two command strings and keeps every other byte,
+    CRLF included.
+  - A `hooks.json` with neither of the plugin's hooks is left alone and reported.
+- **The owner's ruling on the consequence:** ai-news keeps `autoUpdate: true`. Once
+  the fix is applied there, a Copilot session that opens on its stale graph is told to
+  refresh it, as the plugin intends.
+- **Proof:** the plugin's `hooks.json` verbatim as a new fixture,
+  `tools/impact-fixtures/ua-hooks.json` (`.gitattributes` exempts it from LF
+  normalization). Four new cases run the installed script as Copilot does, from the
+  plugin's directory with the payload on stdin. Ten new mutations, each caught. Among
+  them: the plugin-directory lookup, plain-text output, the nested Claude form, and
+  the `tool_input` payload as recorded. The suite passes 45 cases and catches 41 of 41
+  mutations, exit 0. Shipped lint is clean.
+- **Applied to the owner's Copilot install:** only the two command lines changed, and
+  a second run reported nothing to fix.
+- **Verified live through the real install:** a temporary stale graph with `autoUpdate`
+  on was staged in the bench and removed afterwards. A `-p` session with no tool
+  permission quoted the plugin's session-start message verbatim, naming the prompt's
+  absolute path, and the session record shows the hook succeeding (3 credits).
+- **Doc corrections:** the template's and setup's `autoUpdate` text said a
+  PowerShell-primary project gets a session-start-only reminder. That held on Claude
+  Code only; on Copilot it got nothing. Both now say what the setting does on each
+  CLI.
 
 **Not yet run:** the adopter canaries, at their next update.

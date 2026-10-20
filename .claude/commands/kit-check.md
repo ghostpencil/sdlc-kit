@@ -140,7 +140,7 @@ For each, read the named files in full — do not sample — and cite evidence p
   classifier, the release workflow's manifest verification, the impact adapter's
   four-state taxonomy (0.28.0; negative cases in `tools/impact-check.py`) and its
   inside-the-change-set freshness rule (0.33.0) and its coverage, refresh-check and
-  plugin-fix modes (0.35.0), the hook
+  plugin-fix modes (0.35.0, plugin-fix's Copilot hook script included), the hook
   launchers' missing-script stop block, git-directory resolution through a linked
   worktree's `.git` file, and the guard's WSL mount candidate root (all 0.31.1), the
   Claude-dialect hooks' Copilot-payload stand-down (0.31.3), the docs-only slice's

@@ -562,10 +562,12 @@ and nothing is mid-flight, so neither can invalidate work in progress.
   CLI refuses Understand Anything's `understand` skill, whose `argument-hint` is a list
   where Copilot requires a string, so a session reports `Skill not found`.
   `python .github/hooks/sdlc-impact.py plugin-fix` rewrites that one field in the Copilot
-  install. It is idempotent, never touches a Claude Code install, takes effect at the next
-  session, and must be re-run after each plugin update. It writes outside the repository,
-  so the commands offer it as the owner action and never run it themselves; without it,
-  the action is a Claude Code session (`reference/COPILOT.md`).
+  install. It also rewrites the plugin's two auto-update hooks there, which Copilot
+  cannot run as shipped (below). It is idempotent, never touches a Claude Code install,
+  takes effect at the next session, and must be re-run after each plugin update. It
+  writes outside the repository, so the commands offer it as the owner action and never
+  run it themselves; without it, the action is a Claude Code session
+  (`reference/COPILOT.md`).
 
 Without a stated trigger the graph ages silently and every run of the view reports
 `PARTIAL`: one real adoption ran a seven-slice phase against a graph built before the
@@ -576,10 +578,18 @@ freshness line was the only thing that said so (field, 2026-09-01).
 such a setting, turn it on — it is strictly better than nothing — but treat it as a
 reminder, not a refresh. Measured against the Understand Anything plugin at kit 0.31.0:
 its `autoUpdate` flag defaults to off, and turning it on enables two hooks that both only
-*print a message asking the agent* to merge the graph by hand — neither writes it. One of
-those hooks matches the **Bash** tool only, so on a project whose primary shell is
-PowerShell a commit fires nothing at all, and the plugin's own prompt describes itself as
-triggered by a post-commit hook the plugin does not ship. A setting named auto-update
+*print a message asking the agent* to merge the graph by hand — neither writes it. On
+Claude Code one of those hooks matches the **Bash** tool only, so on a project whose
+primary shell is PowerShell a commit fires nothing at all, and the plugin's own prompt
+describes itself as triggered by a post-commit hook the plugin does not ship. On Copilot
+CLI both hooks are dead as shipped. Measured 2026-10-20 on 1.0.100, three ways: Copilot
+runs the bash session-start command in PowerShell; it runs a plugin's hooks in the
+plugin's own directory, where they look for the graph; and it discards both hooks'
+output forms, delivering only a top-level `additionalContext`. `plugin-fix` rewrites
+both to a script that
+does the plugin's checks and prints its message in the form Copilot delivers. Measured
+the same day, that form reaches the agent at session start and after a tool call. A
+setting named auto-update
 that reminds rather than updates is exactly the kind of claim this process re-derives
 rather than trusts. The refreshes above are what make the view's
 freshness a property of this process instead of a property of a vendor's hook matcher.

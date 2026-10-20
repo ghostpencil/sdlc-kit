@@ -580,7 +580,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    Do not ask: on is the default for every new adoption. Where Copilot CLI is a
    runtime, also offer `python .github/hooks/sdlc-impact.py plugin-fix` at the same
    halt. Copilot refuses the plugin's `understand` skill until that one frontmatter
-   field is a string (`spec/SDLC.md`, *Architecture impact view*). It writes into the
+   field is a string, and cannot run the plugin's auto-update hooks until they are
+   rewritten; the mode does both (`spec/SDLC.md`, *Architecture impact view*). It
+   writes into the
    owner's Copilot plugin install, outside the repository, so run it only on a yes,
    and say it must be re-run after each plugin update.
 
@@ -596,9 +598,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      plugin at kit 0.31.0: the flag defaults to off, and turning it on enables two
      hooks whose entire output is a message asking the *agent* to merge the graph by
      hand. Neither writes the graph.
-   - One of those hooks matches the **Bash** tool only. On a project whose primary
-     shell is PowerShell, a commit fires nothing at all — worth saying explicitly when
-     the runtime interview established a non-Bash shell.
+   - On Claude Code, one of those hooks matches the **Bash** tool only. On a project
+     whose primary shell is PowerShell, a commit fires nothing at all — worth saying
+     explicitly when the runtime interview established a non-Bash shell. On Copilot
+     CLI, neither hook works until `plugin-fix` has run (offered above); say so when
+     Copilot is a runtime.
    - Turning it on is still worth doing: the session-start staleness check is a real
      signal, and it costs one boolean. It is a supplement to the process's own
      regenerations, never a substitute for them.

@@ -75,6 +75,75 @@ TRIGGER_CATEGORIES = ("code", "script")
 SCAN_TIMEOUT = 300
 # A one-item YAML list as a skill's argument-hint - what Copilot CLI rejects (plugin-fix).
 HINT_LIST = re.compile(r'^argument-hint:\s*\[\s*"((?:[^"\\]|\\.)*)"\s*\]\s*$')
+# plugin-fix's replacement for the plugin's two auto-update hooks on Copilot CLI: the
+# event, a substring that identifies the plugin's own command, and the script's mode.
+HOOK_TARGETS = (("SessionStart", "auto-update-prompt.md", "session-start"),
+                ("PostToolUse", "post-tool-use-auto-update.mjs", "post-tool-use"))
+HOOK_SCRIPT_NAME = "sdlc-kit-copilot-hooks.mjs"
+# The same checks and the same message as the plugin's hooks; only what Copilot needs
+# differs: no shell syntax, the project found from the payload's cwd (Copilot runs a
+# plugin hook in the plugin's directory), and the message printed as top-level
+# additionalContext (the only form Copilot delivers). Copilot hands a plugin hook the
+# Claude payload (tool_input); toolArgs, its own hooks' field, is read as well.
+HOOK_SCRIPT = r"""// Written by sdlc-kit's `sdlc-impact.py plugin-fix`; a plugin update removes it.
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+
+const PLUGIN_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const PROMPT = join(PLUGIN_ROOT, 'hooks', 'auto-update-prompt.md');
+const COMMIT_COMMAND = /git\s+(commit|merge|cherry-pick|rebase)/;
+
+function readJson(path) {
+  try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
+}
+
+function headOf(project) {
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: project, encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  } catch { return ''; }
+}
+
+function commandOf(payload) {
+  let args = payload.tool_input ?? payload.toolArgs;
+  if (typeof args === 'string') {
+    try { args = JSON.parse(args); } catch { return args; }
+  }
+  return args && typeof args.command === 'string' ? args.command : '';
+}
+
+function main() {
+  let payload = {};
+  try { payload = JSON.parse(readFileSync(0, 'utf8')); } catch {}
+  const project = payload.cwd || process.env.COPILOT_PROJECT_DIR || process.cwd();
+  const legacy = join(project, '.understand-anything');
+  const dataDir = existsSync(legacy) ? legacy : join(project, '.ua');
+  if (readJson(join(dataDir, 'config.json'))?.autoUpdate !== true) return;
+  if (!existsSync(join(dataDir, 'knowledge-graph.json'))) return;
+  let message;
+  if (process.argv[2] === 'session-start') {
+    const meta = readJson(join(dataDir, 'meta.json'));
+    if (!meta || meta.gitCommitHash === headOf(project)) return;
+    message = '[understand-anything] Knowledge graph is stale. ' +
+      'You MUST read the file at ' + PROMPT + ' and execute its instructions to ' +
+      'check for structural changes and ' +
+      'update the graph. Do not ask the user for confirmation — just do it.';
+  } else if (process.argv[2] === 'post-tool-use') {
+    if (!COMMIT_COMMAND.test(commandOf(payload))) return;
+    message = '[understand-anything] Commit detected with auto-update enabled. ' +
+      'You MUST read the file at ' + PROMPT + ' and execute its instructions to ' +
+      'incrementally update the knowledge graph. Do not ask the user for ' +
+      'confirmation — just do it.';
+  } else {
+    return;
+  }
+  process.stdout.write(JSON.stringify({ additionalContext: message }));
+}
+
+main();
+"""
 
 
 def git(*args):
@@ -527,16 +596,68 @@ def unlist_argument_hint(text):
     return "".join(lines), changed
 
 
+def fix_hooks(plugin):
+    """(changed, problem) after pointing the plugin's two auto-update hooks at the
+    kit's script. Only the two command strings change - every other byte of hooks.json,
+    CRLF included, is kept - and a command already pointing at the script is left."""
+    path = os.path.join(plugin, "hooks", "hooks.json")
+    if not os.path.isfile(path):
+        return False, "no hooks.json"
+    try:
+        with open(path, "rb") as fh:
+            text = fh.read().decode("utf-8")
+        hooks = json.loads(text).get("hooks", {})
+    except (OSError, ValueError, AttributeError) as exc:
+        return False, "hooks.json not read (%s)" % exc
+    script = os.path.join(plugin, "hooks", HOOK_SCRIPT_NAME)
+    new_text, found = text, 0
+    for event, marker, mode in HOOK_TARGETS:
+        wanted = 'node "%s" %s' % (script.replace(os.sep, "/"), mode)
+        for entry in hooks.get(event, []):
+            for hook in entry.get("hooks", []):
+                command = hook.get("command", "")
+                if command == wanted:
+                    found += 1
+                elif marker in command:
+                    old = json.dumps(command, ensure_ascii=False)
+                    if new_text.count(old) != 1:
+                        return False, "hooks.json layout not recognized"
+                    new_text = new_text.replace(old, json.dumps(wanted,
+                                                                ensure_ascii=False))
+                    found += 1
+    if not found:
+        return False, "no auto-update hook recognized in hooks.json"
+    try:
+        current = None
+        if os.path.isfile(script):
+            with open(script, "rb") as fh:
+                current = fh.read().decode("utf-8")
+        if current != HOOK_SCRIPT:
+            with open(script, "wb") as fh:
+                fh.write(HOOK_SCRIPT.encode("utf-8"))
+        if new_text != text:
+            with open(path, "wb") as fh:
+                fh.write(new_text.encode("utf-8"))
+    except (OSError, ValueError) as exc:
+        return False, "hooks not fixed (%s)" % exc
+    return current != HOOK_SCRIPT or new_text != text, None
+
+
 def cmd_plugin_fix():
-    """Make Understand Anything's skills loadable by Copilot CLI. Idempotent.
+    """Make Understand Anything's skills and auto-update hooks work on Copilot CLI.
+    Idempotent.
 
     Measured 2026-10-19 on CLI 1.0.100: the plugin's `understand` skill declares
     `argument-hint` as a YAML list, Copilot requires a string, and drops the skill -
     the agent sees "Skill not found" and the graph can never be refreshed from a
-    Copilot session. Claude Code accepts the list, so only the Copilot install is
-    rewritten. A plugin update restores the list, so this is re-run after one; it
-    takes effect at the next session. It writes outside the repository, which is why
-    the commands offer it rather than run it.
+    Copilot session. Measured 2026-10-20 on the same CLI, the plugin's two auto-update
+    hooks are dead there three ways: the session-start command is bash, which Copilot
+    runs in PowerShell; both look for the graph relative to the plugin's directory,
+    where Copilot runs them; and both print a form Copilot discards. Both get
+    rewritten to the kit's HOOK_SCRIPT. Claude Code needs neither fix, so only the Copilot install is
+    rewritten. A plugin update undoes both, so this is re-run after one; it takes
+    effect at the next session. It writes outside the repository, which is why the
+    commands offer it rather than run it.
     """
     home = os.path.expanduser("~")
     parts, label = PLUGIN_HOMES[1]
@@ -560,13 +681,20 @@ def cmd_plugin_fix():
                     fixed.append(os.path.basename(os.path.dirname(path)))
             except (OSError, ValueError) as exc:
                 print("sdlc-impact: plugin-fix - %s not fixed (%s)" % (path, exc))
+        hooks_fixed, hooks_problem = fix_hooks(plugin)
         where = "%s (%s)" % (plugin, label)
         if fixed:
             print("sdlc-impact: plugin-fix - argument-hint made a string in %s, %s; "
                   "takes effect at the next Copilot session" % (", ".join(fixed), where))
-        else:
-            print("sdlc-impact: plugin-fix - nothing to fix (%d skills checked) in %s"
-                  % (checked, where))
+        if hooks_fixed:
+            print("sdlc-impact: plugin-fix - auto-update hooks rewritten to run on "
+                  "Copilot, %s; takes effect at the next Copilot session" % where)
+        if hooks_problem:
+            print("sdlc-impact: plugin-fix - hooks left as they were: %s, %s"
+                  % (hooks_problem, where))
+        if not fixed and not hooks_fixed:
+            print("sdlc-impact: plugin-fix - nothing to fix (%d skills checked%s) in %s"
+                  % (checked, "" if hooks_problem else ", hooks already fixed", where))
     return 0
 
 

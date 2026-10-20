@@ -69,3 +69,13 @@ entries, and kept each one **verbatim** (`path`, `language`, `sizeLines`,
 it needs at run time, and the proof's stand-in scanner writes them. The stand-in also
 refuses an invocation the real one would answer differently: a root that is not the
 project, or no `--exclude-analysis-data`.
+
+## `ua-hooks.json` — the plugin's hooks file, for `plugin-fix` (added 2026-10-20, §83)
+
+The plugin's own `hooks/hooks.json`, copied byte for byte from the owner's Copilot CLI
+install of Understand Anything **2.9.4** on 2026-10-20. It is identical to 2.9.7's in
+the Claude Code plugin cache, compared the same day. It keeps its CRLF line endings
+(`.gitattributes` exempts this one file), because the `plugin-fix` cases check that the
+rewrite changes the two auto-update commands and keeps every other byte. Nothing in it
+was minimized: the file is small, and the session-start command's exact bash text is
+what a rewrite has to recognize.

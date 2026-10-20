@@ -51,6 +51,21 @@ only when code went missing (`FEATURE_PLAN.md` §83, ruled by the owner 2026-10-
   preserves line endings, never touches a Claude Code install, and takes effect at the
   next session. Setup and `/sdlc-update` offer it; the commands name it as the owner
   action and never run it, because it writes outside the repository.
+- **[installable]** **`plugin-fix` also makes the plugin's auto-update hooks work on
+  Copilot CLI.** Measured on 1.0.100, both were dead there, three ways:
+  - the session-start command is bash, and Copilot ran it in PowerShell;
+  - Copilot runs a plugin hook in the plugin's directory, so both looked for the graph
+    in the wrong place;
+  - Copilot discards plain stdout and Claude's nested `hookSpecificOutput`, delivering
+    only a top-level `additionalContext`.
+
+  The mode installs `hooks/sdlc-kit-copilot-hooks.mjs` in the Copilot install and
+  points both `hooks.json` commands at it by absolute path. Every other byte of
+  `hooks.json` is kept, and a hooks file it does not recognize is left alone. The
+  script makes the plugin's checks and prints the plugin's message unchanged in the
+  delivered form; a live Copilot session confirmed delivery at session start and after
+  a tool call. The template and setup's `autoUpdate` offer now say what the setting
+  does on each CLI.
 - **[installable]** `/sdlc-update` carries each project's recorded graph rulings into
   the line instead of re-asking. It asks only about a ruling neither value expresses,
   and retires a local `freshness()` amendment that read a sibling branch's graph as

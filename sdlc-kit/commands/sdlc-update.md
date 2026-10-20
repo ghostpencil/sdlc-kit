@@ -908,7 +908,10 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   (`python .github/hooks/sdlc-impact.py plugin-fix`). Copilot refuses the plugin's
   `understand` skill until its list-form `argument-hint` is a string, so no Copilot
   session has been able to refresh the graph. That is a likely reason for a stale graph
-  on a Copilot project. It writes outside the repository, so run it only on a yes.
+  on a Copilot project. The mode also rewrites the plugin's auto-update hooks, which
+  never ran on Copilot, so a project with `autoUpdate` on starts getting its reminders
+  at the next session. Say that before asking. It writes outside the repository, so
+  run it only on a yes.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

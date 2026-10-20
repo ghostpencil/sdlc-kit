@@ -244,12 +244,14 @@ tools/cosmetic-check.py              ← proves the cosmetic-edit classifier, co
                                        (TypeScript installs passed in with --ts; not vendored)
 tools/shipped-lint-check.py          ← lints every shipped .py with stock ruff, + mutations
 tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
-                                       Understand Anything graph + overlay, and a real
-                                       scanner output for coverage (SEED.md has provenance)
+                                       Understand Anything graph + overlay, a real scanner
+                                       output for coverage, and the plugin's hooks.json
+                                       verbatim for plugin-fix (SEED.md has provenance)
 tools/cosmetic-prototypes/           ← COSMETIC's measurement prototypes (FEATURE_PLAN §82.8):
                                        the difftastic/ast probes, the TS/Java/C# comparators,
                                        fixtures — the seed for the build's cosmetic-check proof
-.gitattributes                       ← pins LF — the manifest hashes depend on it
+.gitattributes                       ← pins LF — the manifest hashes depend on it (one
+                                       verbatim CRLF fixture is exempt)
 .gitignore
 README.md                            ← you are here
 CLAUDE.md                            ← instructions for agents working ON the kit
@@ -952,7 +954,9 @@ only as a hand-apply, and the per-version transition notes name each one.
    graph as current. On Copilot CLI, the update also offers the adapter's new
    `plugin-fix` mode: Copilot refuses Understand Anything's `understand` skill until
    one frontmatter field is rewritten, so no Copilot session could refresh the graph
-   before it. The update command's 0.35.0 note states the same procedure.
+   before it. The same mode makes the plugin's auto-update hooks work on Copilot, where
+   they never ran, so a project with `autoUpdate` on starts getting their reminders.
+   The update command's 0.35.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
