@@ -244,6 +244,20 @@ rule that lives in only one artifact erodes silently, and the kit's own controls
 the main source of that erosion.** §76.5 reads the arc against the five standing clocks —
 three of which this arc is the first ever able to move.
 
+`FIELD_REPORT_2026-10-19.md` is the **eleventh** — the first from the third adopter
+(`sdlc-kit#17`, their Phase 01, TypeScript on Claude Code, against 0.33.0), generalized
+like the first adopter's reports (do not de-anonymize it or its filename). It cites six
+issues filed mid-arc by the first and third adopters (#11–#16), which stay issues only;
+`FEATURE_PLAN.md` §84 triages all seven together. Read §84.2 before acting on the
+report's priority table: two fixes would break something as filed — #13's launcher
+prefix denies every Copilot edit (PowerShell expands `${CLAUDE_PROJECT_DIR:-.}` to
+empty), and classifying test runs on the leading executable breaks every wrapper — and
+§84.4 adds five defects nobody filed, among them the guard's false GREEN, §83.4's
+copy of a plugin's broken commit detector, and a guard that charges config files and
+tool scratch as production source. Its theme: **the controls observe proxies
+instead of the facts they guard** — a test run read from the command's spelling, a
+failure from any non-zero exit, "nothing was written" from the absence of an Edit call.
+
 ## Writing conventions for these files
 
 Command files are prompts, not documentation. The established shape is: a title, a

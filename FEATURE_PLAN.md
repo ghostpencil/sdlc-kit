@@ -174,16 +174,17 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
-- **COSMETIC — opened 2026-10-19, all six decisions ruled, build not started** (§82):
+- **COSMETIC — opened 2026-10-19, ruled, BUILT and RELEASED as 0.34.0/0.34.1** (§82):
   the TDD guard exempts a comment- or formatting-only write to Python, Java, C# or
   TypeScript source, judged by a parser comparison plus a directive-line check;
   difftastic measured and not adopted. Ships **armed**, no log-only stage (§82.9,
   an owner override of the ramp); one shared `sdlc-cosmetic.py`; test plan approved;
   JS-family files included where `typescript` resolves. Nothing owed before the build.
 
-**Standing inputs:** issues **#11–#16** (filed 2026-10-15 → 10-18; five field reports
-and one enhancement) are open and **not yet triaged**. §82 measured around #14–#16 but
-triages none of them. Every field report through the tenth (`sdlc-kit#10`, §76) is
+**Standing inputs:** issues **#11–#17** (filed 2026-10-15 → 10-19; six field reports
+— #17 the eleventh, a Phase 01 retro — and one enhancement) are **triaged in §84**
+(2026-10-20), **all five decisions ruled** (§84.7); all seven stay open until their
+fixes ship. Every field report through the tenth (`sdlc-kit#10`, §76) is
 triaged, ruled, and shipped (0.31.0); the #10 reply was posted 2026-09-04.
 
 **The Copilot bench is still standing** (§29.3): fixture repo
@@ -4559,6 +4560,8 @@ dialect has the same test in two places: the close-out `Stop` block
 `repo_root()` (`tdd-guard-claude.template.py`, `os.path.isdir(".git")` for both the
 `CLAUDE_PROJECT_DIR` and the cwd branch), which returns `None` and does nothing. The
 subfolder case (78.1) is Copilot-only; Claude Code runs hooks at the project root.
+*(Corrected 2026-10-20, §84.4(3): true of where a session starts, false after a Bash
+`cd` into a subdirectory, which moves Claude Code's hook cwd — #13, #17 f3.)*
 
 This got more pressing, not less: Copilot 1.0.85 took `/worktree`, `/move`, and
 `--worktree` out of experimental mode, and 1.0.87 added `worktreePathTemplate`. The kit
@@ -4726,7 +4729,8 @@ consecutive blocks and passes `stop_hook_active`).
   becomes `[ -e .git ]`; `repo_root()` accepts a `.git` file; `sdlc-gate-claude.sh` and
   `skill-ledger-claude.template.sh`'s `-d "$CLAUDE_PROJECT_DIR/.git"` become `-e`. No cwd
   change — Claude Code runs hooks at the project root (measured), so it was never
-  exposed to the subfolder half. **Its worktree behaviour is read, not run** — a Claude
+  exposed to the subfolder half. *(Corrected 2026-10-20, §84.4(3): the measurement was
+  of a session's start; a mid-session Bash `cd` moves the hook cwd — #13.)* **Its worktree behaviour is read, not run** — a Claude
   Code worktree session is owed as a live proof.
 
 **Proofs, pre-registered.** In each of the four suites (`tdd-guard-check.py`,
@@ -5992,3 +5996,366 @@ file backed up first and restored to the same sha256 afterwards (about 9 credits
   CLI.
 
 **Not yet run:** the adopter canaries, at their next update.
+
+## 84. Issues #11–#17 triaged — two findings closed by shipped work and one mostly, ten
+## fixes re-aimed, and five defects nobody filed — 2026-10-20
+
+Seven issues filed 2026-10-15 → 10-19, all open until now, verified against the tree at
+242b210 (0.34.1 plus §83 GRAPH, built and unreleased):
+
+| issue | from | kit | shape |
+|---|---|---|---|
+| #11 | first adopter, 12th phase | 0.32.0 | graph freshness over missing files |
+| #12 | third adopter, at setup | 0.33.0 | enhancement: setup offers Understand Anything |
+| #13 | third adopter | 0.33.0 | hook launchers relative to the session cwd |
+| #14 | third adopter | 0.33.0 | edit-time typecheck project-wide; no format check |
+| #15 | first adopter, P12 S7 | 0.32.0 | six findings, local fixes with diffs and tests |
+| #16 | third adopter, P01 S6 | 0.33.0 | wrapper failure counted as RED; shell writes |
+| #17 | third adopter, Phase 01 retro | 0.33.0 | nine findings — the eleventh field report |
+
+**#17 is the only phase retro; it is the eleventh field report**, the first from the
+third adopter (`chainmail-webfactory`, TypeScript, Claude Code), and it cites #13–#16 as
+its own field data — so the seven are triaged together, not one by one. The other six
+were filed mid-arc, "straight away, not held for the next `/sdlc-retro`", by both
+Claude Code adopters; the Copilot adopter filed none.
+
+**Its theme is #17's own, and the triage reproduces it inside the kit:** *the controls
+observe proxies instead of the facts they guard* — the guard reads "a test ran" from the
+command's spelling and "it failed" from any non-zero exit, "nothing was written" from
+the absence of an Edit call, and "the arc's files" from the working tree. Two of the four
+defects this triage adds (84.4) are the kit doing the same thing in its own newest work:
+§83.4's Copilot hook rewrite copies a plugin's text-matching commit detector verbatim,
+and §78 recorded "Claude Code runs hooks at the project root" from a measurement of
+where a session *starts*, never of a Bash `cd` that moves it — which #13 and #17 now
+show breaking every launcher on two adopters.
+
+### 84.1 What the collision with shipped work closes
+
+- **#11 — CLOSED by §83, three residues.** `coverage` (`sdlc-impact.template.py`
+  `cmd_coverage`) compares the plugin scanner's inventory with the graph's file nodes
+  and says `full-rebuild: needed - /understand --full`; `end-phase.md` step 7 runs it
+  and names `--full`; the template says why incremental cannot add a file. Not built:
+  the reverse direction (files the graph holds that the tree lost), a `coverage` re-run
+  after the `--full` to quote `COMPLETE` as evidence, and the wording — the `slice` and
+  `phase` views still print `current at the base` over a hole, so "freshness" still
+  reads as completeness to anyone who does not also run `coverage`. One deliberate
+  difference: the agent runs `--full` itself where it can (ruling 83.2(3)); #11 asked
+  for it always owner-prompted.
+- **#15 finding 3 — PREMISE FALSE against the current tree.** Fixed in **0.33.0**
+  (58ba34a), before §83: a graph with base ⊑ commit ⊑ HEAD reads "current - graph at X,
+  built inside this change set after the base". The adopter's local hunk is looser (any
+  descendant of the base, so a sibling-branch graph reads current) and is retired at
+  their next update, per §83.2(6). Proof gap: `c_graph_inside_change_set` is
+  phase-scope only.
+- **#17 finding 5, fix 1 — CLOSED by §83's two switches.** The cost premise is also
+  defused: the slice end is incremental only, and `refresh-check` skips when the graph is
+  at HEAD. Fixes 2 and 3 stand (84.5 F).
+- **#15 finding 2b, a version correction:** the guard's outside-repo exemption shipped
+  in 0.25.0, not 0.28.0 — 0.28.0 is when it reached that adopter.
+
+### 84.2 The corrections — fixes that would break something as filed
+
+- **#13's launcher prefix denies every Copilot edit. MEASURED.** `cd
+  "${CLAUDE_PROJECT_DIR:-.}" || exit 2; …` was proven on the Claude Code / Git Bash
+  route only. But Copilot runs `.claude/settings.json` too (§79), and runs it through
+  PowerShell on Windows: pwsh 7 reads `${CLAUDE_PROJECT_DIR:-.}` as a drive-qualified
+  variable, expands it to empty with the variable set, and `cd ""` lands in the home
+  directory (measured here 2026-10-20: `C:\Users\ljfan`); Windows PowerShell 5.1 cannot
+  parse `||`. Since a PreToolUse launcher that errors **denies the edit** on Copilot
+  (§79.2), the prefix would turn 0.31.3's stand-down into a total edit block on every
+  both-dialect project. **`cd "$(git rev-parse --show-toplevel)" || exit 2; …` reached the
+  root from a subdirectory under both `sh` and pwsh 7** (measured, shell only, not a live
+  hook) and covers linked worktrees; it costs a git process per hook, and outside a repo
+  pwsh's `cd ""` goes home. It is a candidate, not a fix, until a §79-style bench run on
+  both CLIs.
+- **#13 proposal 4 — PREMISE FALSE.** Copilot's `"cwd": "."` resolves against the
+  worktree root, measured 1.0.63 → 1.0.88 (GATE_RECIPES *The hook environment*).
+- **The #15 comment's "pytest: credit only exit 1" would refuse the commonest Python
+  first red.** A test importing a name that does not exist yet fails at collection —
+  `Interrupted: 1 error during collection`, **exit 2**. Refusing 3, 4, 5 and 127 is
+  sound; refusing 2 is not.
+- **#17 finding 1, fix 1 (classify on the leading executable) breaks every wrapper** —
+  `uv run pytest`, `python -m pytest`, `pnpm vitest`, `npx vitest`, `./gradlew test`,
+  `env X=1 pytest` — and changes `{{TEST_CMD_PATTERN}}`'s documented substring shape.
+  The safe form is the inverse: a fixed list of leading read-only executables (`cat sed
+  grep rg head tail ls echo git gh Get-Content Select-String`) that never count, so every
+  error the list makes lands on the not-counted side.
+- **#17 finding 1, fix 3 (parse quotes before the compound check) overturns a stated
+  design choice**, not an oversight: the guard reads the raw command *because* "a
+  stripping bug there would admit a genuine compound and record a false GREEN". It is
+  buildable only with a real quote parser (escapes, nesting) and cases for each, in both
+  dialects; the cost it removes is one re-run.
+- **#14 — the format check folds into `{{HOOK_LINT_CMD}}`, no new placeholder.** C#
+  already does it. A `{{HOOK_FORMAT_CMD}}` would need a setup question, a table row, and
+  substitution in both dialect bodies — and setup's exit check does not scan
+  `.github/hooks/`, so an unresolved one there would pass silently. And the rule must be
+  conditional: only C#'s *kit* gate recipe formats; Prettier in that adopter's gate is a
+  project fact.
+- **#14 — TypeScript is not the only project-wide hook check.** Rust (`cargo clippy` on
+  the crate) and Go (`go vet` on the package) are wider than the file too, so the
+  "block only on errors located in the edited file" rule is general. The adopter's
+  awk filter is TS-specific (`file(line,col): error TS`, tsconfig walk) and belongs in
+  the TS recipe as a `{{HOOK_TYPECHECK_BLOCK}}` value, not in the template.
+- **#15 finding 5 — the matching premise is false.** "Entries already name the file
+  they implicate" holds for that adopter's log, not the kit's format:
+  `PROJECT_INDEX.template.md`'s friction entry is `<date> — <friction> — open`, with no
+  *Implicates:* field (that field lives in `/sdlc-retro` report findings). The gap
+  stands — `/sdlc-retro`'s age rule re-checks an entry against a release *not yet taken*,
+  never a `RULING OPEN` entry against one already applied — but the fix must either add
+  the field or match through the absorbing report.
+- **#17 finding 6** — the kit has no "the gate is not counted" text; the rule is "a test
+  run registers only as a single bare command", and a gate command does not match
+  `{{TEST_CMD_PATTERN}}`. The step-5 fix should give that reason.
+- **#17 finding 8** — the kit ships no CI template, so "run CI on `feat/**`" has nothing
+  to edit except a sentence in setup step 7.
+
+### 84.3 Corroborated across adopters
+
+Two Claude Code adopters on two stacks (Python, TypeScript) hit the same three
+edit-time defects independently: the moved-cwd launcher (#13, #17 f3), the gate hook
+blocking on states and files that are not the edit's fault (#14, #15 f2a), and the gate
+hook linting files outside the repository (#15 f2b, #17 f3). Both reached shell writes
+from opposite ends — #15 from the test side (a heredoc test licenses nothing), #16/#17
+from the production side (~28 unseen writes while armed). Both adopters carry local
+patches for most of it, proven test-first; nothing here waits on more field data.
+
+### 84.4 Found by the triage, not reported
+
+1. **The false GREEN — the guard's worse direction, which no report names.** A command
+   that merely *names* the runner and succeeds with no `;&|` — `cat vitest.config.ts`,
+   `grep pytest pyproject.toml`, `pip install pytest`, and the kit's own commit recipe
+   (`git commit -F - <<'EOF'` with a body naming the RED command: the heredoc body is
+   newline-joined, not stripped) — is recorded as **GREEN** (`observe-test`,
+   `PostToolUse` branch), which satisfies the G2 stop guard with no test run at all.
+   #17 saw only the not-counted side because its examples happened to contain a
+   separator. Both dialects.
+2. **§83.4 reintroduces #15 finding 6 on Copilot, as kit-owned code.** `plugin-fix`'s
+   `sdlc-kit-copilot-hooks.mjs` copies the plugin's detector verbatim,
+   `/git\s+(commit|merge|cherry-pick|rebase)/` — no word boundary, no heredoc or quote
+   stripping — so on Copilot `git merge-base` and any heredoc body naming a commit now
+   deliver "You MUST … update the graph. Do not ask the user for confirmation", a
+   token-spending instruction that was dead there before 0.35.0. This rides with GRAPH,
+   not after it: the release must not ship the defect it newly arms. Claude Code keeps
+   the plugin's own script, so a template note is the most the kit can do there.
+3. **§78's Claude Code premise was measured on the wrong case** — "The subfolder case
+   (78.1) is Copilot-only; Claude Code runs hooks at the project root" (§78.2, and D5's
+   "(measured)") holds for the directory a session starts in; Claude Code's hook cwd
+   follows the Bash tool's persistent `cd`, so a mid-session `cd <subdir>` moves it.
+   Both sentences now carry a dated correction pointing here.
+4. **The Python gate recipe never prints mypy's output.** GATE_RECIPES's typecheck block
+   assigns `m=$(python -m mypy "$f" 2>&1)`; the hook body prints `$t`. A mypy block
+   reports the failure line with no errors under it. (The Claude body also echoes `$l`
+   when only typecheck failed — the message-honesty half of #14 proposal 3.)
+
+5. **The guard charges files no test can turn red — raised by the owner, measured in
+   both Claude Code adopters' guard logs.** `SOURCE_GLOB` is extension-only and the
+   guard matches it against the basename, so *where* a file lives never enters the
+   decision: a one-off tools script, a config file written in the source language, and a
+   tool's own scratch are all production source needing an observed red. Measured
+   2026-10-20: the first adopter's guard DENIED writes to `tools/` measurement and
+   generator scripts, and passed others only on close-out or refactor licences; the
+   third's DENIED `.dependency-cruiser.mjs`, passed `playwright.config.ts` on a licence,
+   logs `eslint.config.mjs` and `vitest.config.ts`, and charged three of Understand
+   Anything's own `.ua/tmp/*.cjs` scratch files as production writes. A red no test can
+   produce is manufactured or licensed around — the licence becomes routine, which is
+   how it stops meaning anything (the reasoning that exempted out-of-repo paths in
+   0.25.0). Narrowing `SOURCE_GLOB` is the wrong fix: it also decides what the edit-time
+   hook lints, and configs and scripts should still be linted.
+
+And three interactions the reports' fixes have with each other, which the build must
+settle rather than discover:
+
+- **The edit-tools-only rule (#16 comment, #17 f2) forbids #15 finding 4's scripted
+  mutation runner** — its production writes go through the shell. The rule needs an
+  explicit carve-out (a byte-exact, hash-verified runner under the close-out licence),
+  and a detector based on mtime would flag every file the runner touched while one based
+  on `git status` content would not, since the bytes come back identical.
+- **#15 finding 1's mtime scan, with a formatter `--write` on a test file, reproduces
+  #17 finding 4 automatically** — the format write counts as a test edit, stales the
+  red and revokes the licence. Any scan has to exempt what the cosmetic classifier
+  calls cosmetic.
+- **The shell-invisibility statement lives in one artifact.** GATE_RECIPES says "the
+  generated `spec/SDLC.md` must say so", but the `{{TDD_GUARD_NOTE}}` recipes in
+  `SDLC.template.md` and `sdlc-setup.md` never carry it — the adopter's note says it only
+  because setup happened to read GATE_RECIPES. The tenth report's theme, again.
+
+And one wording now false against the kit's own code: `sdlc-setup.md`,
+`SDLC.template.md` and `end-phase.md` still say the plugin's auto-update "reminds rather
+than refreshes … asking the agent to merge the graph by hand". Against 2.9.7 — and
+against the message §83.4 now delivers on Copilot — it instructs a full incremental
+pipeline run, without confirmation, on every structural commit (#12's re-measure
+request, confirmed by reading).
+
+### 84.5 What stands, as build clusters
+
+**A — the guard's evidence for RED and GREEN (both dialects). HIGH: it grants licences.**
+#16 f1, #17 f1, the #15 comment, and 84.4(1).
+- A RED counts only when the runner's own report is in the failure output. Two forms:
+  a fourth instantiated placeholder `{{TEST_REPORT_PATTERN}}` (vitest `Test Files .*failed|
+  FAIL `, pytest `\d+ failed|error during collection|short test summary`, jest
+  `Tests?:.*failed`), unrecognised shape not counted; or a denylist of wrapper markers
+  (`ERR_PNPM_`, `npm ERR!`, `Command not found`) that covers only what has been seen.
+  Unmeasured before either: whether `error` truncates long output before the summary,
+  and whether Copilot's `textResultForLlm` carries the full output at all.
+- pytest exit codes 3, 4, 5 and 127 never count; 2 does.
+- A leading read-only executable never counts (84.2), and heredoc bodies are stripped
+  before classifying — closing the false GREEN.
+- Harness: every RED fixture fakes `"Exit code %d\nAssertionError: boom"`, which no
+  report pattern matches, so `tools/tdd-guard-claude-check.py` cases 7, 8, 13a–g and 22
+  change with the placeholder; new cases for heredocs, read-only commands in both
+  directions, wrapper failures, and the exit codes.
+
+**B — writes through the shell. HIGH: one slice's ordering was unverifiable.**
+#16 f2 + comment, #17 f2, #15 f1, #15 f4.
+- A rule in `CLAUDE.template.md` *Always-Active Rules* and the `{{TDD_GUARD_NOTE}}`
+  recipes: code — files matching `{{SOURCE_GLOB}}`, production and tests — changes only
+  through the editor tools the guards observe (scoped to code by ruling 84.7(3); docs,
+  configs and non-glob scripts stay shell-writable), and tool-generated output
+  (formatter `--write`, codegen) is not a breach; **this overrides any harness guidance permitting shell
+  edits** (Claude Code's auto mode permits "small, mechanical file changes with sed,
+  heredocs, or short scripts" — read in this very session's system text). Carve-out:
+  the hash-verified mutation runner. There is no Copilot instructions template, so these
+  two homes are all.
+- #15 finding 4's sanctioned scripted-runner form in `/end-slice` step 5 — byte-exact,
+  hash-verified, the `git diff` check after the run kept mandatory (a `finally` does not
+  survive a killed process), and the one-at-a-time and sample-size rules naming it.
+- Detection, not prevention: a `stop-check` scan for source and test files changed
+  since the session began that no `pre-write` saw, reported as
+  `file changed outside the editor tools: <path>`, with the double-count window #15
+  measured (Edit-tool writes land after their PreToolUse mark) and the cosmetic
+  exemption above. Test-side counting (#15 f1's licence for a shell-written test) is a
+  separate question: with the rule in place, a shell-written test is out of process, and
+  licensing it rewards the breach.
+
+**C — launchers anchored to the root (#13, #17 f3a). MEDIUM, both-dialect safety first.**
+Bench the `git rev-parse` candidate live on Claude Code (Git Bash) and Copilot
+(PowerShell, both-dialect project), the `sh -c "…"` close-out block's quoting included;
+GATE_RECIPES *The hook environment* records the cwd hazard and the probe gains a
+"`cd` into a subdirectory, then trigger each hook" case. Independently of the prefix,
+the close-out message says "not found from `<pwd>`" so a moved cwd stops reading as a
+missing script. `.claude/settings.json` is project-owned: `/sdlc-update` carries it as a
+manual note.
+
+**D — the gate hook body (both dialects). MEDIUM.** #14, #15 f2, #17 f3c, 84.4(4).
+- Skip an absolute path outside the project, reusing the guard's normalized ROOT-prefix
+  test (#15's lowercase comparison is loose on case-sensitive Linux — the guard's form
+  is the one to reuse).
+- A project-wide check blocks only on errors located in the edited file or in a config
+  it could not load, and reports the rest as non-blocking context (Claude:
+  `additionalContext` at exit 0; Copilot: a log line); a check that cannot be filtered
+  leaves the hook for the gate. The TS recipe gets the per-tsconfig block and the
+  `pnpm -r` stop-at-first-failure caveat.
+- The failure line names which check failed and prints only that check's output.
+- Per-file format check folded into the lint command where the gate formats.
+- The mypy variable fix.
+- Half-way states: guidance first (#14 proposal 4 — providers before consumers, one
+  edit per file, in `/next-slice` step 4), costing nothing in any language; the ruff
+  `--ignore F401,F821,F841` form offered as an opt-in Python recipe variant with its cost
+  stated (a misspelled name waits for the gate).
+- The hook script is project-owned: a manual update note, as for C.
+
+**E — a formatting-only test edit resets the red (#17 f4). MEDIUM.** Not closed by
+0.34.x: the cosmetic classifier is consulted for production writes only, and the guard's
+test branch marks `last-test-edit` before reaching it, in both dialects. Interim: one
+line in `/end-slice` step 5's collision paragraph (the hook's format fix belongs before
+the red run). Full fix: extend the classifier to test paths, skipping the red reset and
+the licence revoke — test files share the classifier's four languages.
+
+**F — the graph, after §83.** #11 residues, #12, #15 f6, #17 f5 fixes 2–3, #17 f9.
+- The kit-side detector fix (84.4(2)): word boundary, heredoc and quoted-span stripping
+  as the guard does, `git merge-base` and heredoc cases in `tools/impact-check.py`; a
+  template note for Claude Code, where the plugin's own script stays.
+- The auto-update wording re-measured and corrected in all three homes.
+- #17 f9: at `phase` scope untracked files leave the denominator, reported on their own
+  line; a phase-scope case beside `untracked_file_counts_in_denominator`.
+- #11 residues: `gone:` files, the `coverage` re-run at end-phase, freshness wording.
+- #17 f5 fix 3 — a step skipped for the same reason in three consecutive slices is
+  friction — generalizes beyond the graph and belongs in `/end-slice` step 9 beside the
+  Environment-gotchas escalation. Fix 2 (halt once when far behind) is weaker now that
+  slice-end can be switched off; a `refresh-check` file count is enough.
+- #12, setup offers the plugin: the offer, the auto-update question, the `.ua/`
+  tracked-or-ignored question (auto-update with a tracked `.ua/` dirties the tree after
+  every commit), lint and format ignores for the UA directory, and the choices recorded
+  in *Records*. The adapter stays unconditional.
+
+**G — small text.** #17 f6 (confirm green with a counted bare run, giving the reason),
+#17 f7 (libraries: ratified at `/plan-phase`, a halt at `/next-slice` for an unlisted
+one, one *Records* home for the list), #17 f8 (a draft PR opened only so CI runs is not
+the phase PR; `/end-phase` marks it ready), #16 f4 (format and test in separate calls,
+in `/next-slice` step 4), #15 f5 (`/sdlc-update` lists open friction entries the update
+may close, once 84.2's matching question is settled).
+
+### 84.6 Decisions owed
+
+1. **What rides in 0.35.0.** Recommended: GRAPH plus **F's detector fix** (GRAPH arms
+   it), **A** (licence-granting, both adopters), **D**, **E's interim line**, **G**, and
+   **B's rule and runner form**. Held to 0.36.0: **B's detector**, **C** (needs the
+   bench before it can be prescribed — the close-out message part can ship now), E's
+   classifier extension, and the rest of F (#12, #11 residues, #17 f5, f9).
+2. **A's RED evidence: the placeholder or the denylist.** Recommended: the placeholder,
+   unrecognised output not counted — after measuring Copilot's payload, and the
+   denylist only if that measurement shows the output is not there.
+3. **B's rule: adopt, with the mutation-runner carve-out, stated as overriding harness
+   guidance.** Recommended yes. And whether a shell-written test may license its red
+   (#15 f1): recommended **no** once the rule exists — the detector reports it instead.
+4. **D's half-way states: guidance first, ruff ignore opt-in.** Recommended.
+5. **#17 as a root report file.** `FIELD_REPORT_2026-10-19.md`, the eleventh, with its
+   README row and CLAUDE.md paragraph — reproduced verbatim (the issue already names the
+   project, as ai-news's reports do) or generalized like the first adopter's. #11–#16
+   stay issues only, by the #3–#6 precedent.
+
+### 84.7 Ruled 2026-10-20
+
+All five as recommended, then a sixth the owner raised (84.4(5)):
+
+1. **0.35.0 carries** GRAPH (§83), **F's detector fix** (word boundary, heredoc and
+   quoted-span stripping in `sdlc-kit-copilot-hooks.mjs`, with cases), **A** (RED and
+   GREEN evidence, both dialects), **D** (the gate hook body, both dialects), **E's
+   interim line**, **G** (small text), and **B's rule and the scripted-runner form**.
+   C's close-out message ("not found from `<pwd>`") ships too; the launcher prefix
+   itself waits for the bench. **Held to 0.36.0:** B's detector, C's launcher anchoring,
+   E's classifier extension to test paths, and the rest of F (#12, #11's residues,
+   #17 f5 fixes 2–3, #17 f9).
+2. **A's RED evidence is the `{{TEST_REPORT_PATTERN}}` placeholder**, unrecognised output
+   not counted — **after** measuring that Copilot's failure payload carries the runner's
+   output; the wrapper-marker denylist is the fallback only if it does not.
+3. **B's rule is adopted, scoped to code** — a file matching the project's
+   `{{SOURCE_GLOB}}` and not its `{{GUARD_EXEMPT_PATTERN}}` (ruling 6; production
+   source and its tests: what the TDD guard observes) changes only through the editor tools, stated as
+   overriding harness guidance that permits shell edits, with the hash-verified mutation
+   runner as its one carve-out. **Everything outside the glob is out of scope** —
+   documentation, configs, and scripts that do not go through TDD may be written through
+   the shell as before (owner, 2026-10-20). A script that *does* match the glob is code
+   by the guard's definition; a project that wants its scripts free lists their
+   directory in the exempt pattern (ruling 6), not an exception in the rule. A shell-written test does **not** license its red; the 0.36.0 detector
+   reports it, over the same glob and nothing wider.
+4. **D's half-way states:** guidance first (providers before consumers, one edit per
+   file, in `/next-slice` step 4); ruff's `--ignore F401,F821,F841` offered as an opt-in
+   Python recipe variant with its cost stated.
+5. **#17 becomes `FIELD_REPORT_2026-10-19.md`, generalized** like the first adopter's
+   reports — written 2026-10-20, with its README row and CLAUDE.md paragraph. #11–#16
+   stay issues only.
+
+6. **A guard-exempt pattern ships in 0.35.0, with B's rule** (owner, 2026-10-20, on
+   84.4(5)). A new placeholder `{{GUARD_EXEMPT_PATTERN}}`, matched against the
+   repo-relative path in both guard dialects before the production branch: a matching
+   file is neither guarded nor a test edit. Setup proposes a default — root-level config
+   files (`*.config.*` and dotfile configs in the source language) and the project's
+   declared script directories (`tools/*`, `scripts/*`, whatever the tree has) — and
+   the owner confirms or edits it; it is recorded in *Records* beside the other guard
+   patterns. **The Understand Anything directory (`.ua/`, `.understand-anything/`) is
+   exempt in the template itself**, not by setup: its writes are the plugin's, never
+   the project's. `SOURCE_GLOB` is unchanged, so the edit-time hook still lints exempt
+   files. **"Code" now has one definition — `SOURCE_GLOB` minus the exempt pattern** —
+   used by the guard, by ruling 3's edit-tools rule, and by the 0.36.0 detector; a
+   product script with tests stays code by leaving its directory out of the pattern.
+   Adopters get it by a manual `/sdlc-update` note (the guard's instantiated
+   placeholders are project-owned).
+
+**Build order for the 0.35.0 additions:** the Copilot payload measurement first (it
+gates ruling 2's form), then A and the exempt pattern (ruling 6) with their harness cases in both guard
+suites, then F's
+detector fix, D, B's text, E's line, and G. Every placeholder added is taught to
+`sdlc-setup.md` and documented in GATE_RECIPES (invariant 1); every project-owned file
+changed (`.claude/settings.json`, the gate hook body, the guard's instantiated
+placeholders) gets a manual `/sdlc-update` note.
