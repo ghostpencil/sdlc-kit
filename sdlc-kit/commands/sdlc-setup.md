@@ -573,7 +573,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    overlay only into a **git-ignored** UA directory, because `/end-phase` requires a
    clean tree and re-asserts it before the merge. If theirs is tracked, the summary
    still prints and the overlay does not — say so at the feedback halt rather than
-   letting them discover it at a phase close.
+   letting them discover it at a phase close. Tell them too that the instantiated
+   process file carries the `Graph refresh:` line with both switches on — an
+   incremental refresh at every slice end, a full rebuild at the phase end only when
+   code files are missing from the graph — and that either can be set `off` there.
+   Do not ask: on is the default for every new adoption. Where Copilot CLI is a
+   runtime, also offer `python .github/hooks/sdlc-impact.py plugin-fix` at the same
+   halt. Copilot refuses the plugin's `understand` skill until that one frontmatter
+   field is a string (`spec/SDLC.md`, *Architecture impact view*). It writes into the
+   owner's Copilot plugin install, outside the repository, so run it only on a yes,
+   and say it must be re-run after each plugin update.
 
    **And where that directory is present, offer to turn the graph tool's own
    auto-update on — stating what it does and does not do.** Read its `config.json`; if

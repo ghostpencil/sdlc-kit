@@ -244,7 +244,8 @@ tools/cosmetic-check.py              ← proves the cosmetic-edit classifier, co
                                        (TypeScript installs passed in with --ts; not vendored)
 tools/shipped-lint-check.py          ← lints every shipped .py with stock ruff, + mutations
 tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
-                                       Understand Anything graph + overlay (SEED.md has provenance)
+                                       Understand Anything graph + overlay, and a real
+                                       scanner output for coverage (SEED.md has provenance)
 tools/cosmetic-prototypes/           ← COSMETIC's measurement prototypes (FEATURE_PLAN §82.8):
                                        the difftastic/ast probes, the TS/Java/C# comparators,
                                        fixtures — the seed for the build's cosmetic-check proof
@@ -937,6 +938,21 @@ only as a hand-apply, and the per-version transition notes name each one.
    `E741`, which turns a gate red wherever lint covers `.github/hooks/`. It is kit-owned
    and replaced like any other; take 0.34.1 rather than 0.34.0. The update command's
    0.34.1 note states the same.
+
+   **0.35.0 puts the graph refreshes behind two switches** — one `Graph refresh:` line
+   in `spec/SDLC.md`'s *Architecture impact view*: an incremental refresh at every slice
+   end (skipped when the graph is already at HEAD), and a full rebuild at the phase end
+   only when the adapter's new `coverage` mode finds code or script files missing from
+   the graph. It matters only if your project carries an Understand Anything graph.
+   The commands refresh nothing until the line is in your process file, so fold the
+   `SDLC.template.md` diff yourself. The update fills the line from your own recorded
+   rulings rather than asking again, and asks only about a ruling neither `on` nor `off`
+   expresses. A local `freshness()` amendment that reads any graph descending from the
+   base as current is retired rather than carried, because it reads a sibling branch's
+   graph as current. On Copilot CLI, the update also offers the adapter's new
+   `plugin-fix` mode: Copilot refuses Understand Anything's `understand` skill until
+   one frontmatter field is rewritten, so no Copilot session could refresh the graph
+   before it. The update command's 0.35.0 note states the same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,

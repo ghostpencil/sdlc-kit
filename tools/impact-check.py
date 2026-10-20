@@ -38,6 +38,56 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ADAPTER = os.path.join(REPO, "sdlc-kit", "templates", "sdlc-impact.template.py")
 FIXTURES = os.path.join(REPO, "tools", "impact-fixtures")
 
+# The two plugin homes, as the adapter globs them (relative to the home directory).
+CLAUDE_HOME = (".claude", "plugins", "cache", "understand-anything", "understand-anything")
+COPILOT_HOME = (".copilot", "installed-plugins", "_direct")
+
+# Stands in for Understand Anything's skills/understand/scan-project.mjs. It refuses an
+# invocation the real scanner would answer differently - a root that is not the
+# project, or a scan that would list the graph's own directory - and otherwise writes
+# the entries the case chose from the observed scan (tools/impact-fixtures/SEED.md).
+FIXTURE_SCANNER = r"""
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+const [root, out, ...rest] = process.argv.slice(2);
+if (!rest.includes('--exclude-analysis-data')) {
+  process.stderr.write('fixture scanner: --exclude-analysis-data not passed');
+  process.exit(9);
+}
+if (!existsSync(join(root, '.git'))) {
+  process.stderr.write('fixture scanner: root is not the project root');
+  process.exit(8);
+}
+writeFileSync(out, readFileSync(new URL('./scan-output.json', import.meta.url)));
+"""
+FAILING_SCANNER = "process.stderr.write('scan blew up'); process.exit(3);\n"
+GARBAGE_SCANNER = r"""
+import { writeFileSync } from 'node:fs';
+writeFileSync(process.argv[3], 'this is not json');
+"""
+
+# The graph's eight files, as the observed scan lists them - and four it lacks.
+IN_GRAPH = ["spec/PRODUCT_CONTRACT.md", "spec/PROJECT_INDEX.md",
+            "tests/test_usage_store.py", "tests/test_usage_wiring.py",
+            "tfit_qa_server.py", "tfit_ratelimit.py", "tools/build_golden_set.py",
+            "usage_store.py"]
+CODE_NOT_IN_GRAPH = ".github/hooks/sdlc-cosmetic.py"
+SCRIPT_NOT_IN_GRAPH = "docker-entrypoint.sh"
+DOCS_NOT_IN_GRAPH = "README.md"
+CONFIG_NOT_IN_GRAPH = "pyproject.toml"
+
+# plugin-fix: the observed head of Understand Anything 2.9.4's skills/understand/SKILL.md
+# (Copilot install, 2026-10-19), CRLF as installed, plus a body line that must survive.
+HINT = ("[path] [--full|--auto-update|--no-auto-update|--review|--language <lang>"
+        "|--exclude <patterns>]")
+LISTED_SKILL = ("---\r\nname: understand\r\ndescription: Analyze a codebase to produce an "
+                "interactive knowledge graph for understanding architecture, components, "
+                "and relationships\r\nargument-hint: [\"%s\"]\r\n---\r\n\r\n# /understand"
+                "\r\n\r\nargument-hint: [\"a body line, not frontmatter\"]\r\n" % HINT)
+FIXED_SKILL = LISTED_SKILL.replace('argument-hint: ["%s"]' % HINT,
+                                   'argument-hint: "%s"' % HINT)
+STRING_SKILL = "---\nname: understand-chat\nargument-hint: \"[query]\"\n---\n\nbody\n"
+
 
 def guarded(label, default, fn, *a, **kw):
     """Run one pass; an unexpected exception REPORTS and the run continues.
@@ -86,6 +136,32 @@ class Bench(object):
         os.makedirs(self.ua)
         self.write(".gitignore", ("%s/\nadapter.py\n" % ua_dir) if ignore_ua
                    else "adapter.py\n")
+        # Every run sees a throwaway home, so the machine's own plugin installs can
+        # never answer a coverage case; the coverage cases build plugin homes in it.
+        self.home = tempfile.mkdtemp(prefix="impact-home-")
+        self.path = os.environ.get("PATH", "")
+
+    def install_scanner(self, home_parts, version, files=None, body=None,
+                        package=True):
+        """A fixture scanner in a plugin home: by default it checks the arguments the
+        real one is given and writes the chosen entries of the observed scan."""
+        plugin = os.path.join(self.home, *home_parts)
+        skill = os.path.join(plugin, "skills", "understand")
+        os.makedirs(skill)
+        if package:
+            with io.open(os.path.join(plugin, "package.json"), "wb") as fh:
+                fh.write(json.dumps({"name": "@understand-anything/skill",
+                                     "version": version}).encode("utf-8"))
+        with io.open(os.path.join(skill, "scan-project.mjs"), "wb") as fh:
+            fh.write((body or FIXTURE_SCANNER).encode("utf-8"))
+        if files is not None:
+            with io.open(os.path.join(FIXTURES, "scan-result.json"), "rb") as fh:
+                scan = json.loads(fh.read().decode("utf-8"))
+            scan["files"] = [f for f in scan["files"] if f["path"] in files]
+            missing = set(files) - set(f["path"] for f in scan["files"])
+            assert not missing, "not in the observed scan: %s" % sorted(missing)
+            with io.open(os.path.join(skill, "scan-output.json"), "wb") as fh:
+                fh.write(json.dumps(scan).encode("utf-8"))
 
     def write(self, rel, text):
         path = os.path.join(self.root, rel)
@@ -130,9 +206,18 @@ class Bench(object):
     def branch(self, name):
         run_git(self.root, "checkout", "-q", "-b", name)
 
+    def write_skill(self, plugin_parts, name, text):
+        path = os.path.join(self.home, *(plugin_parts + ("skills", name, "SKILL.md")))
+        if not os.path.isdir(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
+        with io.open(path, "wb") as fh:
+            fh.write(text.encode("utf-8"))
+        return path
+
     def adapt(self, *args):
+        env = dict(os.environ, HOME=self.home, USERPROFILE=self.home, PATH=self.path)
         p = subprocess.run([sys.executable, self.adapter] + list(args),
-                           cwd=self.root, capture_output=True)
+                           cwd=self.root, capture_output=True, env=env)
         return (p.returncode,
                 p.stdout.decode("utf-8", "replace").replace("\r\n", "\n").strip())
 
@@ -145,6 +230,7 @@ class Bench(object):
 
     def destroy(self):
         shutil.rmtree(self.root, ignore_errors=True)
+        shutil.rmtree(self.home, ignore_errors=True)
 
 
 def base_slice(bench):
@@ -360,6 +446,188 @@ def c_unknown_mode(b):
     return ("frobnicate",)
 
 
+# ---- coverage: the phase-end trigger for a full rebuild (FEATURE_PLAN.md §83).
+
+def coverage_bench(b, files, plugin=CLAUDE_HOME + ("2.9.7",)):
+    b.install_graph()
+    b.commit("graph present")
+    b.install_scanner(plugin, "2.9.7", files=files)
+    return ("coverage",)
+
+
+def c_cov_complete(b):
+    return coverage_bench(b, IN_GRAPH)
+
+
+def c_cov_code_missing(b):
+    return coverage_bench(b, IN_GRAPH + [CODE_NOT_IN_GRAPH])
+
+
+def c_cov_script_missing(b):
+    return coverage_bench(b, IN_GRAPH + [SCRIPT_NOT_IN_GRAPH])
+
+
+def c_cov_docs_never_trigger(b):
+    return coverage_bench(b, IN_GRAPH + [DOCS_NOT_IN_GRAPH, CONFIG_NOT_IN_GRAPH])
+
+
+def c_cov_newest_version_wins(b):
+    """2.9.10 must beat 2.9.9: a string sort picks 2.9.9, whose scanner fails."""
+    b.install_graph()
+    b.commit("graph present")
+    b.install_scanner(CLAUDE_HOME + ("2.9.9",), "2.9.9", body=FAILING_SCANNER)
+    # No package.json here: the version must come from the directory name.
+    b.install_scanner(CLAUDE_HOME + ("2.9.10",), "2.9.10", files=IN_GRAPH,
+                      package=False)
+    return ("coverage",)
+
+
+def c_cov_newest_across_homes(b):
+    """The newest install wins wherever it lives - here the Copilot one."""
+    b.install_graph()
+    b.commit("graph present")
+    b.install_scanner(CLAUDE_HOME + ("2.9.4",), "2.9.4", body=FAILING_SCANNER)
+    b.install_scanner(COPILOT_HOME + ("ua",), "2.9.7", files=IN_GRAPH)
+    return ("coverage",)
+
+
+def c_cov_copilot_only(b):
+    return coverage_bench(b, IN_GRAPH, plugin=COPILOT_HOME + ("ua",))
+
+
+def c_cov_no_plugin(b):
+    b.install_graph()
+    b.commit("graph present")
+    return ("coverage",)
+
+
+def c_cov_no_node(b):
+    coverage_bench(b, IN_GRAPH)
+    # git stays reachable; node does not. If node shares git's directory on this
+    # machine the case cannot be built, and says so rather than passing.
+    git_dir = os.path.dirname(shutil.which("git"))
+    if shutil.which("node", path=git_dir):
+        raise RuntimeError("node sits beside git in %s - no-node case unbuildable"
+                           % git_dir)
+    b.path = git_dir
+    return ("coverage",)
+
+
+def c_cov_scanner_fails(b):
+    b.install_graph()
+    b.commit("graph present")
+    b.install_scanner(CLAUDE_HOME + ("2.9.7",), "2.9.7", body=FAILING_SCANNER)
+    return ("coverage",)
+
+
+def c_cov_scanner_garbage(b):
+    b.install_graph()
+    b.commit("graph present")
+    b.install_scanner(CLAUDE_HOME + ("2.9.7",), "2.9.7", body=GARBAGE_SCANNER)
+    return ("coverage",)
+
+
+def c_cov_no_graph(b):
+    b.write("usage_store.py", "x\n")
+    b.commit("base")
+    b.install_scanner(CLAUDE_HOME + ("2.9.7",), "2.9.7", files=IN_GRAPH)
+    return ("coverage",)
+
+
+def c_cov_malformed_graph(b):
+    b.install_graph(malformed=True)
+    b.commit("graph present")
+    b.install_scanner(CLAUDE_HOME + ("2.9.7",), "2.9.7", files=IN_GRAPH)
+    return ("coverage",)
+
+
+# ---- refresh-check: whether the slice-end incremental refresh runs.
+
+def c_rc_graph_behind(b):
+    b.install_graph()
+    b.write("usage_store.py", "original\n")
+    built = b.commit("graph built here")
+    b.set_meta_commit(built)
+    b.write("usage_store.py", "the slice's change\n")
+    b.commit("the slice")
+    return ("refresh-check",)
+
+
+def c_rc_graph_at_head(b):
+    b.install_graph()
+    b.write("usage_store.py", "original\n")
+    head = b.commit("the slice, and the graph is already here")
+    b.set_meta_commit(head)
+    return ("refresh-check",)
+
+
+def c_rc_no_meta(b):
+    b.install_graph(meta=False)
+    b.write("usage_store.py", "original\n")
+    b.commit("the slice")
+    return ("refresh-check",)
+
+
+def c_rc_no_graph(b):
+    b.write("usage_store.py", "original\n")
+    b.commit("the slice")
+    return ("refresh-check",)
+
+
+# ---- plugin-fix: Copilot CLI drops a skill whose argument-hint is a list.
+
+def plugin_fix_bench(b):
+    b.commit("a repository")
+    copilot = COPILOT_HOME + ("ua",)
+    b.install_scanner(copilot, "2.9.4", files=IN_GRAPH)
+    b.listed = b.write_skill(copilot, "understand", LISTED_SKILL)
+    b.string = b.write_skill(copilot, "understand-chat", STRING_SKILL)
+    return ("plugin-fix",)
+
+
+def c_pf_fixes_copilot(b):
+    return plugin_fix_bench(b)
+
+
+def c_pf_idempotent(b):
+    argv = plugin_fix_bench(b)
+    b.adapt(*argv)
+    return argv
+
+
+def c_pf_claude_untouched(b):
+    argv = plugin_fix_bench(b)
+    claude = CLAUDE_HOME + ("2.9.7",)
+    b.install_scanner(claude, "2.9.7", files=IN_GRAPH)
+    b.claude = b.write_skill(claude, "understand", LISTED_SKILL)
+    return argv
+
+
+def c_pf_no_install(b):
+    b.commit("a repository")
+    b.install_scanner(CLAUDE_HOME + ("2.9.7",), "2.9.7", files=IN_GRAPH)
+    return ("plugin-fix",)
+
+
+def read_text(path):
+    with io.open(path, "rb") as fh:
+        return fh.read().decode("utf-8")
+
+
+def assert_skills_fixed(bench, out):
+    """Byte-exact: the frontmatter hint is a string, CRLF kept, the body line and the
+    already-string skill untouched, and a Claude Code install never written."""
+    problems = []
+    if read_text(bench.listed) != FIXED_SKILL:
+        problems.append("understand/SKILL.md is not exactly the fixed text: %r"
+                        % read_text(bench.listed)[:300])
+    if read_text(bench.string) != STRING_SKILL:
+        problems.append("a skill that needed no fix was rewritten")
+    if getattr(bench, "claude", None) and read_text(bench.claude) != LISTED_SKILL:
+        problems.append("the Claude Code install was rewritten")
+    return "; ".join(problems)
+
+
 # (name, setup, argv-from-setup, must-contain, must-NOT-contain, extra assertion)
 CASES = [
     ("no_graph_is_unavailable", c_no_graph,
@@ -430,6 +698,91 @@ CASES = [
 
     ("unknown_mode_is_error", c_unknown_mode,
      ["SDLC IMPACT: ERROR", "unknown mode"], ["COMPLETE", "PARTIAL"], None),
+
+    ("coverage_complete_needs_no_rebuild", c_cov_complete,
+     ["SDLC IMPACT: COMPLETE", "scope: coverage",
+      "scanner: understand-anything 2.9.7 (Claude Code plugin cache)",
+      "scanned-code-files: 6", "missing-code-files: 0", "missing-other-files: 0",
+      "full-rebuild: not needed"], ["PARTIAL", "needed -"], None),
+
+    ("coverage_missing_code_file_triggers_rebuild", c_cov_code_missing,
+     ["SDLC IMPACT: PARTIAL", "scanned-code-files: 7", "missing-code-files: 1",
+      "missing: " + CODE_NOT_IN_GRAPH, "full-rebuild: needed - /understand --full"],
+     ["COMPLETE", "not needed"], None),
+
+    ("coverage_missing_script_triggers_rebuild", c_cov_script_missing,
+     ["SDLC IMPACT: PARTIAL", "missing-code-files: 1",
+      "missing: " + SCRIPT_NOT_IN_GRAPH, "full-rebuild: needed"],
+     ["COMPLETE", "not needed"], None),
+
+    ("coverage_docs_and_config_never_trigger", c_cov_docs_never_trigger,
+     # Named, so the owner sees them - but the rebuild stays off.
+     ["SDLC IMPACT: COMPLETE", "missing-code-files: 0", "missing-other-files: 2",
+      DOCS_NOT_IN_GRAPH, CONFIG_NOT_IN_GRAPH, "full-rebuild: not needed"],
+     ["PARTIAL", "needed -"], None),
+
+    ("coverage_newest_version_wins_numerically", c_cov_newest_version_wins,
+     ["SDLC IMPACT: COMPLETE", "understand-anything 2.9.10 (Claude Code"],
+     ["2.9.9", "cannot check"], None),
+
+    ("coverage_newest_install_wins_across_homes", c_cov_newest_across_homes,
+     ["SDLC IMPACT: COMPLETE", "understand-anything 2.9.7 (Copilot CLI plugins)"],
+     ["2.9.4", "cannot check"], None),
+
+    ("coverage_finds_the_copilot_home", c_cov_copilot_only,
+     ["SDLC IMPACT: COMPLETE", "(Copilot CLI plugins)"], ["cannot check"], None),
+
+    ("coverage_without_the_plugin_cannot_check", c_cov_no_plugin,
+     ["SDLC IMPACT: UNAVAILABLE", "cannot check", "no Understand Anything scanner"],
+     ["COMPLETE", "PARTIAL", "ERROR"], None),
+
+    ("coverage_without_node_cannot_check", c_cov_no_node,
+     ["SDLC IMPACT: UNAVAILABLE", "cannot check", "node is not on PATH"],
+     ["COMPLETE", "PARTIAL", "ERROR"], None),
+
+    ("coverage_scanner_failure_cannot_check", c_cov_scanner_fails,
+     # Never an empty scan read as "nothing missing".
+     ["SDLC IMPACT: UNAVAILABLE", "cannot check", "exited 3", "scan blew up"],
+     ["COMPLETE", "PARTIAL", "ERROR"], None),
+
+    ("coverage_unreadable_scan_cannot_check", c_cov_scanner_garbage,
+     ["SDLC IMPACT: UNAVAILABLE", "cannot check", "unreadable"],
+     ["COMPLETE", "PARTIAL", "ERROR"], None),
+
+    ("coverage_without_a_graph_is_unavailable", c_cov_no_graph,
+     ["SDLC IMPACT: UNAVAILABLE", "knowledge graph not found"],
+     ["COMPLETE", "PARTIAL", "scanner:"], None),
+
+    ("coverage_malformed_graph_is_error", c_cov_malformed_graph,
+     ["SDLC IMPACT: ERROR", "malformed"], ["COMPLETE", "PARTIAL"], None),
+
+    ("refresh_runs_when_the_graph_is_behind", c_rc_graph_behind,
+     ["refresh needed", "run /understand"], ["skipped"], None),
+
+    ("refresh_skipped_when_the_graph_is_at_head", c_rc_graph_at_head,
+     ["refresh skipped", "already at HEAD", "would stop to ask"], ["needed"], None),
+
+    ("refresh_skipped_without_a_build_commit", c_rc_no_meta,
+     ["refresh skipped", "full analysis"], ["needed"], None),
+
+    ("refresh_without_a_graph_has_nothing_to_do", c_rc_no_graph,
+     ["no knowledge graph - nothing to refresh"], ["needed", "skipped"], None),
+
+    ("plugin_fix_makes_the_hint_a_string", c_pf_fixes_copilot,
+     ["argument-hint made a string in understand,", "Copilot CLI plugins",
+      "next Copilot session"], ["understand-chat,", "nothing to fix"],
+     assert_skills_fixed),
+
+    ("plugin_fix_is_idempotent", c_pf_idempotent,
+     ["nothing to fix (2 skills checked)"], ["made a string"], assert_skills_fixed),
+
+    ("plugin_fix_never_writes_the_claude_install", c_pf_claude_untouched,
+     ["made a string in understand,"], ["Claude Code plugin cache"],
+     assert_skills_fixed),
+
+    ("plugin_fix_without_a_copilot_install", c_pf_no_install,
+     ["no Understand Anything install in the Copilot CLI plugins home"],
+     ["made a string"], None),
 ]
 
 
@@ -563,6 +916,53 @@ MUTATIONS = [
      '        code, base = git("-C", root, "rev-parse", "--verify", "--quiet",\n'
      '                         base_ref + "^{commit}")',
      '        code, base = 0, base_ref'),
+    # coverage and refresh-check (§83)
+    ("docs_trigger_a_full_rebuild",
+     'TRIGGER_CATEGORIES = ("code", "script")',
+     'TRIGGER_CATEGORIES = ("code", "script", "docs", "config")'),
+    ("scripts_never_trigger",
+     'TRIGGER_CATEGORIES = ("code", "script")',
+     'TRIGGER_CATEGORIES = ("code",)'),
+    ("missing_code_reported_complete",
+     '    return emit("PARTIAL" if missing else "COMPLETE", "coverage", fields)',
+     '    return emit("COMPLETE", "coverage", fields)'),
+    ("versions_sorted_as_strings",
+     '    found.sort(key=lambda entry: entry[0], reverse=True)',
+     '    found.sort(key=lambda entry: entry[1], reverse=True)'),
+    ("version_ignores_package_json",
+     '                    version = json.loads(fh.read().decode("utf-8")).get("version") or version',
+     '                    pass'),
+    ("copilot_home_not_searched",
+     '    ((".copilot", "installed-plugins", "*", "*"), "Copilot CLI plugins"),',
+     ''),
+    ("analysis_data_flag_dropped",
+     '            p = subprocess.run([node, scanner, root, out, "--exclude-analysis-data"],',
+     '            p = subprocess.run([node, scanner, root, out],'),
+    ("failed_scan_read_as_empty",
+     '        if p.returncode != 0 or not os.path.isfile(out):',
+     '        if not os.path.isfile(out):\n            return [], None\n        if False:'),
+    ("missing_node_not_detected",
+     '    node = shutil.which("node")\n    if not node:',
+     '    node = "node"\n    if not node:'),
+    ("refresh_never_skipped_at_head",
+     '    if commit == head:',
+     '    if False:'),
+    ("refresh_without_meta_runs_a_full_analysis",
+     '    if not commit:\n        print("sdlc-impact: refresh skipped',
+     '    if False:\n        print("sdlc-impact: refresh skipped'),
+    # plugin-fix
+    ("plugin_fix_reaches_past_the_frontmatter",
+     '        if body.strip() == "---":\n            break',
+     '        if False:\n            break'),
+    ("plugin_fix_drops_the_line_ending",
+     "                                                 lines[i][len(body):])",
+     '                                                 "\\n")'),
+    ("plugin_fix_writes_the_claude_install",
+     "    parts, label = PLUGIN_HOMES[1]",
+     "    parts, label = PLUGIN_HOMES[0]"),
+    ("plugin_fix_never_writes",
+     "                if changed:\n                    with open(path, \"wb\") as fh:",
+     "                if changed:\n                    with open(os.devnull, \"wb\") as fh:"),
 ]
 
 

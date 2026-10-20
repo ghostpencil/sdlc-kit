@@ -41,18 +41,40 @@ Usage:
   python .github/hooks/sdlc-impact.py slice                  (slice footprint)
   python .github/hooks/sdlc-impact.py phase <base-ref>       (arc footprint)
   python .github/hooks/sdlc-impact.py clear-base             (at /end-slice)
+  python .github/hooks/sdlc-impact.py refresh-check          (at /end-slice, last)
+  python .github/hooks/sdlc-impact.py coverage               (at /end-phase, last)
+  python .github/hooks/sdlc-impact.py plugin-fix             (offered: Copilot CLI only)
 """
 
+import glob
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 UA_DIRS = (".understand-anything", ".ua")  # legacy name first, current second
 STATE_DIR = "sdlc-impact"
 OVERLAY_NAME = "diff-overlay.json"
 GRAPH_NAME = "knowledge-graph.json"
 META_NAME = "meta.json"
+
+# Where each CLI installs the Understand Anything plugin, relative to the home
+# directory, as (glob, label). The scanner sits at the same place inside either install.
+PLUGIN_HOMES = (
+    ((".claude", "plugins", "cache", "understand-anything", "understand-anything", "*"),
+     "Claude Code plugin cache"),
+    ((".copilot", "installed-plugins", "*", "*"), "Copilot CLI plugins"),
+)
+SCANNER = ("skills", "understand", "scan-project.mjs")
+# The categories whose absence from the graph calls for a full rebuild. The scanner
+# also files every unrecognized extension under `code`, so this errs towards rebuilding.
+TRIGGER_CATEGORIES = ("code", "script")
+SCAN_TIMEOUT = 300
+# A one-item YAML list as a skill's argument-hint - what Copilot CLI rejects (plugin-fix).
+HINT_LIST = re.compile(r'^argument-hint:\s*\[\s*"((?:[^"\\]|\\.)*)"\s*\]\s*$')
 
 
 def git(*args):
@@ -361,6 +383,226 @@ def read_base(root):
     return sha, None
 
 
+def named(paths):
+    """Up to ten paths, then a count - the members, not just the number."""
+    return (", ".join(paths[:10])
+            + (" (+%d more)" % (len(paths) - 10) if len(paths) > 10 else ""))
+
+
+def version_key(text):
+    """Numeric, so 2.9.10 sorts above 2.9.9; anything unparseable sorts lowest."""
+    try:
+        return tuple(int(part) for part in text.split("."))
+    except ValueError:
+        return ()
+
+
+def find_scanner():
+    """(scanner path, "understand-anything <version> (<home>)") or (None, None).
+
+    Both CLIs' plugin homes are searched and the newest version wins, wherever it
+    lives: a machine can carry an old project-scoped install beside a newer user-scoped
+    one, and the scan should list what the newest analysis would. The version comes
+    from the install's own package.json, else its directory name.
+    """
+    home = os.path.expanduser("~")
+    found = []
+    for parts, label in PLUGIN_HOMES:
+        for plugin in sorted(glob.glob(os.path.join(home, *parts))):
+            scanner = os.path.join(plugin, *SCANNER)
+            if not os.path.isfile(scanner):
+                continue
+            version = os.path.basename(plugin)
+            try:
+                with open(os.path.join(plugin, "package.json"), "rb") as fh:
+                    version = json.loads(fh.read().decode("utf-8")).get("version") or version
+            except (ValueError, OSError, AttributeError):
+                pass
+            found.append((version_key(version), version, label, scanner))
+    if not found:
+        return None, None
+    found.sort(key=lambda entry: entry[0], reverse=True)
+    _, version, label, scanner = found[0]
+    return scanner, "understand-anything %s (%s)" % (version, label)
+
+
+def scan(root, scanner):
+    """(files, problem). The plugin's own deterministic file list - no model, no tokens
+    - written to a temporary file and read back. Every way the scan can fail is a
+    reason the coverage cannot be checked, never an empty list: an empty list would
+    read as "nothing is missing"."""
+    node = shutil.which("node")
+    if not node:
+        return None, "node is not on PATH"
+    tmp = tempfile.mkdtemp(prefix="sdlc-impact-scan-")
+    out = os.path.join(tmp, "scan.json")
+    try:
+        try:
+            p = subprocess.run([node, scanner, root, out, "--exclude-analysis-data"],
+                               capture_output=True, timeout=SCAN_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            return None, "the scanner ran past %d s" % SCAN_TIMEOUT
+        except OSError as exc:
+            return None, "the scanner could not start (%s)" % exc
+        if p.returncode != 0 or not os.path.isfile(out):
+            tail = p.stderr.decode("utf-8", "replace").strip()[-200:]
+            return None, "the scanner exited %d%s" % (p.returncode,
+                                                      (": " + tail) if tail else "")
+        try:
+            with open(out, "rb") as fh:
+                files = json.loads(fh.read().decode("utf-8"))["files"]
+            return [(f["path"], f.get("fileCategory")) for f in files], None
+        except (ValueError, OSError, KeyError, TypeError, AttributeError) as exc:
+            return None, "the scanner's output is unreadable (%s)" % exc
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def cmd_coverage(root):
+    """Is every code and script file a full analysis would cover in the graph?
+
+    The phase-end trigger for a full rebuild (`spec/SDLC.md`, *Architecture impact
+    view*). An incremental analysis re-analyses changed files but cannot be trusted to
+    add one its saved inventory never listed, so a graph can read current while whole
+    files are absent. This compares the plugin's own scan with the graph's file nodes.
+    It measures what is MISSING, not what was added this phase, so an earlier gap heals
+    at the next full rebuild. Docs, config and the rest are named but never trigger
+    one. "Cannot check" is UNAVAILABLE with the reason: it never blocks the step.
+    """
+    ua_path, ua_name = resolve_ua_dir(root)
+    if not ua_path:
+        return emit("UNAVAILABLE", "coverage", [],
+                    reason="no Understand Anything directory (%s) in this project"
+                           % " or ".join(UA_DIRS))
+    graph, err = load_graph(ua_path)
+    if err:
+        return emit("ERROR", "coverage", [], reason=err)
+    if graph is None:
+        return emit("UNAVAILABLE", "coverage", [],
+                    reason="Understand Anything knowledge graph not found in %s" % ua_name)
+    scanner, label = find_scanner()
+    if not scanner:
+        return emit("UNAVAILABLE", "coverage", [],
+                    reason="cannot check - no Understand Anything scanner in either "
+                           "plugin home (~/.claude/plugins, ~/.copilot/installed-plugins)")
+    files, problem = scan(root, scanner)
+    if problem:
+        return emit("UNAVAILABLE", "coverage", [("scanner", label)],
+                    reason="cannot check - %s" % problem)
+    graphed = {n.get("filePath") for n in graph.get("nodes", []) if n.get("filePath")}
+    trigger = sorted(p for p, cat in files if cat in TRIGGER_CATEGORIES)
+    missing = [p for p in trigger if p not in graphed]
+    other = sorted(p for p, cat in files
+                   if cat not in TRIGGER_CATEGORIES and p not in graphed)
+    fields = [("scanner", label),
+              ("scanned-code-files", len(trigger)),
+              ("missing-code-files", len(missing))]
+    if missing:
+        fields.append(("missing", named(missing)))
+    fields.append(("missing-other-files", len(other)))
+    if other:
+        fields.append(("missing-other", named(other)))
+    fields.append(("full-rebuild", "needed - /understand --full" if missing
+                   else "not needed"))
+    return emit("PARTIAL" if missing else "COMPLETE", "coverage", fields)
+
+
+def unlist_argument_hint(text):
+    """(text, changed) with a one-item list `argument-hint: ["..."]` in the frontmatter
+    made a plain string. The frontmatter is the block between the first two `---`
+    lines; nothing after it is touched, and every line keeps its own ending."""
+    lines = text.splitlines(True)
+    if not lines or lines[0].strip() != "---":
+        return text, False
+    changed = False
+    for i in range(1, len(lines)):
+        body = lines[i].rstrip("\r\n")
+        if body.strip() == "---":
+            break
+        match = HINT_LIST.match(body)
+        if match:
+            lines[i] = 'argument-hint: "%s"%s' % (match.group(1),
+                                                 lines[i][len(body):])
+            changed = True
+    return "".join(lines), changed
+
+
+def cmd_plugin_fix():
+    """Make Understand Anything's skills loadable by Copilot CLI. Idempotent.
+
+    Measured 2026-10-19 on CLI 1.0.100: the plugin's `understand` skill declares
+    `argument-hint` as a YAML list, Copilot requires a string, and drops the skill -
+    the agent sees "Skill not found" and the graph can never be refreshed from a
+    Copilot session. Claude Code accepts the list, so only the Copilot install is
+    rewritten. A plugin update restores the list, so this is re-run after one; it
+    takes effect at the next session. It writes outside the repository, which is why
+    the commands offer it rather than run it.
+    """
+    home = os.path.expanduser("~")
+    parts, label = PLUGIN_HOMES[1]
+    plugins = sorted(p for p in glob.glob(os.path.join(home, *parts))
+                     if os.path.isfile(os.path.join(p, *SCANNER)))
+    if not plugins:
+        print("sdlc-impact: plugin-fix - no Understand Anything install in the %s home"
+              % label)
+        return 0
+    for plugin in plugins:
+        fixed, checked = [], 0
+        for path in sorted(glob.glob(os.path.join(plugin, "skills", "*", "SKILL.md"))):
+            checked += 1
+            try:
+                with open(path, "rb") as fh:
+                    text = fh.read().decode("utf-8")
+                new, changed = unlist_argument_hint(text)
+                if changed:
+                    with open(path, "wb") as fh:
+                        fh.write(new.encode("utf-8"))
+                    fixed.append(os.path.basename(os.path.dirname(path)))
+            except (OSError, ValueError) as exc:
+                print("sdlc-impact: plugin-fix - %s not fixed (%s)" % (path, exc))
+        where = "%s (%s)" % (plugin, label)
+        if fixed:
+            print("sdlc-impact: plugin-fix - argument-hint made a string in %s, %s; "
+                  "takes effect at the next Copilot session" % (", ".join(fixed), where))
+        else:
+            print("sdlc-impact: plugin-fix - nothing to fix (%d skills checked) in %s"
+                  % (checked, where))
+    return 0
+
+
+def cmd_refresh_check(root):
+    """Should the slice-end incremental refresh run? One line, read before it does.
+
+    Understand Anything's `/understand` stops to ASK the user when the graph is already
+    at HEAD, and an automated close-out must never stall on a prompt - so that state is
+    "skip". A graph with no recorded build commit is also "skip": `/understand` would
+    run a full analysis, which is the phase end's job, not a slice's.
+    """
+    ua_path, _ = resolve_ua_dir(root)
+    if not ua_path or not os.path.isfile(os.path.join(ua_path, GRAPH_NAME)):
+        print("sdlc-impact: no knowledge graph - nothing to refresh")
+        return 0
+    commit = None
+    try:
+        with open(os.path.join(ua_path, META_NAME), "rb") as fh:
+            meta = json.loads(fh.read().decode("utf-8"))
+        commit = meta.get("gitCommitHash") or meta.get("commit")
+    except (ValueError, OSError, AttributeError):
+        pass
+    if not commit:
+        print("sdlc-impact: refresh skipped - no build commit in %s, so /understand "
+              "would run a full analysis rather than an incremental one" % META_NAME)
+        return 0
+    _, head = git("-C", root, "rev-parse", "HEAD")
+    if commit == head:
+        print("sdlc-impact: refresh skipped - the graph is already at HEAD (%s); "
+              "/understand would stop to ask" % head[:8])
+        return 0
+    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s: run /understand"
+          % (commit[:8], head[:8]))
+    return 0
+
+
 def run(scope, root, base, base_branch):
     ua_path, ua_name = resolve_ua_dir(root)
     if not ua_path:
@@ -395,8 +637,7 @@ def run(scope, root, base, base_branch):
         # Named, not just counted: "2 unmatched" tells the owner nothing actionable,
         # and the second field report's whole lesson is that a count without its
         # members is a denominator nobody can check.
-        fields.append(("unmatched", ", ".join(unmatched[:10])
-                       + (" (+%d more)" % (len(unmatched) - 10) if len(unmatched) > 10 else "")))
+        fields.append(("unmatched", named(unmatched)))
     fields.append(("graph-freshness", fresh_text))
     fields.append(("overlay", overlay))
 
@@ -415,6 +656,12 @@ def main(argv):
         return cmd_record_base(root)
     if mode == "clear-base":
         return cmd_clear_base(root)
+    if mode == "refresh-check":
+        return cmd_refresh_check(root)
+    if mode == "plugin-fix":
+        return cmd_plugin_fix()
+    if mode == "coverage":
+        return cmd_coverage(root)
     if mode == "slice":
         # The graph is checked first on purpose: a project that never adopted
         # Understand Anything must be told THAT, not told to run /next-slice - which
@@ -442,7 +689,8 @@ def main(argv):
 
     return emit("ERROR", "unknown", [],
                 reason="unknown mode '%s' (usage: record-base | slice | "
-                       "phase <base-ref> | clear-base)" % mode)
+                       "phase <base-ref> | clear-base | refresh-check | coverage | "
+                       "plugin-fix)" % mode)
 
 
 def guarded(argv):

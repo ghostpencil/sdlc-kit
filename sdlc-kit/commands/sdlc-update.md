@@ -877,6 +877,38 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   failed ruff's default `E741`, which turns a gate red wherever lint covers
   `.github/hooks/`. It is kit-owned, so it is replaced like any other; take 0.34.1
   rather than 0.34.0. Behavior is unchanged.
+- **0.35.0 puts the graph refreshes behind two switches** (`spec/SDLC.md`,
+  *Architecture impact view*): `Graph refresh: slice-end incremental on · phase-end
+  full-when-code-missing on`. Like 0.33.0's note, it matters only to a project carrying
+  an Understand Anything graph; for any other project it is currency only. The adapter
+  (kit-owned, replaced as usual) gains two modes. `refresh-check` lets `/end-slice` skip
+  the refresh when the graph is already at HEAD, where `/understand` would stop to ask.
+  `coverage` runs the plugin's own scanner at `/end-phase` and calls for
+  `/understand --full` only when code or script files are missing from the graph. The
+  commands now read the line, and **where it is absent they refresh nothing** — so,
+  until the owner folds the `SDLC.template.md` diff, no refresh runs. Hand the owner
+  that diff with the line **already filled from the project's own recorded rulings**,
+  not re-asked:
+  - a recorded owner ruling against the slice-end refresh → `slice-end incremental off`;
+    one against regenerating at the phase end → `phase-end … off`;
+  - no recorded ruling on a switch → `on`, the default every new adoption gets;
+  - a recorded ruling neither value expresses (an owner-run regeneration, say) → the
+    one case to ask. Name the ruling, recommend `on`, and replace that ruling's text in
+    the same fold so the line and the prose cannot disagree.
+
+  Quote each ruling you carried over beside the value it set. **A local amendment to
+  the adapter's `freshness()` that reads any graph descending from the base as current
+  is retired, not re-applied as a hunk.** It skips the second ancestry test, so a graph
+  built on a sibling branch reads current where the kit says `may be stale`. Drop the
+  hunk; a project test pinning its wording changes its expected string to the kit's
+  (`current - graph at <sha>, built inside this change set after the base`), and its
+  scenario still passes. A project-owned coverage script is the owner's to keep or
+  retire, since the adapter's `coverage` mode now does the same comparison. Say so;
+  delete nothing. **Where Copilot CLI is a runtime, offer `plugin-fix` at this halt**
+  (`python .github/hooks/sdlc-impact.py plugin-fix`). Copilot refuses the plugin's
+  `understand` skill until its list-form `argument-hint` is a string, so no Copilot
+  session has been able to refresh the graph. That is a likely reason for a stale graph
+  on a Copilot project. It writes outside the repository, so run it only on a yes.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

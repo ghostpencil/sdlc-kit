@@ -10,6 +10,52 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.35.0 — unreleased
+
+The graph refreshes behind two switches: cheap at every slice end, full at the phase end
+only when code went missing (`FEATURE_PLAN.md` §83, ruled by the owner 2026-10-19).
+
+### Changed
+- **[installable]** **`/end-slice` and `/end-phase` read a `Graph refresh:` line** in
+  `spec/SDLC.md`'s *Architecture impact view* —
+  `slice-end incremental on · phase-end full-when-code-missing on` — and skip a refresh
+  whose switch is `off`. Where the line is absent they refresh nothing and say so: 0.33.0's
+  slice-end refresh was unconditional in the command, and only the general "the process
+  file wins" rule held it off in a project that had not folded it.
+- **[installable]** **The slice-end refresh is skipped when the graph is already at
+  HEAD**, where Understand Anything's `/understand` stops to ask a question and an
+  automated close-out would stall. It is also skipped when the graph has no recorded
+  build commit, where the tool would run a full analysis instead.
+- **[installable]** **The phase-end refresh is a full rebuild, and only when code is
+  missing.** An incremental analysis cannot be trusted to add a file (plugin 2.9.4
+  batches only its saved inventory; one adoption found ten files absent behind a
+  `current` stamp). The phase end now runs the coverage check and calls for
+  `/understand --full` only when code or script files are missing from the graph;
+  otherwise nothing runs. Docs and config never trigger it.
+- **[adoption-only]** `SDLC.template.md` *Architecture impact view* carries the line,
+  both switches on, and restates both refreshes. New adoptions get it from setup.
+
+### Added
+- **[installable]** **Two adapter modes** in `.github/hooks/sdlc-impact.py` (kit-owned,
+  replaced as usual). `refresh-check` prints one line: refresh needed, or skipped and
+  why. `coverage` runs the plugin's own deterministic scanner (no model, no tokens),
+  finding it in either CLI's plugin home and naming the newest version. It compares the
+  scan with the graph's file nodes and reports `COMPLETE`, or `PARTIAL` with the missing
+  files named and `full-rebuild: needed`. Without node or the plugin it reports
+  `UNAVAILABLE … cannot check`; it never blocks.
+- **[installable]** **`plugin-fix`, a third adapter mode, for Copilot CLI.** Copilot
+  1.0.100 refuses Understand Anything's `understand` skill (2.9.4 and 2.9.7): its
+  `argument-hint` is a YAML list, Copilot requires a string, and a session reports
+  `Skill not found`. So no Copilot session could refresh the graph. The mode rewrites
+  that one field as a string in the Copilot install only. It is idempotent and
+  preserves line endings, never touches a Claude Code install, and takes effect at the
+  next session. Setup and `/sdlc-update` offer it; the commands name it as the owner
+  action and never run it, because it writes outside the repository.
+- **[installable]** `/sdlc-update` carries each project's recorded graph rulings into
+  the line instead of re-asking. It asks only about a ruling neither value expresses,
+  and retires a local `freshness()` amendment that read a sibling branch's graph as
+  current.
+
 ## 0.34.1 — 2026-10-19
 
 The cosmetic classifier now passes a Python adopter's lint (found by the first adopter

@@ -574,18 +574,38 @@ the commit body's evidence keys, and an `UNAVAILABLE` is one stated line. A proj
 whose `spec/SDLC.md` has no such section predates the adapter — say so rather than
 guessing an invocation.
 
-**Then refresh the graph — last, and only after the base is cleared.** Run the graph
-tool's own incremental analysis (for Understand Anything, `/understand` with a graph
-already present re-analyses only the changed files). It runs after the block above so
-the close-out footprint is drawn from the same graph as the preview, and "changed from
-the preview" compares like with like; the next slice then starts exactly where the graph
-was built, and its preview reads `current at the base`.
+**Then refresh the graph — last, only after the base is cleared, and only where the
+project's process file says so.** Read the `Graph refresh:` line in `spec/SDLC.md`,
+*Architecture impact view*:
+
+- **No such line** — the project predates the rule. Refresh nothing, and say so in one
+  line. The process file wins, and this command never refreshes on its own say-so.
+- **`slice-end incremental off`** — one line saying the switch is off; nothing runs.
+- **`slice-end incremental on`** — run
+
+  ```
+  python .github/hooks/sdlc-impact.py refresh-check
+  ```
+
+  and act on the line it prints. `refresh skipped` → state its reason and run nothing.
+  The graph is either already at HEAD, where `/understand` would stop to ask a
+  question, or has no build commit, where it would run a full analysis, which is the
+  phase end's job. `refresh needed` → run the graph tool's own incremental analysis
+  (`/understand`, never `--full` here), which re-analyses only the changed files.
+  `no knowledge graph` → one line.
+
+It runs after the block above so the close-out footprint is drawn from the same graph as
+the preview, and "changed from the preview" compares like with like; the next slice then
+starts exactly where the graph was built, and its preview reads `current at the base`.
 State one line in the hand-back — what it re-analysed, or that nothing structural
 changed. A refresh that writes into a **tracked** graph directory leaves the tree dirty;
 commit it on its own (`chore(graph): refresh after <slice>`) and push, rather than
-letting the next slice inherit it. Where the tool cannot run in this CLI, or the
-project has no graph, say so in one line — `spec/SDLC.md`, *Architecture impact view*,
-is the canonical statement.
+letting the next slice inherit it. Where the tool cannot run in this CLI, state one line
+and mark it as an owner action in the hand-back (`OWNER: run /understand`). It never
+blocks the slice. On Copilot CLI a `Skill not found` for `understand` is the known
+plugin defect: the owner action is `python .github/hooks/sdlc-impact.py plugin-fix`,
+then a new session. It writes outside the repository, so offer it and never run it
+yourself (`spec/SDLC.md`, *Architecture impact view*).
 
 ## Notes
 

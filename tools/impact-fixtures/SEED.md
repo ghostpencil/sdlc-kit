@@ -48,3 +48,24 @@ The observed overlay's own invariant also survives and is asserted by the proof:
   snapshot directory names the frozen pair as the ruling authority.
 - Do not "fix" the unmatched files or the freshness gap. They are the only surviving
   real instance of spec responsibilities 6 and 7.
+
+## `scan-result.json` — the coverage mode's scanner output (added 2026-10-19, §83)
+
+Not part of the frozen pair: a separate observation for the `coverage` mode. Produced
+2026-10-19 by running Understand Anything **2.9.7**'s own scanner
+(`skills/understand/scan-project.mjs <root> <out> --exclude-analysis-data`, no model)
+on the trial project at its then-current HEAD: 169 files. The minimization kept twelve
+entries, and kept each one **verbatim** (`path`, `language`, `sizeLines`,
+`fileCategory`). The project's own name does not appear in it:
+
+- the eight files the frozen graph has nodes for (six `code`, two `docs`);
+- four the graph lacks, one per class the coverage rule separates:
+  `.github/hooks/sdlc-cosmetic.py` (`code` — and genuinely missing from the trial
+  project's live graph that day, which is how the mode was first seen to work),
+  `docker-entrypoint.sh` (`script`), `README.md` (`docs`), `pyproject.toml` (`config`).
+
+`files`, `totalFiles` and `stats` were recomputed for the twelve. `contentDigest` and
+`failures` were dropped because the adapter reads neither. Each case picks the entries
+it needs at run time, and the proof's stand-in scanner writes them. The stand-in also
+refuses an invocation the real one would answer differently: a root that is not the
+project, or no `--exclude-analysis-data`.

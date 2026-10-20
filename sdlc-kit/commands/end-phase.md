@@ -66,13 +66,15 @@ the selection is mechanical. It is a comprehension aid and not verification
 `spec/SDLC.md` has no such section predates the adapter — say so instead of guessing an
 invocation.
 
-**If the block reports `graph-freshness: may be stale`, say so in the hand-back and name
-step 7's regeneration** — the picture the owner is about to accept against was drawn from
-a tree older than this arc. Under the slice-end refresh any slice's refresh reads
-current here, so a stale line means no `/end-slice` in this arc refreshed the graph, or
-the main branch has moved since the arc branched (a hotfix merged in) — say which. Do not regenerate here: the owner is
-mid-review (`spec/SDLC.md`, *Architecture impact view*), and the next triggers are the
-phase boundary and the next slice end.
+**If the block reports `graph-freshness: may be stale`, say so in the hand-back** — the
+picture the owner is about to accept against was drawn from a tree older than this arc.
+Under the slice-end refresh any slice's refresh reads current here, so a stale line
+means no `/end-slice` in this arc refreshed the graph (its switch is off, the project
+predates it, or the tool could not run), or the main branch has moved since the arc
+branched (a hotfix merged in) — say which. Do not refresh here: the owner is mid-review
+(`spec/SDLC.md`, *Architecture impact view*). The phase-end refresh is a full rebuild
+only when code went missing, so a stale graph with complete coverage is an owner
+decision: name `/understand` as the remedy rather than running it.
 
 This is what step 3 draws on. An arc that reaches the acceptance halt with nothing
 observed puts the owner in front of a system no one has run, and the halt passes
@@ -234,8 +236,8 @@ branch again taken from the project's own records. Quote it, and state any chang
 the footprint presented at acceptance — a whole-arc review that added a file after the
 owner accepted is precisely the case worth naming here, and nothing else in this step
 would surface it. No halt is added and nothing gates on it; this halt is the merge
-decision, exactly as before. A `may be stale` line here is carried into step 7's
-regeneration rather than acted on now, for the same reason as at step 2.
+decision, exactly as before. A `may be stale` line here is named, not acted on, for the
+same reason as at step 2.
 
 Present per the hand-back standard: a plain-English executive summary in bullets — PR
 link, review outcome (N fixed / N deferred-to-backlog), final gate results, CI status
@@ -477,15 +479,29 @@ read before it is reconciled is a decision taken twice.
   re-instantiated — add it in this docs commit, or every retired item becomes
   unfindable by the rule that was supposed to make retirement safe.
 - Trim/align the phase spec if the review changed behavior described there.
-- **Regenerate the architecture graph**, where the project carries one — the second of
-  its two triggers (`spec/SDLC.md`, *Architecture impact view*; the first is every
-  `/end-slice`): the merge has moved the main branch the next arc will branch from,
-  the tree is settled, and no slice is mid-flight. Run the graph tool's own analysis, then re-run
-  `python .github/hooks/sdlc-impact.py phase <main>` once and state the freshness line
-  it now prints. Do not skip this because the tool advertises an auto-update — that
-  setting reminds rather than refreshes, and the template says why. A project that lets
-  this slide reports `PARTIAL … may be stale` at every site that draws the view for the
-  whole of the next arc, which is what one real adoption measured.
+- **Check the architecture graph's coverage**, where the project carries one — the
+  phase-end refresh (`spec/SDLC.md`, *Architecture impact view*; the other is every
+  `/end-slice`). The tree is settled and no slice is mid-flight. Read the
+  `Graph refresh:` line there first. No such line → the project predates the rule: say
+  so and run nothing. `phase-end full-when-code-missing off` → one line. `on` → run
+  `python .github/hooks/sdlc-impact.py coverage` and quote its block:
+  - `full-rebuild: needed` → run `/understand --full`, then re-run
+    `python .github/hooks/sdlc-impact.py phase <main>` once and state the freshness line
+    it now prints.
+  - `full-rebuild: not needed` → the graph is complete. Say so and run nothing. Files
+    it lists under `missing-other` are docs or config: name them, never rebuild for them.
+  - `UNAVAILABLE … cannot check`, or the tool cannot run in this CLI → state one line
+    and mark an owner action in the hand-back (`OWNER: run /understand --full` where the
+    block named missing files, otherwise `OWNER: run the coverage check where the plugin
+    is installed`). It never blocks the close. On Copilot CLI a `Skill not found` for
+    `understand` is the known plugin defect: the action is
+    `python .github/hooks/sdlc-impact.py plugin-fix`, then a new session. Offer it;
+    never run it yourself, because it writes outside the repository.
+
+  Do not skip this because the tool advertises an auto-update. That setting reminds
+  rather than refreshes, and the template says why. A graph missing whole files reads
+  `current` while the view leaves those files out, which is what one real adoption
+  measured: ten files absent at a phase close.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Suggest any durable lessons worth saving to auto-memory.
 - Offer `/sdlc-retro` — it extracts lessons from the phase just closed, while the

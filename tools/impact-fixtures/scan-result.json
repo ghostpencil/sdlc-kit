@@ -1,0 +1,95 @@
+{
+  "scriptCompleted": true,
+  "files": [
+    {
+      "path": ".github/hooks/sdlc-cosmetic.py",
+      "language": "python",
+      "sizeLines": 700,
+      "fileCategory": "code"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 42,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docker-entrypoint.sh",
+      "language": "shell",
+      "sizeLines": 48,
+      "fileCategory": "script"
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "sizeLines": 158,
+      "fileCategory": "config"
+    },
+    {
+      "path": "spec/PRODUCT_CONTRACT.md",
+      "language": "markdown",
+      "sizeLines": 969,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "spec/PROJECT_INDEX.md",
+      "language": "markdown",
+      "sizeLines": 3172,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "tests/test_usage_store.py",
+      "language": "python",
+      "sizeLines": 512,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_usage_wiring.py",
+      "language": "python",
+      "sizeLines": 447,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tfit_qa_server.py",
+      "language": "python",
+      "sizeLines": 3889,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tfit_ratelimit.py",
+      "language": "python",
+      "sizeLines": 440,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tools/build_golden_set.py",
+      "language": "python",
+      "sizeLines": 518,
+      "fileCategory": "code"
+    },
+    {
+      "path": "usage_store.py",
+      "language": "python",
+      "sizeLines": 420,
+      "fileCategory": "code"
+    }
+  ],
+  "totalFiles": 12,
+  "filteredByIgnore": 65,
+  "estimatedComplexity": "large",
+  "stats": {
+    "filesScanned": 12,
+    "byCategory": {
+      "code": 7,
+      "docs": 3,
+      "script": 1,
+      "config": 1
+    },
+    "byLanguage": {
+      "python": 7,
+      "markdown": 3,
+      "shell": 1,
+      "toml": 1
+    }
+  }
+}

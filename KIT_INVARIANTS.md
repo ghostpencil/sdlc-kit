@@ -226,7 +226,12 @@ negative cases live in `tools/impact-check.py`: a graph that will not parse must
 seen to report ERROR rather than a silent COMPLETE, and an un-ignored UA directory
 must be seen to write no overlay; 0.33.0 — a graph built inside the change set must be
 seen to read current, one built on a sibling branch to read stale, and a tracked
-graph directory's own refresh commit must be seen not to count), the hook launchers'
+graph directory's own refresh commit must be seen not to count; 0.35.0 — a scan that
+fails or cannot run must be seen to report "cannot check" rather than a COMPLETE read
+off an empty list, a missing doc must be seen NOT to call for a full rebuild, and a
+graph already at HEAD must be seen to skip the slice-end refresh, and `plugin-fix` must
+be seen to leave a Claude Code install and every line past the frontmatter
+byte-identical), the hook launchers'
 **missing-script stop block**
 (0.31.1 — a stop launcher whose script is absent must be seen to block once naming it,
 and must be seen NOT to block when `stop_hook_active` is true or when the script is

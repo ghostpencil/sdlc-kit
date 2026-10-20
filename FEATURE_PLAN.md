@@ -117,6 +117,11 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
   where it would otherwise have read `may be stale`. No such reading in two arcs (the
   post-commit tooling alone keeping it current, or the refresh never run) → deletion
   candidate.
+- **The phase-end coverage trigger — §16 clock, two arcs, from 0.35.0** (§83). Catch: a
+  phase close where `coverage` named code or script files missing from a graph whose
+  freshness read current, and the full rebuild added them. No such close in two arcs
+  across the adopters running it → deletion candidate (TFit's ten-file gap is the
+  pre-release instance and does not count).
 - **The docs-only verification form — §16 clock, two arcs, from the release carrying it**
   (§80.3). Catch: a documented command or path a docs slice added, run or opened and
   found broken. No confirmed catch in two arcs → deletion candidate.
@@ -5826,3 +5831,98 @@ walked through with the owner one decision at a time.
 - **Test plan:** cases and mutations in `tools/impact-check.py` for the `coverage` mode,
   with a fixture scanner; one live `/understand` run from a Copilot session on the
   bench; the adopters as canaries at their next update.
+
+### 83.4 Built 2026-10-19 — toward 0.35.0, release held for the owner's other fixes
+
+**Two findings from reading the plugin before building:**
+1. **83.1 (2) is mostly fixed upstream in 2.9.7, and still live where the adopters
+   run.** 2.9.7 adds `prepare-incremental.mjs`. It refreshes `scan-result.json` and
+   re-analyses every file in the new scan that the old inventory lacked (old inventory =
+   old scan ∪ graph file nodes ∪ fingerprints). It still skips a file the old scan
+   listed but the graph never got. 2.9.4 has no such step: it is TFit's project-scoped
+   install and the Copilot install. The rulings stand unchanged. On 2.9.7 the coverage
+   check will usually read `COMPLETE` and cost one ~4 s scan.
+2. **The slice-end "skip at HEAD" test needed a mechanism, not prose.** The commit
+   comparison has to resolve the legacy-or-current UA directory and read `meta.json`,
+   which the adapter already does. So it became a second small mode, `refresh-check`,
+   beside the ruled `coverage`. TFit's post-commit tooling stamps `meta.json` to HEAD
+   on non-structural commits, so "graph already at HEAD" is a real slice-end state there,
+   not a theoretical one. A graph with no build commit also skips, because `/understand`
+   would run a full analysis.
+
+**Built:**
+- **Adapter:** `coverage` and `refresh-check`. The scanner is found in either plugin
+  home (newest version by numeric sort, read from the install's `package.json`, else
+  its directory name) and run with `--exclude-analysis-data`. Code and script files
+  missing from the graph give `PARTIAL` with `full-rebuild: needed`. Other categories
+  are named under `missing-other` and never trigger a rebuild. Every scan failure,
+  including no node, no plugin, non-zero exit, timeout or unreadable output, reports
+  `UNAVAILABLE … cannot check`. A failed scan is never treated as an empty file list.
+- **Template:** the `Graph refresh:` line, both switches on, and the two refreshes
+  restated.
+- **Commands:**
+  - `/end-slice`: reads the line (absent → nothing runs), then `refresh-check`, then
+    `/understand`.
+  - `/end-phase`: the bookkeeping bullet becomes the coverage check. Steps 2 and 6 now
+    name a stale graph rather than pointing at a step-7 regeneration that no longer
+    runs unconditionally.
+  - setup: tells the owner the line exists, both on.
+  - `/sdlc-update`: the 0.35.0 note with the carry-over rules (ruling 4) and the
+    freshness-amendment retirement (ruling 6), stated generally.
+- **Docs:** the root README's update paragraph, the CHANGELOG (opened as
+  `0.35.0 — unreleased`), and both invariant-13 denominators.
+
+**Fixture:** `tools/impact-fixtures/scan-result.json`, minimized from a real 2.9.7 scan
+of the trial project (provenance in `SEED.md`). One of its four not-in-graph files,
+`sdlc-cosmetic.py`, was genuinely missing from TFit's live graph that day. Run live
+against TFit, the new mode named exactly that file, matching TFit's own
+`ua_graph_coverage.py`. Against ai-news it reads `COMPLETE` with the graph stale.
+
+**Suite:** `tools/impact-check.py` passes 41 cases (20 before) and catches 31 of 31
+mutations (16 before), exit 0, `plugin-fix` included. Every scan runs in a throwaway home directory, so the
+machine's own plugins can never answer a case. The run now takes 16m48s on this machine,
+because each mutation re-runs every case on fresh bench repos. Shipped lint is clean.
+
+**A consequence to name, not a defect:** with slice-end `off` and phase-end `on`
+(chainmail's carry-over), an arc that only modifies existing files refreshes nothing.
+Coverage is complete, so no full rebuild runs, and the next arc's view reads
+`may be stale`. Ruling 2 set the trigger as "missing", so this follows from it.
+`/end-phase` step 2 names `/understand` as the remedy when it sees the stale line.
+
+**The live Copilot run (83.1 (6)) — measured, and the answer is no.** At the owner's
+suggestion it ran in ai-news (trusted, clean, `.ua/` ignored, backed up first), as
+`copilot -p "/understand" --allow-all-tools` on CLI 1.0.100.
+- **First attempt: void.** Git Bash's MSYS path conversion rewrote the prompt into a
+  path under the Git install directory; 8 credits.
+- **Second attempt, with `MSYS_NO_PATHCONV=1`:** `skill(understand) → Skill not found`.
+  The model fell back to `understand-chat` and summarized the September graph. `.ua/`
+  was byte-identical afterwards; 9.9 credits.
+- **The cause, from the CLI's own log:** `skills/understand/SKILL.md: argument-hint must
+  be a string`. The plugin writes that field as a YAML list, in 2.9.4 and 2.9.7 alike.
+  Claude Code tolerates the list and Copilot drops the skill. The same log shows the
+  plugin's session-start hook failing under PowerShell (bash syntax: `[ -d … ]`).
+- **What this means:** ruling 3's "agent runs it where the plugin is available" is
+  never true on Copilot today. The never-blocks path carries it: one line plus an owner
+  action, which must name Claude Code (template and `COPILOT.md` now say so). `coverage`
+  is unaffected, since it needs only node and the scanner file. ai-news's graph went
+  stale on 2026-09-01 for this reason, not through neglect: no Copilot session could
+  have refreshed it. The fix belongs upstream, as a one-line change to a string.
+
+**Owner ruling, 2026-10-19: the kit carries its own fix** (not an upstream report).
+- **Built:** a third adapter mode, `plugin-fix`. It rewrites a one-item list-form
+  `argument-hint` as a string in the frontmatter of every skill in the Copilot
+  install(s). It is idempotent, keeps each line's ending (the real file is CRLF), and
+  touches no line after the frontmatter and no Claude Code install.
+- **Who runs it:** it writes into the owner's home, outside the repository. So setup
+  and `/sdlc-update` offer it on Copilot projects, and the commands name it as the
+  owner action on `Skill not found`. They never run it.
+- **Proof:** four cases (byte-exact against the observed CRLF head) and four mutations.
+- **Applied to the owner's Copilot install** after backing up the file: only line 4
+  changed, and a second run reported nothing to fix.
+- **Verified live:** a fresh Copilot 1.0.100 session in the bench listed `understand`
+  with its description, without invoking it, and the session log carried no
+  `argument-hint` diagnostic (5.2 credits). ai-news was not refreshed, per the owner.
+- **Left alone:** the plugin's failing session-start hook (bash syntax under PowerShell)
+  was not asked about and is not fixed.
+
+**Not yet run:** the adopter canaries, at their next update.

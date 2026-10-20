@@ -521,26 +521,56 @@ Its four states are worth knowing apart:
   belongs in the friction log; a graph that exists and will not parse reports here and
   never as a silent COMPLETE.
 
-**Regenerate the graph at every slice end and at the phase boundary — those are the
-triggers, and they are this process's, not the graph tool's.** Both are moments where
-the work is committed and nothing is mid-flight, so a regeneration cannot invalidate
-work in progress. **At slice end**, `/end-slice` runs the tool's own incremental
-analysis as its last act — *after* it has drawn the slice's view and cleared the spent
-base, so the close-out footprint is drawn from the same graph as `/next-slice`'s preview
-and "changed from the preview" compares like with like. The next slice then starts
-exactly where the graph was built, and its view reads `current at the base`. Where the
-graph directory is **tracked**, the refresh is its own commit (`chore(graph): refresh
-after <slice>`), pushed with the slice; freshness ignores the graph directory's own
-files, so that commit does not read as staleness. An incremental run re-analyses only changed files and spends nothing on a
-cosmetic change; the Understand Anything plugin's own estimate for a structural one is
-about 160 s. **At the phase boundary**, after `/end-phase`'s post-merge bookkeeping and
-before the next `/plan-phase`, the same analysis runs once more, because the merge moves
-the main branch the next arc branches from. Without a stated trigger the graph ages
-silently and every run of the view reports `PARTIAL`: one real adoption ran a
-seven-slice phase against a graph built before the *previous* phase merged, so the view
-was degraded at every site that draws it and the freshness line was the only thing that
-said so (field, 2026-09-01). Where the graph tool cannot run in the session's CLI, say
-so in the hand-back; the next session that can, runs it.
+Graph refresh: slice-end incremental on · phase-end full-when-code-missing on
+
+**Two refreshes keep the graph current, and they are this process's, not the graph
+tool's.** The line above is their switch: set either to `off` and the commands skip that
+refresh, saying so in one line. `on` and `off` are the only values. A process file
+without the line predates the rule, and the commands then refresh nothing and say that
+— they never refresh on their own say-so. Both refreshes run where the work is committed
+and nothing is mid-flight, so neither can invalidate work in progress.
+
+- **Slice end — incremental.** `/end-slice`'s last act, *after* it has drawn the slice's
+  view and cleared the spent base, so the close-out footprint is drawn from the same
+  graph as `/next-slice`'s preview and "changed from the preview" compares like with
+  like. It first runs `python .github/hooks/sdlc-impact.py refresh-check`. Where the
+  graph is already at HEAD, `/understand` would stop to ask a question, so that state
+  skips; a graph with no recorded build commit skips too, because the tool would run a
+  full analysis instead. Otherwise the tool's own incremental analysis runs, re-analysing
+  only changed files: nothing is spent on a cosmetic change, and the Understand Anything
+  plugin's own estimate for a structural one is about 160 s. The next slice then starts
+  exactly where the graph was built, and its view reads `current at the base`. Where the
+  graph directory is **tracked**, the refresh is its own commit (`chore(graph): refresh
+  after <slice>`), pushed with the slice; freshness ignores the graph directory's own
+  files, so that commit does not read as staleness.
+- **Phase end — full, only when code went missing.** An incremental analysis cannot be
+  trusted to add a file. Understand Anything 2.9.4 batches only the files its saved
+  inventory lists, and 2.9.7 still skips a file that inventory listed but the graph never
+  got. So a graph can read `current` while whole files are absent: one adoption found ten
+  at a phase close. After `/end-phase`'s post-merge bookkeeping,
+  `python .github/hooks/sdlc-impact.py coverage` compares the plugin's own deterministic
+  scan (no model, no tokens) with the graph's file nodes. If code or script files are
+  missing, `/understand --full` runs; if not, the graph is complete and nothing runs. It
+  measures what is **missing**, not what this phase added, so an earlier gap heals at
+  the next close. Docs and config never trigger it. A doc missing from the graph shows
+  in the view as an unmatched file (`PARTIAL`), and that is stated.
+- **Neither ever blocks.** Where node or the plugin is absent, coverage reports
+  `UNAVAILABLE … cannot check`. In that case, or where the graph tool cannot run in the
+  session's CLI, the command states one line and marks an owner action in the hand-back;
+  the next session that can, runs it.
+- **On Copilot CLI the skill needs the kit's fix first.** Measured 2026-10-19: Copilot
+  CLI refuses Understand Anything's `understand` skill, whose `argument-hint` is a list
+  where Copilot requires a string, so a session reports `Skill not found`.
+  `python .github/hooks/sdlc-impact.py plugin-fix` rewrites that one field in the Copilot
+  install. It is idempotent, never touches a Claude Code install, takes effect at the next
+  session, and must be re-run after each plugin update. It writes outside the repository,
+  so the commands offer it as the owner action and never run it themselves; without it,
+  the action is a Claude Code session (`reference/COPILOT.md`).
+
+Without a stated trigger the graph ages silently and every run of the view reports
+`PARTIAL`: one real adoption ran a seven-slice phase against a graph built before the
+*previous* phase merged. The view was degraded at every site that draws it, and the
+freshness line was the only thing that said so (field, 2026-09-01).
 
 **Do not rely on the graph tool's own auto-update to do this.** Where the tool offers
 such a setting, turn it on — it is strictly better than nothing — but treat it as a
@@ -551,7 +581,7 @@ those hooks matches the **Bash** tool only, so on a project whose primary shell 
 PowerShell a commit fires nothing at all, and the plugin's own prompt describes itself as
 triggered by a post-commit hook the plugin does not ship. A setting named auto-update
 that reminds rather than updates is exactly the kind of claim this process re-derives
-rather than trusts. The regenerations above are what make the view's
+rather than trusts. The refreshes above are what make the view's
 freshness a property of this process instead of a property of a vendor's hook matcher.
 
 **Freshness answers one question only:** had the tree already moved on from the graph
@@ -576,10 +606,11 @@ Where the view fits: `/next-slice` records the slice base once the branch is set
 previews the footprint into the slice-ready hand-back; `/end-slice` regenerates after
 the record check, states **whether the footprint changed from that preview**, clears
 the spent base in the same pass, so the next slice can never compute against an old one,
-and then refreshes the graph;
+and then refreshes the graph where its switch is on;
 `/end-phase` runs it against the main branch the project's own records name for the
-acceptance hand-back, and regenerates before the merge halt, stating any change since
-acceptance. The two changed-from statements are the ones that earn the view its place:
+acceptance hand-back, regenerates before the merge halt, stating any change since
+acceptance, and checks the graph's coverage after the merge where its switch is on.
+The two changed-from statements are the ones that earn the view its place:
 a close-out review that adds a file the owner never saw, or a whole-arc review that adds
 one after acceptance, is invisible to every other step. The dashboard is never launched
 automatically.
