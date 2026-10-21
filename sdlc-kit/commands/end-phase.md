@@ -137,6 +137,11 @@ stop and say so. Proceed only on explicit owner OK.
 
 ### 4. Open the PR
 
+If the arc already has a **draft** PR, opened only so CI runs on it (`gh pr view
+--json number,isDraft`), this is that PR: mark it ready (`gh pr ready <PR#>`) and give
+it the body below with `gh pr edit <PR#> --title … --body …`, rather than opening a
+second. Otherwise:
+
 ```
 gh pr create --title "<Phase NN — title>" --body "$(cat <<'EOF'
 ## Summary

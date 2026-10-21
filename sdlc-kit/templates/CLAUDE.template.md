@@ -65,7 +65,8 @@ If unsure → ask
 
 - TDD required (tests first)
 - Small steps only (one behavior)
-- No new libraries without approval
+- No new libraries without approval — the approved list is `spec/SDLC.md` *Approved
+  libraries*; an unlisted one is an owner question, asked before it is installed
 - **Code changes only through the editor tools** — the file-edit and file-write tools,
   never the shell. No heredoc, redirect, `sed -i`, or script writes a {{SOURCE_EXT}}
   source or test file. The edit-time hook and the TDD guards, where installed, observe

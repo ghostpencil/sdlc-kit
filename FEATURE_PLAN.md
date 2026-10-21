@@ -6564,4 +6564,30 @@ step 5 runs under the close-out licence, and a test edit leaves that licence sta
 (`tdd-guard-claude.template.py`, the test branch) — the collision bites only in the TDD
 cycle, which is `/next-slice`'s. The classifier extension stays 0.36.0's (ruling 1).
 
-Still owed for 0.35.0, in §84.7's order: G, C's message.
+### 84.13 Built 2026-10-21 — G (small text)
+
+- **#17 f6**: `/end-slice` step 5 confirms the restored green with a bare test run,
+  giving 84.2's reason (a run counts only as a single bare test command; the gate is
+  not one) rather than the report's "the gate is not counted".
+- **#17 f7**: an *Approved libraries* record in `SDLC.template.md` *Records*, seeded
+  as "the dependencies declared at adoption (`{{ADOPTION_DATE}}`), plus: none yet" —
+  an existing placeholder, so invariant 1 gains nothing. `/plan-phase` and *Phase start*
+  step 3 ratify each library a phase adds as a named decision; `/next-slice` step 4
+  and the slice loop's halt-3 line halt on an unlisted one; the `CLAUDE.template.md`
+  bullet points at the record. Project-owned both: a manual update note.
+- **#17 f8**: the draft-PR-for-CI case in *Shape* (canonical), the slice loop's push
+  line, `/next-slice` step 3 and `/end-slice` *Notes*; `/end-phase` step 4 marks the
+  draft ready and edits its body. Setup step 7's CI offer triggers on arc-branch
+  pushes — 84.2: the kit ships no CI template, so that sentence is the one home.
+- **#16 f4**: format and test in separate calls, in `/next-slice` step 4 beside E's
+  paragraph.
+- **#15 f5, ruled 2026-10-21 (owner: enumerate all)**: `/sdlc-update` step 4 lists every
+  live entry — `open` and `RULING OPEN` — beside the changelog entry in range that
+  addresses it, or `nothing in range`; after step 6's verify, a confirmed `RULING OPEN`
+  entry flips to `implemented in kit vX.Y.Z` (the tag, since the update's own commit
+  does not exist yet) as a third stated exception to the project-owned writes; `open`
+  entries stay for the retro's carry-forward. Rejected: an *Implicates:* field — a
+  format change older entries lack, and a weak match since the guard files change in
+  nearly every release. README steps 4 and 6 say the same.
+
+Still owed for 0.35.0, in §84.7's order: C's message.

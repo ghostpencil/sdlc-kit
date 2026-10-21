@@ -34,7 +34,9 @@ bug-fix/cleanup slices on a cleanup branch named for the arc's theme
 (`chore/cleanup-<arc-theme>` — not for whichever slice happens first).
 
 **One arc, one branch, one PR — in both modes.** Slices accumulate on the arc branch
-until `/end-phase`; only `/end-phase` opens a PR. Work arising from a slice's own
+until `/end-phase`; only `/end-phase` opens a PR. A **draft** PR opened only so CI runs
+on the arc (where CI runs on pull requests, not on branch pushes) is not that PR:
+`/end-phase` marks it ready instead of opening a second. Work arising from a slice's own
 review stays on the same branch. Splitting an arc across branches forfeits the single
 whole-arc review — the stage that catches what slice reviews structurally cannot.
 
@@ -112,8 +114,9 @@ for the *owner* to follow.
 
 The per-project record the close-outs run on: the scope, the gate and its baseline
 and floor, the CI line, the hook and guard notes, and the model policy live in this
-one section — a command session reading those values loads these lines, not the rest
-of the file. Each record names the section whose rules govern it. A few values live
+one section, with the approved libraries — a command session reading those values
+loads these lines, not the rest of the file. Each record names the section whose rules
+govern it. A few values live
 at the step that uses them instead: the run command and acceptance surface (*Phase
 end*, halt 4), the deploy note (*Phase end*, step 6), the main branch (*Shape*), the
 kit version (the header) — each read where it is used, never re-derived.
@@ -327,6 +330,17 @@ lint error, naming the file), and the **reach note** the rule above requires:
      is log-only by design regardless of the flag. -->
 
 
+
+### Approved libraries
+
+The dependencies the project declared at adoption ({{ADOPTION_DATE}}), plus:
+
+- none yet
+<!-- The one home for this list. A library joins it as a ratified /plan-phase decision
+     (*Phase start* step 3) or by an owner answer at the /next-slice halt a slice raises
+     for an unlisted one (halt 3), with the phase or slice that approved it. Before
+     this record the approvals landed in phase-spec decisions and an ad-hoc index line,
+     and one arc deferred a verification for want of a moment to ask. -->
 
 ### Model policy
 
@@ -662,7 +676,9 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    that disables it **alone**, since a control sharing its only off switch with an
    unrelated system has no rollback.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
-   numbered owner decisions, behaviors, non-goals, data/migration impact, trust
+   numbered owner decisions (every library the phase adds that *Approved libraries*
+   does not list is one, named, joining that list on approval), behaviors, non-goals,
+   data/migration impact, trust
    boundaries (what the consequence sweep found, recorded), preserved behaviors (the
    product-contract entries on surfaces this phase touches, carried with their pins — see
    *Product contract* above), user-visible surface + acceptance-review checklist, slices
@@ -727,7 +743,8 @@ Run `/next-slice` in a **fresh session**:
    watch it fail for the expected reason, then assert what the code actually does.
    It is recorded in the ordinary shape, marked as characterization — never with the
    zero-form, which belongs to a slice with no behavior batches at all. Design
-   questions halt *(halt 3)*.
+   questions halt *(halt 3)* — a library the slice needs that *Approved libraries*
+   does not list among them, asked before it is installed.
 
    **A docs-only slice is declared here, not discovered at close-out.** When the phase
    spec ratified the slice's test approach as `none` and the slice plans to touch no
@@ -923,7 +940,8 @@ Run `/end-slice` when the slice's exit criteria are met:
     honest close from a per-slice write-up, so `OVER` is a question the hand-back
     answers rather than a verdict. It exists because *status only, one line* was in
     force the whole time an adoption wrote 404 index lines across seven close-outs;
-    a rule with no observer is a wish. Push the branch (no PR — that is phase end).
+    a rule with no observer is a wish. Push the branch (no PR — that is phase end; a
+    draft opened only so CI runs is not one, *Shape*).
 13. Owner clears context (`/clear`). Every slice starts from a fresh window.
 
 ## Phase end

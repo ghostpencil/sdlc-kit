@@ -106,7 +106,8 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
        - <YYYY-MM-DD> — <the friction, one sentence> — absorbed by retro <YYYY-MM-DD>
          — <implemented in <commit> | ruled unpreventable | RULING OPEN>
        Only the first two dispositions close the entry; RULING OPEN stays live and
-       never retires, however old it is.
+       never retires, however old it is. /sdlc-update flips a RULING OPEN entry the
+       owner confirms the applied release fixed to `implemented in kit vX.Y.Z`.
      /end-slice's close-out writes the `open` form here, at the moment the friction is
      still accurate; /sdlc-retro's sweep reads the status word AND the disposition,
      reports every entry still `open` with its age, reports absorbed entries whose

@@ -210,6 +210,18 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   file.**
 - `UNKNOWN` → not from the kit. Left alone, no question asked.
 
+**Then the friction this release may close — every live entry, not a filtered few.**
+List each entry in `spec/PROJECT_INDEX.md` *Kit friction log* still `open` or absorbed
+as `RULING OPEN`, and beside each the changelog entry in the update range that
+addresses it, quoted, or `nothing in range`. Visit them all: the log has no field
+naming the file an entry implicates, so a filter has nothing to match on, and an
+entry's own words are the only evidence. The cost of skipping this is measured: an
+adopter's update shipped the exact fix for two such entries, the guard applied it 84
+times, and both stayed `RULING OPEN` for seven weeks because nothing asked. A
+`RULING OPEN` entry with a match is proposed for closure at step 6, after the verify;
+an `open` one is left for the next `/sdlc-retro`, whose carry-forward re-checks it
+against the upstream artifact.
+
 ### 5. Apply
 
 - Copy the target version's files over the `UNCHANGED` set and whatever `DRIFTED` files
@@ -962,6 +974,16 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   guards see only the editor tools — fold it with the guard re-derive above. The
   slice-loop restore text in `SDLC.template.md` gains the runner carve-out; hand that
   diff over too. Until folded, the project's files win and the rule is not in force.
+- **0.35.0 gives approved libraries one home:** an *Approved libraries* record in
+  `spec/SDLC.md` *Records* (ratified into at `/plan-phase`, a `/next-slice` halt for an
+  unlisted library) and a pointer to it in `CLAUDE.md`'s *No new libraries* bullet. Both
+  files are project-owned: hand the owner the two diffs. Search the project for
+  approvals already recorded elsewhere — phase-spec *Owner Decisions*, a
+  `spec/PROJECT_INDEX.md` line — and offer them as the list's first entries; the owner
+  moves them, never this command. The installed commands assume the record from this
+  release on, so say that `/next-slice` halts on every new library until it exists.
+  Hand over *Shape*'s new sentence with them — a draft PR opened only so CI runs is not
+  the phase PR, and `/end-phase` marks it ready.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Three further owner decisions can arise inside this step**, and all are real halts
@@ -1016,12 +1038,19 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   recorded URL is where `/sdlc-retro` will submit.
   **These lines are the only project-owned content an update may write** —
   and the latter two only when absent, never to overwrite an answer already recorded —
-  **with two stated exceptions**: the artifacts an accepted re-offer installs (the
+  **with three stated exceptions**: the artifacts an accepted re-offer installs (the
   TDD-guard pair; the ledger's Copilot JSON, or its `"Skill"` block merged into the
   existing `.claude/settings.json` the way setup's Existing mode merges hooks), each
   written only on the owner's word at that halt, following setup's own step; and the
   empty `spec/PRODUCT_CONTRACT.md` the 0.23.0 note creates — a verbatim template
   copy, only when absent, never content.
+  **A third exception is the friction closure step 4 proposed:** once the verify above
+  passes, for each `RULING OPEN` entry the owner confirms the release fixed — checked
+  against the installed file, not the changelog's word — flip its disposition in place
+  to `implemented in kit vX.Y.Z` — the release tag names the commit, and this update's
+  own commit does not exist yet — the shape `/sdlc-retro` step 6 writes and closes on.
+  An entry the owner does not confirm keeps `RULING OPEN`; nothing is flipped without
+  that word.
   Do them last, so an aborted update never claims a version it does not hold.
   **Two more lines join them only when this update actually put an offer to the
   owner** — the TDD-guard offer and the skill-ledger offer (step 5's re-offer clauses)

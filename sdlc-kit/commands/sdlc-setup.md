@@ -717,7 +717,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      with the date — the note's comment in `SDLC.template.md` states both forms. A
      recorded install whose proof was never run is the silent absence this checker
      family exists to catch, one layer up.
-7. Offer to scaffold CI (a workflow running the same gate). Report coverage; do not
+7. Offer to scaffold CI (a workflow running the same gate), triggered on pushes to the
+   arc branches (`feat/**`, `chore/cleanup-**`, `fix/**`) as well as on pull requests,
+   so an arc's CI runs without a draft PR opened to start it. Report coverage; do not
    enforce a floor yet — the floor is set from the first green CI run
    (`reference/GATE_RECIPES.md`).
 

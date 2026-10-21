@@ -100,7 +100,8 @@ changed cause corrected in place, any changed number or method back to the owner
 ### 3. Ensure the branch
 
 The rule, mode-independent: **slices accumulate on one arc branch until `/end-phase`;
-only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review.
+only `/end-phase` opens a PR.** One arc, one branch, one whole-arc review. (A **draft**
+PR opened only so CI runs on the arc is not that PR — `spec/SDLC.md` *Shape*.)
 
 - Check for **any unmerged arc branch** (`git branch --no-merged <main>`), not just
   whether you are on the main branch. If one exists, this slice almost certainly
@@ -187,7 +188,17 @@ working tree before writing any skip.
    So a re-wrap the edit-time hook asks for *after* the red denies the next production
    write until the red is run again: on one adopter it cost exactly that, a denied write
    and a re-observed red. Apply the hook's fix to the test first, then run the red; if a
-   fix lands after it anyway, re-run the red before writing the code.
+   fix lands after it anyway, re-run the red before writing the code. **Format and test
+   in separate calls**: a formatter chained onto the run (`<formatter> --write <file>;
+   <test command> <file>`) makes it compound, and the guard counts only a single bare
+   test command — one adopter's slice had seven runs refused for that shape alone.
+
+   **A library the slice needs that `spec/SDLC.md` *Approved libraries* does not list is
+   an owner decision** — halt and ask before installing it, per item 4 below; on
+   approval, add it to that list in the same commit as its first use. The phase's
+   expected libraries were ratified at `/plan-phase`, so an unlisted one is new
+   information, and without a defined moment to ask, one arc deferred a verification
+   rather than raise it.
 4. A spec conflict or owner-facing design decision HALTS with a question — never resolve
    one silently. State it per the hand-back standard: plain English, the decision
    numbered and marked, options with a recommendation.

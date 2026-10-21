@@ -219,8 +219,12 @@ however far the conversation has moved on.
 
 For every **new guard, branch, or error path** this slice added (review fixes
 included): delete or invert it once, run the suite, and watch it fail on exactly the
-test that claims to pin it — then restore and confirm green. Use the mutation-testing
-skill (`mutation-testing`, installed at `.claude/skills/mutation-testing/`) for anything beyond a quick
+test that claims to pin it — then restore and confirm green **with a bare test run**,
+not the gate: where the TDD guards are installed a run counts only as a single bare
+test command, and the gate command is not one, so a green confirmed through the gate
+leaves the stop guard with none (one arc's stop blocked twice that way). Use the
+mutation-testing skill (`mutation-testing`, installed at
+`.claude/skills/mutation-testing/`) for anything beyond a quick
 delete-and-run. A check is only trustworthy once it has been made to disagree; a guard
 whose deletion leaves the suite green is untested code wearing a test's name, and this
 practice caught exactly that on a real project — twice — in guards whose tests could
@@ -626,7 +630,9 @@ yourself (`spec/SDLC.md`, *Architecture impact view*).
 - Never mark the slice done if the gate is red or the review left unfixed CRITICAL items.
 - Do not start the next slice in this session — fresh context per slice is the rule.
 - Push the branch (`git push`) so work is not stranded locally, but never open a PR here —
-  that is `/end-phase`. The rule behind the prohibition: **slices accumulate on one arc
-  branch until `/end-phase`**, in BUILD and STABILIZATION alike, so the whole-arc review
+  that is `/end-phase`. A **draft** PR opened only so CI runs on the arc is not one
+  (`spec/SDLC.md` *Shape*); `/end-phase` marks it ready. The rule behind the
+  prohibition: **slices accumulate on one arc branch until `/end-phase`**, in BUILD
+  and STABILIZATION alike, so the whole-arc review
   sees everything the arc changed. Follow-on work arising from this slice's own review
   belongs on this same branch, not on a fresh one.

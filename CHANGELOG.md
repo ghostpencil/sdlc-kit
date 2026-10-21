@@ -90,6 +90,14 @@ ruled 2026-10-20).
   charged them as production, and two adopters' guards denied writes no test could
   justify. `.ua/` and `.understand-anything/` are exempt in the template itself.
   Setup proposes the value from the tree; it is never empty.
+- **[adoption-only]** **Approved libraries have one home** (sdlc-kit#17): an *Approved
+  libraries* record in `SDLC.template.md` *Records*, starting from the dependencies
+  declared at adoption. `/plan-phase` ratifies each library a phase adds as a named
+  owner decision that joins the list, and `/next-slice` halts on an unlisted one before
+  it is installed. `CLAUDE.template.md`'s *No new libraries* bullet points at the
+  record. Before this, *No new libraries without approval* was the kit's only mention:
+  one arc recorded six approvals in two ad-hoc places and deferred a verification for
+  want of a moment to ask.
 
 ### Fixed
 - **[installable]** **A command that only names the runner no longer counts, either
@@ -145,7 +153,24 @@ ruled 2026-10-20).
   red** (sdlc-kit#17): the TDD guard reads any test edit as a new cycle, so a re-wrap
   the edit-time hook demanded after an observed red made that red stale and denied the
   next production write. Extending the cosmetic classifier to test paths, which closes
-  it in the guard, is held to 0.36.0.
+  it in the guard, is held to 0.36.0. The same paragraph asks for formatting and the
+  test run in separate calls: a formatter chained onto the run makes it compound, and
+  one adopter's slice had seven runs refused for that shape (sdlc-kit#16).
+- **[installable]** **`/end-slice` step 5 confirms the restored green with a bare test
+  run, and says why** (sdlc-kit#17): where the guards are installed the gate command is
+  not a counted run, so a green confirmed through it left the stop guard with none and
+  blocked one arc's stop twice.
+- **[installable]** **A draft PR opened only so CI runs on the arc is not the phase
+  PR** (sdlc-kit#17): `spec/SDLC.md` *Shape*, `/next-slice` and `/end-slice` say so,
+  and `/end-phase` step 4 marks such a draft ready instead of opening a second.
+  `/sdlc-setup` step 7's CI offer triggers on arc-branch pushes, so no draft is needed.
+- **[installable]** **`/sdlc-update` lists every live friction entry the release may
+  close** (sdlc-kit#15): at the plan halt, each `open` or `RULING OPEN` entry beside the
+  changelog entry in range that addresses it, or `nothing in range`. After the verify,
+  a `RULING OPEN` entry the owner confirms fixed is flipped to `implemented in kit
+  vX.Y.Z`. All entries are listed, not filtered, because entries name no implicated
+  file. One adopter's update shipped the exact fix for two entries, the guard applied
+  it 84 times, and both stayed `RULING OPEN` for seven weeks.
 
 ### Proofs
 - `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py` gain cases for the

@@ -166,7 +166,9 @@ step-6 approval), write `spec/PHASE_NN_<SLUG>.md`:
 ## Goal                 (user-visible value, 2–3 sentences)
 ## Owner Decisions      (D1… numbered, dated; (proposed) items flagged; any decision
                          carrying a number tagged measured — with the run, count, or
-                         query behind it — or estimated)
+                         query behind it — or estimated; every library the phase will
+                         add not yet in spec/SDLC.md *Approved libraries* is one,
+                         named, and on approval joins that list)
 ## Behaviors            (B1… — trigger, rule, output, what the user sees)
 ## Non-Goals            (everything cut, by name)
 ## Trust Boundaries     (what external systems may propose/read; what only the app does

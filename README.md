@@ -485,6 +485,13 @@ only as a hand-apply, and the per-version transition notes name each one.
      you to fix a command that disagrees with it, so drift is often deliberate.
    - `UNKNOWN` → not a kit file. Leave it alone.
 
+   Then list **every** live entry in `spec/PROJECT_INDEX.md` *Kit friction log* —
+   `open`, or absorbed as `RULING OPEN` — beside the changelog entry in the update range
+   that addresses it, or `nothing in range`. The log names no implicated file, so there
+   is nothing to filter on; one adopter's two entries stayed `RULING OPEN` for seven
+   weeks after the update that fixed them. A matched `RULING OPEN` entry is proposed for
+   closure in step 6; an `open` one is left for the next retro.
+
    Then copy in any files **new in the target version's install set**. Classification
    never saw them — it enumerates what your project already holds, and your project does
    not hold them yet — so they appear in no category above and are the one class of
@@ -996,6 +1003,14 @@ only as a hand-apply, and the per-version transition notes name each one.
    project-owned, so the update hands you the diffs to fold; until you do, your files
    win. The update command's 0.35.0 note states the same procedure.
 
+   **0.35.0 also gives approved libraries one home** — an *Approved libraries* record in
+   `spec/SDLC.md`, which `/plan-phase` ratifies into and `/next-slice` halts on for an
+   unlisted library. The record and `CLAUDE.md`'s *No new libraries* bullet are
+   project-owned: the update hands you both diffs, and any approvals already recorded
+   elsewhere (phase-spec decisions, an index line) are yours to move into the list.
+   The same hand-over carries *Shape*'s new sentence: a draft PR opened only so CI runs
+   is not the phase PR. The update command's 0.35.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
@@ -1032,7 +1047,10 @@ only as a hand-apply, and the per-version transition notes name each one.
    decline included, so no later update re-asks
    it — and an **accepted** offer also installs its artifacts (the guard pair, the
    ledger hook), each written only on your word at that halt. An update that did not
-   ask does not record an answer. Do these writes last, so an aborted update never
+   ask does not record an answer. And each `RULING OPEN` friction entry you confirm the
+   release fixed — checked against the installed file — is flipped in place to
+   `implemented in kit vX.Y.Z` (the release tag that shipped the fix); one you do not
+   confirm stays as it is. Do these writes last, so an aborted update never
    claims a version it does not hold. From here
    every later update is mechanical.
 
