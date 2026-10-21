@@ -950,6 +950,18 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   retired where the template now does it and carried where it is project-specific.
   Prove the re-derived hook the way setup does — a deliberate lint error in a scratch
   source file is reported — and say a hook left as it is keeps today's behavior.
+- **0.35.0 adds the edit-tools rule:** code — source and test files, less the guard's
+  exempt paths — changes only through the editor tools, overriding any harness
+  guidance that permits shell edits, because the edit-time hook and the guards see
+  nothing written through the shell. Its exceptions are a tool's own output and
+  `/end-slice` step 5's hash-verified mutation runner, whose form the installed
+  `/end-slice` now carries. Its home is `CLAUDE.md` *Always-Active Rules*, which is
+  project-owned: hand the owner the `CLAUDE.template.md` bullet to fold in, never edit
+  it. Where the guards are installed, the guard note in `spec/SDLC.md` *Records* gains
+  the same rule, that a shell-written test does not license its red, and that the
+  guards see only the editor tools — fold it with the guard re-derive above. The
+  slice-loop restore text in `SDLC.template.md` gains the runner carve-out; hand that
+  diff over too. Until folded, the project's files win and the rule is not in force.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Three further owner decisions can arise inside this step**, and all are real halts

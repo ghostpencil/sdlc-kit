@@ -302,6 +302,19 @@ context. `git stash` parks the slice for the same reason. So:
   behind it** — and that is a thing to *check*, with `git status --short <path>`
   before mutating, not to assume. Clean before the mutation means
   `git checkout -- <path>` is a true inverse; dirty means it is not.
+- **A scripted runner is the one sanctioned whole-file restore, and only in this
+  form.** A pass of a dozen or more mutations is run by a script, and a script
+  cannot make a targeted edit. It may: read the file as **bytes**; apply each
+  mutation as an exact bytes replacement whose anchor it asserts occurs exactly
+  once; run the one pinning test; write the original bytes back in a `finally`; and
+  assert the file's sha256 equals the pre-mutation hash before the next mutation.
+  No text decode means nothing is normalized, and the hash proves it. Keep the
+  script outside the repository (a session scratch directory), so writing it is no
+  production write. It writes production source through the shell, so it is the one
+  carve-out in `CLAUDE.md`'s edit-tools rule, run under the close-out licence above.
+  **The `git diff` check below stays mandatory after the run:** a `finally` and the
+  hash assert do not run when the process is killed — a timeout, a reaped background
+  job — and a killed runner leaves its mutation in the tree.
 - **Never restore by writing the file's text back through a whole-file
   read-then-write.** One arc corrupted its working tree four times doing exactly
   that, because a read-modify-write normalizes whatever it round-trips (line
@@ -313,12 +326,13 @@ Either way, confirm the file is back — `git diff -- <path>` empty of the mutat
 before re-running the suite. A mutation left in the tree is the worst outcome
 available here, and it is what a failed restore looks like.
 
-**Two more rules that only bite when the loop is hand-rolled, which is how it is
-actually run:** mutate **one thing at a time and revert between** — stacked mutations
-make a red suite unattributable, and the second mutation's evidence is worthless.
-And where a file offers more targets than are worth exhausting, take **a sample of
-three to eight** rather than every branch, and say in the record how many of how
-many. All of this is stated here rather than left to the skill: `mutation-testing`
+**Two more rules that only bite when the loop is hand-rolled or scripted, which is how
+it is actually run:** mutate **one thing at a time and revert between** — stacked
+mutations make a red suite unattributable, and the second mutation's evidence is
+worthless; a scripted runner restores and hash-checks after each mutation, never once
+at the end. And where a file offers more targets than are worth exhausting, take **a
+sample of three to eight** rather than every branch, and say in the record how many of
+how many — a runner's list is a sample like any other, and is recorded the same way. All of this is stated here rather than left to the skill: `mutation-testing`
 carries the same rules at more length and is worth reading when a mutation pass gets
 difficult, but two arcs of ledger measured **zero** activations against roughly a
 hundred mutations actually run, and a rule that arrives only when a skill happens to

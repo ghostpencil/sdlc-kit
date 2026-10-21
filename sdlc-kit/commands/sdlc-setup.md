@@ -471,7 +471,15 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      guards see **only files inside the
      repository** — an absolute path outside the repo root is neither licensed nor
      denied (0.25.0), so a scratch script under a session temp directory is not a
-     production write and costs no license, while a relative path always is one
+     production write and costs no license, while a relative path always is one;
+     and the guards see **only the editor tools** — a source or test file written
+     through the shell is invisible to them, so the note restates `CLAUDE.md`'s
+     edit-tools rule (code — `{{SOURCE_GLOB}}` minus the exempt pattern — changes only
+     through the editor tools, overriding any harness guidance that permits shell
+     edits; a formatter's or generator's output and `/end-slice` step 5's
+     hash-verified mutation runner are the only exceptions), says a test written
+     through the shell does not license its red, and says the guards are a
+     cooperative backstop, not a security boundary
      (*The TDD-ordering guards* in
      `reference/GATE_RECIPES.md` is the full recipe) — because the note is the
      proactive statement of them: the guard's own messages say them only reactively,

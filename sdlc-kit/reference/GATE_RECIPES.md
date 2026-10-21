@@ -664,7 +664,18 @@ above, and do not arm deny until the log speaks.
 generated `spec/SDLC.md` must say so: writes made through the shell tool are invisible to
 G1, and a session can read the guard's own source and state. On the bench a session did
 exactly that — it read the script to learn the recognised command format. It complied,
-but it could as easily have touched the state files. Two more honest limits: G2 accepts
+but it could as easily have touched the state files. Since 0.35.0 the shell gap carries
+a rule rather than only a disclaimer: **code changes only through the editor tools**
+(`CLAUDE.template.md` *Always-Active Rules*, restated in the guard note), stated as
+overriding any harness guidance that permits shell edits — one adopter's guard, armed
+in deny mode, watched none of three production writes and a 16-mutation runner made
+through the shell in a single slice, and another counted about 28 unseen writes while
+armed (sdlc-kit#15, #16, #17). Code is `{{SOURCE_GLOB}}` minus the exempt pattern;
+docs, configs and exempt scripts stay shell-writable. The exceptions are a tool's own
+output (a formatter's `--write`, codegen) and `/end-slice` step 5's hash-verified
+mutation runner. A test written through the shell does not license its red: once the
+rule exists it is out of process, and counting it would reward the breach. A detector
+that reports such writes at the stop is held to 0.36.0. Two more honest limits: G2 accepts
 any green test run rather than a full gate run, and a session that satisfies the guard
 can still delete the test afterwards — which is why the evidence lines in the slice
 commit body, not the guard, are what make TDD ordering auditable after the fact, and

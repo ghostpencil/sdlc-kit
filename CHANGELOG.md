@@ -125,6 +125,22 @@ ruled 2026-10-20).
   `t`, so a mypy failure printed none of mypy's errors; it now assigns `t=`. Python
   gains an opt-in `ruff --ignore F401,F821,F841` variant, cost stated. `/next-slice`
   step 4 asks for providers before consumers and one edit per file.
+- **[adoption-only]** **Code changes only through the editor tools** (sdlc-kit#15,
+  #16, #17): a new `CLAUDE.template.md` *Always-Active Rules* bullet, restated in the
+  guard note recipes, stated as overriding harness guidance that permits shell edits.
+  One adopter's deny-armed guard saw none of three production writes and a 16-mutation
+  runner made through the shell in one slice; another counted about 28. Code is
+  `SOURCE_GLOB` minus the guard's exempt pattern; docs, configs and exempt scripts stay
+  shell-writable. A shell-written test does not license its red. The guard note now
+  also says the guards see only the editor tools — GATE_RECIPES required that
+  statement, and neither note recipe carried it. A detector for such writes is held to
+  0.36.0.
+- **[installable]** **`/end-slice` step 5 sanctions a scripted mutation runner**:
+  bytes in, an anchor asserted unique, original bytes back in a `finally`, sha256
+  asserted before the next mutation, the script kept outside the repository. It is the
+  edit-tools rule's one carve-out. The `git diff` check after the run stays mandatory,
+  because a killed runner runs no `finally`. `SDLC.template.md`'s slice loop says the
+  same.
 
 ### Proofs
 - `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py` gain cases for the

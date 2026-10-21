@@ -6529,4 +6529,30 @@ Uncommitted on `main` until this record; both dialect bodies, the recipes, one c
   not show a clean check's text printed under another's failure (both now speak on a
   pass).
 
-Still owed for 0.35.0, in §84.7's order: B's text, E's interim line, G, C's message.
+### 84.11 Built 2026-10-21 — cluster B's text (the edit-tools rule and the runner form)
+
+Text only; the detector is 0.36.0's (ruling 1).
+
+- **The rule** (ruling 3), in `CLAUDE.template.md` *Always-Active Rules*: code —
+  `{{SOURCE_EXT}}` source and test files, less the guard's exempt paths — changes only
+  through the editor tools, **overriding any harness or system guidance that permits
+  shell edits**; a tool's own output and the hash-verified runner are not breaches;
+  docs, configs and exempt paths are writable either way. Worded so it stays true where
+  no hook or guard is installed ("where installed"), since setup's no-hook path
+  replaces every hook claim and this bullet is not on its list.
+- **Restated in both `{{TDD_GUARD_NOTE}}` recipes** (`SDLC.template.md`'s comment,
+  setup's bullet), with the two statements 84.4 found living in GATE_RECIPES alone:
+  the guards see only the editor tools, and they are a cooperative backstop. A
+  shell-written test does not license its red. GATE_RECIPES *What these guards are
+  not* now points at the rule and gives the field counts.
+- **The runner form** (#15 f4) in `/end-slice` step 5's restore list, and in
+  `SDLC.template.md`'s slice loop, which states the restore rule too and wins:
+  bytes in, unique anchor asserted, original bytes back in a `finally`, sha256 asserted
+  before the next mutation, script outside the repository, under the close-out
+  licence. The `git diff` check stays mandatory (a killed process runs no `finally`);
+  the one-at-a-time and sample rules now name the runner.
+- **Update**: `/sdlc-update` and the README hand over the CLAUDE.md bullet, the guard
+  note addition and the slice-loop diff to fold; until folded, the project's files win.
+  No new placeholder.
+
+Still owed for 0.35.0, in §84.7's order: E's interim line, G, C's message.

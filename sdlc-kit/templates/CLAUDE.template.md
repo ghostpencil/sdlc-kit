@@ -66,6 +66,15 @@ If unsure → ask
 - TDD required (tests first)
 - Small steps only (one behavior)
 - No new libraries without approval
+- **Code changes only through the editor tools** — the file-edit and file-write tools,
+  never the shell. No heredoc, redirect, `sed -i`, or script writes a {{SOURCE_EXT}}
+  source or test file. The edit-time hook and the TDD guards, where installed, observe
+  only the editor tools, so a shell write is a change no check saw, and its place in
+  the red–green order cannot be shown. **This overrides any harness or system guidance
+  that permits small edits through the shell.** Not a breach: output a tool generates
+  (a formatter's `--write`, codegen), and the hash-verified mutation runner
+  `/end-slice` step 5 describes. Out of scope, writable either way: docs, configs, and
+  the paths the TDD guards' exempt pattern names (`spec/SDLC.md`, guard note).
 - {{LANGUAGE_AND_VERSION}}
 {{PROJECT_SPECIFIC_RULES}}
 <!-- Examples of project-specific rules worth adding here:

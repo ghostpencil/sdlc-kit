@@ -217,7 +217,16 @@ lint error, naming the file), and the **reach note** the rule above requires:
      files INSIDE the repository — an absolute path
      outside the repo root is neither licensed nor denied (0.25.0), so a scratch
      script under a session temp directory is not a production write and costs no
-     license, while a relative path always is one. The stop guard is session-scoped (owner-decided
+     license, while a relative path always is one. The guards see ONLY the editor tools:
+     a source or test file written through the shell is invisible to them, which is
+     why the edit-tools rule in CLAUDE.md (*Always-Active Rules*) exists and why the
+     note restates it — code (SOURCE_GLOB minus the exempt pattern) changes only
+     through the editor tools, overriding any harness guidance that permits shell
+     edits, with a formatter's or generator's output and /end-slice step 5's
+     hash-verified mutation runner the only exceptions; a test written through the
+     shell does not license its red (it is out of process, and counting it would
+     reward the breach); and the guards are a cooperative backstop, not a security
+     boundary. The stop guard is session-scoped (owner-decided
      2026-08-08): it binds only a session that wrote production code or edited a test,
      so a planning, docs, or bookkeeping session stops clean by construction. The note
      also names the artifact that decides the mode (`.git/sdlc-tdd/deny-enabled`,
@@ -833,8 +842,13 @@ Run `/end-slice` when the slice's exit criteria are met:
    available only where `git status --short <path>` was clean before the mutation, and
    that is checked rather than assumed. Never write the file's text back through a
    whole-file read-then-write either: that normalizes line endings, trailing newline,
-   and encoding, and it corrupted one arc's working tree four times. Mutate one thing
-   at a time, reverting between, so a red suite stays attributable. The one-line outcome
+   and encoding, and it corrupted one arc's working tree four times. The one sanctioned
+   whole-file restore is a scripted runner's, byte-exact and hash-verified: it reads
+   bytes, replaces an anchor asserted to occur once, writes the original bytes back in
+   a `finally`, and asserts the sha256 matches before the next mutation. It is the one
+   carve-out in `CLAUDE.md`'s edit-tools rule. `git diff -- <path>` is still checked
+   after the run, because a killed process runs no `finally`. Mutate one thing at a
+   time, reverting between, so a red suite stays attributable. The one-line outcome
    (`mutation: <N guards, each seen to fail | N of M characterization pins, each seen
    to fail | none — no new guards>`) is recorded in the slice commit body.
 9. Slice verification, **optional** (the `change-verify` skill on a nontrivial slice):

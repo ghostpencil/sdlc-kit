@@ -987,6 +987,15 @@ only as a hand-apply, and the per-version transition notes name each one.
    A re-derived hook is proven as setup proves it; a hook left as it is behaves as
    today. The update command's 0.35.0 note states the same procedure.
 
+   **0.35.0 also adds the edit-tools rule:** source and test files, less the guard's
+   exempt paths, change only through the editor tools, never the shell, overriding any
+   harness guidance that permits shell edits. The edit-time hook and the guards see
+   nothing a shell writes. A tool's own output and `/end-slice`'s hash-verified
+   mutation runner are the exceptions. The rule lives in your `CLAUDE.md`, restated in
+   the guard note and with the runner carve-out in `spec/SDLC.md`'s slice loop — all
+   project-owned, so the update hands you the diffs to fold; until you do, your files
+   win. The update command's 0.35.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
