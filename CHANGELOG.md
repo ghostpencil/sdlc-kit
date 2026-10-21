@@ -141,6 +141,11 @@ ruled 2026-10-20).
   edit-tools rule's one carve-out. The `git diff` check after the run stays mandatory,
   because a killed runner runs no `finally`. `SDLC.template.md`'s slice loop says the
   same.
+- **[installable]** **`/next-slice` step 4 puts the hook's formatting fix before the
+  red** (sdlc-kit#17): the TDD guard reads any test edit as a new cycle, so a re-wrap
+  the edit-time hook demanded after an observed red made that red stale and denied the
+  next production write. Extending the cosmetic classifier to test paths, which closes
+  it in the guard, is held to 0.36.0.
 
 ### Proofs
 - `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py` gain cases for the

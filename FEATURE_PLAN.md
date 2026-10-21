@@ -6555,4 +6555,13 @@ Text only; the detector is 0.36.0's (ruling 1).
   note addition and the slice-loop diff to fold; until folded, the project's files win.
   No new placeholder.
 
-Still owed for 0.35.0, in §84.7's order: E's interim line, G, C's message.
+### 84.12 Built 2026-10-21 — E's interim line
+
+One paragraph in `/next-slice` step 4, beside ruling 4's ordering guidance: settle the
+hook's formatting demands on a test before running its red, and re-run the red if a fix
+lands after it. **Re-homed from §84.5's `/end-slice` step 5**, which the report named:
+step 5 runs under the close-out licence, and a test edit leaves that licence standing
+(`tdd-guard-claude.template.py`, the test branch) — the collision bites only in the TDD
+cycle, which is `/next-slice`'s. The classifier extension stays 0.36.0's (ruling 1).
+
+Still owed for 0.35.0, in §84.7's order: G, C's message.

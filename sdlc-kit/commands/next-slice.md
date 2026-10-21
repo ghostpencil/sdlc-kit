@@ -180,6 +180,14 @@ working tree before writing any skip.
    on one adopter that ordering alone produced 9 of 20 blocks in a slice, none a
    defect, and a stream of moot blocks is how a real one gets skimmed past. It costs
    nothing in any language.
+
+   **Settle the hook's formatting demands on a test before running its red.** Where the
+   TDD guards are installed, any test edit makes every earlier red stale — a
+   formatting-only one too, since the cosmetic exemption covers production writes only.
+   So a re-wrap the edit-time hook asks for *after* the red denies the next production
+   write until the red is run again: on one adopter it cost exactly that, a denied write
+   and a re-observed red. Apply the hook's fix to the test first, then run the red; if a
+   fix lands after it anyway, re-run the red before writing the code.
 4. A spec conflict or owner-facing design decision HALTS with a question — never resolve
    one silently. State it per the hand-back standard: plain English, the decision
    numbered and marked, options with a recommendation.
