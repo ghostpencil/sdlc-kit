@@ -162,7 +162,8 @@ regardless (rules: *The Gate*).
      debt is a backlog item, not a merge blocker. -->
 
 An edit-time hook ({{HOOK_CONFIG_PATH}}) runs the lint/typecheck steps on every edited
-source file, so most gate failures surface at edit time rather than at slice end.
+source file inside the project, so most gate failures surface at edit time rather than
+at slice end. It names the check that failed and prints only that check's output.
 {{HOOK_FEEDBACK_NOTE}}
 <!-- If setup found the hook could not work in this project's hook shell and the owner
      chose not to install one, the two lines above are replaced with that fact and its

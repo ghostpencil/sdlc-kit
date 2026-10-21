@@ -6487,4 +6487,46 @@ Uncommitted on `main` until this record; both dialects, one design.
   cases (a 15-command corpus, 8 that move HEAD, 7 that only mention it), 50 mutations
   caught (9 new).
 
-Still owed for 0.35.0, in §84.7's order: D, B's text, E's interim line, G, C's message.
+### 84.10 Built 2026-10-20 — cluster D (the gate hook blocks on the edited file)
+
+Uncommitted on `main` until this record; both dialect bodies, the recipes, one command.
+
+- **Scope**: an absolute path outside the project is skipped, by the guard's root test
+  (separators normalized, case-folded — on a case-sensitive host that errs toward
+  checking — against `pwd`, `pwd -W`, and `CLAUDE_PROJECT_DIR` / the WSL mount form).
+  The relative path is cut by bytes, so a non-ASCII root cannot shift it, and is
+  exposed to the typecheck block as `$r`.
+- **Messages**: `lint failed` / `typecheck failed` / `lint and typecheck failed`, each
+  with only its own output. The lint value runs as `{ …; } 2>&1`, so a compound value
+  captures every command's stderr — the format check folds in there, no new
+  placeholder (§84.2).
+- **`tn`**, the block's non-blocking note: Claude Code returns it as PostToolUse
+  `additionalContext` at exit 0; Copilot as a "Not blocking" line in the same
+  `additionalContext` channel its failures use (it reaches the model, §83.4's 1.0.100
+  measurement — #14's "log line only" premise does not hold for the top-level form).
+- **Recipes**: the general rule; the TS one-tsconfig block (#14's patch, `$r` replacing
+  its `cygpath` relativization, `tn` replacing its inline printf) with the `pnpm -r`
+  caveat; format checks per language (Go's `gofmt -l` needs an output test — it exits
+  0 either way); the mypy `m=` → `t=` fix; the opt-in ruff variant with its cost.
+  Ruling 4's guidance is in `/next-slice` step 4; setup step 6 resolves by the rule;
+  `/sdlc-update` and the README carry the re-derive offer (a third in-step halt).
+- **Found while building**: the Copilot template's header comment named
+  `{{HOOK_TYPECHECK_BLOCK}}` literally, so a multi-line block value instantiated into
+  the comment and left its tail as live code — a syntax error that would have silenced
+  every Copilot edit check on the first adopter to take the TS block. The comment now
+  names the placeholders in words; the TS pass instantiates a multi-line block into
+  both bodies, so a marker back in a comment fails the suite.
+- **Proofs**: `tools/gate-hook-check.py` 68 cases per parser, all green, the
+  TS block extracted from GATE_RECIPES so recipe and proof cannot drift. **13 hand
+  mutations, all caught** (the suite carries none; the runner was session scratch): the
+  out-of-repo skip in each dialect, the lint group in each, each check's output printed
+  unconditionally (four), the note's channel in each, a corrupted root candidate, the
+  combined label, and the placeholder marker back in the comment. The first run missed
+  three, each a blind spot in the cases rather than the hook: a trailing `2>&1` without
+  the group still attaches to the *last* command, and the formatter stub was last; on
+  Claude Code the hook's own stderr is the channel, so an uncaptured formatter line
+  still appeared (now asserted to follow the frame); and stubs silent on a pass could
+  not show a clean check's text printed under another's failure (both now speak on a
+  pass).
+
+Still owed for 0.35.0, in §84.7's order: B's text, E's interim line, G, C's message.

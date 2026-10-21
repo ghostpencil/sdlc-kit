@@ -37,7 +37,7 @@ coverage floor below, enforced in CI and recorded locally.
 | Placeholder | Meaning | Example (Python) |
 |---|---|---|
 | `{{SOURCE_GLOB}}` | case-pattern for source files; `\|`-separate alternatives | `*.py` |
-| `{{HOOK_LINT_CMD}}` | lints the single file `$f` | `python -m ruff check "$f"` |
+| `{{HOOK_LINT_CMD}}` | lints the single file `$f`, plus its format check where the gate formats | `python -m ruff check "$f"` |
 | `{{HOOK_TYPECHECK_BLOCK}}` | optional typecheck of `$f`, often scoped to the app dir | see below |
 | `{{HOOK_STATUS_MESSAGE}}` | spinner text (Claude Code hook only) | `ruff + mypy on edited file` |
 | `{{HOOK_CONFIG_PATH}}` | where the hook is configured, named in the generated prose | `.claude/settings.json` |
@@ -57,7 +57,9 @@ after `{{GUARD_EXEMPT_PATTERN}}` has taken out what is neither (*Code is `SOURCE
 minus the exempt pattern*, below).
 
 `{{HOOK_TYPECHECK_BLOCK}}` is a bash fragment ending in `;` that sets `t` (output) and
-`trc` (exit code). To scope it to application code only (skip tests/tools):
+`trc` (exit code), and may set `tn` (a non-blocking note, below). It may read `$f` (the
+file as the hook found it) and `$r` (the same file, repo-relative, `/`-separated), and
+runs from the project root. To scope it to application code only (skip tests/tools):
 
 ```bash
 case "$f" in *<app_dir>*) t=$(<typecheck cmd> "$f" 2>&1); trc=$? ;; esac;
@@ -65,6 +67,46 @@ case "$f" in *<app_dir>*) t=$(<typecheck cmd> "$f" 2>&1); trc=$? ;; esac;
 
 If the language has no separate typecheck step, replace the whole block with a single
 space and leave `trc=0`.
+
+**What the hook checks, and what it says** (0.35.0, sdlc-kit#14, #15, #17 — two
+adopters on two stacks hit all three independently):
+
+- **Only files inside the project.** An absolute path outside the repository root — a
+  session scratchpad, a temp file, another checkout — is skipped, by the same root test
+  the TDD guards use. Linting it against this project's config failed for reasons that
+  were not the edit's, and a throwaway close-out script had to satisfy the project's
+  lint rules before it could even be saved.
+- **A check wider than the file blocks only on errors located in the edited file, or in
+  a config it could not load; the rest is a non-blocking note.** A project-wide
+  typecheck run after every edit blocked 20 times in about 35 edits on one adopter and
+  none of the blocks was a defect: 11 were the TDD red itself (a test importing a module
+  that does not exist yet is a type error, and *is* the red), 8 of them named a
+  production file for an error in the test, and the run also stopped at the first
+  failing workspace package and hid the edited file's own error. A block that filters
+  sets `trc` only for the edited file's errors and puts a count of the others in `tn`,
+  which the hook hands back as context at exit 0 on Claude Code and as a "Not blocking"
+  line on Copilot. **A wider check that cannot be filtered leaves the hook for the
+  gate** — and so does one that stops at the first failure (`pnpm -r`, a workspace
+  runner), since filtering its output turns a hidden error into a silent pass. Which
+  recipe checks are wider than the file: TypeScript's `tsc` (filtered block below),
+  mypy (it follows the file's imports and reports what it finds there; unfiltered),
+  `cargo clippy` on the crate and `go vet` on the package.
+- **Each check under its own name, with only its own output.** The failure line says
+  `lint failed`, `typecheck failed`, or both, and prints only what failed — never a
+  clean check's text under a failure it did not cause.
+- **The format check rides in the lint slot, where the gate formats.** If the gate runs
+  a formatter check that takes a single file, `{{HOOK_LINT_CMD}}` is
+  `<lint> "$f" && <format check> "$f"` (the hook runs the value as one group, so both
+  commands' output is captured); otherwise the recipe says the format check stays with
+  the gate. Whether the gate formats is a project fact — Prettier in a TypeScript gate is
+  the project's choice, not the recipe's — so setup reads the gate before folding one
+  in. One adopter's hook passed three files that then failed the gate's
+  `prettier --check`.
+
+Half-way states are the remaining source of blocks no edit caused: an import in one edit
+and its use in the next, a type member used before it is added. `/next-slice` step 4
+asks for providers before consumers and one edit per file, which costs nothing in any
+language. Python has an opt-in recipe variant for the rest (below).
 
 The instantiated `CLAUDE.md` restates the same facts in prose (`{{HOOK_TOOLS}}`,
 `{{SOURCE_EXT}}`); resolve both from this table's values, so the prose and the hook
@@ -294,7 +336,11 @@ count is derived by the suite at run time, never stated here. The case classes:
 shapes (`toolArgs` and `tool_input`), absolute-Windows and repo-relative paths, a path
 containing a space, a non-source file, a payload with no path, a missing file,
 unparseable input, neither interpreter present, output past the truncation cap, the
-launcher's boundary shape, and the Claude dialect's framed failure. Every silent case
+launcher's boundary shape, and the Claude dialect's framed failure — and since 0.35.0
+a path outside the project (skipped, beside an in-project twin that is checked), each
+check named with only its own output, a compound lint value's stderr, the non-blocking
+note, and the TypeScript block above, extracted from this file and driven against a
+stub `tsc`. Every silent case
 was also run dirty, so silence means something. That is the negative-case proof for the recipe
 itself; the per-project proof below is separate and still required. (The suite lives
 with the kit's development tooling, not in the bundle — an adopter runs the per-project
@@ -787,8 +833,21 @@ python -m mypy <package>          # typecheck (strict; keep the baseline green)
 python -m pytest -q               # tests
 ```
 
-Hook: `SOURCE_GLOB` = `*.py`; lint = `python -m ruff check "$f"`;
-typecheck block = `case "$f" in *<package>*) m=$(python -m mypy "$f" 2>&1); trc=$? ;; esac;`
+Hook: `SOURCE_GLOB` = `*.py`; lint = `python -m ruff check "$f"`, or
+`python -m ruff check "$f" && python -m ruff format --check "$f"` where the gate runs
+`ruff format --check`;
+typecheck block = `case "$f" in *<package>*) t=$(python -m mypy "$f" 2>&1); trc=$? ;; esac;`
+(through 0.34.x this read `m=`, and the hook prints `t`, so a mypy failure printed its
+failure line with none of mypy's errors under it). mypy follows the file's imports, so
+an error in an imported module blocks this file too; a project where that bites leaves
+mypy to the gate.
+
+Opt-in variant, offered and never the default: lint =
+`python -m ruff check --ignore F401,F821,F841 "$f"`. An import before its use (F401), a
+use before its import (F821) and a mutation's throwaway local (F841) are the states a
+change passes through between two edits — one adopter logged about 21 such blocks over
+two slices, all moot by the next edit. **The cost:** a misspelled name and a genuinely
+dead import wait for the gate, which still runs all three.
 
 ## TypeScript / JavaScript (Node)
 
@@ -798,9 +857,38 @@ npx tsc --noEmit                  # typecheck (omit for plain JS)
 npm test                          # tests (vitest/jest — whatever package.json says)
 ```
 
-Hook: `SOURCE_GLOB` = `*.ts|*.tsx|*.js|*.jsx`; lint = `npx eslint "$f"`;
-typecheck: per-file `tsc` is unreliable — run project-wide `npx tsc --noEmit` in the
-block if the project is small, otherwise leave typecheck to the gate.
+Hook: `SOURCE_GLOB` = `*.ts|*.tsx|*.js|*.jsx`; lint = `npx eslint "$f"`, or
+`npx eslint "$f" && npx prettier --check "$f"` where the gate runs Prettier.
+Typecheck: per-file `tsc` is unreliable, and a project-wide one blocks on every error
+anywhere (*What the hook checks* above). The block below typechecks the one TypeScript
+project that owns the file — the nearest `tsconfig.json` upward — from the root, and
+blocks only on errors located in the file, in that tsconfig, or with no location at all
+(a `tsc` that could not run checked nothing, so it never reads as clean); a count of
+the other files' errors goes in the note. Proven on a pnpm workspace by the adopter who
+wrote it (13 cases, two live), and by the kit's gate-hook suite against a stub `tsc`:
+
+```sh
+case "$f" in *.ts|*.tsx)
+  d=$(dirname "$r"); while [ "$d" != "." ] && [ ! -f "$d/tsconfig.json" ]; do d=$(dirname "$d"); done
+  cfg="$d/tsconfig.json"; if [ "$d" = "." ]; then cfg=tsconfig.json; fi
+  a=$(npx tsc --noEmit --pretty false -p "$cfg" 2>&1); arc=$?
+  if [ $arc -ne 0 ]; then
+    t=$(printf '%s\n' "$a" | awk -v r="$r(" -v c="$cfg(" '/^[^ \t]/ { k = (index($0, r) == 1 || index($0, c) == 1 || $0 ~ /^error /) } k')
+    if [ -n "$t" ]; then trc=1; else
+      n=$(printf '%s\n' "$a" | grep -c ': error TS')
+      if [ "$n" -gt 0 ]; then tn="$n type error(s) in other files of $cfg (the gate checks them)"; else t=$a; trc=$arc; fi
+    fi
+  fi ;;
+esac;
+```
+
+Run `tsc` directly, never through the workspace's own `typecheck` script when that
+script is `pnpm -r …` or another runner that stops at the first failing package: the
+run then never reaches the package that owns the edited file, and the file's own error
+is never printed (measured: the shipped hook blocked on another package's error and
+reported the edited file's not at all). A file outside every tsconfig's `include` is
+not typechecked by this block; typed ESLint reports it ("not found by the project
+service"), and a project without typed linting leaves that case to the gate.
 
 ## C# / .NET
 
@@ -821,8 +909,11 @@ go build ./...                    # compile = typecheck
 go test ./...                     # tests
 ```
 
-Hook: `SOURCE_GLOB` = `*.go`; lint = `golangci-lint run "$f"` (or `gofmt -l "$f"` +
-`go vet` on the file's package).
+Hook: `SOURCE_GLOB` = `*.go`; lint = `golangci-lint run "$f"`. `gofmt -l` exits 0
+whether or not it lists the file, so as a format check it needs a test of its output:
+`golangci-lint run "$f" && { [ -z "$(gofmt -l "$f")" ] || { echo "not gofmt-formatted: $f"; false; }; }`.
+`go vet` runs on the file's package, which is wider than the file — unfiltered, it
+belongs to the gate.
 
 ## Java (Maven / Gradle)
 
@@ -834,7 +925,8 @@ mvn -q test                       # tests           (gradle: ./gradlew test)
 
 Hook: `SOURCE_GLOB` = `*.java`; per-file tooling is weak — a compile-only hook via the
 build tool is usually too slow; consider lint-only (`checkstyle -c config "$f"`) or no
-hook, relying on the gate.
+hook, relying on the gate. There is no standard per-file format check; a formatter the
+gate runs stays with the gate.
 
 ## Rust
 
@@ -844,8 +936,10 @@ cargo check                                  # typecheck
 cargo test                                   # tests
 ```
 
-Hook: `SOURCE_GLOB` = `*.rs`; per-file clippy isn't supported — use `cargo clippy` on
-the whole crate if it's fast, otherwise rely on the gate.
+Hook: `SOURCE_GLOB` = `*.rs`; lint = `rustfmt --check "$f"` where the gate checks
+formatting. Per-file clippy isn't supported, and `cargo clippy` on the crate is wider
+than the file: it blocks on any error in the crate, so unfiltered it belongs to the
+gate.
 
 ---
 

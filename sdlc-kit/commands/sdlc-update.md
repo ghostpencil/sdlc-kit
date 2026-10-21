@@ -932,12 +932,30 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   carried as a hunk** (owner ruling, `FEATURE_PLAN.md` §84.7(3)): once the edit-tools
   rule exists, a shell-written test is out of process, and licensing its red rewards
   the breach. Say so, and delete nothing without the owner's yes.
+- **0.35.0 also changes the edit-time gate hook's body** (both dialects): it skips a
+  file outside the project, names the check that failed and prints only that check's
+  output, runs the lint value as one group so a compound `lint && format check` has
+  both commands' output, and passes a typecheck block's non-blocking note (`tn`) back as
+  context instead of a failure. The hook script (`.github/hooks/sdlc-gate-claude.sh` /
+  `sdlc-gate.sh`) is **project-owned**, so the update replaces neither: offer, at the
+  same halt, to re-derive it from the 0.35.0 template with the project's source glob,
+  lint command and typecheck block carried over, and three recipe changes offered, not
+  imposed — the format check folded into the lint value where the project's gate runs
+  one (read the gate; never assume a formatter); a TypeScript block that runs a
+  project-wide `tsc` or a workspace `typecheck` script offered GATE_RECIPES's
+  one-tsconfig block in its place; and a Python block that assigns `m=` corrected to
+  `t=`, without which mypy's errors never printed. Python projects are also offered
+  the opt-in `--ignore F401,F821,F841` lint variant, with its cost said. A local patch
+  that already does one of these (an out-of-repo skip, a per-tsconfig filter) is
+  retired where the template now does it and carried where it is project-specific.
+  Prove the re-derived hook the way setup does — a deliberate lint error in a scratch
+  source file is reported — and say a hook left as it is keeps today's behavior.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
-- **Two further owner decisions can arise inside this step**, and both are real halts
+- **Three further owner decisions can arise inside this step**, and all are real halts
   even though step 4 carries the main one: an un-manifested file in a kept `sdlc-kit/`
-  folder (below), and the TDD-guard re-offer above. Neither is decided on the owner's
-  behalf.
+  folder (below), the TDD-guard re-offer above, and the gate-hook re-offer above. None
+  is decided on the owner's behalf.
 - If the project kept a `sdlc-kit/` folder from adoption, replace it with the target
   version's bundle — but **enumerate the actual directory contents first** and compare
   them against the old version's manifest. Anything present that the manifest does not

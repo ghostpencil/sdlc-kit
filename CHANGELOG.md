@@ -103,6 +103,28 @@ ruled 2026-10-20).
   deny was emitted; the Copilot parser wrote its fields the same way, so such a path
   crashed it and the write went unguarded; and the Copilot deny message read its text
   in cp1252, garbling any non-ASCII path. All three now read and write UTF-8.
+- **[installable]** **The edit-time gate hook blocks on the edited file, not on
+  everything around it** (both dialects; sdlc-kit#14, #15, #17 — two adopters, two
+  stacks, the same three defects). It skips a file outside the project, by the TDD
+  guard's root test: a scratch close-out script had to pass the project's lint before
+  it could be saved. The failure line names the check that failed (`lint failed`,
+  `typecheck failed`, or both) and prints only that check's output. The lint value
+  runs as one group, so a compound `lint && format check` has both commands' output
+  captured. A typecheck block may set `tn`, a non-blocking note the hook returns as
+  context at exit 0 on Claude Code and as a "Not blocking" line on Copilot, and may
+  read `$r`, the file's repo-relative path. The hook script is project-owned: the
+  update offers a re-derive.
+- **[adoption-only]** **The recipes follow suit.** A check wider than the file blocks
+  only on errors located in the edited file or a config it could not load, or leaves
+  the hook for the gate. The TypeScript recipe carries a one-tsconfig `tsc` block that
+  does this (adapted from an adopter's patch: a project-wide typecheck had blocked 20
+  times in ~35 edits with no defect among them and hidden the edited file's own error
+  behind `pnpm -r`'s first failure). The format check folds into the lint value where
+  the gate formats; Go's `gofmt -l` gets the output test it needs, since it exits 0
+  either way. The Python recipe's typecheck block assigned `m=` while the hook prints
+  `t`, so a mypy failure printed none of mypy's errors; it now assigns `t=`. Python
+  gains an opt-in `ruff --ignore F401,F821,F841` variant, cost stated. `/next-slice`
+  step 4 asks for providers before consumers and one edit per file.
 
 ### Proofs
 - `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py` gain cases for the
@@ -111,6 +133,11 @@ ruled 2026-10-20).
   and an empty exempt value failing `sh -n`; each new rule has a mutation.
 - `tools/impact-check.py` runs the installed hook script over 15 commands, eight that
   move HEAD and seven that only mention it, with nine mutations, one per detector rule.
+- `tools/gate-hook-check.py` gains, in both dialects and under both parsers: a dirty
+  file outside the project (silent) beside its in-project twin (checked), a root
+  spelled in another case on Windows, `$r`, each check's label and output alone, a
+  compound lint value's stderr, and the non-blocking note; and a third pass driving
+  the TypeScript block, extracted from GATE_RECIPES.md, against a stub `tsc`.
 
 ## 0.34.1 — 2026-10-19
 

@@ -38,8 +38,43 @@ COPILOT_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.templ
 CLAUDE_TPL = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json")
 CLAUDE_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "claude-gate.template.sh")
 
+RECIPES = os.path.join(REPO, "sdlc-kit", "reference", "GATE_RECIPES.md")
+
+# Speaks on a pass too, like the typecheck stub below, so a clean lint's text printed
+# under a typecheck failure is caught.
 LINTER = ("#!/bin/sh\nif grep -q BAD \"$1\" 2>/dev/null; then\n"
-          "  echo \"E001 bad token in $1\"; exit 1\nfi\nexit 0\n")
+          "  echo \"E001 bad token in $1\"; exit 1\nfi\necho \"E000 lint clean\"\nexit 0\n")
+# The format half of a compound lint value (0.35.0, FEATURE_PLAN.md 84.5 D). It speaks
+# on STDERR, so a hook that captured only the last command's stdout - or only the
+# first command's stderr - would lose it.
+FORMATTER = ("#!/bin/sh\nif grep -q FMT \"$1\" 2>/dev/null; then\n"
+             "  echo \"F001 not formatted: $1\" >&2; exit 1\nfi\nexit 0\n")
+# Speaks on a pass too, as real checkers do ("Success: no issues found"), so a hook that
+# printed a clean check's text under another check's failure is caught.
+TYPECHECKER = ("#!/bin/sh\nif grep -q TYPE \"$1\" 2>/dev/null; then\n"
+               "  echo \"T001 type error in $1\"; exit 1\nfi\necho \"T000 typecheck clean\"\n"
+               "exit 0\n")
+# Stands in for `npx tsc` under the recipe's TypeScript block: records its arguments
+# and replays a canned report from .tsc-out at the project root.
+NPX = ("#!/bin/sh\necho \"$@\" > .npx-args\n"
+       "if [ -s .tsc-out ]; then cat .tsc-out; exit 2; fi\nexit 0\n")
+
+# The stderr-writing command goes FIRST: a trailing `2>&1` without the hook's group
+# attaches to the last command only, so with the formatter last the group was untested.
+LINT_CMD = 'stubfmt "$f" && stublint "$f"'
+# Exercises every channel a typecheck block has: `t`/`trc` from a stub checker, `tn`
+# (the non-blocking note) on ELSEWHERE, and `$r` (the repo-relative path) on SHOWREL.
+TC_BLOCK = ('t=$(stubtc "$f" 2>&1); trc=$?; '
+            'if grep -q ELSEWHERE "$f"; then tn="2 type error(s) in other files"; fi; '
+            'if grep -q SHOWREL "$f"; then t="rel=$r"; trc=1; fi;')
+
+
+def ts_block():
+    """The TypeScript typecheck block exactly as GATE_RECIPES.md prints it."""
+    s = io.open(RECIPES, encoding="utf-8").read()
+    s = s[s.index("## TypeScript / JavaScript (Node)"):]
+    s = s[s.index("```sh\n") + len("```sh\n"):]
+    return s[:s.index("```")]
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -88,10 +123,10 @@ def patch(*entries):
         "*** %s File: %s\n+x\n" % (k, p) for k, p in entries) + "*** End Patch\n"
 
 
-def instantiate(body, glob="*.py"):
+def instantiate(body, glob="*.py", block=TC_BLOCK):
     out = (body.replace("{{SOURCE_GLOB}}", glob)
-               .replace("{{HOOK_LINT_CMD}}", 'stublint "$f"')
-               .replace("{{HOOK_TYPECHECK_BLOCK}}", ""))
+               .replace("{{HOOK_LINT_CMD}}", LINT_CMD)
+               .replace("{{HOOK_TYPECHECK_BLOCK}}", block))
     assert "{{" not in out, "unresolved placeholder in instantiated hook"
     return out
 
@@ -102,16 +137,20 @@ class Project:
         os.makedirs(os.path.join(self.root, "src"))
         self.script = os.path.join(base, "hook.sh")
         io.open(self.script, "w", encoding="utf-8", newline="\n").write(body + "\n")
-        lint = os.path.join(self.root, "stublint")
-        io.open(lint, "w", encoding="utf-8", newline="\n").write(LINTER)
-        os.chmod(lint, os.stat(lint).st_mode | stat.S_IEXEC)
+        for name, src in (("stublint", LINTER), ("stubfmt", FORMATTER),
+                          ("stubtc", TYPECHECKER), ("npx", NPX)):
+            p = os.path.join(self.root, name)
+            io.open(p, "w", encoding="utf-8", newline="\n").write(src)
+            os.chmod(p, os.stat(p).st_mode | stat.S_IEXEC)
 
     def put(self, rel, dirty):
+        """dirty: True (a lint error), False (clean), or the file's literal content."""
         p = os.path.join(self.root, rel.replace("/", os.sep))
         d = os.path.dirname(p)
         if d and not os.path.isdir(d):
             os.makedirs(d)
-        io.open(p, "w", encoding="utf-8", newline="\n").write("BAD\n" if dirty else "ok\n")
+        text = dirty if isinstance(dirty, str) else ("BAD\n" if dirty else "ok\n")
+        io.open(p, "w", encoding="utf-8", newline="\n").write(text)
 
     def run(self, payload, parser, extra_env=None, raw=None):
         env = dict(os.environ)
@@ -120,7 +159,10 @@ class Project:
         if extra_env:
             env.update(extra_env)
         data = raw if raw is not None else json.dumps(payload).encode()
-        p = subprocess.run(["sh", self.script], input=data, capture_output=True, env=env)
+        # From the project root, as both launchers start it: the Copilot body takes its
+        # root for the scope test from where it was started.
+        p = subprocess.run(["sh", self.script], input=data, capture_output=True, env=env,
+                           cwd=self.root)
         return p
 
 
@@ -174,6 +216,47 @@ def copilot_suite(parser, check):
         pj.put("src/my file.py", True)
         check("path containing a space",
               "E001" in ctx(ap(("Update", "src/my file.py"))))
+
+        # 0.35.0 (FEATURE_PLAN.md 84.5 D). Out of scope: a dirty file outside the
+        # project is skipped - run dirty, and beside the in-project absolute twin
+        # above, which is checked.
+        outside = os.path.join(base, "scratch", "probe.py")
+        os.makedirs(os.path.dirname(outside))
+        io.open(outside, "w", encoding="utf-8", newline="\n").write("BAD\n")
+        check("dirty file outside the project (absolute path) -> silent, not linted",
+              ctx(ap(("Update", outside))) == "")
+        if os.name == "nt":
+            pj.put("src/case.py", True)
+            r = ctx(ap(("Update", pj.root.upper() + "\\src\\case.py")))
+            check("root spelled in another case (Windows) -> still in scope, checked",
+                  "E001" in r, r)
+        pj.put("src/rel.py", "SHOWREL\n")
+        r = ctx(ap(("Update", os.path.join(pj.root, "src", "rel.py"))))
+        check("typecheck block reads $r: repo-relative, /-separated, from an absolute path",
+              "rel=src/rel.py" in r, r)
+
+        # Each check named, with only its own output.
+        pj.put("src/l.py", True)
+        r = ctx(ap(("Update", "src/l.py")))
+        check("lint-only failure -> 'lint failed', no typecheck text",
+              "gate hook: lint failed" in r and "E001" in r and "T00" not in r, r)
+        pj.put("src/t.py", "TYPE\n")
+        r = ctx(ap(("Update", "src/t.py")))
+        check("typecheck-only failure -> 'typecheck failed', with the checker's output",
+              "gate hook: typecheck failed" in r and "T001" in r and "E00" not in r, r)
+        pj.put("src/lt.py", "BAD\nTYPE\n")
+        r = ctx(ap(("Update", "src/lt.py")))
+        check("both fail -> 'lint and typecheck failed', both outputs",
+              "lint and typecheck failed" in r and "E001" in r and "T001" in r, r)
+        pj.put("src/fmt.py", "FMT\n")
+        r = ctx(ap(("Update", "src/fmt.py")))
+        check("compound lint value: the format check's stderr is captured",
+              "gate hook: lint failed" in r and "F001" in r, r)
+        pj.put("src/else.py", "ELSEWHERE\n")
+        r = ctx(ap(("Update", "src/else.py")))
+        check("clean file, errors elsewhere -> a 'Not blocking' note naming the file",
+              "src/else.py passed. Not blocking: 2 type error(s)" in r
+              and "failed" not in r, r)
 
         pj.put("notes.md", True)
         check("non-source file -> silent", ctx(ap(("Update", "notes.md"))) == "")
@@ -309,7 +392,7 @@ def claude_suite(parser, check):
         # model nothing about which hook fired, which file it checked, or what is
         # expected - the Copilot dialect always framed; this one must match it.
         check("...and the failure is framed: hook named, expectation stated, file named",
-              "SDLC gate hook" in err and "lint/typecheck failed" in err
+              "SDLC gate hook" in err and "lint failed" in err
               and "src/a.py" in err, "err=%r" % err[:160])
         pj.put("src/a.py", False)
         rc, err = run(edit("src/a.py"))
@@ -319,6 +402,63 @@ def claude_suite(parser, check):
         pj.put("notes.md", True)
         rc, err = run(edit("notes.md"))
         check("non-source file -> silent", rc == 0 and err == "")
+
+        # 0.35.0 (FEATURE_PLAN.md 84.5 D), as in the Copilot suite.
+        pj.put("src/abs.py", True)
+        rc, err = run(edit(os.path.join(pj.root, "src", "abs.py")))
+        check("dirty file inside the project by absolute path -> checked",
+              rc == 2 and "E001" in err, "rc=%s err=%r" % (rc, err[:80]))
+        outside = os.path.join(base, "scratch", "probe.py")
+        os.makedirs(os.path.dirname(outside))
+        io.open(outside, "w", encoding="utf-8", newline="\n").write("BAD\n")
+        rc, err = run(edit(outside))
+        check("...and its dirty twin outside the project -> silent, not linted",
+              rc == 0 and err == "", "rc=%s err=%r" % (rc, err[:80]))
+        if os.name == "nt":
+            rc, err = run(edit(pj.root.upper() + "\\src\\abs.py"))
+            check("root spelled in another case (Windows) -> still in scope, checked",
+                  rc == 2 and "E001" in err, "rc=%s err=%r" % (rc, err[:80]))
+        pj.put("src/rel.py", "SHOWREL\n")
+        rc, err = run(edit(os.path.join(pj.root, "src", "rel.py")))
+        check("typecheck block reads $r: repo-relative, /-separated, from an absolute path",
+              "rel=src/rel.py" in err, "err=%r" % err[:160])
+
+        pj.put("src/l.py", True)
+        rc, err = run(edit("src/l.py"))
+        check("lint-only failure -> 'lint failed', no typecheck text",
+              rc == 2 and "gate hook: lint failed" in err and "T00" not in err,
+              "rc=%s err=%r" % (rc, err[:160]))
+        pj.put("src/t.py", "TYPE\n")
+        rc, err = run(edit("src/t.py"))
+        check("typecheck-only failure -> 'typecheck failed', with the checker's output",
+              rc == 2 and "gate hook: typecheck failed" in err and "T001" in err
+              and "E00" not in err, "rc=%s err=%r" % (rc, err[:160]))
+        pj.put("src/lt.py", "BAD\nTYPE\n")
+        rc, err = run(edit("src/lt.py"))
+        check("both fail -> 'lint and typecheck failed', both outputs",
+              rc == 2 and "lint and typecheck failed" in err and "E001" in err
+              and "T001" in err, "rc=%s err=%r" % (rc, err[:160]))
+        pj.put("src/fmt.py", "FMT\n")
+        rc, err = run(edit("src/fmt.py"))
+        # Here the hook's own stderr IS the channel, so an uncaptured F001 would still
+        # show up - ahead of the framing, unattributed. Captured, it follows it.
+        check("compound lint value: the format check's stderr is captured, under the frame",
+              rc == 2 and "lint failed" in err and "F001" in err
+              and err.index("F001") > err.index("lint failed"),
+              "rc=%s err=%r" % (rc, err[:160]))
+        pj.put("src/else.py", "ELSEWHERE\n")
+        p = pj.run(edit("src/else.py"), parser, extra_env=env)
+        out = p.stdout.decode("utf-8", "replace").strip()
+        try:
+            note = json.loads(out)["hookSpecificOutput"]
+            ok = (note.get("hookEventName") == "PostToolUse"
+                  and "src/else.py passed. Not blocking: 2 type error(s)"
+                  in note.get("additionalContext", ""))
+        except Exception:
+            ok = False
+        check("clean file, errors elsewhere -> exit 0, the note as PostToolUse "
+              "additionalContext", ok and p.returncode == 0 and not p.stderr.strip(),
+              "rc=%s out=%r err=%r" % (p.returncode, out[:160], p.stderr[:80]))
 
         # The three cases this dialect used to swallow with a silent exit 0.
         rc, err = run({"tool_name": "Edit", "tool_input": {}})
@@ -362,6 +502,86 @@ def claude_suite(parser, check):
         shutil.rmtree(base, ignore_errors=True)
 
 
+def ts_recipe_suite(parser, check):
+    """GATE_RECIPES.md's TypeScript block, read from the file, in both dialect bodies.
+
+    The block is the recipe's answer to sdlc-kit#14 (FEATURE_PLAN.md 84.5 D): typecheck
+    the one tsconfig project owning the file and block only on errors located in it, in
+    that tsconfig, or with no location. Driven against a stub `npx` replaying a canned
+    `tsc --pretty false` report, so what is proven is the selection and the filter.
+    """
+    block = ts_block()
+    check("recipe block found in GATE_RECIPES.md", "npx tsc" in block and "tn=" in block,
+          block[:120])
+    for dialect, tpl in (("claude", CLAUDE_SH_TPL), ("copilot", COPILOT_SH_TPL)):
+        body = instantiate(io.open(tpl, encoding="utf-8").read(), glob="*.ts", block=block)
+        base = tempfile.mkdtemp(prefix="gatehook-ts-")
+        try:
+            pj = Project(base, body)
+            pj.put("packages/app/tsconfig.json", "{}\n")
+            pj.put("tsconfig.json", "{}\n")
+
+            def go(rel, report):
+                """-> (blocked, failure text, note, npx args)."""
+                io.open(os.path.join(pj.root, ".tsc-out"), "w", encoding="utf-8",
+                        newline="\n").write(report)
+                pj.put(rel, False)
+                path = os.path.join(pj.root, rel.replace("/", os.sep))
+                if dialect == "claude":
+                    p = pj.run({"tool_name": "Edit", "tool_input": {"file_path": path}},
+                               parser, extra_env={"CLAUDE_PROJECT_DIR": pj.root})
+                    err = p.stderr.decode("utf-8", "replace")
+                    out = p.stdout.decode("utf-8", "replace").strip()
+                    note = json.loads(out)["hookSpecificOutput"]["additionalContext"] \
+                        if out else ""
+                    res = (p.returncode == 2, err, note)
+                else:
+                    p = pj.run({"cwd": pj.root, "toolName": "apply_patch",
+                                "toolArgs": patch(("Update", path))}, parser)
+                    out = p.stdout.decode("utf-8", "replace").strip()
+                    t = json.loads(out)["additionalContext"] if out else ""
+                    res = ("failed on the file" in t, t if "failed" in t else "",
+                           t if "Not blocking" in t else "")
+                a = os.path.join(pj.root, ".npx-args")
+                args = io.open(a, encoding="utf-8").read().strip() \
+                    if os.path.exists(a) else ""
+                if os.path.exists(a):
+                    os.remove(a)
+                return res + (args,)
+
+            own = ("packages/app/src/a.ts(3,5): error TS2322: Type 'x' is not 'y'.\n"
+                   "  The expected type comes from here.\n"
+                   "packages/app/src/b.ts(1,1): error TS2307: Cannot find module.\n")
+            bl, txt, note, args = go("packages/app/src/a.ts", own)
+            check("[%s] own-file error -> blocks with it and its continuation line"
+                  % dialect, bl and "TS2322" in txt and "expected type" in txt
+                  and "TS2307" not in txt, txt)
+            check("[%s] ...typechecking the nearest tsconfig upward" % dialect,
+                  "-p packages/app/tsconfig.json" in args, args)
+            bl, txt, note, args = go("packages/app/src/c.ts", own)
+            check("[%s] errors only in other files -> passes, with a count in the note"
+                  % dialect, not bl and "2 type error(s) in other files of "
+                  "packages/app/tsconfig.json" in note, (txt, note))
+            bl, txt, note, args = go(
+                "packages/app/src/a.ts",
+                "packages/app/tsconfig.json(2,3): error TS1005: ',' expected.\n")
+            check("[%s] owning tsconfig unreadable -> blocks, never clean" % dialect,
+                  bl and "TS1005" in txt, (txt, note))
+            bl, txt, note, args = go("packages/app/src/a.ts",
+                                     "error TS5058: The specified path does not exist.\n")
+            check("[%s] unlocated error (tsc could not run) -> blocks" % dialect,
+                  bl and "TS5058" in txt, (txt, note))
+            bl, txt, note, args = go("packages/app/src/a.ts", "sh: tsc: not found\n")
+            check("[%s] no TS error at all but a failed run -> blocks with its output"
+                  % dialect, bl and "not found" in txt, (txt, note))
+            bl, txt, note, args = go("test/x.ts", "")
+            check("[%s] clean, root-project file -> silent, root tsconfig" % dialect,
+                  not bl and not txt and not note and args.endswith("-p tsconfig.json"),
+                  (txt, note, args))
+        finally:
+            shutil.rmtree(base, ignore_errors=True)
+
+
 def main():
     rc = 0
     for parser in ("python", "node"):
@@ -371,7 +591,8 @@ def main():
             rc = 1
             continue
         for label, suite in (("copilot gate hook", copilot_suite),
-                             ("claude code gate hook", claude_suite)):
+                             ("claude code gate hook", claude_suite),
+                             ("typescript recipe block", ts_recipe_suite)):
             print("=== %s [parser: %s] ===" % (label, parser))
             failed = []
 

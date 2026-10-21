@@ -171,6 +171,15 @@ working tree before writing any skip.
    slice and quietly takes the zero-form a docs edit takes: a real arc's 129-test
    characterization slice, thrown around the module that guards a non-regenerable
    database, recorded exactly the evidence a README edit would have.
+
+   **Order a change that spans files so each edit leaves its file whole:** providers
+   before consumers — the type member before the code that uses it, the export before
+   its importer, the port before its adapter — and each file's change in one edit, not
+   an import now and its use in the next. The edit-time hook checks every file as it
+   lands, so a consumer written first is reported as broken until the provider exists:
+   on one adopter that ordering alone produced 9 of 20 blocks in a slice, none a
+   defect, and a stream of moot blocks is how a real one gets skimmed past. It costs
+   nothing in any language.
 4. A spec conflict or owner-facing design decision HALTS with a question — never resolve
    one silently. State it per the hand-back standard: plain English, the decision
    numbered and marked, options with a recommendation.

@@ -20,9 +20,12 @@
 # time; with neither present the hook says so on every edit rather than passing
 # quietly. What that shell offered at setup is recorded in spec/SDLC.md.
 #
-# PROJECT-OWNED after instantiation: {{SOURCE_GLOB}}, {{HOOK_LINT_CMD}} and
-# {{HOOK_TYPECHECK_BLOCK}} hold this project's own commands, so /sdlc-update never
-# rewrites this file - recipe changes reach it as changelog entries applied by hand.
+# PROJECT-OWNED after instantiation: the source glob, the lint command and the
+# typecheck block hold this project's own commands, so /sdlc-update never rewrites
+# this file - recipe changes reach it as changelog entries applied by hand. (Named in
+# words, not as their markers: a multi-line typecheck block substituted into a
+# comment leaves every line after its first as live code - the recipe's TypeScript
+# block broke this file that way when it was first instantiated, 2026-10-20.)
 
 IN=$(cat)
 
@@ -126,6 +129,34 @@ resolve_path() {
   return 1
 }
 
+# The launcher starts this script at the repository root ("cwd": "." on its entry);
+# remember it before the move below, for the scope test.
+ROOT=$(pwd)
+
+# repo_rel <path> - prints the path relative to the project root, or fails for an
+# absolute path outside it. A file outside the project is not this project's source -
+# a session scratchpad, a temp file, another checkout - and linting it against this
+# project's config fails for reasons that are not the edit's (two adopters,
+# sdlc-kit#15 and #17). The root test is the TDD guard's, root forms included:
+# separators normalized, compared without case because Windows hands back either
+# case (on a case-sensitive host that only errs toward checking), and tried against
+# `pwd`, MSYS's `pwd -W`, and the WSL mount form translated back to a drive, because
+# the hook shell's path flavour and the CLI's need not agree. A relative path is
+# relative to the root and stays in scope. The cut is by bytes on both sides, so a
+# non-ASCII root cannot shift it.
+wm=${SDLC_WSL_MOUNT:-/mnt}
+repo_rel() {
+  rn=$(printf '%s' "$1" | tr '\\' '/'); rl=$(printf '%s' "$rn" | tr '[:upper:]' '[:lower:]')
+  wroot=""
+  case "$ROOT" in "$wm"/?/*) wroot=$(printf '%s' "${ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;; esac
+  for cand in "$ROOT" "$(cd "$ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do
+    c=$(printf '%s' "$cand" | tr '\\' '/'); c=${c%/}; [ -n "$c" ] || continue
+    cl=$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')
+    case "$rl" in "$cl"/*) printf '%s' "$rn" | LC_ALL=C cut -b "$(($(printf '%s' "$c" | LC_ALL=C wc -c) + 2))-"; return 0 ;; esac
+  done
+  case "$rl" in /*|?:/*) return 1 ;; ./*) printf '%s' "${rn#./}" ;; *) printf '%s' "$rn" ;; esac
+}
+
 # Best-effort move to the payload cwd when it exists in this shell's path flavour;
 # otherwise stay where the launcher started us, which is the repository root.
 WD=$(resolve_path "$W" -d) && cd "$WD"
@@ -138,15 +169,27 @@ fi
 OUT=$(printf '%s\n' "$O" | tail -n +3 | while IFS= read -r f; do
   [ -n "$f" ] || continue
   case "$f" in {{SOURCE_GLOB}}) ;; *) continue ;; esac
+  r=$(repo_rel "$f") || continue
   if rf=$(resolve_path "$f"); then f="$rf"; else
     printf 'SDLC gate hook did NOT run: the edited file was not found from the hook working directory: %s\n' "$f"
     continue
   fi
-  l=$({{HOOK_LINT_CMD}} 2>&1); lrc=$?
-  t=""; trc=0
+  # Each check is reported under its own name with only its own output (sdlc-kit#14).
+  # The lint value runs inside a group so a compound one - lint && the format check,
+  # where the gate formats - has every command's stderr captured. `tn` is the
+  # typecheck block's non-blocking note: errors a project-wide check found in OTHER
+  # files are context, never a failure of the file just edited. This event cannot
+  # block either way, so the note differs from a failure only in what it says.
+  l=$( { {{HOOK_LINT_CMD}}; } 2>&1); lrc=$?
+  t=""; trc=0; tn=""
   {{HOOK_TYPECHECK_BLOCK}}
-  if [ $lrc -ne 0 ] || [ $trc -ne 0 ]; then
-    printf 'SDLC gate hook: lint/typecheck failed on the file just edited. Fix it before continuing: %s\n%s\n%s\n' "$f" "$l" "$t"
+  w=""; if [ $lrc -ne 0 ]; then w="lint"; fi; if [ $trc -ne 0 ]; then w="${w:+$w and }typecheck"; fi
+  if [ -n "$w" ]; then
+    printf 'SDLC gate hook: %s failed on the file just edited. Fix it before continuing: %s\n' "$w" "$f"
+    if [ $lrc -ne 0 ]; then printf '%s\n' "$l"; fi
+    if [ $trc -ne 0 ]; then printf '%s\n' "$t"; fi
+  elif [ -n "$tn" ]; then
+    printf 'SDLC gate hook: %s passed. Not blocking: %s\n' "$r" "$tn"
   fi
 done)
 

@@ -299,6 +299,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    when step 3 instantiates
    those files, never invented at instantiation time. On Copilot, `{{HOOK_FEEDBACK_NOTE}}` must not claim the feedback blocks,
    and must carry the warning that a timed-out hook is reported as a pass.
+   Resolve `{{HOOK_LINT_CMD}}` and `{{HOOK_TYPECHECK_BLOCK}}` by *What the hook
+   checks* in `reference/GATE_RECIPES.md`: fold the format check into the lint value
+   only where the gate you just established runs one, and give the hook no check wider
+   than the file unless its block filters to the edited file — the TypeScript recipe's
+   block does; an unfiltered project-wide typecheck stays with the gate. For Python,
+   offer the opt-in half-way-state lint variant with its cost stated; the default is
+   the plain one.
 
    **Measure the hook's environment first** — *The hook environment* in
    `reference/GATE_RECIPES.md` carries the one-line probe and how to read it. A hook runs

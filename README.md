@@ -973,6 +973,20 @@ only as a hand-apply, and the per-version transition notes name each one.
    values. A local amendment that counts a shell-written test as a test edit is retired
    rather than carried. The update command's 0.35.0 note states the same procedure.
 
+   **0.35.0 also changes the edit-time gate hook's body.** It skips files outside the
+   project, names the check that failed with only that check's output, captures both
+   halves of a compound `lint && format check` value, and hands a typecheck block's
+   non-blocking note back as context rather than as the edited file's failure. The
+   hook script is project-owned, so it changes only if you re-derive it from the 0.35.0
+   template with your glob, lint command and typecheck block carried over. Three recipe
+   changes are offered, not imposed: the format check folded into the lint value where
+   your gate runs one; for TypeScript, the recipe's one-tsconfig block in place of a
+   project-wide or workspace typecheck; for Python, `t=` where the old recipe's `m=`
+   kept mypy's errors from printing (plus an opt-in lint variant that ignores the three
+   half-way-state codes). A local patch doing one of these is retired, the rest carried.
+   A re-derived hook is proven as setup proves it; a hook left as it is behaves as
+   today. The update command's 0.35.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,

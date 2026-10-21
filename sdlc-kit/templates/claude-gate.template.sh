@@ -38,4 +38,41 @@ if("hook_event_name" in d&&"timestamp" in d&&!("permission_mode" in d)){process.
 const a=d.tool_input||{};
 const p=a.file_path||a.path||a.filePath||"";
 process.stdout.write(p?("ok\n"+p+"\n"):"nopath\n");
-'); st=$(printf '%s' "$o" | sed -n 1p); f=$(printf '%s' "$o" | sed -n 2p); if [ "$st" = "copilot" ]; then exit 0; fi; if [ "$st" != "ok" ]; then echo "SDLC gate hook did NOT run on this edit: no file path found in the hook payload. The gate did not check this file - fix the hook before trusting it." >&2; exit 2; fi; case "$f" in {{SOURCE_GLOB}}) ;; *) exit 0 ;; esac; if [ -n "$CLAUDE_PROJECT_DIR" ]; then cd "$CLAUDE_PROJECT_DIR" || { echo "SDLC gate hook did NOT run: could not enter CLAUDE_PROJECT_DIR ($CLAUDE_PROJECT_DIR)." >&2; exit 2; }; fi; if [ ! -f "$f" ]; then echo "SDLC gate hook did NOT run: the edited file was not found from the project directory: $f" >&2; exit 2; fi; l=$({{HOOK_LINT_CMD}} 2>&1); lrc=$?; t=""; trc=0; {{HOOK_TYPECHECK_BLOCK}} if [ $lrc -ne 0 ] || [ $trc -ne 0 ]; then { echo "SDLC gate hook: lint/typecheck failed on the file just edited. Fix it before continuing: $f"; echo "$l"; if [ -n "$t" ]; then echo "$t"; fi; } >&2; exit 2; fi
+'); st=$(printf '%s' "$o" | sed -n 1p); f=$(printf '%s' "$o" | sed -n 2p); if [ "$st" = "copilot" ]; then exit 0; fi; if [ "$st" != "ok" ]; then echo "SDLC gate hook did NOT run on this edit: no file path found in the hook payload. The gate did not check this file - fix the hook before trusting it." >&2; exit 2; fi; case "$f" in {{SOURCE_GLOB}}) ;; *) exit 0 ;; esac; if [ -n "$CLAUDE_PROJECT_DIR" ]; then cd "$CLAUDE_PROJECT_DIR" || { echo "SDLC gate hook did NOT run: could not enter CLAUDE_PROJECT_DIR ($CLAUDE_PROJECT_DIR)." >&2; exit 2; }; fi
+# Scope: a file outside the project is not this project's source - a session
+# scratchpad, a temp file, another checkout - and linting it against this project's
+# config fails for reasons that are not the edit's (two adopters, sdlc-kit#15 and #17:
+# a scratch mutation driver had to satisfy the project's lint before it could be
+# saved). The root test is the TDD guard's: separators normalized, compared without
+# case because Windows hands back either case (on a case-sensitive host that only
+# errs toward checking), tried against every form the root can take in this shell -
+# `pwd`, MSYS's `pwd -W`, and CLAUDE_PROJECT_DIR as the CLI spelled it. A relative
+# path is relative to the root and stays in scope. `r` is the repo-relative path,
+# which a typecheck block may use to find the edited file in a project-wide report;
+# the cut is by bytes on both sides, so a non-ASCII root cannot shift it.
+r=""; fn=$(printf '%s' "$f" | tr '\\' '/'); fl=$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')
+for c in "$PWD" "$(pwd -W 2>/dev/null)" "$CLAUDE_PROJECT_DIR"; do
+  c=$(printf '%s' "$c" | tr '\\' '/'); c=${c%/}; [ -n "$c" ] || continue
+  cl=$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')
+  case "$fl" in "$cl"/*) r=$(printf '%s' "$fn" | LC_ALL=C cut -b "$(($(printf '%s' "$c" | LC_ALL=C wc -c) + 2))-"); break ;; esac
+done
+if [ -z "$r" ]; then case "$fl" in /*|?:/*) exit 0 ;; ./*) r=${fn#./} ;; *) r=$fn ;; esac; fi
+if [ ! -f "$f" ]; then echo "SDLC gate hook did NOT run: the edited file was not found from the project directory: $f" >&2; exit 2; fi
+# Each check is reported under its own name with only its own output: a lint failure
+# printed under "lint/typecheck failed" beside a clean typecheck's text sent the
+# reader to the wrong tool (sdlc-kit#14). The lint value runs inside a group so a
+# compound one - lint && the format check, where the gate formats - has every
+# command's stderr captured, not only the last one's. `tn` is the typecheck block's
+# non-blocking note: errors a project-wide check found in OTHER files are context,
+# never a failure of the file just edited (sdlc-kit#14: 20 blocks in ~35 edits, none a
+# defect, 8 naming the wrong file). It goes back at exit 0 as additionalContext.
+l=$( { {{HOOK_LINT_CMD}}; } 2>&1); lrc=$?; t=""; trc=0; tn=""
+{{HOOK_TYPECHECK_BLOCK}}
+w=""; if [ $lrc -ne 0 ]; then w="lint"; fi; if [ $trc -ne 0 ]; then w="${w:+$w and }typecheck"; fi
+if [ -n "$w" ]; then { echo "SDLC gate hook: $w failed on the file just edited. Fix it before continuing: $f"; if [ $lrc -ne 0 ]; then echo "$l"; fi; if [ $trc -ne 0 ]; then echo "$t"; fi; } >&2; exit 2; fi
+if [ -n "$tn" ]; then printf 'SDLC gate hook: %s passed. Not blocking: %s' "$r" "$tn" | jr 'import sys,json
+t=sys.stdin.buffer.read().decode("utf-8","replace")
+m="...[truncated by the gate hook at 8000 chars]"
+if len(t)>8000: t=t[:8000-len(m)]+m
+sys.stdout.write(json.dumps({"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":t}}))' 'const fs=require("fs");let t=fs.readFileSync(0,"utf8");const m="...[truncated by the gate hook at 8000 chars]";if(t.length>8000)t=t.slice(0,8000-m.length)+m;process.stdout.write(JSON.stringify({hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:t}}));'; fi
+exit 0
