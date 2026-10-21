@@ -260,6 +260,23 @@ P1: every row of the recipe's table must be seen to pass it), the **shipped-Pyth
 check** (0.34.1, `tools/shipped-lint-check.py` — the 0.34.0 classifier as tagged must be
 seen to fail stock ruff, and a planted E741, unused import, malformed `noqa`, syntax
 error and unresolvable placeholder must each be seen to fail every shipped file), the
+0.35.0 controls — the guards' **runner-report RED rule** (`{{TEST_REPORT_PATTERN}}`:
+setup's proof must see one real red counted and one wrapper failure logged "NOT
+counted", and both guard suites must see a cut-off report and an invalid pattern
+refused), the **never-runs commands** (a reader, `git`, an install or a heredoc that
+names the runner must be seen to record nothing either way), the **guard-exempt
+pattern** (an exempt write must be seen logged and allowed, and an empty value must be
+seen to fail `sh -n`, `tools/tdd-guard-check.py` P3), the **edit-time hook's file scope**
+(`tools/gate-hook-check.py` — a dirty file outside the project must be seen silent
+beside its checked in-project twin, each check's label seen alone with only its own
+output, and the non-blocking note seen at exit 0), the **Copilot commit detector**
+(`tools/impact-check.py` — seven commands that only mention a commit must be seen not to
+fire), the **scripted mutation runner** (its sha256 assert must fail on bytes not
+restored, and the `git diff` after the run stays mandatory because a killed runner
+restores nothing), the **close-out Stop launcher's moved-cwd message** (a launcher run
+below the root must be seen to name the directory it looked from), and `/sdlc-update`'s
+**friction enumeration** (an entry the release does not address must be seen listed as
+`nothing in range`, never dropped) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without

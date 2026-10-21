@@ -484,7 +484,8 @@ against the upstream artifact.
   but three things live in project-owned files and arrive only by hand. (a)
   `spec/SDLC.md` needs the close-out checker note beside the gate: the proven
   invocation per installed CLI, each form actually run against a real commit before
-  being recorded. On Claude Code that is `sh .github/hooks/sdlc-close-out.sh check`;
+  being recorded. On Claude Code that is typically
+  `sh .github/hooks/sdlc-close-out.sh check` — the proven line is what the note records;
   on Copilot CLI the shell tool on Windows resolves no `sh` (measured 2026-08-10 —
   and its PATH's `bash` is WSL's, the corrupting route), so there the working form
   derives sh from
@@ -933,15 +934,17 @@ against the upstream artifact.
   scripts are **project-owned**, so the update replaces neither: at the halt where the
   guards are installed, offer to re-derive `.github/hooks/sdlc-tdd-guard.py` / `.sh`
   from the 0.35.0 templates with the project's three resolved patterns carried over
-  and the two new ones resolved the way setup does — `{{TEST_REPORT_PATTERN}}` from
-  the recipe's runner table, `{{GUARD_EXEMPT_PATTERN}}` proposed from the tree and
+  and the two new ones resolved the way setup does — `TEST_REPORT_PATTERN` from
+  the recipe's runner table, `GUARD_EXEMPT_PATTERN` proposed from the tree and
   confirmed, never empty. Say a guard left as it is keeps today's rules exactly,
   including the wrapper failure that licenses a write. A re-derived guard needs the
   report-pattern proof setup now runs (one real red counted, one wrapper failure
   refused) before it is trusted, and `sh -n` where the shell dialect is installed; the
-  guard note in `spec/SDLC.md` *Records* then names both values. **A local amendment
+  guard note in `spec/SDLC.md` *Records* then names both values and the proof's catch
+  — the refused wrapper failure's `NOT counted` line, quoted — with its reach note, as
+  setup writes it. **A local amendment
   that counts a test file written through the shell as a test edit is retired, not
-  carried as a hunk** (owner ruling, `FEATURE_PLAN.md` §84.7(3)): once the edit-tools
+  carried as a hunk** (owner ruling, 0.35.0): once the edit-tools
   rule exists, a shell-written test is out of process, and licensing its red rewards
   the breach. Say so, and delete nothing without the owner's yes.
 - **0.35.0 also changes the edit-time gate hook's body** (both dialects): it skips a
@@ -961,7 +964,8 @@ against the upstream artifact.
   that already does one of these (an out-of-repo skip, a per-tsconfig filter) is
   retired where the template now does it and carried where it is project-specific.
   Prove the re-derived hook the way setup does — a deliberate lint error in a scratch
-  source file is reported — and say a hook left as it is keeps today's behavior.
+  source file is reported — and record the catch, named, with its reach note where
+  setup records the hook's proof; say a hook left as it is keeps today's behavior.
 - **0.35.0 adds the edit-tools rule:** code — source and test files, less the guard's
   exempt paths — changes only through the editor tools, overriding any harness
   guidance that permits shell edits, because the edit-time hook and the guards see
@@ -1047,7 +1051,8 @@ against the upstream artifact.
   and the latter two only when absent, never to overwrite an answer already recorded —
   **with three stated exceptions**: the artifacts an accepted re-offer installs (the
   TDD-guard pair; the ledger's Copilot JSON, or its `"Skill"` block merged into the
-  existing `.claude/settings.json` the way setup's Existing mode merges hooks), each
+  existing `.claude/settings.json` the way setup's Existing mode merges hooks; a
+  re-derived guard or gate-hook script, as the 0.35.0 notes offer), each
   written only on the owner's word at that halt, following setup's own step; and the
   empty `spec/PRODUCT_CONTRACT.md` the 0.23.0 note creates — a verbatim template
   copy, only when absent, never content.

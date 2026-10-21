@@ -213,7 +213,7 @@ process.stdout.write(o.join("\n")+"\n");
 #   6+ patch paths (Add/Update only - a Delete has nothing to write-guard)
 # The report is matched in the parser, where a regular expression lives naturally, on
 # the output with ANSI codes and CRLF removed: Copilot strips colour itself, but a
-# project that forces it would wrap the marker (measured 2026-10-20, FEATURE_PLAN.md 84.8).
+# project that forces it would wrap the marker (measured 2026-10-20).
 F=$(printf '%s' "$IN" | jr "$PY_PARSE" "$JS_PARSE")
 
 if [ -z "$F" ]; then
@@ -245,7 +245,7 @@ fi
 # The output schemas below were measured against the CLI, not taken from documentation.
 # The message is read as bytes and decoded as UTF-8: a text-mode read on Windows python
 # is cp1252 with surrogateescape, which turned a non-ASCII path in the message into
-# mojibake (measured 2026-10-20, FEATURE_PLAN.md 84.8).
+# mojibake (measured 2026-10-20).
 emit_deny() {
   printf '%s' "$1" | jr '
 import sys,json
@@ -348,7 +348,7 @@ case "$MODE" in
       # test, so a script directory's own tests start no cycle either. SOURCE_GLOB is
       # extension-only, so before this a one-off tools script, a config written in the
       # source language and the graph tool's scratch each needed a red no test could
-      # produce - measured on two adopters (FEATURE_PLAN.md 84.4(5)). The graph tool's
+      # produce - measured on two adopters (2026-10-20). The graph tool's
       # directories are exempt in every project; GUARD_EXEMPT_PATTERN is the project's.
       # Logged only for a file the guard would otherwise have charged.
       case "$n" in .ua/*|.understand-anything/*|{{GUARD_EXEMPT_PATTERN}})
@@ -464,7 +464,7 @@ PATHLIST
     # `grep pytest pyproject.toml`, `pip install pytest`, and a heredoc whose body (a
     # commit message, a file being written) names the run. A failure counted as a
     # RED, and - worse - a success counted as a GREEN that satisfied the stop guard
-    # with no test run at all (FEATURE_PLAN.md 84.4). The heredoc operator is never
+    # with no test run at all (found at 0.35.0's triage). The heredoc operator is never
     # quoted, so the stripped probe keeps it. The rest is judged on the leading
     # executable, after any `env` and NAME=value prefix: a fixed list on purpose,
     # because every mistake it makes lands on the not-counted side.
@@ -515,7 +515,7 @@ PATHLIST
     # was counted as the red that licenses a production write (sdlc-kit#16). So the
     # runner's own report must be in the output. Copilot delivers only the first 500
     # characters of a very long one (measured 2026-10-20), so the pattern is a marker
-    # the runner prints first, never its closing summary (FEATURE_PLAN.md 84.8).
+    # the runner prints first, never its closing summary (measured on both CLIs).
     elif [ "$REPORT" != "1" ]; then
       [ "$REPORT" = "E" ] && log "GUARD ERROR: TEST_REPORT_PATTERN is not a valid regular expression - no failing run can count as a RED until it is fixed"
       log "test run NOT counted (exit $CODE, but no test-runner report in the output - the failure is the command's, not a test's): $CMD"

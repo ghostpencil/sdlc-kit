@@ -445,7 +445,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    - Record the outcome as `{{TDD_GUARD_NOTE}}` in `spec/SDLC.md`: installed or not,
      which CLI they run on, logging or deny mode, whether the installed guard bodies
      consult the cosmetic classifier (every body instantiated from a 0.34.0 or later
-     template does), the proof you just ran, and the
+     template does), the proof you just ran — the report-pattern proof's catch
+     included, the refused wrapper failure's `NOT counted` line quoted — and the
      **reach note** *Records* requires — this proof constructs its own violation, so
      say whether one has been seen to arise on its own. **When
      installed, the note also states the rules the guards impose on a coding

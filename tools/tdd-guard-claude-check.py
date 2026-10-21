@@ -17,6 +17,7 @@ Two passes, and the second is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/tdd-guard-claude-check.py
 """
+import concurrent.futures
 import io
 import json
 import os
@@ -186,8 +187,15 @@ def reopen_git(root, mode, newline=None):
     return io.open(p, mode, newline=newline)
 
 
-def unit(guard_src, verbose=True, counter=None):
-    """Returns the list of failed case names; counts every case into `counter`."""
+class _FirstFailure(BaseException):
+    """Ends a first_only run at its first failing case. BaseException, so neither
+    a case's own handler nor guarded() can mistake it for a crash."""
+
+
+def unit(guard_src, verbose=True, counter=None, first_only=False):
+    """Returns the list of failed case names; counts every case into `counter`.
+    first_only ends the run at the first failing case - the mutation pass needs
+    one, and the cases share one bench, so stopping only drops later cases."""
     failures = []
     base = tempfile.mkdtemp(prefix="tdd-guard-claude-")
     b = Bench(base, guard_src)
@@ -200,6 +208,8 @@ def unit(guard_src, verbose=True, counter=None):
             failures.append(name)
             if verbose:
                 print("FAIL  %s" % name)
+            if first_only:
+                raise _FirstFailure()
 
     try:
         # --- session scoping -------------------------------------------------
@@ -805,6 +815,8 @@ def unit(guard_src, verbose=True, counter=None):
         case("29j a write already licensed never consults the classifier",
              "red observed since last test edit" in c.tail()
              and not any("cosmetic" in l for l in c.loglines()[n:]))
+    except _FirstFailure:
+        pass
     finally:
         shutil.rmtree(base, ignore_errors=True)
     return failures
@@ -980,8 +992,16 @@ def main():
             print("  " + f)
         return 1
 
+    # Each mutation needs ONE failing case, and the mutations are independent - each
+    # unit() run is its own temp bench. They used to run one at a time and every case
+    # to the end, so each paid the whole corpus and its mtime sleeps after the verdict
+    # was settled. Now each stops at its first failing case and they run concurrently;
+    # nothing here is timed. TDDGUARD_JOBS=1 runs them serially.
+    jobs = max(1, int(os.environ.get("TDDGUARD_JOBS", "8")))
+    print("mutation pass: %d at a time, first failing case named" % jobs)
     survived = []
     stale = []
+    live = []
     for label, old, new in MUTATIONS:
         if old not in src:
             # Reported, never raised: an assert here aborts the run, so one drifted
@@ -991,14 +1011,19 @@ def main():
             stale.append(label)
             print("STALE    %s - anchor no longer applies, re-point it" % label)
             continue
-        mutated = src.replace(old, new, 1)
-        caught = guarded("mutation: %s" % label, [], unit, mutated, verbose=False)
-        if caught:
-            print("caught   %s" % label)
-            print("           (by: %s)" % "; ".join(caught[:3]))
-        else:
-            survived.append(label)
-            print("SURVIVED %s" % label)
+        live.append((label, src.replace(old, new, 1)))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = [pool.submit(guarded, "mutation: %s" % label, [], unit, mutated,
+                               verbose=False, first_only=True)
+                   for label, mutated in live]
+        for (label, _), fut in zip(live, futures):
+            caught = fut.result()
+            if caught:
+                print("caught   %s" % label)
+                print("           (by: %s)" % "; ".join(caught[:3]), flush=True)
+            else:
+                survived.append(label)
+                print("SURVIVED %s" % label, flush=True)
     print()
     if stale:
         print("STALE: %d mutation anchor(s) need re-pointing" % len(stale))

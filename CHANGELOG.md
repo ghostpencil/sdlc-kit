@@ -10,12 +10,15 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## 0.35.0 — unreleased
+## 0.35.0 — 2026-10-21
 
 The graph refreshes behind two switches: cheap at every slice end, full at the phase end
 only when code went missing (`FEATURE_PLAN.md` §83, ruled by the owner 2026-10-19). And
-the TDD guards count the test, not the command (`FEATURE_PLAN.md` §84, issues #11–#17,
-ruled 2026-10-20).
+the controls observe the facts they guard rather than proxies for them
+(`FEATURE_PLAN.md` §84, issues #11–#17, ruled 2026-10-20): the TDD guards count the
+test, not the command; the edit-time hook blocks on the edited file, not around it;
+code changes only through the editor tools the guards can see; and the Claude Code
+close-out launcher says where it looked.
 
 ### Changed
 - **[installable]** **`/end-slice` and `/end-phase` read a `Graph refresh:` line** in

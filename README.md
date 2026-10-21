@@ -964,20 +964,24 @@ only as a hand-apply, and the per-version transition notes name each one.
    one frontmatter field is rewritten, so no Copilot session could refresh the graph
    before it. The same mode makes the plugin's auto-update hooks work on Copilot, where
    they never ran, so a project with `autoUpdate` on starts getting their reminders.
-   The update command's 0.35.0 note states the same procedure.
+   It writes outside the repository, into the plugin's install, so it runs only on your
+   yes. The update command's 0.35.0 note states the same procedure.
 
    **0.35.0 also makes the TDD guards count the test, not the command.** A failing run
    is a RED only when the runner's own report is in its output, so a wrapper's failure
    no longer licenses a write; a command that only names the runner (a reader, `git`,
    an install, a heredoc) never counts, so it no longer records a GREEN either; and
    configs, one-off script directories and the graph tool's directory stop being
-   production source. The guard scripts are project-owned — they get this only once
+   production source; and three encoding defects that let a non-ASCII path slip the
+   guard are fixed. The guard scripts are project-owned — they get this only once
    re-derived from the 0.35.0 templates with your three patterns carried over and two
    new ones resolved: the runner-report pattern from the recipe's table, and the exempt
    pattern proposed from your tree, never empty. A guard left as it is keeps today's
    rules. A re-derived guard is proven the way setup now proves it — one real red
-   counted, one wrapper failure refused — and its note in `spec/SDLC.md` names both
-   values. A local amendment that counts a shell-written test as a test edit is retired
+   counted, one wrapper failure refused — plus `sh -n` where the shell dialect is
+   installed, and its note in `spec/SDLC.md` names both values and the refused line,
+   with a reach note. A local amendment that counts a shell-written test as a test
+   edit is retired
    rather than carried. The update command's 0.35.0 note states the same procedure.
 
    **0.35.0 also changes the edit-time gate hook's body.** It skips files outside the
@@ -1008,14 +1012,17 @@ only as a hand-apply, and the per-version transition notes name each one.
    unlisted library. The record and `CLAUDE.md`'s *No new libraries* bullet are
    project-owned: the update hands you both diffs, and any approvals already recorded
    elsewhere (phase-spec decisions, an index line) are yours to move into the list.
-   The same hand-over carries *Shape*'s new sentence: a draft PR opened only so CI runs
-   is not the phase PR. The update command's 0.35.0 note states the same procedure.
+   Until the record exists, `/next-slice` halts on every new library. The same
+   hand-over carries *Shape*'s new sentence: a draft PR opened only so CI runs is not
+   the phase PR, and `/end-phase` marks it ready. The update command's 0.35.0 note
+   states the same procedure.
 
    **0.35.0 also changes the close-out Stop launcher's message on Claude Code**: it says
    *not found from `<pwd>`* and tells the session to `cd` back to the root, instead of
    *is missing*, which a shell `cd` below the root also produced. `.claude/settings.json`
-   is yours, so the update hands you the new `Stop` command to paste in. The update
-   command's 0.35.0 note states the same procedure.
+   is yours, so the update hands you the new `Stop` command to paste in; until you do,
+   a *missing* block may mean a moved cwd. The update command's 0.35.0 note states the
+   same procedure.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
@@ -1028,7 +1035,7 @@ only as a hand-apply, and the per-version transition notes name each one.
    your recorded
    baseline, your gate commands, your TDD-guard patterns, and
    your decisions; the kit cannot regenerate them. The only exceptions are the
-   single-line writes named in step 6.
+   writes named in step 6.
    And claim only what was checked: "nothing project-owned touched" may be said once
    the final diff has been read against the ownership table — not asserted from the
    manifest, which structurally cannot see files it never listed. An unverified
@@ -1052,7 +1059,9 @@ only as a hand-apply, and the per-version transition notes name each one.
    offer and the skill-ledger offer each record your answer in `spec/SDLC.md`, a
    decline included, so no later update re-asks
    it — and an **accepted** offer also installs its artifacts (the guard pair, the
-   ledger hook), each written only on your word at that halt. An update that did not
+   ledger hook, a re-derived guard or gate-hook script), each written only on your word
+   at that halt. The empty `spec/PRODUCT_CONTRACT.md` the 0.23.0 note creates is the
+   other: a verbatim template copy, only when absent. An update that did not
    ask does not record an answer. And each `RULING OPEN` friction entry you confirm the
    release fixed — checked against the installed file — is flipped in place to
    `implemented in kit vX.Y.Z` (the release tag that shipped the fix); one you do not

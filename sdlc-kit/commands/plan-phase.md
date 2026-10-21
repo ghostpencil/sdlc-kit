@@ -211,7 +211,8 @@ decision list and slice breakdown follow as detail — the owner approves from t
 summary; the spec file is where the detail lives. On approval: create
 `feat/phase-NN-<slug>` off the up-to-date main branch,
 flip `spec/PROJECT_INDEX.md` to BUILD with the spec pointer and OWNER-DECIDED note,
-commit the spec + index (docs commit), and hand off: **`/clear`, then `/next-slice`.**
+add each library the spec ratified to `spec/SDLC.md` *Approved libraries*, commit the
+spec + index + that list (docs commit), and hand off: **`/clear`, then `/next-slice`.**
 
 ## Notes
 

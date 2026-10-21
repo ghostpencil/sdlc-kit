@@ -81,8 +81,8 @@ HOOK_TARGETS = (("SessionStart", "auto-update-prompt.md", "session-start"),
                 ("PostToolUse", "post-tool-use-auto-update.mjs", "post-tool-use"))
 HOOK_SCRIPT_NAME = "sdlc-kit-copilot-hooks.mjs"
 # The same checks and the same message as the plugin's hooks, except the commit test,
-# which reads the command words rather than matching anywhere in the line (FEATURE_PLAN
-# §84.4); otherwise only what Copilot needs differs: no shell syntax, the project found from the payload's cwd (Copilot runs a
+# which reads the command words rather than matching anywhere in the line (the plugin's
+# regex fired on `git merge-base`, sdlc-kit#15); otherwise only what Copilot needs differs: no shell syntax, the project found from the payload's cwd (Copilot runs a
 # plugin hook in the plugin's directory), and the message printed as top-level
 # additionalContext (the only form Copilot delivers). Copilot hands a plugin hook the
 # Claude payload (tool_input); toolArgs, its own hooks' field, is read as well.

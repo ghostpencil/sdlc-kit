@@ -338,7 +338,10 @@ The dependencies the project declared at adoption ({{ADOPTION_DATE}}), plus:
 - none yet
 <!-- The one home for this list. A library joins it as a ratified /plan-phase decision
      (*Phase start* step 3) or by an owner answer at the /next-slice halt a slice raises
-     for an unlisted one (halt 3), with the phase or slice that approved it. Before
+     for an unlisted one (halt 3), with the phase or slice that approved it, written in
+     the commit that ratifies it or first uses it. Claim-only: the evidence is the
+     project's dependency manifest, and no step compares the two, so a dependency the
+     manifest gained that this list does not name is a finding whoever sees it. Before
      this record the approvals landed in phase-spec decisions and an ad-hoc index line,
      and one arc deferred a verification for want of a moment to ask. -->
 
@@ -699,7 +702,8 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    (`/next-slice` reads the phase spec at every slice).
 4. Owner approves the decisions + slice breakdown *(same halt, second checkpoint)*.
 5. Branch `feat/phase-NN-<slug>` created off `{{MAIN_BRANCH}}`; `spec/PROJECT_INDEX.md`
-   flipped to BUILD with the spec pointer; docs committed. Then `/clear` and `/next-slice`.
+   flipped to BUILD with the spec pointer; each library the spec ratified added to
+   *Approved libraries*; docs committed. Then `/clear` and `/next-slice`.
 
 ## Slice loop (repeat per slice)
 
@@ -744,7 +748,14 @@ Run `/next-slice` in a **fresh session**:
    It is recorded in the ordinary shape, marked as characterization — never with the
    zero-form, which belongs to a slice with no behavior batches at all. Design
    questions halt *(halt 3)* — a library the slice needs that *Approved libraries*
-   does not list among them, asked before it is installed.
+   does not list among them, asked before it is installed, and on approval added to
+   the list in the commit that first uses it. **Order a multi-file change so each edit
+   leaves its file whole** (providers before consumers, one edit per file), since
+   where the edit-time hook is installed it checks each file as it lands. Where the
+   guards are installed, **any test edit makes earlier reds stale** — a formatting-only
+   one too — so a formatting fix the hook asks for on a test is applied before its red
+   is run, and the formatter and the test run go in separate calls, since a chained
+   command is not counted.
 
    **A docs-only slice is declared here, not discovered at close-out.** When the phase
    spec ratified the slice's test approach as `none` and the slice plans to touch no
@@ -832,8 +843,10 @@ Run `/end-slice` when the slice's exit criteria are met:
    every finding is dispatched — fixed, deferred with its marker, discarded with its
    reason, or raised to the owner — and the hand-back names the discards.
 8. Mutation check: every new guard, branch, or error path this slice added is deleted
-   or inverted once and the suite watched to fail on exactly the intended test
-   (mutation-testing skill for anything beyond a quick delete-and-run; the runs happen
+   or inverted once and the suite watched to fail on exactly the intended test, then
+   restored and confirmed green by a bare test run — where the guards are installed a
+   gate run, compound or wrapped, may not count (mutation-testing skill for anything
+   beyond a quick delete-and-run; the runs happen
    in the session's shell, the gate's own scope). A check is
    trustworthy only once it has been made to disagree; the step is done when every new
    guard has been seen to fail on exactly its own test. **A slice that added tests but
@@ -1138,8 +1151,9 @@ Run `/end-phase` when the last slice is done:
   carries closing evidence — a backlog entry marked `— done (<fix commit>)` or
   `— dropped (owner, <date>)` (the backlog presentation writes the marker as the
   verdict is taken), a Kit-friction line flipped to a **closed** absorbed form
-  (`- <date> — <friction> — absorbed by retro <date> — implemented in <commit>`
-  or `— ruled unpreventable`) more
+  (`- <date> — <friction> — absorbed by retro <date> — implemented in <commit>`,
+  `— implemented in kit vX.Y.Z` as `/sdlc-update` writes it, or `— ruled
+  unpreventable`) more
   than one phase ago — move verbatim to
   `spec/PROJECT_INDEX_HISTORY.md` (created on first retirement), one dated section
   per phase close, any numbering and all provenance preserved so an old reference

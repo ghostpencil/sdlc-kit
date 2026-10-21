@@ -81,7 +81,7 @@ TEST_CMD_PATTERN = "{{TEST_CMD_PATTERN}}"
 # wrapper's: a failing exit alone is a failing command, not a failing test.
 TEST_REPORT_PATTERN = r"{{TEST_REPORT_PATTERN}}"
 # Repo-relative paths that are neither production source nor tests: configs and
-# scripts no test can turn red (FEATURE_PLAN.md 84.7 ruling 6).
+# scripts no test can turn red (owner ruling, 0.35.0).
 GUARD_EXEMPT_PATTERN = "{{GUARD_EXEMPT_PATTERN}}"
 # ...and in every project, whatever setup resolved: the graph tool's own directories.
 # Its agents write scratch code there; none of it is the project's.
@@ -90,7 +90,7 @@ ALWAYS_EXEMPT = ".ua/*|.understand-anything/*"
 # Commands that can NAME the runner without running it, so a substring pattern
 # matched them: `cat vitest.config.ts`, `grep pytest pyproject.toml`, `pip install
 # pytest`. A failure counted as a RED, and - worse - a success counted as a GREEN that
-# satisfied the stop guard with no test run at all (FEATURE_PLAN.md 84.4). Judged on
+# satisfied the stop guard with no test run at all (found at 0.35.0's triage). Judged on
 # the leading executable, after any `env` and `NAME=value` prefix. A fixed list on
 # purpose: every mistake it makes lands on the not-counted side.
 NEVER_RUNS = {"cat", "type", "more", "less", "head", "tail", "sed", "awk", "grep",
@@ -373,7 +373,7 @@ if MODE == "pre-write":
     # so a script directory's own tests do not start a cycle either. SOURCE_GLOB is
     # extension-only, so before this a one-off tools script, a config written in the
     # source language and the graph tool's scratch each needed a red no test could
-    # produce - measured on two adopters (FEATURE_PLAN.md 84.4(5)). Logged only for a
+    # produce - measured on two adopters (2026-10-20). Logged only for a
     # file the guard would otherwise have charged; anything else stays silent.
     if match_any(rel, ALWAYS_EXEMPT) or match_any(rel, GUARD_EXEMPT_PATTERN):
         if match_any(base, SOURCE_GLOB):

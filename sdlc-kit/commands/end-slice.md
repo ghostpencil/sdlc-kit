@@ -221,8 +221,9 @@ For every **new guard, branch, or error path** this slice added (review fixes
 included): delete or invert it once, run the suite, and watch it fail on exactly the
 test that claims to pin it — then restore and confirm green **with a bare test run**,
 not the gate: where the TDD guards are installed a run counts only as a single bare
-test command, and the gate command is not one, so a green confirmed through the gate
-leaves the stop guard with none (one arc's stop blocked twice that way). Use the
+test command, which a gate run — compound, or behind a wrapper script — usually is not,
+so a green confirmed through the gate can leave the stop guard with none (one arc's
+stop blocked twice that way). Use the
 mutation-testing skill (`mutation-testing`, installed at
 `.claude/skills/mutation-testing/`) for anything beyond a quick
 delete-and-run. A check is only trustworthy once it has been made to disagree; a guard

@@ -53,9 +53,13 @@ Run these as commands; each states its negative case in the ledger.
   which is a finding, not a pass. A suite that cannot complete is the finding whatever it
   reads like: `skill-ledger-check.py` read as a model proof through five passes while
   crashing on its first Claude case, and three cases were unexercised for six releases
-  (`FEATURE_PLAN.md` §75). Two costs to plan for rather than discover: the guard suites
-  sleep 1.1 s per case and `close-out-check` ran ~70 minutes under concurrent load,
-  `cosmetic-check` takes ~5 minutes, and all eight buffer stdout — hence `-u`. A scoped
+  (`FEATURE_PLAN.md` §75). Two costs to plan for rather than discover: the mutation
+  passes dominate — measured at 0.35.0, `tdd-guard-check` ~55 minutes (its 1.1 s mtime
+  sleeps), `impact-check` ~35, `close-out-check` ~8 and `tdd-guard-claude-check` under 2
+  (those three stop each mutation at its first failing case and run 8 at a time;
+  `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs serially), `cosmetic-check` ~6 — and all
+  eight buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a
+  suite share its output file and slow each other several-fold. A scoped
   run that skips them says so, in those words, because "13: pass" over unrun suites is
   exactly the all-clear this command's prime directive forbids.
 - **Lens↔rule map denominator** (`reference/GATE_RECIPES.md`, *The lens↔rule map*,
@@ -114,7 +118,7 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.34.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.35.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe and its
   dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
@@ -148,7 +152,11 @@ For each, read the named files in full — do not sample — and cite evidence p
   the cosmetic classifier (negative cases in `tools/cosmetic-check.py`), and the guard
   patterns' shell-case-pattern check (`sh -n`; P1/P2 in `tools/tdd-guard-check.py`)
   (all 0.34.0), the shipped-Python lint check (0.34.1, `tools/shipped-lint-check.py`),
-  the `tools/` proof suites, and this command.
+  the guards' runner-report RED rule and its setup proof, the never-runs commands, the
+  guard-exempt pattern, the edit-time hook's file scope, the Copilot commit detector,
+  the scripted mutation runner, the close-out Stop launcher's moved-cwd message, and
+  `/sdlc-update`'s friction enumeration (all 0.35.0), the `tools/` proof suites, and
+  this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that

@@ -460,8 +460,9 @@ read before it is reconciled is a decision taken twice.
   index: deferred-backlog entries whose line carries a closing marker — `— done
   (<fix commit>)` or `— dropped (owner, <date>)`, written by the backlog bullet
   above or by the slice that closed them — and Kit-friction lines flipped
-  `absorbed` with a **closed** disposition — `implemented in <commit>` or `ruled
-  unpreventable` — more than one phase ago. **An entry marked `RULING OPEN` does not
+  `absorbed` with a **closed** disposition — `implemented in <commit>` (or `in kit
+  vX.Y.Z`, as `/sdlc-update` writes it) or `ruled unpreventable` — more than one phase
+  ago. **An entry marked `RULING OPEN` does not
   retire however old it is:** absorption records that a finding was transmitted, not
   that anything changed, and retiring one to a file no session reads at start is the
   burial the disposition exists to prevent. (Environment gotchas are a bounded section

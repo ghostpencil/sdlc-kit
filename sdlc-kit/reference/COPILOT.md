@@ -623,7 +623,7 @@ is never evidence of the other.
 | Strong | `CLAUDECODE=1` (also `CLAUDE_CODE_ENTRYPOINT`, `CLAUDE_CODE_SESSION_ID`) | setup is running inside Claude Code |
 | Bonus | `AI_AGENT` — **prefix match only** | whichever CLI the prefix names |
 | Medium | `.claude/settings.json`, `.claude/commands/` | repo already set up for Claude Code |
-| Medium | `.github/hooks/` beyond `sdlc-close-out.sh`, `sdlc-impact.py` and `sdlc-cosmetic.py` (all three install on both CLIs — from 0.20.0, 0.28.0 and 0.34.0 — and signal nothing), `.github/agents/`, `.github/copilot-instructions.md`, `.github/copilot/settings.json` | repo already set up for Copilot CLI |
+| Medium | `.github/hooks/*.json`, `sdlc-gate.sh` or `sdlc-tdd-guard.sh` (the Copilot dialect's own hook files — the other kit hook files install on Claude Code too, or on both CLIs, and signal nothing), `.github/agents/`, `.github/copilot-instructions.md`, `.github/copilot/settings.json` | repo already set up for Copilot CLI |
 | Weak | `claude` / `copilot` on `PATH` | installed on this machine; says nothing about this repo |
 
 Three traps, each of which has already caught someone:

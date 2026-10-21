@@ -176,8 +176,9 @@ working tree before writing any skip.
    **Order a change that spans files so each edit leaves its file whole:** providers
    before consumers — the type member before the code that uses it, the export before
    its importer, the port before its adapter — and each file's change in one edit, not
-   an import now and its use in the next. The edit-time hook checks every file as it
-   lands, so a consumer written first is reported as broken until the provider exists:
+   an import now and its use in the next. Where the edit-time hook is installed
+   (`spec/SDLC.md` *Records*), it checks every file as it lands, so a consumer written
+   first is reported as broken until the provider exists:
    on one adopter that ordering alone produced 9 of 20 blocks in a slice, none a
    defect, and a stream of moot blocks is how a real one gets skimmed past. It costs
    nothing in any language.

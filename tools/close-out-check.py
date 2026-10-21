@@ -30,7 +30,7 @@ Four passes, and the last is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/close-out-check.py
 """
-import io, json, os, shutil, subprocess, sys, tempfile, time, traceback
+import concurrent.futures, io, json, os, shutil, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "close-out.template.sh")
@@ -745,9 +745,10 @@ DOCS_CASES = [
 ]
 
 
-def docs_pass(src, verbose):
+def docs_pass(src, verbose, first_only=False):
     """Runs every docs case in its own bench repo; returns (failures, slowest), and
     leaves the median in docs_pass.median - the number the S2 verdict reads.
+    first_only stops at the first failing case: the mutation pass needs one.
 
     Every case asserts exit 0: this mode is log-only, so a non-zero exit would
     fail an /end-slice step over a bookkeeping observation - the one thing the
@@ -777,6 +778,8 @@ def docs_pass(src, verbose):
                 failures.append((name, problems, out))
             if verbose:
                 print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
+            if problems and first_only:
+                break
     times.sort()
     docs_pass.median = times[len(times) // 2] if times else 0.0
     return failures, slowest
@@ -785,9 +788,9 @@ def docs_pass(src, verbose):
 docs_pass.median = 0.0
 
 
-def stop_pass(src, verbose, only=None):
+def stop_pass(src, verbose, only=None, first_only=False):
     """Runs every stop case (or just the one named by `only`) in its own bench repo;
-    returns (failures, {name: secs})."""
+    returns (failures, {name: secs}). first_only stops at the first failing case."""
     failures, times = [], {}
     for name, setup, stdout_kind, contains, absent in STOP_CASES:
         if only is not None and name != only:
@@ -820,11 +823,15 @@ def stop_pass(src, verbose, only=None):
                 failures.append((name, problems, "stdout: %s\nlog:\n%s" % (out, log)))
             if verbose:
                 print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
+            if problems and first_only:
+                break
     return failures, times
 
 
-def unit_pass(src, verbose):
-    """Runs every case; returns (failures, max_seconds)."""
+def unit_pass(src, verbose, first_only=False):
+    """Runs every case; returns (failures, max_seconds). first_only stops at the first
+    failing case. The cases share one bench and its growing history, so stopping
+    early only ever drops later cases - it never changes an earlier verdict."""
     failures, slowest, times = [], 0.0, []
     with tempfile.TemporaryDirectory() as base:
         b = Bench(base, src)
@@ -852,6 +859,8 @@ def unit_pass(src, verbose):
                 failures.append((name, problems, out))
             if verbose:
                 print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
+            if problems and first_only:
+                break
     times.sort()
     unit_pass.median = times[len(times) // 2] if times else 0.0
     return failures, slowest
@@ -1136,9 +1145,33 @@ def main():
             print("\nFAILED %s: %s\n--- detail ---\n%s" % (name, "; ".join(problems), out))
         sys.exit(1)
 
-    print("\n== mutation pass (%d mutations, count derived) ==" % len(MUTATIONS))
+    # The mutation pass needs ONE failing case per mutation, and the mutations are
+    # independent - every bench is its own temp repo. It used to run every case of
+    # every pass in order, one mutation at a time: ~46 minutes of a ~48-minute run,
+    # nearly all of it after the verdict was settled (16 of the 35 mutations are
+    # caught only by the stop pass, and each paid a full unit + docs pass first). So
+    # each pass now stops at its first failing case, and the mutations run
+    # concurrently. Nothing here is timed: the S2 budgets above were measured before
+    # this pass started, on an otherwise idle suite. CLOSEOUT_JOBS=1 runs it serially.
+    jobs = max(1, int(os.environ.get("CLOSEOUT_JOBS", "8")))
+    print("\n== mutation pass (%d mutations, count derived; %d at a time,"
+          " first failing case named) ==" % (len(MUTATIONS), jobs))
     survivors = []
     stale = []
+
+    def run_mutation(name, mutated):
+        for where, fn, default in (("unit", unit_pass, ([], 0.0)),
+                                   ("docs", docs_pass, ([], 0.0)),
+                                   ("stop", stop_pass, ([], {})),
+                                   ("worktree", wt_pass, ([], 0.0))):
+            kw = {} if fn is wt_pass else {"first_only": True}
+            broke, _ = guarded("mutation (%s): %s" % (where, name), default, fn, mutated,
+                               verbose=False, **kw)
+            if broke:
+                return where, broke[0][0]
+        return None, None
+
+    live = []
     for name, old, new in MUTATIONS:
         if old not in src:
             # Reported, never raised. An assert aborts the run, so every mutation after
@@ -1148,21 +1181,15 @@ def main():
             stale.append(name)
             print("  %-38s STALE - anchor no longer applies, re-point it" % name)
             continue
-        mutated = src.replace(old, new)
-        broke, _ = guarded("mutation (unit): %s" % name, ([], 0.0), unit_pass, mutated, verbose=False)
-        where = "unit"
-        if not broke:
-            broke, _ = guarded("mutation (docs): %s" % name, ([], 0.0), docs_pass, mutated, verbose=False)
-            where = "docs"
-        if not broke:
-            broke, _ = guarded("mutation (stop): %s" % name, ([], {}), stop_pass, mutated, verbose=False)
-            where = "stop"
-        if not broke:
-            broke, _ = guarded("mutation (worktree): %s" % name, ([], 0.0), wt_pass, mutated, verbose=False)
-            where = "worktree"
-        print("  %-38s %s" % (name, "caught (%d %s case%s)" % (len(broke), where, "s" if len(broke) != 1 else "") if broke else "SURVIVED"))
-        if not broke:
-            survivors.append(name)
+        live.append((name, src.replace(old, new)))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = [pool.submit(run_mutation, name, mutated) for name, mutated in live]
+        for (name, _), fut in zip(live, futures):
+            where, case = fut.result()
+            print("  %-38s %s" % (name, "caught by %s case %s" % (where, case)
+                                  if where else "SURVIVED"), flush=True)
+            if not where:
+                survivors.append(name)
     if survivors:
         print("\nMUTATIONS SURVIVED: %s - the corpus does not pin what it claims" % ", ".join(survivors))
     if stale:

@@ -14,7 +14,7 @@ Two passes, and the second is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/tdd-guard-check.py
 """
-import io, json, os, shutil, subprocess, sys, tempfile, time, traceback
+import concurrent.futures, io, json, os, shutil, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.sh")
@@ -186,8 +186,15 @@ def reopen_git(root, mode, newline=None):
     return io.open(p, mode, newline=newline)
 
 
-def unit(guard_src, verbose=True, counter=None, parser=None):
+class _FirstFailure(BaseException):
+    """Ends a first_only run at its first failing check. BaseException, so neither
+    a case's own handler nor guarded() can mistake it for a crash."""
+
+
+def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
     """Returns the list of failed case names; counts every case into `counter`.
+    first_only ends the run at the first failing check - the mutation pass needs
+    one, and the checks share one bench, so stopping only drops later checks.
 
     `parser` restricts PATH to one JSON dialect ("python" or "node"); None takes
     whatever the ambient PATH offers.
@@ -205,6 +212,8 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
                 counter.append(name)
             if not cond:
                 failed.append(name)
+                if first_only:
+                    raise _FirstFailure()
             if verbose:
                 print(("PASS  " if cond else "FAIL  ") + name +
                       (("\n        " + detail) if not cond else ""))
@@ -1099,6 +1108,8 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
               and not sh_parses(guard_src, "tests/*", "*pytest*", base, exempt=""))
 
         return failed
+    except _FirstFailure:
+        return failed
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
@@ -1311,8 +1322,16 @@ def main():
 
     # Mutations exercise the guard's shell logic, which sits above the parser choice, so
     # they run once under the ambient PATH rather than once per dialect.
-    print("=== mutation pass (%d mutations; the unit suite must catch each) ==="
-          % len(MUTATIONS))
+    #
+    # Each mutation needs ONE failing check, and the mutations are independent - each
+    # unit() run is its own temp bench. They used to run one at a time and every check
+    # to the end, so each paid the whole scenario and its 1.1 s mtime sleeps after the
+    # verdict was settled. Now each stops at its first failing check and they run
+    # concurrently; nothing here is timed. TDDGUARD_JOBS=1 runs them serially.
+    jobs = max(1, int(os.environ.get("TDDGUARD_JOBS", "8")))
+    print("=== mutation pass (%d mutations; the unit suite must catch each; %d at a time,"
+          " first failing check named) ===" % (len(MUTATIONS), jobs))
+    live = []
     for name, fn in MUTATIONS:
         mutated = guarded("mutation build: %s" % name, None, fn, src)
         if mutated is None:
@@ -1322,12 +1341,19 @@ def main():
             print("STALE    mutation no longer applies - update it: " + name)
             rc = 1
             continue
-        caught = guarded("mutation: %s" % name, [], unit, mutated, verbose=False)
-        if caught:
-            print("caught   %s\n           (by: %s)" % (name, "; ".join(caught)))
-        else:
-            print("SURVIVED %s  <-- the suite is blind to this" % name)
-            rc = 1
+        live.append((name, mutated))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = [pool.submit(guarded, "mutation: %s" % name, [], unit, mutated,
+                               verbose=False, first_only=True)
+                   for name, mutated in live]
+        for (name, _), fut in zip(live, futures):
+            caught = fut.result()
+            if caught:
+                print("caught   %s\n           (by: %s)" % (name, "; ".join(caught)),
+                      flush=True)
+            else:
+                print("SURVIVED %s  <-- the suite is blind to this" % name, flush=True)
+                rc = 1
 
     if guarded.crashed:
         print("CRASHED passes: %s" % ", ".join(guarded.crashed))
