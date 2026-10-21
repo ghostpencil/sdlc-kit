@@ -984,6 +984,13 @@ against the upstream artifact.
   release on, so say that `/next-slice` halts on every new library until it exists.
   Hand over *Shape*'s new sentence with them — a draft PR opened only so CI runs is not
   the phase PR, and `/end-phase` marks it ready.
+- **0.35.0 changes the Claude Code close-out Stop launcher's message** (Claude Code
+  projects that accepted the backstop): where it said the script *is missing* it now
+  says *not found from `<pwd>`* and tells the session to `cd` back to the root, because
+  a shell `cd` below the root produced the same message as a real missing script. The
+  block lives in `.claude/settings.json`, which is project-owned: hand the owner the
+  template's new `Stop` command to paste over the old one, never edit it. Until then
+  the old message stands, and a *missing* block may mean a moved cwd.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Three further owner decisions can arise inside this step**, and all are real halts

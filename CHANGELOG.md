@@ -171,6 +171,12 @@ ruled 2026-10-20).
   vX.Y.Z`. All entries are listed, not filtered, because entries name no implicated
   file. One adopter's update shipped the exact fix for two entries, the guard applied
   it 84 times, and both stayed `RULING OPEN` for seven weeks.
+- **[adoption-only]** **The Claude Code close-out Stop launcher says where it looked**
+  (sdlc-kit#13, #17): *not found from `<pwd>`*, and `cd` back to the root, where it said
+  the script *is missing*. Claude Code starts hooks in the session's cwd, which a shell
+  `cd` moves and keeps moved, so a moved session read as a broken install and cost an
+  owner investigation. GATE_RECIPES records the hazard. Anchoring the launchers waits
+  for a both-CLI bench: the adopter's prefix denies every edit when Copilot runs it.
 
 ### Proofs
 - `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py` gain cases for the

@@ -6590,4 +6590,26 @@ cycle, which is `/next-slice`'s. The classifier extension stays 0.36.0's (ruling
   format change older entries lack, and a weak match since the guard files change in
   nearly every release. README steps 4 and 6 say the same.
 
-Still owed for 0.35.0, in §84.7's order: C's message.
+### 84.14 Built 2026-10-21 — C's message (the launcher prefix waits for the bench)
+
+- **The Claude Code Stop launcher only.** Copilot's close-out JSON pins `"cwd": "."` to
+  the root (measured), so its *missing* branch means missing; and under Copilot this
+  launcher already dies before its branch (§79.2), so the change cannot worsen it. The
+  guard's `python …` launchers carry no branch: *can't open file* already names the
+  moved path.
+- **Form:** `was not found from '"$PWD"'`, the `$` escaped so the inner `sh` expands it
+  inside double quotes — a path with a space or a `$` arrives literally (probed). Then
+  "if that is below the project root, a shell cd moved this session: cd back to the
+  root and finish; otherwise the script is missing … Tell the owner." No apostrophe,
+  which the single-quoted echo cannot carry.
+- **GATE_RECIPES** *Where the launchers start* records the hazard (the guard's
+  unrecorded runs, the gate's silent 127, the message), the cure (`cd` back; `git -C`
+  or a subshell), and why the prefix waits (pwsh empties `${CLAUDE_PROJECT_DIR:-.}`).
+  The probe's subdirectory case waits with the prefix, for the 0.36.0 bench.
+- **Proof:** `tools/close-out-check.py` gains
+  `launcher_claude_moved_cwd_names_where_it_looked`, run from `apps/store $front`.
+- **Update**: `.claude/settings.json` is project-owned — a manual note in
+  `/sdlc-update` and the README.
+
+**§84.7's 0.35.0 list is complete.** Held to 0.36.0 as ruled: B's detector, C's
+launcher anchoring, E's classifier extension, the rest of F.

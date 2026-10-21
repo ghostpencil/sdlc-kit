@@ -491,6 +491,23 @@ blocks once, naming the missing script, and stands down on `stop_hook_active`. T
 branch prints JSON, so it carries quotes; quotes were banned from launchers as a
 precaution, and a quoted branch was measured surviving both launcher routes.
 
+**Claude Code has no `"cwd"` key: its hooks start in the session's cwd, and a shell
+`cd` moves that and keeps it moved.** Measured on an adoption 2026-10-16 (Claude Code
+2.1.301, Git Bash, sdlc-kit#13; a second adopter hit it independently): after one `cd
+<subdir> && …` in a shell call, every relative launcher looked for
+`<subdir>/.github/hooks/…`. The guard's `python …` launchers failed with *can't open
+file* and its test runs went unrecorded; the gate launcher exited 127, which PostToolUse
+treats as non-blocking, so **the gate was skipped in silence**; and the close-out Stop
+block's `-e`/`-f` test failed, which until 0.35.0 printed the same *is missing* message
+a real missing script prints. That message now says *not found from `<pwd>`* and tells
+the session to `cd` back to the root, so the two cases read differently. **The cure
+is to `cd` back to the project root**; prefer `git -C <dir>` or a subshell `( cd <dir>
+&& … )`, which leave the session's cwd alone. Anchoring the launchers themselves waits
+for a bench on both CLIs: the adopter's `cd "${CLAUDE_PROJECT_DIR:-.}"` prefix is safe
+on Claude Code, but Copilot runs `.claude/settings.json` through PowerShell, which
+reads `${CLAUDE_PROJECT_DIR:-.}` as one variable name, expands it to empty, lands the
+hook in the home directory, and so denies every edit (measured 2026-10-20, pwsh 7).
+
 **Claude Code on Windows must find Git Bash, or every `sh` hook silently fails to run.**
 Measured 2026-09-27 on Claude Code 2.1.283 with Git for Windows installed at a
 non-default path: a session launched from **Git Bash** logged, for the `sh -c` close-out

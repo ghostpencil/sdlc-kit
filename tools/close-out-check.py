@@ -998,6 +998,22 @@ def wt_pass(src, verbose):
             check("launcher_%s_present_script_runs_it_no_block" % label,
                   "did not run" not in p.stdout.decode("utf-8", "replace") and n1 > n0,
                   p.stdout.decode("utf-8", "replace"))
+        # A moved cwd is not a missing script. Claude Code starts hooks in the session's
+        # cwd, which a shell `cd` moves and keeps moved (sdlc-kit#13), so its message
+        # names where it looked - a directory name with a space and a `$` in it, so a
+        # word-split or re-expanded path shows. Copilot pins "cwd": "." to the root.
+        sub = os.path.join(wt_r, "apps", "store $front")
+        os.makedirs(sub)
+        p = subprocess.run(["sh", "-c", claude_cmd[0] if claude_cmd else "false"], cwd=sub,
+                           input=payload().encode(), capture_output=True)
+        out = p.stdout.decode("utf-8", "replace").strip()
+        try:
+            reason = json.loads(out).get("reason") or ""
+        except ValueError:
+            reason = ""
+        check("launcher_claude_moved_cwd_names_where_it_looked",
+              "not found from " in reason and "/apps/store $front." in reason
+              and "cd back to the root" in reason, out)
     finally:
         shutil.rmtree(base, ignore_errors=True)
     return failures, 0.0

@@ -1011,6 +1011,12 @@ only as a hand-apply, and the per-version transition notes name each one.
    The same hand-over carries *Shape*'s new sentence: a draft PR opened only so CI runs
    is not the phase PR. The update command's 0.35.0 note states the same procedure.
 
+   **0.35.0 also changes the close-out Stop launcher's message on Claude Code**: it says
+   *not found from `<pwd>`* and tells the session to `cd` back to the root, instead of
+   *is missing*, which a shell `cd` below the root also produced. `.claude/settings.json`
+   is yours, so the update hands you the new `Stop` command to paste in. The update
+   command's 0.35.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
