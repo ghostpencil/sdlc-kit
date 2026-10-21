@@ -398,6 +398,29 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      instantiating, with an `sh` that resolves (on Windows, Git Bash's — Copilot's
      shell tool resolves none, so a shell error there is not a syntax verdict); the
      recipe states why.
+   - Both take two more, resolved identically too. **`{{TEST_REPORT_PATTERN}}`** — a
+     regular expression the runner's own failure report prints *first* — comes from the
+     recipe's runner table for the framework Round 2 named (pytest, vitest and jest are
+     measured; another runner needs the first line its failure report prints and that
+     a pass, a wrapper error and "no tests" never print). **`{{GUARD_EXEMPT_PATTERN}}`**
+     — repo-relative paths that are neither production nor tests — is a proposal you
+     build from the tree, not a question: `*.config.*|.*` plus each directory of
+     one-off scripts you find (`tools/*`, `scripts/*`), leaving out any script
+     directory that has its own tests, because that is product code. Show it, say
+     what it means (the guard does not ask those files for a red, and they stay out of
+     the edit-tools rule; the edit-time hook still lints them), and have the owner
+     confirm or edit it. **Never empty** — a project that exempts nothing gets `.ua/*`
+     (already exempt; the Copilot `case` arm needs a pattern). Both are recorded in
+     the guard note.
+   - **Prove the report pattern, not just the guard**, wherever a dialect is
+     installed: run one deliberately failing test with the project's real test
+     command, and one command that fails before the runner starts (the runner with a
+     path that does not exist, or a misspelled flag), each as a bare command in a
+     scratch session of that CLI, and confirm `guard.log` says `RED observed` for the
+     first and `NOT counted (… no test-runner report …)` for the second. A pattern
+     that misses the first refuses every red the project will ever produce; one that
+     matches the second is the defect it exists to close. Fix the value before going
+     further — the guard's messages will not tell anyone it is wrong.
    - They install in **logging mode** and stay there. Never create the
      `.git/sdlc-tdd/deny-enabled` flag during setup: deny is armed by the owner after
      reading a few sessions of `.git/sdlc-tdd/guard.log` and confirming the guard
@@ -418,9 +441,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      template does), the proof you just ran, and the
      **reach note** *Records* requires — this proof constructs its own violation, so
      say whether one has been seen to arise on its own. **When
-     installed, the note also states the four rules the guards impose on a coding
+     installed, the note also states the rules the guards impose on a coding
      session** — a test run registers only as a single bare command (no `;`, `&` or
-     `|`; flags and single-test selectors are fine); the stop guard's green is
+     `|`; flags and single-test selectors are fine), and a command that only names
+     the runner (`cat`, `grep`, `git`, `pip install`, a package manager's `add`, a
+     heredoc) is never one; a failing run counts as a RED only when the runner's own
+     report is in its output (the resolved `{{TEST_REPORT_PATTERN}}`, named), so a
+     wrapper's failure is refused out loud, and a red whose report a long output
+     pushed out of reach is re-run quieter; files matching the resolved
+     `{{GUARD_EXEMPT_PATTERN}}` (named) and the graph tool's directory are neither
+     production nor tests; the stop guard's green is
      any counted green, full-suite assurance being the end-slice gate's job; and a
      behavior-preserving edit (refactor, simplification, mutation testing — including
      a temporary mutation to prove a test of existing behavior bites, at any point in

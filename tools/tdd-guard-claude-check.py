@@ -37,8 +37,12 @@ VALUES = {
     "{{TEST_PATH_PATTERN}}": "tests/*|test_*.py|*_test.py",
     "{{SOURCE_GLOB}}": "*.py",
     "{{TEST_CMD_PATTERN}}": "*pytest*",
+    "{{TEST_REPORT_PATTERN}}": "=+ (FAILURES|ERRORS) =+",
+    "{{GUARD_EXEMPT_PATTERN}}": "tools/*|*.config.*",
 }
 SID = "session-one"
+# pytest's own report header, as both CLIs deliver it (FEATURE_PLAN.md 84.8).
+REPORT = "=================================== FAILURES ===================================\n"
 
 
 class Bench:
@@ -148,8 +152,10 @@ def green(root, cmd, sid=SID):
                               "interrupted": False, "isImage": False}}
 
 
-def red(root, cmd, code=1, sid=SID, interrupt=False, header=True):
-    err = ("Exit code %d\nAssertionError: boom" % code) if header \
+def red(root, cmd, code=1, sid=SID, interrupt=False, header=True, body=None):
+    if body is None:
+        body = REPORT + "AssertionError: boom"
+    err = ("Exit code %d\n%s" % (code, body)) if header \
         else "tool failed for another reason"
     return {"session_id": sid, "cwd": root, "hook_event_name": "PostToolUseFailure",
             "tool_name": "PowerShell", "tool_input": {"command": cmd},
@@ -538,6 +544,124 @@ def unit(guard_src, verbose=True, counter=None):
         case("30 a Claude payload that gains a timestamp still guards",
              "VIOLATION production write" in b.tail())
 
+        # --- a RED needs the runner's own report (FEATURE_PLAN.md 84, sdlc-kit#16) --
+        # A wrapper that fails before the runner starts exits with the code a failed
+        # test uses; it was counted as the red that licenses a production write.
+        b.reset_state()
+        b.run("pre-write", write(b.root, "tests/test_pay.py"))
+        time.sleep(0.05)
+        out = b.run("observe-test", red(
+            b.root, "pytest tests/test_pay.py",
+            body="[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: esbuild\n"
+                 "pnpm: Command failed with exit code 1"))
+        case("31 a failure with no runner report counts no RED, and says why",
+             not b.state_has("red-observed")
+             and "no test-runner report in the output" in b.tail()
+             and "NOT counted as a RED" in out and "re-run it quieter" in out)
+        out = b.run("pre-write", write(b.root, "pay.py"))
+        case("31b ...so the write after it is still a violation",
+             "VIOLATION production write" in b.tail())
+
+        b.reset_state()
+        b.run("pre-write", write(b.root, "tests/test_pay.py"))
+        time.sleep(0.05)
+        b.run("observe-test", red(
+            b.root, "pytest -q", code=2,
+            body="=========================== ERRORS ===========================\n"
+                 "ImportError while importing test module\n"
+                 "Interrupted: 1 error during collection"))
+        case("31c a collection error (exit 2) is the commonest first red, and counts",
+             b.state_has("red-observed") and "RED observed (exit 2)" in b.tail())
+
+        # Claude Code keeps about the first 10,000 characters of a long output: a red
+        # whose report comes after that much streamed output arrives without one.
+        b.reset_state()
+        b.run("observe-test", red(b.root, "pytest -q -s",
+                                  body="filler line ....\n" * 600))
+        case("31d a report cut off by a long output counts no RED",
+             not b.state_has("red-observed"))
+
+        # Colour codes inside the marker: jest colours its frames with no terminal.
+        b.reset_state()
+        b.run("observe-test", red(b.root, "pytest -q",
+                                  body="\x1b[31m=====\x1b[0m FAILURES =====\r\nboom"))
+        case("31e the report is matched with ANSI codes and CRLF removed",
+             b.state_has("red-observed"))
+
+        bad = Bench(os.path.join(base, "badpattern"),
+                    guard_src.replace("{{TEST_REPORT_PATTERN}}", "([unclosed"))
+        bad.seed("session", SID)
+        bad.run("observe-test", red(bad.root, "pytest -q"))
+        case("31f an invalid report pattern: exit 0, no RED, a GUARD ERROR logged",
+             bad.rc == 0 and not bad.state_has("red-observed")
+             and any("TEST_REPORT_PATTERN is not a valid" in l for l in bad.loglines()))
+
+        # --- commands that name the runner without running it (84.4(1)) --------
+        # Their SUCCESS was the worse defect: a GREEN that satisfied the stop guard
+        # with no test run at all.
+        for c in ("cat pytest.ini", "grep pytest pyproject.toml",
+                  "sed -n 1,5p pytest.ini", "git log --grep pytest",
+                  "gh api repos/pytest-dev/pytest/releases/latest",
+                  "Get-Content pytest.ini", "pip install pytest",
+                  "python -m pip install pytest", "uv add --dev pytest",
+                  "PYTHONPATH=. cat pytest.ini", r"C:\Git\usr\bin\cat.exe pytest.ini"):
+            b.reset_state()
+            o1 = b.run("observe-test", green(b.root, c))
+            o2 = b.run("observe-test", red(b.root, c))
+            case("32 '%s' counts neither GREEN nor RED, silently" % c,
+                 not b.state_has("green-observed") and not b.state_has("red-observed")
+                 and o1 == "" and o2 == "" and b.loglines() == [])
+
+        for c in ("uv run pytest -q", "python -m pytest -q", "env CI=1 pytest -q",
+                  r"C:\proj\.venv\Scripts\pytest.exe -q"):
+            b.reset_state()
+            b.run("observe-test", green(b.root, c))
+            case("32b a real run through '%s' still counts" % c,
+                 b.state_has("green-observed"))
+
+        b.reset_state()
+        out = b.run("observe-test", green(
+            b.root, "git commit -F - <<'EOF'\nfeat: pay\n\nGREEN: pytest -q passes\nEOF"))
+        case("33 a heredoc naming the runner counts nothing (the commit-recipe false GREEN)",
+             not b.state_has("green-observed") and out == "" and b.loglines() == [])
+        # The two checks above each have a case of their own whose executable the
+        # read-only list does NOT cover - `git` would mask either one's removal.
+        b.reset_state()
+        b.run("observe-test", green(
+            b.root, "python scripts/note.py <<'EOF'\nGREEN: pytest -q passes\nEOF"))
+        case("33b ...whatever executable reads it",
+             not b.state_has("green-observed") and b.loglines() == [])
+        b.reset_state()
+        b.run("observe-test", green(b.root, 'python scripts/note.py "RED: pytest -q"'))
+        case("33c a runner named only in a quoted argument of another program counts "
+             "nothing", not b.state_has("green-observed") and b.loglines() == [])
+
+        # --- the exempt pattern (84.7 ruling 6) ---------------------------------
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(b.root, "tools/measure_recall.py"))
+        case("34 a write under GUARD_EXEMPT_PATTERN is not denied, and is logged exempt",
+             out == "" and not b.state_has("prod-write-observed")
+             and "exempt from the guard" in b.tail())
+        out = b.run("pre-write", write(b.root, "playwright.config.py"))
+        case("34b a config file is exempt the same way", out == ""
+             and "exempt from the guard" in b.tail())
+        out = b.run("pre-write", write(b.root, ".ua/tmp/build_batch.py"))
+        case("34c the graph tool's directory is exempt in every project",
+             out == "" and "exempt from the guard" in b.tail())
+        b.run("pre-write", write(b.root, "tools/tests/test_measure.py"))
+        case("34d a test under an exempt directory is not a test edit either",
+             not b.state_has("last-test-edit"))
+        n = len(b.loglines())
+        b.run("pre-write", write(b.root, "tools/README.md"))
+        case("34e an exempt non-source file stays silent", len(b.loglines()) == n)
+        out = b.run("pre-write", write(b.root, "src/pay.py"))
+        case("34f code outside the pattern is still guarded",
+             '"permissionDecision":"deny"' in out)
+        out = b.run("pre-write", write(b.root, "src/日本.py"))
+        case("35 a path outside cp1252 is still denied (the log write cannot kill it)",
+             b.rc == 0 and '"permissionDecision":"deny"' in out)
+
         # --- linked worktrees (FEATURE_PLAN.md 78) ------------------------------
         # A REAL worktree, because the Bench's hand-made .git directory is exactly
         # the configuration that cannot see this defect: in a worktree .git is a
@@ -800,6 +924,44 @@ MUTATIONS = [
      "a licensed write logged as something else)",
      'label = "" if ok else cosmetic(p, rel)',
      'label = cosmetic(p, rel)'),
+    ("count any failing exit as a RED (a wrapper's failure licenses a production "
+     "write - sdlc-kit#16)",
+     "if not reported:",
+     "if False:"),
+    ("match the report against the raw output (colour codes split the marker)",
+     'text = ANSI.sub("", D.get("error") or "").replace("\\r\\n", "\\n")',
+     'text = (D.get("error") or "")'),
+    ("let an invalid report pattern crash the guard",
+     "except re.error:",
+     "except KeyError:"),
+    ("read a heredoc's body as the command (the commit recipe records a false GREEN)",
+     'if "<<" in probe:',
+     'if False:'),
+    ("count read-only commands that name the runner (cat/grep/git record a GREEN)",
+     "if exe in NEVER_RUNS:\n        return True",
+     "if False:\n        return True"),
+    ("count package-manager installs (`uv add pytest` records a GREEN)",
+     "return exe in PACKAGE_MANAGERS and sub in NOT_A_RUN_SUBCOMMANDS",
+     "return False"),
+    ("count `python -m pip` (an install records a GREEN)",
+     'and words[2].lower() == "pip":',
+     'and words[2].lower() == "never":'),
+    ("judge a NAME=value prefix as the executable",
+     'or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", words[0])):',
+     'or False):'),
+    ("keep the .exe on the executable (a Windows path to cat counts)",
+     "            exe = exe[:-len(ext)]",
+     "            pass"),
+    ("write the log in the locale's encoding (a non-cp1252 path kills the guard "
+     "before its deny)",
+     'with open(LOG, "a", encoding="utf-8") as f:',
+     'with open(LOG, "a") as f:'),
+    ("drop the always-on graph-directory exemption",
+     "if match_any(rel, ALWAYS_EXEMPT) or match_any(rel, GUARD_EXEMPT_PATTERN):",
+     "if match_any(rel, GUARD_EXEMPT_PATTERN):"),
+    ("ignore the project's exempt pattern",
+     "if match_any(rel, ALWAYS_EXEMPT) or match_any(rel, GUARD_EXEMPT_PATTERN):",
+     "if match_any(rel, ALWAYS_EXEMPT):"),
     ("guard nothing in silence when the git dir cannot be resolved at stop",
      """if not re.search(r'"stop_hook_active"\\s*:\\s*true', raw):""",
      'if False:'),

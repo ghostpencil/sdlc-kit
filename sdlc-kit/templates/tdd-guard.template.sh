@@ -174,8 +174,13 @@ r=d.get("toolResult") or {}
 t=(r.get("textResultForLlm") or "") if isinstance(r,dict) else ""
 m=re.findall(r"completed with exit code (\d+)>",t)
 o.append(m[-1] if m else "")
+u=re.sub(r"\x1b\[[0-9;]*[A-Za-z]","",t).replace(chr(13)+chr(10),chr(10))
+try:
+    o.append("1" if re.search(r"{{TEST_REPORT_PATTERN}}",u,re.M) else "0")
+except re.error:
+    o.append("E")
 o.extend(paths)
-sys.stdout.write("\n".join(o)+"\n")
+sys.stdout.buffer.write(("\n".join(o)+"\n").encode("utf-8"))
 '
 
 JS_PARSE='
@@ -196,13 +201,19 @@ const r=d.toolResult||{};
 const t=(r&&typeof r==="object")?(r.textResultForLlm||""):"";
 const mm=[...t.matchAll(/completed with exit code (\d+)>/g)];
 o.push(mm.length?mm[mm.length-1][1]:"");
+const u=t.replace(/\x1b\[[0-9;]*[A-Za-z]/g,"").replace(/\r\n/g,"\n");
+try{ o.push(new RegExp(String.raw`{{TEST_REPORT_PATTERN}}`,"m").test(u)?"1":"0"); }catch(e){ o.push("E"); }
 o.push(...paths);
 process.stdout.write(o.join("\n")+"\n");
 '
 
 # Every field this guard reads, one per line:
 #   1 sessionId  2 stop_hook_active  3 shell command  4 exit-code trailer
-#   5+ patch paths (Add/Update only - a Delete has nothing to write-guard)
+#   5 the runner's own report found in the output: 1, 0, or E (the pattern is invalid)
+#   6+ patch paths (Add/Update only - a Delete has nothing to write-guard)
+# The report is matched in the parser, where a regular expression lives naturally, on
+# the output with ANSI codes and CRLF removed: Copilot strips colour itself, but a
+# project that forces it would wrap the marker (measured 2026-10-20, FEATURE_PLAN.md 84.8).
 F=$(printf '%s' "$IN" | jr "$PY_PARSE" "$JS_PARSE")
 
 if [ -z "$F" ]; then
@@ -220,7 +231,8 @@ SID=$(printf  '%s' "$F" | sed -n 1p)
 ACTIVE=$(printf '%s' "$F" | sed -n 2p)
 CMD=$(printf   '%s' "$F" | sed -n 3p)
 CODE=$(printf  '%s' "$F" | sed -n 4p)
-PATHS=$(printf '%s\n' "$F" | tail -n +5)
+REPORT=$(printf '%s' "$F" | sed -n 5p)
+PATHS=$(printf '%s\n' "$F" | tail -n +6)
 
 # Observations are SESSION-scoped: a red observed in an earlier session does not
 # license a production write in this one. A new sessionId resets them.
@@ -231,10 +243,13 @@ if [ -n "$SID" ] && [ "$SID" != "$(cat "$S/session" 2>/dev/null)" ]; then
 fi
 
 # The output schemas below were measured against the CLI, not taken from documentation.
+# The message is read as bytes and decoded as UTF-8: a text-mode read on Windows python
+# is cp1252 with surrogateescape, which turned a non-ASCII path in the message into
+# mojibake (measured 2026-10-20, FEATURE_PLAN.md 84.8).
 emit_deny() {
   printf '%s' "$1" | jr '
 import sys,json
-sys.stdout.write(json.dumps({"permissionDecision":"deny","permissionDecisionReason":sys.stdin.read()},separators=(",",":")))
+sys.stdout.write(json.dumps({"permissionDecision":"deny","permissionDecisionReason":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
 ' '
 process.stdout.write(JSON.stringify({permissionDecision:"deny",permissionDecisionReason:require("fs").readFileSync(0,"utf8")}));
 '
@@ -242,7 +257,7 @@ process.stdout.write(JSON.stringify({permissionDecision:"deny",permissionDecisio
 emit_block() {
   printf '%s' "$1" | jr '
 import sys,json
-sys.stdout.write(json.dumps({"decision":"block","reason":sys.stdin.read()},separators=(",",":")))
+sys.stdout.write(json.dumps({"decision":"block","reason":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
 ' '
 process.stdout.write(JSON.stringify({decision:"block",reason:require("fs").readFileSync(0,"utf8")}));
 '
@@ -251,7 +266,7 @@ process.stdout.write(JSON.stringify({decision:"block",reason:require("fs").readF
 emit_context() {
   printf '%s' "$1" | jr '
 import sys,json
-sys.stdout.write(json.dumps({"additionalContext":sys.stdin.read()},separators=(",",":")))
+sys.stdout.write(json.dumps({"additionalContext":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
 ' '
 process.stdout.write(JSON.stringify({additionalContext:require("fs").readFileSync(0,"utf8")}));
 '
@@ -329,6 +344,17 @@ case "$MODE" in
         esac
       fi
       b=${n##*/}
+      # Exempt BEFORE the test check: a matching file is neither production nor a
+      # test, so a script directory's own tests start no cycle either. SOURCE_GLOB is
+      # extension-only, so before this a one-off tools script, a config written in the
+      # source language and the graph tool's scratch each needed a red no test could
+      # produce - measured on two adopters (FEATURE_PLAN.md 84.4(5)). The graph tool's
+      # directories are exempt in every project; GUARD_EXEMPT_PATTERN is the project's.
+      # Logged only for a file the guard would otherwise have charged.
+      case "$n" in .ua/*|.understand-anything/*|{{GUARD_EXEMPT_PATTERN}})
+        case "$b" in {{SOURCE_GLOB}}) log "exempt from the guard (not production source, not a test): $n" ;; esac
+        continue ;;
+      esac
       case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
       case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
       case "$b" in {{SOURCE_GLOB}})
@@ -433,6 +459,25 @@ PATHLIST
       {{TEST_CMD_PATTERN}}) ;;
       *) exit 0 ;;
     esac
+    # Commands that NAME the runner without running it - silent, like any other
+    # non-test command. A substring pattern matched them: `cat vitest.config.ts`,
+    # `grep pytest pyproject.toml`, `pip install pytest`, and a heredoc whose body (a
+    # commit message, a file being written) names the run. A failure counted as a
+    # RED, and - worse - a success counted as a GREEN that satisfied the stop guard
+    # with no test run at all (FEATURE_PLAN.md 84.4). The heredoc operator is never
+    # quoted, so the stripped probe keeps it. The rest is judged on the leading
+    # executable, after any `env` and NAME=value prefix: a fixed list on purpose,
+    # because every mistake it makes lands on the not-counted side.
+    case "$PROBE" in *"<<"*) exit 0 ;; esac
+    W=$(printf '%s' "$PROBE" | tr '\\' '/' | tr '[:upper:]' '[:lower:]' | awk '{ n = 0; for (i = 1; i <= NF; i++) { if (n == 0 && ($i == "env" || $i ~ /^[a-z_][a-z0-9_]*=/)) continue; w[n++] = $i; if (n == 3) break } for (j = 0; j < n; j++) printf "%s ", w[j] }')
+    set -f; set -- $W; set +f
+    exe=${1##*/}; exe=${exe%.exe}; exe=${exe%.cmd}; exe=${exe%.bat}; exe=${exe%.ps1}
+    case "$exe" in
+      ""|cat|type|more|less|head|tail|sed|awk|grep|egrep|fgrep|rg|find|ls|dir|echo|printf|wc|diff|git|gh|jq|code|which|where|file|stat|pip|pip3|pipx|conda|get-content|gc|select-string|sls|get-childitem|gci|test-path|write-output|write-host) exit 0 ;;
+      python|python3|py) [ "$2" = "-m" ] && [ "$3" = "pip" ] && exit 0 ;;
+      npm|pnpm|yarn|bun|uv|poetry)
+        case "$2" in install|i|add|ci|remove|rm|uninstall|un|update|upgrade|up|list|ls|view|info|show|outdated|audit|why|sync|lock) exit 0 ;; esac ;;
+    esac
     # The exit-code trailer reflects the WHOLE shell invocation, not the test. A
     # compound like `<test cmd>; echo done` reports the echo's status, so a red run
     # records a false GREEN - which both licenses a production write and un-blocks the
@@ -464,6 +509,17 @@ PATHLIST
     elif [ "$CODE" = "0" ]; then
       touch "$S/green-observed" 2>/dev/null; log "GREEN observed: $CMD"
       emit_context "TDD ordering: GREEN counted. The stop guard is satisfied; full-suite assurance remains the end-slice gate's job."
+    # A failing exit is the COMMAND's verdict; a RED is the test's. A wrapper that
+    # fails before the runner starts - pnpm's install check, a bad flag, a missing
+    # binary, a filter matching no tests - exits with the code a failed test uses, and
+    # was counted as the red that licenses a production write (sdlc-kit#16). So the
+    # runner's own report must be in the output. Copilot delivers only the first 500
+    # characters of a very long one (measured 2026-10-20), so the pattern is a marker
+    # the runner prints first, never its closing summary (FEATURE_PLAN.md 84.8).
+    elif [ "$REPORT" != "1" ]; then
+      [ "$REPORT" = "E" ] && log "GUARD ERROR: TEST_REPORT_PATTERN is not a valid regular expression - no failing run can count as a RED until it is fixed"
+      log "test run NOT counted (exit $CODE, but no test-runner report in the output - the failure is the command's, not a test's): $CMD"
+      emit_context "TDD ordering: that failing run was NOT counted as a RED - it exited $CODE, but its output carries no test-runner failure report, so the failure is the command's, not a test's: an install or environment check, a bad flag, a missing binary, or a filter matching no tests. Fix that and re-run. If a test really did fail, its report was cut off by a long output - re-run it quieter (the runner's quiet flag or a single-test selector) to register the RED."
     else
       touch "$S/red-observed" 2>/dev/null; log "RED observed (exit $CODE): $CMD"
       if [ -f "$S/last-test-edit" ] || { { [ -f "$S/refactor-license" ] || [ -f "$S/close-out-license" ]; } && [ -f "$S/green-observed" ]; }; then

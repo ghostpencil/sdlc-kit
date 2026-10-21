@@ -184,12 +184,18 @@ lint error, naming the file), and the **reach note** the rule above requires:
 {{TDD_GUARD_NOTE}}
 <!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
      are installed, which CLI they run on, and whether they are in logging or deny mode.
-     When installed, the note also states the four rules the guards impose on a coding
+     When installed, the note also states the rules the guards impose on a coding
      session — the note is the proactive statement; the guard's own messages state them
      only reactively, at a refusal or a counted run (field, 2026-08-08 — before the
      guard spoke, a session that met them first as unexplained refusals thrashed and
      probed the guard instead of complying): a test run registers only as a single bare
-     command — no `;`, `&` or `|`; flags and single-test selectors are fine; the
+     command — no `;`, `&` or `|`; flags and single-test selectors are fine — and a
+     command that only names the runner (a reader, `git`, an install, a heredoc) is
+     never one; a failing run is a RED only when the runner's own report is in its
+     output (the resolved TEST_REPORT_PATTERN, named), so a wrapper's failure is
+     refused out loud and a red a long output cut off is re-run quieter; files matching
+     the resolved GUARD_EXEMPT_PATTERN (named) and the graph tool's directory are
+     neither production nor tests — code is SOURCE_GLOB minus that pattern; the
      stop guard's green is ANY counted green, full-suite assurance being the end-slice
      gate's job, not the backstop's; and a behavior-preserving edit — refactor,
      simplification, mutation testing, including a temporary mutation to prove a

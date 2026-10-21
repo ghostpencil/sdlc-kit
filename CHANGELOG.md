@@ -13,7 +13,9 @@ to an already-adopted project.
 ## 0.35.0 — unreleased
 
 The graph refreshes behind two switches: cheap at every slice end, full at the phase end
-only when code went missing (`FEATURE_PLAN.md` §83, ruled by the owner 2026-10-19).
+only when code went missing (`FEATURE_PLAN.md` §83, ruled by the owner 2026-10-19). And
+the TDD guards count the test, not the command (`FEATURE_PLAN.md` §84, issues #11–#17,
+ruled 2026-10-20).
 
 ### Changed
 - **[installable]** **`/end-slice` and `/end-phase` read a `Graph refresh:` line** in
@@ -70,6 +72,40 @@ only when code went missing (`FEATURE_PLAN.md` §83, ruled by the owner 2026-10-
   the line instead of re-asking. It asks only about a ruling neither value expresses,
   and retires a local `freshness()` amendment that read a sibling branch's graph as
   current.
+- **[installable]** **`{{TEST_REPORT_PATTERN}}`, a fifth guard placeholder, both
+  dialects: a failing run is a RED only when the runner's own report is in its
+  output.** A wrapper that failed before the runner started (pnpm's install check, a
+  bad flag, a missing binary) exited with a failed test's code and was counted as the
+  red that licenses a production write — twice in one adoption (sdlc-kit#16, #17). The
+  pattern is matched with ANSI codes and CRLF removed, and is a marker the runner prints
+  **first**: measured on both CLIs, neither delivers the end of a long output (Claude
+  Code keeps about 10,000 characters, Copilot a 500-character preview). Values for
+  pytest, vitest and jest were measured on six shapes each and are in the recipe; a
+  refused run is spoken, with how to re-run a noisy red quieter.
+- **[installable]** **`{{GUARD_EXEMPT_PATTERN}}`, a sixth: configs and one-off script
+  directories are neither production nor tests.** The extension-only `SOURCE_GLOB`
+  charged them as production, and two adopters' guards denied writes no test could
+  justify. `.ua/` and `.understand-anything/` are exempt in the template itself.
+  Setup proposes the value from the tree; it is never empty.
+
+### Fixed
+- **[installable]** **A command that only names the runner no longer counts, either
+  way.** `cat vitest.config.ts`, `grep pytest pyproject.toml`, `pip install pytest`,
+  `uv add pytest` and any heredoc — the kit's own commit recipe among them — matched
+  the substring pattern, and a success recorded a **GREEN that satisfied the stop guard
+  with no test run at all**. Both dialects drop them silently; real runs through
+  `uv run`, `npx`, `python -m` and `env` still count.
+- **[installable]** **Three encoding defects that failed open on Windows.** The Claude
+  guard logged in the locale's code page, so a path outside cp1252 raised before the
+  deny was emitted; the Copilot parser wrote its fields the same way, so such a path
+  crashed it and the write went unguarded; and the Copilot deny message read its text
+  in cp1252, garbling any non-ASCII path. All three now read and write UTF-8.
+
+### Proofs
+- `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py` gain cases for the
+  runner report (a wrapper failure, a collection error, a cut-off report, colour codes,
+  an invalid pattern), the commands that never run, the exempt pattern, non-ASCII paths,
+  and an empty exempt value failing `sh -n`; each new rule has a mutation.
 
 ## 0.34.1 — 2026-10-19
 

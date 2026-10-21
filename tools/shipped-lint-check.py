@@ -41,6 +41,8 @@ VALUES = {
     "TEST_PATH_PATTERN": "tests/*|test_*.py|*_test.py",
     "SOURCE_GLOB": "*.py",
     "TEST_CMD_PATTERN": "*pytest*",
+    "TEST_REPORT_PATTERN": "=+ (FAILURES|ERRORS) =+",
+    "GUARD_EXEMPT_PATTERN": "*.config.*|.*|tools/*",
 }
 
 

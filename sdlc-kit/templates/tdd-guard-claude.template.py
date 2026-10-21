@@ -72,15 +72,69 @@ from fnmatch import fnmatch
 
 MODE = sys.argv[1] if len(sys.argv) > 1 else ""
 
-# Instantiated by setup for THIS project - same three placeholders, same values,
+# Instantiated by setup for THIS project - same five placeholders, same values,
 # as the Copilot dialect's script (reference/GATE_RECIPES.md carries the recipe).
 TEST_PATH_PATTERN = "{{TEST_PATH_PATTERN}}"
 SOURCE_GLOB = "{{SOURCE_GLOB}}"
 TEST_CMD_PATTERN = "{{TEST_CMD_PATTERN}}"
+# A regular expression found in the test runner's OWN failure report, never in a
+# wrapper's: a failing exit alone is a failing command, not a failing test.
+TEST_REPORT_PATTERN = r"{{TEST_REPORT_PATTERN}}"
+# Repo-relative paths that are neither production source nor tests: configs and
+# scripts no test can turn red (FEATURE_PLAN.md 84.7 ruling 6).
+GUARD_EXEMPT_PATTERN = "{{GUARD_EXEMPT_PATTERN}}"
+# ...and in every project, whatever setup resolved: the graph tool's own directories.
+# Its agents write scratch code there; none of it is the project's.
+ALWAYS_EXEMPT = ".ua/*|.understand-anything/*"
+
+# Commands that can NAME the runner without running it, so a substring pattern
+# matched them: `cat vitest.config.ts`, `grep pytest pyproject.toml`, `pip install
+# pytest`. A failure counted as a RED, and - worse - a success counted as a GREEN that
+# satisfied the stop guard with no test run at all (FEATURE_PLAN.md 84.4). Judged on
+# the leading executable, after any `env` and `NAME=value` prefix. A fixed list on
+# purpose: every mistake it makes lands on the not-counted side.
+NEVER_RUNS = {"cat", "type", "more", "less", "head", "tail", "sed", "awk", "grep",
+              "egrep", "fgrep", "rg", "find", "ls", "dir", "echo", "printf", "wc",
+              "diff", "git", "gh", "jq", "code", "which", "where", "file", "stat",
+              "pip", "pip3", "pipx", "conda", "get-content", "gc", "select-string",
+              "sls", "get-childitem", "gci", "test-path", "write-output",
+              "write-host"}
+# A package manager runs tests only through its run/test/exec subcommands.
+PACKAGE_MANAGERS = {"npm", "pnpm", "yarn", "bun", "uv", "poetry"}
+NOT_A_RUN_SUBCOMMANDS = {"install", "i", "add", "ci", "remove", "rm", "uninstall",
+                         "un", "update", "upgrade", "up", "list", "ls", "view",
+                         "info", "show", "outdated", "audit", "why", "sync", "lock"}
+ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
 def match_any(value, patterns):
     return any(fnmatch(value, p) for p in patterns.split("|") if p)
+
+
+def never_a_test_run(probe):
+    """True for a command that cannot be the test's own run, whatever its text names."""
+    # A heredoc's body is data handed to a command - a commit message, a file being
+    # written - and the newline-joined body would otherwise be read as the command.
+    # The operator itself is never quoted, so the quote-stripped probe still has it.
+    if "<<" in probe:
+        return True
+    words = probe.split()
+    while words and (words[0].lower() == "env"
+                     or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", words[0])):
+        words = words[1:]
+    if not words:
+        return True
+    exe = words[0].replace("\\", "/").rsplit("/", 1)[-1].lower()
+    for ext in (".exe", ".cmd", ".bat", ".ps1"):
+        if exe.endswith(ext):
+            exe = exe[:-len(ext)]
+    sub = words[1].lower() if len(words) > 1 else ""
+    if exe in NEVER_RUNS:
+        return True
+    if exe in ("python", "python3", "py") and sub == "-m" and len(words) > 2 \
+            and words[2].lower() == "pip":
+        return True
+    return exe in PACKAGE_MANAGERS and sub in NOT_A_RUN_SUBCOMMANDS
 
 
 # An explicit SDLC_REPO_ROOT wins so a harness can pin it; then the documented
@@ -157,8 +211,11 @@ LOG = os.path.join(S, "guard.log")
 
 
 def log(msg):
+    # UTF-8, not the locale's: Windows python defaults to cp1252, so a path or command
+    # outside it raised UnicodeEncodeError here - past the OSError handler - and the
+    # guard died before its deny was emitted (84.8).
     try:
-        with open(LOG, "a") as f:
+        with open(LOG, "a", encoding="utf-8") as f:
             f.write("%s [claude:%s] %s\n"
                     % (time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), MODE, msg))
     except OSError:
@@ -312,6 +369,16 @@ if MODE == "pre-write":
         # scoping fix - the Copilot dialect measured both path shapes arriving.
         rel = n[2:] if n.startswith("./") else n
     base = rel.rsplit("/", 1)[-1]
+    # Exempt BEFORE the test check: a matching file is neither production nor a test,
+    # so a script directory's own tests do not start a cycle either. SOURCE_GLOB is
+    # extension-only, so before this a one-off tools script, a config written in the
+    # source language and the graph tool's scratch each needed a red no test could
+    # produce - measured on two adopters (FEATURE_PLAN.md 84.4(5)). Logged only for a
+    # file the guard would otherwise have charged; anything else stays silent.
+    if match_any(rel, ALWAYS_EXEMPT) or match_any(rel, GUARD_EXEMPT_PATTERN):
+        if match_any(base, SOURCE_GLOB):
+            log("exempt from the guard (not production source, not a test): %s" % rel)
+        sys.exit(0)
     if match_any(rel, TEST_PATH_PATTERN) or match_any(base, TEST_PATH_PATTERN):
         # A test edit invalidates any earlier red and revokes any refactor
         # license - a new test is a new cycle.
@@ -419,6 +486,9 @@ if MODE == "observe-test":
     probe = re.sub(r'"[^"]*"|\'[^\']*\'', " ", cmd)
     if not cmd or not match_any(probe, TEST_CMD_PATTERN):
         sys.exit(0)
+    # Silent, like any other non-test command: nothing ran that could be counted.
+    if never_a_test_run(probe):
+        sys.exit(0)
 
     def speak(text):
         emit({"hookSpecificOutput": {
@@ -463,6 +533,32 @@ if MODE == "observe-test":
                   "fixing before its ordering can be trusted.")
             sys.exit(0)
         code = m.group(1)
+        # A failing exit is the COMMAND's verdict; a RED is the test's. A wrapper that
+        # fails before the runner starts - pnpm's install check, a bad flag, a missing
+        # binary, a filter matching no tests - exits with the code the runner uses for
+        # a failed test, and was counted as the red that licenses a production write
+        # (sdlc-kit#16, twice in one adoption). So the runner's own report must be in
+        # the output. Both CLIs deliver only the HEAD of a long output (Claude Code
+        # about the first 10,000 characters, measured 2026-10-20), so the pattern is a
+        # marker the runner prints first, never its closing summary (84.8).
+        text = ANSI.sub("", D.get("error") or "").replace("\r\n", "\n")
+        try:
+            reported = re.search(TEST_REPORT_PATTERN, text, re.M) is not None
+        except re.error:
+            log("GUARD ERROR: TEST_REPORT_PATTERN is not a valid regular expression - "
+                "no failing run can count as a RED until it is fixed")
+            reported = False
+        if not reported:
+            log("test run NOT counted (exit %s, but no test-runner report in the output "
+                "- the failure is the command's, not a test's): %s" % (code, cmd))
+            speak("TDD ordering: that failing run was NOT counted as a RED - it exited "
+                  "%s, but its output carries no test-runner failure report, so the "
+                  "failure is the command's, not a test's: an install or environment "
+                  "check, a bad flag, a missing binary, or a filter matching no "
+                  "tests. Fix that and re-run. If a test really did fail, its report "
+                  "was cut off by a long output - re-run it quieter (the runner's "
+                  "quiet flag or a single-test selector) to register the RED." % code)
+            sys.exit(0)
         mark("red-observed")
         log("RED observed (exit %s): %s" % (code, cmd))
         # The RED message claims a license only when G1 would actually grant one.

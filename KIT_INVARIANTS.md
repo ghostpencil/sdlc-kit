@@ -49,8 +49,8 @@ was found by a human noticing two files disagreed.
 
 Every `{{PLACEHOLDER}}` in `templates/` (plus the hook and guard ones documented in
 `reference/GATE_RECIPES.md` — `{{HOOK_*}}`, `{{SOURCE_GLOB}}`, `{{TEST_PATH_PATTERN}}`,
-`{{TEST_CMD_PATTERN}}`) must be resolved by a question or step in
-`sdlc-setup.md`. This is **not** a name match: when this was measured at B0, only 8 of
+`{{TEST_CMD_PATTERN}}`, `{{TEST_REPORT_PATTERN}}`, `{{GUARD_EXEMPT_PATTERN}}`) must be
+resolved by a question or step in `sdlc-setup.md`. This is **not** a name match: when this was measured at B0, only 8 of
 the 32 placeholders then present were named verbatim in setup; the rest are asked for in
 other words (`{{GATE_LINT_CMD}}` comes from "linter", `{{RUN_COMMAND}}` from "how the
 owner will run the app").

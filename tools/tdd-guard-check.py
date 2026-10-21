@@ -39,11 +39,12 @@ def recipe_pattern_rows():
     return rows
 
 
-def sh_parses(guard_src, tpp, tcp, where):
+def sh_parses(guard_src, tpp, tcp, where, exempt="tools/*"):
     """Instantiate the guard with these patterns and ask sh -n whether it parses."""
     body = guard_src
     for k, v in (("{{TEST_PATH_PATTERN}}", tpp), ("{{TEST_CMD_PATTERN}}", tcp),
-                 ("{{SOURCE_GLOB}}", "*.x")):
+                 ("{{SOURCE_GLOB}}", "*.x"), ("{{GUARD_EXEMPT_PATTERN}}", exempt),
+                 ("{{TEST_REPORT_PATTERN}}", "FAIL")):
         body = body.replace(k, v)
     f = os.path.join(where, "parse-probe.sh")
     io.open(f, "w", encoding="utf-8", newline="\n").write(body)
@@ -97,8 +98,12 @@ VALUES = {
     "{{TEST_PATH_PATTERN}}": "tests/*|test_*.py|*_test.py",
     "{{SOURCE_GLOB}}": "*.py",
     "{{TEST_CMD_PATTERN}}": "*pytest*",
+    "{{TEST_REPORT_PATTERN}}": "=+ (FAILURES|ERRORS) =+",
+    "{{GUARD_EXEMPT_PATTERN}}": "tools/*|*.config.*",
 }
 SID = "session-one"
+# pytest's own report header (FEATURE_PLAN.md 84.8).
+REPORT = "=================================== FAILURES ===================================\n"
 
 
 class Bench:
@@ -152,13 +157,17 @@ def write(root, paths, sid=SID):
     return {"sessionId": sid, "cwd": root, "toolName": "apply_patch", "toolArgs": patch}
 
 
-def shell(root, cmd, code, sid=SID):
+def shell(root, cmd, code, sid=SID, text=None):
     # Exit status arrives as a text trailer, not a structured field - measured, 31.7.1.
+    # A failing run carries pytest's own report header, as Copilot delivers it (84.8);
+    # `text` replaces the output to fake anything else.
+    if text is None:
+        text = (REPORT + "output...") if code else "output..."
     return {"sessionId": sid, "cwd": root, "toolName": "powershell",
             "toolArgs": json.dumps({"command": cmd}),
             "toolResult": {"resultType": "success",
                            "textResultForLlm":
-                               "output...\n<shellId: 0 completed with exit code %d>" % code}}
+                               "%s\n<shellId: 0 completed with exit code %d>" % (text, code)}}
 
 
 def stop(root, active=False, sid=SID):
@@ -939,6 +948,140 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
                   "red observed since last test edit" in c.tail()
                   and not any("cosmetic" in l for l in c.loglines()[n:]), c.tail())
 
+        # R: a RED needs the runner's own report (FEATURE_PLAN.md 84, sdlc-kit#16). A
+        # wrapper failing before the runner starts exits with a failed test's code.
+        def ctx(out):
+            try:
+                return (json.loads(out) if out.startswith("{") else {}).get(
+                    "additionalContext") or ""
+            except ValueError:
+                return ""
+
+        def has(name):
+            return os.path.exists(os.path.join(b.state, name))
+
+        b.reset_state()
+        b.run("pre-write", write(R, [("Update", "tests/test_payments.py")]))
+        time.sleep(1.1)
+        out = b.run("observe-test", shell(
+            R, "python -m pytest tests/test_payments.py", 1,
+            text="[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: esbuild\n"
+                 "pnpm: Command failed with exit code 1"))
+        check("R1 a failure with no runner report counts no RED, and says why",
+              not has("red-observed") and "no test-runner report in the output" in b.tail()
+              and "NOT counted as a RED" in ctx(out) and "re-run it quieter" in ctx(out),
+              b.tail() + " | " + repr(out))
+        b.run("pre-write", write(R, [("Update", "payments.py")]))
+        check("R1b ...so the write after it is still a violation",
+              "VIOLATION" in b.tail(), b.tail())
+
+        b.reset_state()
+        b.run("observe-test", shell(
+            R, "python -m pytest", 2,
+            text="=========================== ERRORS ===========================\n"
+                 "Interrupted: 1 error during collection"))
+        check("R2 a collection error (exit 2) counts as the RED it is",
+              "RED observed (exit 2)" in b.tail(), b.tail())
+
+        # Copilot replaces a very long output with a 500-character preview (84.8).
+        b.reset_state()
+        b.run("observe-test", shell(
+            R, "python -m pytest -s", 1,
+            text="Output too large to read at once (1.3 MB). Saved to: C:\\t\\o.txt\n"
+                 "Preview (first 500 chars):\nfiller line ....\n"))
+        check("R3 a report cut off by Copilot's preview counts no RED",
+              not has("red-observed"), b.tail())
+
+        b.reset_state()
+        b.run("observe-test", shell(R, "python -m pytest", 1,
+                                    text="\x1b[31m=====\x1b[0m FAILURES =====\r\nboom"))
+        check("R4 the report is matched with ANSI codes and CRLF removed",
+              has("red-observed"), b.tail())
+
+        bad = Bench(os.path.join(base, "badpattern"),
+                    guard_src.replace("{{TEST_REPORT_PATTERN}}", "([unclosed"))
+        if b.path:
+            bad.path = b.path
+        bad.run("observe-test", shell(bad.root, "python -m pytest", 1))
+        check("R5 an invalid report pattern: exit 0, no RED, a GUARD ERROR logged",
+              bad.rc == 0 and not os.path.exists(os.path.join(bad.state, "red-observed"))
+              and any("TEST_REPORT_PATTERN is not a valid" in l for l in bad.loglines()),
+              repr(bad.loglines()[-2:]))
+
+        # N: commands that name the runner without running it (84.4(1)). Their
+        # SUCCESS was the worse defect: a GREEN with no test run at all.
+        for c in ("cat pytest.ini", "grep pytest pyproject.toml",
+                  "sed -n 1,5p pytest.ini", "git log --grep pytest",
+                  "gh api repos/pytest-dev/pytest/releases/latest",
+                  "Get-Content pytest.ini", "pip install pytest",
+                  "python -m pip install pytest", "uv add --dev pytest",
+                  "PYTHONPATH=. cat pytest.ini", r"C:\Git\usr\bin\cat.exe pytest.ini",
+                  "git commit -F - <<'EOF'\nfeat: pay\n\nGREEN: pytest -q passes\nEOF",
+                  "python scripts/note.py <<'EOF'\nGREEN: pytest -q passes\nEOF",
+                  'python scripts/note.py "RED: pytest -q"'):
+            b.reset_state()
+            o1 = b.run("observe-test", shell(R, c, 0))
+            o2 = b.run("observe-test", shell(R, c, 1))
+            check("N1 %r counts neither GREEN nor RED, silently" % c,
+                  not has("green-observed") and not has("red-observed")
+                  and o1 == "" and o2 == ""
+                  and not [l for l in b.loglines() if "new session" not in l],
+                  repr(b.loglines()))
+
+        for c in ("uv run pytest -q", "python -m pytest -q", "env CI=1 pytest -q",
+                  r"C:\proj\.venv\Scripts\pytest.exe -q"):
+            b.reset_state()
+            b.run("observe-test", shell(R, c, 0))
+            check("N2 a real run through %r still counts" % c, has("green-observed"),
+                  b.tail())
+
+        # X: the exempt pattern (84.7 ruling 6).
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(R, [("Update", "tools/measure_recall.py")]))
+        check("X1 a write under GUARD_EXEMPT_PATTERN is not denied, and is logged exempt",
+              out == "" and not has("prod-write-observed")
+              and "exempt from the guard" in b.tail(), b.tail() + " | " + repr(out))
+        out = b.run("pre-write", write(R, [("Update", "playwright.config.py")]))
+        check("X2 a config file is exempt the same way",
+              out == "" and "exempt from the guard" in b.tail(), b.tail())
+        out = b.run("pre-write", write(R, [("Update", ".ua/tmp/build_batch.py")]))
+        check("X3 the graph tool's directory is exempt in every project",
+              out == "" and "exempt from the guard" in b.tail(), b.tail())
+        b.run("pre-write", write(R, [("Update", "tools/tests/test_measure.py")]))
+        check("X4 a test under an exempt directory is not a test edit either",
+              not has("last-test-edit"), b.tail())
+        n = len(b.loglines())
+        b.run("pre-write", write(R, [("Update", "tools/README.md")]))
+        check("X5 an exempt non-source file stays silent", len(b.loglines()) == n,
+              b.tail())
+        out = b.run("pre-write", write(R, [("Update", "src/payments.py")]))
+        check("X6 code outside the pattern is still guarded",
+              '"permissionDecision":"deny"' in out, repr(out))
+        out = b.run("pre-write", write(R, [("Update", os.path.join(R, "tools", "x.py"))]))
+        check("X7 an absolute in-repo path is reduced before the exempt test",
+              out == "" and "exempt from the guard" in b.tail() and b.tail().endswith(": tools/x.py"), b.tail())
+
+        # E: the deny message's bytes survive (a text-mode read made mojibake, 84.8).
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(R, [("Update", "src/café.py")]))
+        try:
+            reason = json.loads(out).get("permissionDecisionReason") or ""
+        except ValueError:
+            reason = ""
+        check("E1 a non-ASCII path reaches the deny message intact", "café.py" in reason,
+              repr(out[:200]))
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(R, [("Update", "src/日本.py")]))
+        try:
+            reason = json.loads(out).get("permissionDecisionReason") or ""
+        except ValueError:
+            reason = ""
+        check("E2 a path outside cp1252 is still denied, named intact",
+              "日本.py" in reason, repr(out[:200]) + " | " + b.tail())
+
         # P: pattern values are pasted into `case` arms unquoted, so a space is a syntax
         # error that Copilot reads as deny-everything (bench, 2026-10-19). Every row the
         # recipe offers setup must parse; the spaced control proves the probe bites.
@@ -948,6 +1091,12 @@ def unit(guard_src, verbose=True, counter=None, parser=None):
               len(rows) >= 6 and not bad, "rows=%d unparsable=%r" % (len(rows), bad))
         check("P2 ...and a spaced TEST_CMD_PATTERN does not (the probe bites)",
               not sh_parses(guard_src, "tests/*", "*node *test*", base))
+        # The exempt pattern is a case arm too: an EMPTY value is a syntax error that
+        # Copilot reads as deny-everything, so setup never writes one (84.7 ruling 6).
+        check("P3 the recipe's exempt default parses, and an empty exempt value does not",
+              sh_parses(guard_src, "tests/*", "*pytest*", base,
+                        exempt="*.config.*|.*|tools/*|scripts/*")
+              and not sh_parses(guard_src, "tests/*", "*pytest*", base, exempt=""))
 
         return failed
     finally:
@@ -1101,6 +1250,40 @@ MUTATIONS = [
      "a licensed write logged as something else)",
      lambda s: s.replace('if [ -z "$ok" ] && [ "$nprod" = 1 ] && [ -n "$JP" ]',
                          'if [ "$nprod" = 1 ] && [ -n "$JP" ]')),
+    ("count any failing exit as a RED (a wrapper's failure licenses a production "
+     "write - sdlc-kit#16)",
+     lambda s: s.replace('elif [ "$REPORT" != "1" ]; then', 'elif false; then')),
+    ("match the report against the raw output (colour codes split the marker)",
+     lambda s: s.replace('u=re.sub(r"\\x1b\\[[0-9;]*[A-Za-z]","",t).replace(chr(13)+chr(10),chr(10))',
+                         'u=t')),
+    ("let an invalid report pattern crash the parser (the guard goes blind)",
+     lambda s: s.replace('except re.error:\n    o.append("E")',
+                         'except KeyError:\n    o.append("E")')),
+    ("read a heredoc's body as the command (the commit recipe records a false GREEN)",
+     lambda s: s.replace('case "$PROBE" in *"<<"*) exit 0 ;; esac', '')),
+    ("count read-only commands that name the runner (cat/grep/git record a GREEN)",
+     lambda s: s.replace('""|cat|type|more|', '""|')),
+    ("count package-manager installs (`uv add pytest` records a GREEN)",
+     lambda s: s.replace('case "$2" in install|i|add|', 'case "$2" in never|')),
+    ("count `python -m pip` (an install records a GREEN)",
+     lambda s: s.replace('[ "$3" = "pip" ] && exit 0', '[ "$3" = "never" ] && exit 0')),
+    ("judge a NAME=value prefix as the executable",
+     lambda s: s.replace('$i ~ /^[a-z_][a-z0-9_]*=/', '$i == "never"')),
+    ("keep the .exe on the executable (a Windows path to cat counts)",
+     lambda s: s.replace('exe=${exe%.exe}; ', '')),
+    ("drop the always-on graph-directory exemption",
+     lambda s: s.replace('case "$n" in .ua/*|.understand-anything/*|{{GUARD_EXEMPT_PATTERN}})',
+                         'case "$n" in {{GUARD_EXEMPT_PATTERN}})')),
+    ("ignore the project's exempt pattern",
+     lambda s: s.replace('case "$n" in .ua/*|.understand-anything/*|{{GUARD_EXEMPT_PATTERN}})',
+                         'case "$n" in .ua/*|.understand-anything/*)')),
+    ("write the parser's fields in the locale's encoding (a non-cp1252 path crashes "
+     "the parser and the write goes unguarded)",
+     lambda s: s.replace('sys.stdout.buffer.write(("\\n".join(o)+"\\n").encode("utf-8"))',
+                         'sys.stdout.write("\\n".join(o)+"\\n")')),
+    ("read the deny message as text (a non-ASCII path arrives as mojibake)",
+     lambda s: s.replace('"permissionDecisionReason":sys.stdin.buffer.read().decode("utf-8","replace")',
+                         '"permissionDecisionReason":sys.stdin.read()')),
 ]
 
 

@@ -44,13 +44,17 @@ coverage floor below, enforced in CI and recorded locally.
 | `{{HOOK_FEEDBACK_NOTE}}` | what this CLI's hook feedback does — see *Hook dialects* | `its feedback is blocking — fix it before moving on.` |
 | `{{TEST_PATH_PATTERN}}` | case-pattern for test files; `\|`-separate alternatives | `tests/*\|test_*.py\|*_test.py` |
 | `{{TEST_CMD_PATTERN}}` | case-pattern matching a test-suite invocation | `*pytest*` |
+| `{{TEST_REPORT_PATTERN}}` | regular expression found in the runner's own failure report | `=+ (FAILURES\|ERRORS) =+` |
+| `{{GUARD_EXEMPT_PATTERN}}` | case-pattern for repo-relative paths that are neither production nor tests; never empty | `*.config.*\|.*\|tools/*` |
 
-The last two belong to the TDD-ordering guards below and are asked for only when those
+The last four belong to the TDD-ordering guards below and are asked for only when those
 are installed. They are separate from `{{SOURCE_GLOB}}` for a measured reason: every
 `SOURCE_GLOB` in this file is extension-only, so `*.py` matches `tests/test_x.py` as
 readily as `src/x.py`. `SOURCE_GLOB` answers "should the edit hook fire," where matching
 a test file is harmless; the guard needs the one question that pattern cannot answer, so
-it tests `{{TEST_PATH_PATTERN}}` **first** and treats only the remainder as production.
+it tests `{{TEST_PATH_PATTERN}}` **first** and treats only the remainder as production —
+after `{{GUARD_EXEMPT_PATTERN}}` has taken out what is neither (*Code is `SOURCE_GLOB`
+minus the exempt pattern*, below).
 
 `{{HOOK_TYPECHECK_BLOCK}}` is a bash fragment ending in `;` that sets `t` (output) and
 `trc` (exit code). To scope it to application code only (skip tests/tools):
@@ -415,7 +419,7 @@ The root comes from the hook process's working directory, which the entry's
 which the script trusts only when a `.git` — directory or file — sits there. Proven on
 both launcher routes live, and offline by the suite's boundary-property case, which
 pins the no-backslash/no-`$` shape so it cannot be silently re-cleverified. The script
-takes the three placeholders below. State lives in `.git/sdlc-tdd/` (inside the git
+takes the five guard placeholders above. State lives in `.git/sdlc-tdd/` (inside the git
 directory, so nothing to gitignore — in a linked worktree that is the worktree's own
 git directory, read from its `.git` file) and is **session-scoped**: a red observed
 yesterday does not license a write today.
@@ -507,6 +511,71 @@ bare, which the compound-command rule
 already requires. The compound check deliberately still reads the raw command: a
 stripping bug there would admit a genuine compound and record a false green, so that
 check stays conservative.
+
+**A command that names the runner without running it never counts** (0.35.0). The
+substring pattern also matched `cat vitest.config.ts`, `grep pytest pyproject.toml`,
+`pip install pytest`, and a heredoc whose body names the run — the kit's own commit
+recipe (`git commit -F - <<'EOF'`) among them. A failure counted as a RED, and a success
+counted as a **GREEN that satisfied the stop guard with no test run at all**. Both
+dialects now drop, silently: any command containing a heredoc (`<<`); a command whose
+leading executable — after any `env` and `NAME=value` prefix, with its directory and
+`.exe`/`.cmd`/`.bat`/`.ps1` removed — is a reader or a tool that never runs tests (`cat`,
+`type`, `more`, `less`, `head`, `tail`, `sed`, `awk`, `grep`, `egrep`, `fgrep`, `rg`,
+`find`, `ls`, `dir`, `echo`, `printf`, `wc`, `diff`, `git`, `gh`, `jq`, `code`, `which`,
+`where`, `file`, `stat`, `pip`, `pip3`, `pipx`, `conda`, `Get-Content`, `gc`,
+`Select-String`, `sls`, `Get-ChildItem`, `gci`, `Test-Path`, `Write-Output`,
+`Write-Host`); `python -m pip`; and `npm`, `pnpm`, `yarn`, `bun`, `uv` or `poetry` with
+a subcommand that installs, removes, updates or lists (`install`, `i`, `add`, `ci`,
+`remove`, `rm`, `uninstall`, `un`, `update`, `upgrade`, `up`, `list`, `ls`, `view`,
+`info`, `show`, `outdated`, `audit`, `why`, `sync`, `lock`). A fixed list on purpose:
+every mistake it makes lands on the not-counted side. `uv run pytest`, `npx vitest`,
+`python -m pytest` and `env CI=1 pytest` still count.
+
+**A RED needs the runner's own report** (0.35.0, `{{TEST_REPORT_PATTERN}}`). A failing
+exit is the command's verdict; a RED is the test's. A wrapper that fails before the
+runner starts — pnpm's install check (`ERR_PNPM_IGNORED_BUILDS`), a bad flag, a missing
+binary, a filter matching no tests — exits with the code a failed test uses, and was
+counted as the red that licenses a production write (one adoption, twice). So a failing
+run counts only when the pattern is found in its output, matched with ANSI codes and
+CRLF removed; otherwise the run is refused out loud. **The pattern must be a marker the
+runner prints first, never its closing summary**, because neither CLI delivers the end of
+a long output: measured 2026-10-20, Claude Code's `error` keeps about the first 10,000
+characters, and Copilot replaces a very long result with *"Output too large…"* and the
+first 500. Measured values (vitest 4.1.12, jest 30.5.2, pytest 9.0; each counts an
+assertion red, a missing-module red and a syntax-error red, and refuses "no tests found",
+a pass, a missing wrapper binary and a CLI usage error):
+
+| Runner | `{{TEST_REPORT_PATTERN}}` | Quiet re-run when a noisy red is refused |
+|---|---|---|
+| pytest | `=+ (FAILURES\|ERRORS) =+` | not needed unless `-s`; drop it |
+| vitest | `^\s*FAIL\s\|Test Files +\d+ failed` | `--silent=true --reporter=dot` (`--silent` alone keeps a failing test's console output in 4.1) |
+| jest | `^\s*FAIL\s\|Test Suites: \d+ failed` | `--silent` |
+
+vitest's ` RUN  v…` start line is **not** a marker: it prints on every run, a pass and
+"No test files found" included. The value is a regular expression in the subset Python
+and JavaScript share (the Copilot script runs either), with no quote and no backtick.
+An invalid one is a `GUARD ERROR` in the log, and no failing run counts until it is
+fixed. Copilot strips colour and trims leading whitespace off the whole output — hence
+`^\s*`. For another runner, find the first line its failure report prints and that a
+pass, a wrapper error and "no tests" never print; setup proves the value (below).
+
+**Code is `SOURCE_GLOB` minus the exempt pattern** (0.35.0, `{{GUARD_EXEMPT_PATTERN}}`).
+`SOURCE_GLOB` is extension-only, so a one-off tools script, a config written in the
+source language and the graph tool's scratch each needed a red no test could produce —
+measured on two adopters: writes to `tools/` scripts denied, `.dependency-cruiser.mjs`
+denied, `playwright.config.ts` passed only on a licence, and three of Understand
+Anything's `.ua/tmp/*.cjs` charged as production. A red no test can produce gets
+manufactured or licensed around, and a licence that becomes routine stops meaning
+anything. A repo-relative path matching the pattern is neither production nor a test,
+checked before the test classification, and logged as exempt when `SOURCE_GLOB` would
+have charged it. `.ua/*` and `.understand-anything/*` are exempt in the template itself,
+whatever the value. `SOURCE_GLOB` is unchanged, so the edit-time hook still lints
+exempt files. Setup proposes `*.config.*|.*` plus the tree's own script directories
+(`tools/*`, `scripts/*`) and the owner confirms; a product script that has tests stays
+code by leaving its directory out. **Never empty**: the Copilot script pastes it into a
+`case` arm after the two built-in patterns, where an empty alternative is a syntax error
+and Copilot reads that as deny-everything — a project that exempts nothing writes `.ua/*`.
+The same definition of code is what the edit-tools rule in `spec/SDLC.md` covers.
 
 **A file outside the repository is never production source.** Both dialects reduce
 the write path to a repo-relative one and skip an absolute path that is not under the

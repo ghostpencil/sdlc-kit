@@ -912,6 +912,26 @@ dozen known-meaningless entries hiding the one that matters — which is exactly
   never ran on Copilot, so a project with `autoUpdate` on starts getting its reminders
   at the next session. Say that before asking. It writes outside the repository, so
   run it only on a yes.
+- **0.35.0 also makes the TDD guards count the test, not the command.** A failing run
+  is a RED only when the runner's own report is in its output; a command that only
+  names the runner (a reader, `git`, an install, a heredoc) never counts, so a
+  successful `cat vitest.config.ts` no longer records a GREEN; configs, one-off script
+  directories and the graph tool's directory stop being production source; and three
+  encoding defects that let a non-ASCII path slip the guard are fixed. The guard
+  scripts are **project-owned**, so the update replaces neither: at the halt where the
+  guards are installed, offer to re-derive `.github/hooks/sdlc-tdd-guard.py` / `.sh`
+  from the 0.35.0 templates with the project's three resolved patterns carried over
+  and the two new ones resolved the way setup does — `{{TEST_REPORT_PATTERN}}` from
+  the recipe's runner table, `{{GUARD_EXEMPT_PATTERN}}` proposed from the tree and
+  confirmed, never empty. Say a guard left as it is keeps today's rules exactly,
+  including the wrapper failure that licenses a write. A re-derived guard needs the
+  report-pattern proof setup now runs (one real red counted, one wrapper failure
+  refused) before it is trusted, and `sh -n` where the shell dialect is installed; the
+  guard note in `spec/SDLC.md` *Records* then names both values. **A local amendment
+  that counts a test file written through the shell as a test edit is retired, not
+  carried as a hunk** (owner ruling, `FEATURE_PLAN.md` §84.7(3)): once the edit-tools
+  rule exists, a shell-written test is out of process, and licensing its red rewards
+  the breach. Say so, and delete nothing without the owner's yes.
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
   files and must not try.
 - **Two further owner decisions can arise inside this step**, and both are real halts

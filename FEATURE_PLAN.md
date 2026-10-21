@@ -6447,3 +6447,38 @@ trims leading whitespace off the whole output**.
   decision is unaffected. Read bytes there too.
 
 Cost: 3.59 + 3.54 + 1.48 + 1.44 Copilot credits, four short Claude Code Haiku sessions.
+
+### 84.9 Built 2026-10-20 — cluster A (the guards count the test, not the command) and ruling 6
+
+Uncommitted on `main` until this record; both dialects, one design.
+
+- **`{{TEST_REPORT_PATTERN}}`** (ruling 2): a non-zero test exit is a RED only when the
+  runner's own head-of-report marker is in the output, matched after stripping ANSI and
+  normalizing CRLF, multiline. Otherwise the run is logged "NOT counted" and the model
+  is told to re-run quieter (the per-runner quiet forms of §84.8). An invalid pattern is
+  a loud `GUARD ERROR`, never a silent pass. Claude Code reads `error`; Copilot's parser
+  (python and node) emits a fifth field, `1`/`0`/`E`.
+- **Never-runs commands**: a probe that matches `TEST_CMD_PATTERN` but is a heredoc, a
+  read-only tool (`cat`, `grep`, `git`, `Get-Content`, …, after `env`/`NAME=` prefixes,
+  basename lowercased, `.exe/.cmd/.bat/.ps1` stripped), `python -m pip`, or a package
+  manager's non-run subcommand is not observed at all.
+- **`{{GUARD_EXEMPT_PATTERN}}`** (ruling 6): code is `SOURCE_GLOB` minus this, with
+  `.ua/*|.understand-anything/*` always exempt; an exempt write is logged and allowed
+  before the test check. Never empty (an empty Copilot case arm is a syntax error that
+  denies every write) — setup proposes a value from the tree, the proofs assert an empty
+  value fails to parse.
+- **Three latent encoding defects fixed**, found by the new non-ASCII cases: the Claude
+  guard's log opened in the locale encoding (a `src/日本.py` write crashed it before the
+  deny); the Copilot parser's stdout; the Copilot deny/block/context helpers' text-mode
+  message read (§84.8's build note).
+- **Docs**: GATE_RECIPES (placeholder rows, runner table with quiet re-runs, the three
+  rules), sdlc-setup (resolve both values; prove the pattern with one real red and one
+  wrapper failure), SDLC.template's TDD_GUARD_NOTE, sdlc-update (0.35.0 bullet, retiring
+  the shell-written-test local amendment), README update section, CHANGELOG, and the
+  placeholder lists in CLAUDE.md and KIT_INVARIANTS.md.
+- **Proofs**: `tools/tdd-guard-claude-check.py` 95/95 cases, 42 mutations caught (12
+  new); `tools/tdd-guard-check.py` 128 (python) + 123 (node) cases, 47 mutations caught
+  (15 new); `tools/shipped-lint-check.py` green. All exit 0, run sequentially.
+
+Still owed for 0.35.0, in §84.7's order: F's commit detector in
+`sdlc-kit-copilot-hooks.mjs`, D, B's text, E's interim line, G, C's message.

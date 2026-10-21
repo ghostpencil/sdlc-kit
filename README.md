@@ -959,6 +959,20 @@ only as a hand-apply, and the per-version transition notes name each one.
    they never ran, so a project with `autoUpdate` on starts getting their reminders.
    The update command's 0.35.0 note states the same procedure.
 
+   **0.35.0 also makes the TDD guards count the test, not the command.** A failing run
+   is a RED only when the runner's own report is in its output, so a wrapper's failure
+   no longer licenses a write; a command that only names the runner (a reader, `git`,
+   an install, a heredoc) never counts, so it no longer records a GREEN either; and
+   configs, one-off script directories and the graph tool's directory stop being
+   production source. The guard scripts are project-owned — they get this only once
+   re-derived from the 0.35.0 templates with your three patterns carried over and two
+   new ones resolved: the runner-report pattern from the recipe's table, and the exempt
+   pattern proposed from your tree, never empty. A guard left as it is keeps today's
+   rules. A re-derived guard is proven the way setup now proves it — one real red
+   counted, one wrapper failure refused — and its note in `spec/SDLC.md` names both
+   values. A local amendment that counts a shell-written test as a test edit is retired
+   rather than carried. The update command's 0.35.0 note states the same procedure.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
