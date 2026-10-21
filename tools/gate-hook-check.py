@@ -69,6 +69,22 @@ TC_BLOCK = ('t=$(stubtc "$f" 2>&1); trc=$?; '
             'if grep -q SHOWREL "$f"; then t="rel=$r"; trc=1; fi;')
 
 
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
+
+
 def ts_block():
     """The TypeScript typecheck block exactly as GATE_RECIPES.md prints it."""
     s = io.open(RECIPES, encoding="utf-8").read()
@@ -348,9 +364,9 @@ def copilot_suite(parser, check):
                   p.returncode == 0 and p.stdout.decode().strip() == "",
                   repr(p.stdout.decode()[:120]))
         finally:
-            shutil.rmtree(elsewhere, ignore_errors=True)
+            rmtree(elsewhere)
     finally:
-        shutil.rmtree(base, ignore_errors=True)
+        rmtree(base)
 
 
 def claude_suite(parser, check):
@@ -499,7 +515,7 @@ def claude_suite(parser, check):
         check("unusable CLAUDE_PROJECT_DIR -> LOUD, not a silent skip",
               rc == 2 and "did NOT run" in err, "rc=%s err=%r" % (rc, err[:80]))
     finally:
-        shutil.rmtree(base, ignore_errors=True)
+        rmtree(base)
 
 
 def ts_recipe_suite(parser, check):
@@ -579,7 +595,7 @@ def ts_recipe_suite(parser, check):
                   not bl and not txt and not note and args.endswith("-p tsconfig.json"),
                   (txt, note, args))
         finally:
-            shutil.rmtree(base, ignore_errors=True)
+            rmtree(base)
 
 
 def main():

@@ -30,7 +30,7 @@ Four passes, and the last is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/close-out-check.py
 """
-import concurrent.futures, io, json, os, shutil, subprocess, sys, tempfile, time, traceback
+import concurrent.futures, io, json, os, shutil, stat, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "close-out.template.sh")
@@ -68,6 +68,22 @@ verify: app boot + dashboard observed working; malformed URL behavior not exerci
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 """
+
+
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -1024,7 +1040,7 @@ def wt_pass(src, verbose):
               "not found from " in reason and "/apps/store $front." in reason
               and "cd back to the root" in reason, out)
     finally:
-        shutil.rmtree(base, ignore_errors=True)
+        rmtree(base)
     return failures, 0.0
 
 

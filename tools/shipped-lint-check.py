@@ -28,6 +28,8 @@ Run from anywhere:  python tools/shipped-lint-check.py
 
 import os
 import re
+import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -44,6 +46,22 @@ VALUES = {
     "TEST_REPORT_PATTERN": "=+ (FAILURES|ERRORS) =+",
     "GUARD_EXEMPT_PATTERN": "*.config.*|.*|tools/*",
 }
+
+
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -114,6 +132,7 @@ def lint_pass(files, transform=None, verbose=True):
             print(("PASS  " if not problems else "FAIL  ") + name)
             for pr in problems:
                 print("        " + pr)
+    rmtree(where)
     return failed
 
 
@@ -144,7 +163,9 @@ def specimen_caught():
     text = subprocess.run(["git", "-C", REPO, "show", "%s:%s" % (tag, path)],
                           capture_output=True, text=True, encoding="utf-8",
                           check=True).stdout
-    problems = lint_text(text, path, tempfile.mkdtemp(prefix="shipped-lint-"))
+    where = tempfile.mkdtemp(prefix="shipped-lint-")
+    problems = lint_text(text, path, where)
+    rmtree(where)
     print("%s  the %s classifier, as shipped (%d problems)"
           % ("caught  " if problems else "SURVIVED", tag, len(problems)))
     return bool(problems)

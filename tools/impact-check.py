@@ -25,10 +25,12 @@ Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/impact-check.py
 """
 
+import concurrent.futures
 import io
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -97,6 +99,22 @@ OTHER_HOOKS = ('{\r\n  "hooks": {\r\n    "SessionStart": [\r\n      {\r\n       
                '[\r\n          {\r\n            "type": "command",\r\n            "command":'
                ' "node \\"${CLAUDE_PLUGIN_ROOT}/hooks/welcome.mjs\\""\r\n          }\r\n'
                '        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n')
+
+
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -239,8 +257,8 @@ class Bench(object):
             return json.loads(fh.read().decode("utf-8"))
 
     def destroy(self):
-        shutil.rmtree(self.root, ignore_errors=True)
-        shutil.rmtree(self.home, ignore_errors=True)
+        rmtree(self.root)
+        rmtree(self.home)
 
 
 def base_slice(bench):
@@ -1046,7 +1064,9 @@ UNIGNORED = {"not_ignored_ua_dir_writes_nothing",
              "tracked_graph_refresh_commit_is_not_staleness"}
 
 
-def case_pass(adapter_src, verbose=True):
+def case_pass(adapter_src, verbose=True, first_only=False):
+    """Runs every case; returns [(name, problems, output)]. first_only stops at the
+    first failing case: the mutation pass needs one."""
     failures = []
     for entry in CASES:
         name, setup, must, must_not, extra = entry
@@ -1070,6 +1090,8 @@ def case_pass(adapter_src, verbose=True):
                     problems.append(extra_problem)
             if problems:
                 failures.append((name, "; ".join(problems), out))
+                if first_only:
+                    break
             elif verbose:
                 print("  %-42s ok" % name)
         finally:
@@ -1236,29 +1258,50 @@ MUTATIONS = [
 
 
 def mutation_pass(verbose=True):
+    """The mutation pass needs ONE failing case per mutation, and the mutations are
+    independent - every bench is its own temp repo and home. It used to run all the
+    cases for every mutation, one mutation at a time: nearly all of a ~35-minute run,
+    and nearly all of that after the verdict was settled. So the case pass stops at its
+    first failing case, and the mutations run concurrently. IMPACT_JOBS=1 runs it
+    serially."""
     with io.open(ADAPTER, encoding="utf-8", newline="") as fh:
         original = fh.read()
     survived = []
     tmp = tempfile.mkdtemp(prefix="impact-mut-")
+
+    def run_mutation(index, mutated):
+        path = os.path.join(tmp, "mutant-%d.py" % index)
+        with io.open(path, "w", encoding="utf-8", newline="") as fh:
+            fh.write(mutated)
+        return guarded("mutation: %s" % MUTATIONS[index][0], [], case_pass, path,
+                       verbose=False, first_only=True)
+
     try:
-        for name, old, new in MUTATIONS:
+        live = []
+        for index, (name, old, new) in enumerate(MUTATIONS):
             if old not in original:
                 survived.append("%s (anchor not found - the mutation is stale)" % name)
                 continue
-            path = os.path.join(tmp, "mutant.py")
-            with io.open(path, "w", encoding="utf-8", newline="") as fh:
-                fh.write(original.replace(old, new, 1))
-            failures = case_pass(path, verbose=False)
-            if failures:
-                if verbose:
-                    print("  %-42s caught (%d cases)" % (name, len(failures)))
-            else:
-                survived.append(name)
-                if verbose:
-                    print("  %-42s SURVIVED" % name)
+            live.append((index, name, original.replace(old, new, 1)))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=JOBS) as pool:
+            futures = [pool.submit(run_mutation, index, mutated)
+                       for index, _, mutated in live]
+            for (_, name, _), fut in zip(live, futures):
+                failures = fut.result()
+                if failures:
+                    if verbose:
+                        print("  %-42s caught by %s" % (name, failures[0][0]),
+                              flush=True)
+                else:
+                    survived.append(name)
+                    if verbose:
+                        print("  %-42s SURVIVED" % name, flush=True)
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        rmtree(tmp)
     return survived
+
+
+JOBS = max(1, int(os.environ.get("IMPACT_JOBS", "8")))
 
 
 def main():
@@ -1272,7 +1315,8 @@ def main():
             print("\nFAILED %s: %s\n--- output ---\n%s" % (name, problems, out))
         return 1
 
-    print("\n== mutation pass (%d mutations) ==" % len(MUTATIONS))
+    print("\n== mutation pass (%d mutations, %d at a time, first failing case"
+          " named) ==" % (len(MUTATIONS), JOBS))
     survived = guarded("mutation pass", [], mutation_pass, verbose=True)
     if survived:
         print("\nMUTATIONS SURVIVED: %s - the corpus does not pin what it claims"

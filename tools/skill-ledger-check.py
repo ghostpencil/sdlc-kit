@@ -24,7 +24,7 @@ only other one reading settings.template.json for a body.
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/skill-ledger-check.py
 """
-import io, json, os, re, subprocess, sys, tempfile, traceback
+import io, json, os, re, shutil, stat, subprocess, sys, tempfile, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPILOT_TPL = os.path.join(REPO, "sdlc-kit", "templates", "skill-ledger.template.json")
@@ -44,6 +44,22 @@ ISO_LINE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z ")
 # Compact separators, because the wire format is compact: the prelude's sed keys on
 # '"cwd":"' with no space, and a pretty-printed fixture would test a payload the CLI
 # never sends (first run of this suite proved exactly that, the useful way).
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
+
+
 def copilot_payload(cwd):
     return json.dumps({
         "sessionId": "c0f41498-6038-4534-89bf-1db2bde3275e",
@@ -274,6 +290,7 @@ def main():
     guarded("copilot", None, copilot_suite, cop_body, cla_body, base, repo, entry)
     guarded("claude wiring", None, claude_wiring)
     guarded("claude", None, claude_suite, cla_body, base)
+    rmtree(base)
 
     failed = [r for r in results if not r[1]]
     if guarded.crashed:

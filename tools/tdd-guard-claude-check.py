@@ -22,6 +22,7 @@ import io
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -44,6 +45,22 @@ VALUES = {
 SID = "session-one"
 # pytest's own report header, as both CLIs deliver it (FEATURE_PLAN.md 84.8).
 REPORT = "=================================== FAILURES ===================================\n"
+
+
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
 
 
 class Bench:
@@ -693,7 +710,7 @@ def unit(guard_src, verbose=True, counter=None, first_only=False):
 
         def wt_run(mode, payload):
             if mode == "pre-write":
-                shutil.rmtree(wt_state, ignore_errors=True)
+                rmtree(wt_state)
             e = dict(os.environ)
             e.pop("SDLC_REPO_ROOT", None)
             e["CLAUDE_PROJECT_DIR"] = wt_r
@@ -818,7 +835,7 @@ def unit(guard_src, verbose=True, counter=None, first_only=False):
     except _FirstFailure:
         pass
     finally:
-        shutil.rmtree(base, ignore_errors=True)
+        rmtree(base)
     return failures
 
 

@@ -103,7 +103,12 @@ sdlc_git_dir() {
   fi
   return 1
 }
-GD=$(sdlc_git_dir "$SDLC_REPO_ROOT") || GD=""
+# The ordinary checkout is tested inline: a $(...) is a fork, and on Windows sh every
+# fork costs tens of milliseconds on a hook that runs on every write and every shell
+# command (FORK, below).
+if [ -d "$SDLC_REPO_ROOT/.git" ]; then GD="$SDLC_REPO_ROOT/.git"
+else GD=$(sdlc_git_dir "$SDLC_REPO_ROOT") || GD=""
+fi
 # A harness-pinned SDLC_REPO_ROOT with no .git at all keeps its pre-0.31.1 meaning:
 # state under ROOT/.git, created on demand (an adopter's own guard tests pin a bare
 # temp directory - 0.31.1 made that guard nothing, silently, and 0.31.2 restores it).
@@ -133,6 +138,30 @@ LOG="$S/guard.log"
 IN=$(cat)
 
 log() { printf '%s [%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$MODE" "$1" >> "$LOG" 2>/dev/null; }
+
+# FORK: the string work below is done with parameter expansion, not `printf | sed` or
+# `tr`, because every pipeline in a $(...) is two or three processes and Windows sh
+# pays tens of milliseconds for each. Measured 2026-10-21 on the dev machine: a
+# pre-write call cost ~2 s, ~40 forks with no single slow step.
+NL='
+'
+# take: the first line of $rest into $v, and $rest loses it.
+take() {
+  case $rest in
+    *"$NL"*) v=${rest%%"$NL"*}; rest=${rest#*"$NL"} ;;
+    *) v=$rest; rest="" ;;
+  esac
+}
+# slash: $1 with every backslash made a forward slash, into $r.
+slash() {
+  r=""; s=$1
+  while :; do
+    case $s in
+      *\\*) r="$r${s%%\\*}/"; s=${s#*\\} ;;
+      *) r="$r$s"; return 0 ;;
+    esac
+  done
+}
 
 # --- JSON parser: detect once, then run whichever dialect we found ------------------
 # The two sources below are held in single-quoted shell strings, so neither may contain
@@ -227,16 +256,19 @@ if [ -z "$F" ]; then
   exit 0
 fi
 
-SID=$(printf  '%s' "$F" | sed -n 1p)
-ACTIVE=$(printf '%s' "$F" | sed -n 2p)
-CMD=$(printf   '%s' "$F" | sed -n 3p)
-CODE=$(printf  '%s' "$F" | sed -n 4p)
-REPORT=$(printf '%s' "$F" | sed -n 5p)
-PATHS=$(printf '%s\n' "$F" | tail -n +6)
+rest=$F
+take; SID=$v
+take; ACTIVE=$v
+take; CMD=$v
+take; CODE=$v
+take; REPORT=$v
+PATHS=$rest
 
 # Observations are SESSION-scoped: a red observed in an earlier session does not
 # license a production write in this one. A new sessionId resets them.
-if [ -n "$SID" ] && [ "$SID" != "$(cat "$S/session" 2>/dev/null)" ]; then
+prev=""
+[ -f "$S/session" ] && IFS= read -r prev < "$S/session"
+if [ -n "$SID" ] && [ "$SID" != "$prev" ]; then
   rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" "$S/prod-write-observed" 2>/dev/null
   printf '%s' "$SID" > "$S/session" 2>/dev/null
   log "new session $SID - previous observations cleared"
@@ -277,6 +309,19 @@ case "$MODE" in
   pre-write)
     [ -n "$PATHS" ] || { log "no paths parsed from the write payload"; exit 0; }
     prod=""; test_touched=""; nprod=0; pfile=""
+    # The candidate repository roots (why there are three: inside the loop, below).
+    # They depend only on the root, so they are built once per call, not per path:
+    # separators normalized and the trailing slash dropped, plus each one lowercased,
+    # all three in one `tr`.
+    wroot=""
+    case "$SDLC_REPO_ROOT" in
+      "$wm"/?/*) wroot=$(printf '%s' "${SDLC_REPO_ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;;
+    esac
+    slash "$SDLC_REPO_ROOT"; c1=${r%/}
+    slash "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; c2=${r%/}
+    slash "$wroot"; c3=${r%/}
+    rest=$(printf '%s\n%s\n%s' "$c1" "$c2" "$c3" | tr '[:upper:]' '[:lower:]')
+    take; l1=$v; take; l2=$v; take; l3=$v
     # One path per line, read with IFS cleared: a path containing a space is one path,
     # not two. The heredoc (rather than a pipe) keeps the loop in this shell, so what it
     # accumulates survives it.
@@ -286,7 +331,7 @@ case "$MODE" in
       # relative path and on the basename, so both `tests/*` and `test_*.py` shaped
       # patterns work. Test check runs FIRST: SOURCE_GLOB is extension-only, so it
       # matches test files just as readily as production ones.
-      n=$(printf '%s' "$p" | tr '\\' '/')
+      slash "$p"; n=$r
       # Reduce to a repo-relative path first, and drop anything that is not in the
       # repository at all. This dialect never attempted the reduction: it classified
       # on the full path and the basename, so an absolute path outside the root
@@ -319,18 +364,21 @@ case "$MODE" in
       # 0.25.0 had (measured live 2026-09-27: the Git Bash launch denied, the
       # PowerShell launch of the same build logged "outside the repository" and let
       # the write through). The mount form translates back to the drive form here
-      # ($wm is set beside the licence path, above).
-      wroot=""
-      case "$SDLC_REPO_ROOT" in
-        "$wm"/?/*) wroot=$(printf '%s' "${SDLC_REPO_ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;;
-      esac
+      # ($wm is set beside the licence path, above). The three are built before
+      # this loop, as c1-c3 with their lowercase forms l1-l3.
       rel=""
-      for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do
-        [ -n "$cand" ] || continue
-        c=$(printf '%s' "$cand" | tr '\\' '/'); c=${c%/}
-        cl=$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')
+      for k in 1 2 3; do
+        eval "c=\$c$k; cl=\$l$k"
+        [ -n "$c" ] || continue
         case "$nl" in
-          "$cl"/*) rel=$(printf '%s' "$n" | cut -c $((${#c} + 2))-); break ;;
+          "$cl"/*)
+            # The exact-case prefix strips without a fork; only a path the CLI
+            # reported in a different case than the root falls to `cut`.
+            case "$n" in
+              "$c"/*) rel=${n#"$c"/} ;;
+              *) rel=$(printf '%s' "$n" | cut -c $((${#c} + 2))-) ;;
+            esac
+            break ;;
         esac
       done
       if [ -n "$rel" ]; then
@@ -469,7 +517,7 @@ PATHLIST
     # executable, after any `env` and NAME=value prefix: a fixed list on purpose,
     # because every mistake it makes lands on the not-counted side.
     case "$PROBE" in *"<<"*) exit 0 ;; esac
-    W=$(printf '%s' "$PROBE" | tr '\\' '/' | tr '[:upper:]' '[:lower:]' | awk '{ n = 0; for (i = 1; i <= NF; i++) { if (n == 0 && ($i == "env" || $i ~ /^[a-z_][a-z0-9_]*=/)) continue; w[n++] = $i; if (n == 3) break } for (j = 0; j < n; j++) printf "%s ", w[j] }')
+    W=$(printf '%s' "$PROBE" | awk '{ gsub(/\\/, "/"); $0 = tolower($0); n = 0; for (i = 1; i <= NF; i++) { if (n == 0 && ($i == "env" || $i ~ /^[a-z_][a-z0-9_]*=/)) continue; w[n++] = $i; if (n == 3) break } for (j = 0; j < n; j++) printf "%s ", w[j] }')
     set -f; set -- $W; set +f
     exe=${1##*/}; exe=${exe%.exe}; exe=${exe%.cmd}; exe=${exe%.bat}; exe=${exe%.ps1}
     case "$exe" in

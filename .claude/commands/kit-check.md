@@ -54,10 +54,13 @@ Run these as commands; each states its negative case in the ledger.
   reads like: `skill-ledger-check.py` read as a model proof through five passes while
   crashing on its first Claude case, and three cases were unexercised for six releases
   (`FEATURE_PLAN.md` §75). Two costs to plan for rather than discover: the mutation
-  passes dominate — measured at 0.35.0, `tdd-guard-check` ~55 minutes (its 1.1 s mtime
-  sleeps), `impact-check` ~35, `close-out-check` ~8 and `tdd-guard-claude-check` under 2
-  (those three stop each mutation at its first failing case and run 8 at a time;
-  `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs serially), `cosmetic-check` ~6 — and all
+  passes dominate — measured after 0.35.0, `tdd-guard-check` ~29 minutes at
+  `TDDGUARD_JOBS=4` (its cost is Windows `sh` forks inside the guard, ~1 s a call after
+  the fork cut; parallel workers queue on fork, so more than 4 buys little and costs
+  memory), `impact-check` ~8, `close-out-check` ~8
+  and `tdd-guard-claude-check` under 2 (all four stop each mutation at its first failing
+  case and run 8 at a time; `IMPACT_JOBS` / `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs
+  serially), `cosmetic-check` ~6 — and all
   eight buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a
   suite share its output file and slow each other several-fold. A scoped
   run that skips them says so, in those words, because "13: pass" over unrun suites is

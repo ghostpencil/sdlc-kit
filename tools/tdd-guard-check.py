@@ -14,13 +14,29 @@ Two passes, and the second is the point:
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/tdd-guard-check.py
 """
-import concurrent.futures, io, json, os, shutil, subprocess, sys, tempfile, time, traceback
+import concurrent.futures, io, json, os, shutil, stat, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.sh")
 JTPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.json")
 COSMETIC = os.path.join(REPO, "sdlc-kit", "templates", "sdlc-cosmetic.template.py")
 RECIPES = os.path.join(REPO, "sdlc-kit", "reference", "GATE_RECIPES.md")
+
+
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def recipe_pattern_rows():
@@ -191,13 +207,15 @@ class _FirstFailure(BaseException):
     a case's own handler nor guarded() can mistake it for a crash."""
 
 
-def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
+def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
+         emit=print):
     """Returns the list of failed case names; counts every case into `counter`.
     first_only ends the run at the first failing check - the mutation pass needs
     one, and the checks share one bench, so stopping only drops later checks.
 
     `parser` restricts PATH to one JSON dialect ("python" or "node"); None takes
-    whatever the ambient PATH offers.
+    whatever the ambient PATH offers. `emit` receives each verbose line, so a run on
+    a worker thread can buffer its output instead of interleaving it.
     """
     base = tempfile.mkdtemp(prefix="tddguard-")
     try:
@@ -215,7 +233,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
                 if first_only:
                     raise _FirstFailure()
             if verbose:
-                print(("PASS  " if cond else "FAIL  ") + name +
+                emit(("PASS  " if cond else "FAIL  ") + name +
                       (("\n        " + detail) if not cond else ""))
 
         # G1: the write guard
@@ -260,6 +278,18 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
         check("2d absolute path to tests/conftest.py is a test edit, not production",
               any("test edit recorded" in l for l in b.loglines()[before:])
               and not any("VIOLATION" in l for l in b.loglines()[before:]), b.tail())
+
+        # Windows hands back either case for the same directory, so the root is
+        # matched case-insensitively. Only that path takes the reduction's `cut`
+        # fallback - the exact-case prefix strips without a fork - so it is pinned
+        # separately, or the fallback could go and nothing would notice.
+        before = len(b.loglines())
+        b.run("pre-write", write(R, [("Update", os.path.join(R.swapcase(), "tests",
+                                                             "conftest.py"))]))
+        check("2e a root reported in another case still reduces (tests/ is a test edit)",
+              any("test edit recorded" in l for l in b.loglines()[before:])
+              and not any("outside the repository" in l for l in b.loglines()[before:]),
+              b.tail())
 
         b.run("pre-write", write(R, [("Add", "tests/test_payments.py")]))
         check("3  test edit recorded", "test edit recorded" in b.tail(), b.tail())
@@ -551,7 +581,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
                       "q:/gd/worktrees/wt/sdlc-tdd/refactor-license" in out
                       and "/mnt/" not in out, out)
             finally:
-                shutil.rmtree(wsl_base, ignore_errors=True)
+                rmtree(wsl_base)
 
             p = subprocess.run(["sh", b.guard, "pre-write"],
                                input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
@@ -586,9 +616,9 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
                 check("25c a pinned root with NO .git still guards, state created under it",
                       "VIOLATION" in blog, blog)
             finally:
-                shutil.rmtree(bare, ignore_errors=True)
+                rmtree(bare)
         finally:
-            shutil.rmtree(elsewhere, ignore_errors=True)
+            rmtree(elsewhere)
 
         # FEATURE_PLAN.md 78: the launcher tested `[ -d .git ]` from whatever directory
         # the CLI started the hook in, and read "not at the root" as "not a repo". Two
@@ -631,7 +661,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
                 return io.open(f, encoding="utf-8").read() if os.path.exists(f) else ""
 
             def wt_pre():
-                shutil.rmtree(wt_state, ignore_errors=True)
+                rmtree(wt_state)
                 subprocess.run(["sh", "-c", pre_body],
                                input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=wt_r)
@@ -653,7 +683,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
             # 36f: a relative gitdir is relative to the ROOT, not to wherever the
             # process happens to stand. Only observable with the root pinned and the
             # cwd elsewhere - the harness's own configuration, so pin that too.
-            shutil.rmtree(wt_state, ignore_errors=True)
+            rmtree(wt_state)
             pe = dict(e)
             pe["SDLC_REPO_ROOT"] = subprocess.run(["sh", "-c", 'cd "$1" && pwd', "_", wt_r],
                                                   capture_output=True, text=True).stdout.strip()
@@ -669,7 +699,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
 
             reopen_git(wt_r, "w", newline="\n").write(
                 "gitdir: %s\n" % os.path.join(wt_base, "nowhere").replace(os.sep, "/"))
-            shutil.rmtree(wt_state, ignore_errors=True)
+            rmtree(wt_state)
             p = subprocess.run(["sh", wt_guard, "pre-write"],
                                input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=wt_r)
@@ -687,7 +717,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
                   j.get("decision") == "block" and "did not run" in (j.get("reason") or ""),
                   repr(out))
         finally:
-            shutil.rmtree(wt_base, ignore_errors=True)
+            rmtree(wt_base)
 
         # D4: a broken install - the JSON present, the script not - must reach someone.
         # Exit codes do not (measured: a non-zero exit lands in the session log only);
@@ -727,7 +757,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
                       p.returncode == 0 and p.stdout.decode().strip() == "",
                       repr(p.stdout.decode()))
         finally:
-            shutil.rmtree(broken, ignore_errors=True)
+            rmtree(broken)
 
         # The other refusal shape: a test-pattern command whose payload carries no
         # exit-code trailer. Same rule as the compound case - spoken, never silent -
@@ -1111,7 +1141,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False):
     except _FirstFailure:
         return failed
     finally:
-        shutil.rmtree(base, ignore_errors=True)
+        rmtree(base)
 
 
 MUTATIONS = [
@@ -1119,8 +1149,8 @@ MUTATIONS = [
      "in-repo path stops matching whenever the shell's pwd flavour differs from the "
      "CLI's, so the guard skips every write reported that way)",
      lambda s: s.replace(
-         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do',
-         'for cand in "$SDLC_REPO_ROOT" "$wroot"; do')),
+         '    slash "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; c2=${r%/}',
+         '    c2=""')),
     ("name a worktree's licence in WSL mount form (the agent's tools cannot write "
      "/mnt/d/... - they take drive paths)",
      lambda s: s.replace(
@@ -1129,8 +1159,8 @@ MUTATIONS = [
     ("drop the WSL mount candidate (the 0.28.1 fix's blind route: under WSL bash "
      "every absolute write is 'outside the repository' - FEATURE_PLAN.md 78.7)",
      lambda s: s.replace(
-         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do',
-         'for cand in "$SDLC_REPO_ROOT" "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; do')),
+         '    slash "$wroot"; c3=${r%/}',
+         '    c3=""')),
     ("drop the compound-command check (reintroduces the D3 false-GREEN defect)",
      lambda s: s.replace('*";"*|*"&"*|*"|"*)', '*"@@never@@"*)')),
     ("regress the separator list to the doubled-only 0.18.0 forms (a single '&' "
@@ -1138,13 +1168,13 @@ MUTATIONS = [
      lambda s: s.replace('*";"*|*"&"*|*"|"*)', '*";"*|*"&&"*|*"||"*|*"|"*)')),
     ("drop the session reset (observations leak across sessions)",
      lambda s: s.replace(
-         'if [ -n "$SID" ] && [ "$SID" != "$(cat "$S/session" 2>/dev/null)" ]; then',
+         'if [ -n "$SID" ] && [ "$SID" != "$prev" ]; then',
          'if false; then')),
     ("deny on the guard's own parse failure (violates criterion D5)",
      lambda s: s.replace(
-         '  exit 0\nfi\n\nSID=$(printf',
+         '  exit 0\nfi\n\nrest=$F',
          '  printf \'%s\\n\' \'{"permissionDecision":"deny",'
-         '"permissionDecisionReason":"guard error"}\'\n  exit 0\nfi\n\nSID=$(printf')),
+         '"permissionDecisionReason":"guard error"}\'\n  exit 0\nfi\n\nrest=$F')),
     ("classify by source glob before test pattern (the defect ENF.2 predicted)",
      lambda s: s.replace(
          'case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac',
@@ -1173,8 +1203,15 @@ MUTATIONS = [
     ("drop the repo-relative reduction (an absolute path to tests/conftest.py is "
      "charged as a production write - this dialect's live misclassification)",
      lambda s: s.replace(
-         '          "$cl"/*) rel=$(printf \'%s\' "$n" | cut -c $((${#c} + 2))-); break ;;',
-         '          "$cl"/*) break ;;')),
+         '              "$c"/*) rel=${n#"$c"/} ;;\n'
+         '              *) rel=$(printf \'%s\' "$n" | cut -c $((${#c} + 2))-) ;;\n',
+         '')),
+    ("drop the reduction's other-case fallback (Windows reports the root in either "
+     "case; a path whose root differs in case from the hook's falls outside the "
+     "repository and is guarded as nothing)",
+     lambda s: s.replace(
+         '              *) rel=$(printf \'%s\' "$n" | cut -c $((${#c} + 2))-) ;;\n',
+         '')),
     ("match the runner against the raw command text (a commit message quoting the "
      "RED command counts as a test run)",
      lambda s: s.replace('    case "$PROBE" in', '    case "$CMD" in')),
@@ -1306,19 +1343,32 @@ def main():
     # The guard ships two parser dialects and picks one at run time. Both get the whole
     # suite: a dialect that is never exercised is a dialect that is not proven, and the
     # two must agree case for case or they have drifted.
-    for name in ("python", "node"):
-        if not PARSER_DIRS.get(name):
-            print("=== unit pass [%s] === SKIPPED - not installed on this machine, so "
-                  "this dialect is UNPROVEN here\n" % name)
-            rc = 1
-            continue
-        print("=== unit pass [%s] ===" % name)
-        ran = []
-        failed = guarded("unit pass [%s]" % name, [], unit, src, counter=ran, parser=name)
-        print("\n%d cases, %s\n" % (
-            len(ran), "all passed" if not failed else "FAILED: " + "; ".join(failed)))
-        if failed:
-            rc = 1
+    #
+    # The two passes are independent - each is its own temp bench under its own PATH -
+    # so they run concurrently, each buffering its lines, printed in dialect order.
+    def dialect_pass(name):
+        lines, ran = [], []
+        failed = guarded("unit pass [%s]" % name, [], unit, src, counter=ran,
+                         parser=name, emit=lines.append)
+        return lines, ran, failed
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        dialects = [(name, pool.submit(dialect_pass, name) if PARSER_DIRS.get(name)
+                     else None) for name in ("python", "node")]
+        for name, fut in dialects:
+            if fut is None:
+                print("=== unit pass [%s] === SKIPPED - not installed on this machine, so "
+                      "this dialect is UNPROVEN here\n" % name)
+                rc = 1
+                continue
+            lines, ran, failed = fut.result()
+            print("=== unit pass [%s] ===" % name)
+            print("\n".join(lines))
+            print("\n%d cases, %s\n" % (
+                len(ran), "all passed" if not failed else "FAILED: " + "; ".join(failed)),
+                flush=True)
+            if failed:
+                rc = 1
 
     # Mutations exercise the guard's shell logic, which sits above the parser choice, so
     # they run once under the ambient PATH rather than once per dialect.

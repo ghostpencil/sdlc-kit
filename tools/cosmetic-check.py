@@ -44,6 +44,7 @@ import importlib.util
 import io
 import json
 import os
+import stat
 import shutil
 import subprocess
 import sys
@@ -58,6 +59,22 @@ COSMETIC, REAL, CANNOT = 0, 1, 2
 # never cosmetic (the prototype counted both answers as "caught").
 NOT_COSMETIC = "real or cannot-tell"
 NAMES = {0: "cosmetic", 1: "real", 2: "cannot-tell"}
+
+
+def rmtree(path):
+    """shutil.rmtree that also removes a bench's git objects. Windows git writes them
+    read-only, and rmtree(ignore_errors=True) skipped them without a word: by
+    2026-10-21 the suites had left 19,211 bench directories in the temp dir. So a
+    second pass clears the read-only bit on whatever survived and deletes again."""
+    shutil.rmtree(path, ignore_errors=True)
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), stat.S_IWRITE)
+                except OSError:
+                    pass
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def guarded(label, default, fn, *a, **kw):
@@ -813,7 +830,7 @@ def unit(src, ts_dirs, verbose=True, counter=None):
                                       r(CS, "// sum them", "// x"), cache, plain)
             case("...and the next call rebuilds it", code == COSMETIC, detail)
     finally:
-        shutil.rmtree(base, ignore_errors=True)
+        rmtree(base)
     return failures
 
 
