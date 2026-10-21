@@ -774,7 +774,37 @@ def assert_hooks_speak(bench, out):
                             % (name, prompt, context))
     if got["status"]:
         problems.append("a non-commit command delivered a reminder")
+    for command, commits in COMMIT_DETECTION:
+        _, context, problem = run_hook(bench, "post-tool-use", tool_payload(bench, command))
+        if problem:
+            problems.append(problem)
+        elif bool(context) != commits:
+            problems.append("%r %s" % (command, "was not detected as a commit" if commits
+                                       else "was detected as a commit"))
     return "; ".join(problems)
+
+
+# (command, moves HEAD). The plugin's regex says yes to every one of these that names
+# a commit subcommand anywhere in the line; only the first group does.
+COMMIT_DETECTION = [
+    ("git -C sub commit -am x", True),
+    ("cd app && git merge --no-ff topic", True),
+    ("git add -A; git commit -F - <<'EOF'\nfix: a body\nEOF", True),
+    ("cat <<EOF > notes.txt && git commit -am notes\nbody\nEOF", True),
+    ("git cherry-pick abc123", True),
+    ("git -c core.editor=true rebase main", True),
+    ("& git.exe commit -m x", True),
+    ("GIT_AUTHOR_NAME=x git commit -m y", True),
+    ("git commit-tree HEAD^{tree}", False),
+    ("git merge-base HEAD main", False),
+    # The quoted and heredoc text starts a command of its own once read as commands:
+    # text that only follows another word is refused by the first-word rule already.
+    ("echo 'done; git commit -m x'", False),
+    ('grep -rn "a && git merge" docs', False),
+    ("cat > note.md <<'EOF'\ngit rebase main\nEOF", False),
+    ("gh pr merge 12 --squash", False),
+    ("git log --grep commit", False),
+]
 
 
 def assert_hooks_silent(bench, out):
@@ -1176,6 +1206,29 @@ MUTATIONS = [
     ("hook_misses_string_tool_args",
      "  if (typeof args === 'string') {",
      "  if (false) {"),
+    ("hook_commit_test_is_the_plugin_regex",
+     "    if (!isCommit(commandOf(payload))) return;",
+     "    if (!/git\\s+(commit|merge|cherry-pick|rebase)/.test(commandOf(payload)))"
+     " return;"),
+    ("hook_reads_heredoc_bodies",
+     "  let text = command.replace(HEREDOC, (_, q, tag, rest) => rest);",
+     "  let text = command;"),
+    ("hook_drops_the_heredoc_line",
+     "(_, q, tag, rest) => rest);", "(_, q, tag, rest) => '');"),
+    ("hook_reads_quoted_text",
+     "  text = text.replace(QUOTED, ' _ ');", "  text = text;"),
+    ("hook_reads_one_command_per_line",
+     "text.split(/[;&|\\n(){}]+|\\$\\(|`/)", "text.split(/\\n/)"),
+    ("hook_skips_no_env_prefix",
+     "    while (i < words.length && /^\\w+=/.test(words[i])) i++;\n", ""),
+    ("hook_misses_git_exe",
+     "/^git(\\.exe)?$/i", "/^git$/"),
+    ("hook_option_values_are_subcommands",
+     "      i += VALUE_OPTIONS.has(words[i]) ? 2 : 1;", "      i += 1;"),
+    ("hook_subcommand_prefix_matches",
+     "    if (COMMIT_SUBCOMMANDS.has(words[i])) return true;",
+     "    if ([...COMMIT_SUBCOMMANDS].some(s => (words[i] || '').startsWith(s)))"
+     " return true;"),
     ("hook_reminds_at_head",
      "    if (!meta || meta.gitCommitHash === headOf(project)) return;",
      "    if (!meta) return;"),

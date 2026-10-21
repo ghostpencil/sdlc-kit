@@ -6480,5 +6480,11 @@ Uncommitted on `main` until this record; both dialects, one design.
   new); `tools/tdd-guard-check.py` 128 (python) + 123 (node) cases, 47 mutations caught
   (15 new); `tools/shipped-lint-check.py` green. All exit 0, run sequentially.
 
-Still owed for 0.35.0, in §84.7's order: F's commit detector in
-`sdlc-kit-copilot-hooks.mjs`, D, B's text, E's interim line, G, C's message.
+- **F's commit detector, built the same day**: `sdlc-kit-copilot-hooks.mjs` (inside
+  `sdlc-impact.template.py`) reads the command words — heredoc bodies and quoted text
+  set aside, `NAME=` prefixes and git's own options skipped, the subcommand matched
+  exactly — instead of the plugin's whole-line regex. `tools/impact-check.py`: 45
+  cases (a 15-command corpus, 8 that move HEAD, 7 that only mention it), 50 mutations
+  caught (9 new).
+
+Still owed for 0.35.0, in §84.7's order: D, B's text, E's interim line, G, C's message.

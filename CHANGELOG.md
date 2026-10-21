@@ -66,7 +66,10 @@ ruled 2026-10-20).
   `hooks.json` is kept, and a hooks file it does not recognize is left alone. The
   script makes the plugin's checks and prints the plugin's message unchanged in the
   delivered form; a live Copilot session confirmed delivery at session start and after
-  a tool call. The template and setup's `autoUpdate` offer now say what the setting
+  a tool call. One check is not copied: the plugin's commit test matches `git commit`
+  anywhere in the line, so a heredoc body, a quoted message, `git commit-tree` or
+  `grep "a && git merge"` also fired it. The script reads the command words instead,
+  after `git`'s own options, with heredoc bodies and quoted text set aside. The template and setup's `autoUpdate` offer now say what the setting
   does on each CLI.
 - **[installable]** `/sdlc-update` carries each project's recorded graph rulings into
   the line instead of re-asking. It asks only about a ruling neither value expresses,
@@ -106,6 +109,8 @@ ruled 2026-10-20).
   runner report (a wrapper failure, a collection error, a cut-off report, colour codes,
   an invalid pattern), the commands that never run, the exempt pattern, non-ASCII paths,
   and an empty exempt value failing `sh -n`; each new rule has a mutation.
+- `tools/impact-check.py` runs the installed hook script over 15 commands, eight that
+  move HEAD and seven that only mention it, with nine mutations, one per detector rule.
 
 ## 0.34.1 — 2026-10-19
 

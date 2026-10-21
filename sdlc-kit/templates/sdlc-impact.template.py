@@ -80,8 +80,9 @@ HINT_LIST = re.compile(r'^argument-hint:\s*\[\s*"((?:[^"\\]|\\.)*)"\s*\]\s*$')
 HOOK_TARGETS = (("SessionStart", "auto-update-prompt.md", "session-start"),
                 ("PostToolUse", "post-tool-use-auto-update.mjs", "post-tool-use"))
 HOOK_SCRIPT_NAME = "sdlc-kit-copilot-hooks.mjs"
-# The same checks and the same message as the plugin's hooks; only what Copilot needs
-# differs: no shell syntax, the project found from the payload's cwd (Copilot runs a
+# The same checks and the same message as the plugin's hooks, except the commit test,
+# which reads the command words rather than matching anywhere in the line (FEATURE_PLAN
+# §84.4); otherwise only what Copilot needs differs: no shell syntax, the project found from the payload's cwd (Copilot runs a
 # plugin hook in the plugin's directory), and the message printed as top-level
 # additionalContext (the only form Copilot delivers). Copilot hands a plugin hook the
 # Claude payload (tool_input); toolArgs, its own hooks' field, is read as well.
@@ -93,7 +94,32 @@ import { execFileSync } from 'node:child_process';
 
 const PLUGIN_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const PROMPT = join(PLUGIN_ROOT, 'hooks', 'auto-update-prompt.md');
-const COMMIT_COMMAND = /git\s+(commit|merge|cherry-pick|rebase)/;
+// The git subcommands that move HEAD. The plugin's own test is a regex over the whole
+// command line, which a heredoc body, a quoted message, `git commit-tree` or
+// `grep "git merge"` also satisfy; this one reads the command words instead.
+const COMMIT_SUBCOMMANDS = new Set(['commit', 'merge', 'cherry-pick', 'rebase']);
+// git's own options that take the next word as their value.
+const VALUE_OPTIONS = new Set(['-C', '-c', '--git-dir', '--work-tree', '--namespace']);
+// A heredoc's body is text, not commands; the rest of its opening line is commands.
+const HEREDOC = /<<-?[ \t]*(['"]?)(\w+)\1([^\n]*)\n(?:[\s\S]*?\n)?[ \t]*\2[ \t]*(?=\n|$)/g;
+const QUOTED = /"(?:[^"\\]|\\.)*"|'[^']*'/g;
+
+function isCommit(command) {
+  let text = command.replace(HEREDOC, (_, q, tag, rest) => rest);
+  text = text.replace(QUOTED, ' _ ');
+  for (const segment of text.split(/[;&|\n(){}]+|\$\(|`/)) {
+    const words = segment.trim().split(/\s+/);
+    let i = 0;
+    while (i < words.length && /^\w+=/.test(words[i])) i++;
+    if (!/^git(\.exe)?$/i.test((words[i] || '').split(/[\\/]/).pop())) continue;
+    i++;
+    while (i < words.length && words[i].startsWith('-')) {
+      i += VALUE_OPTIONS.has(words[i]) ? 2 : 1;
+    }
+    if (COMMIT_SUBCOMMANDS.has(words[i])) return true;
+  }
+  return false;
+}
 
 function readJson(path) {
   try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
@@ -131,7 +157,7 @@ function main() {
       'check for structural changes and ' +
       'update the graph. Do not ask the user for confirmation — just do it.';
   } else if (process.argv[2] === 'post-tool-use') {
-    if (!COMMIT_COMMAND.test(commandOf(payload))) return;
+    if (!isCommit(commandOf(payload))) return;
     message = '[understand-anything] Commit detected with auto-update enabled. ' +
       'You MUST read the file at ' + PROMPT + ' and execute its instructions to ' +
       'incrementally update the knowledge graph. Do not ask the user for ' +
