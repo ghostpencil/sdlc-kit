@@ -29,6 +29,30 @@
 
 IN=$(cat)
 
+# The string work below uses parameter expansion, not `printf | sed` or `tr`: every
+# pipeline in a $(...) is two or three processes, and Windows sh pays tens of
+# milliseconds for each, on every edit (measured 2026-10-21: ~1.5 s of a call was
+# forks). Results go to TK and SL, names no lint or typecheck value uses.
+NL='
+'
+# take: the first line of $_tk into TK, and $_tk loses it.
+take() {
+  case $_tk in
+    *"$NL"*) TK=${_tk%%"$NL"*}; _tk=${_tk#*"$NL"} ;;
+    *) TK=$_tk; _tk="" ;;
+  esac
+}
+# slash: $1 with every backslash made a forward slash, into SL.
+slash() {
+  SL=""; _sl=$1
+  while :; do
+    case $_sl in
+      *\\*) SL="$SL${_sl%%\\*}/"; _sl=${_sl#*\\} ;;
+      *) SL="$SL$_sl"; return 0 ;;
+    esac
+  done
+}
+
 # --- JSON parser: detect once, then run whichever dialect we found ------------------
 # The two sources below are held in single-quoted shell strings, so neither may contain
 # a single quote - both are written with double quotes throughout for that reason.
@@ -106,24 +130,28 @@ if(typeof a==="string" && !"{[".includes(a.trimStart()[0]||"")){
 process.stdout.write(o.join("\n")+"\n");
 ')
 
-W=$(printf '%s' "$O" | sed -n 1p)
-ST=$(printf '%s' "$O" | sed -n 2p)
+_tk=$O
+take; W=$TK
+take; ST=$TK
+FILES=$_tk
 
 # Paths arrive in BOTH forms in one session - absolute-Windows and repo-relative
 # (measured 2026-08-07) - and an absolute Windows
 # path does not exist as written when this script runs under WSL bash. resolve_path
 # prints an existing form of its argument or fails: slashes normalized first, then
 # the drive-letter translation (D:/x -> /mnt/d/x -> /d/x) the TDD guard already
-# proved. -f for files; -d via the second argument for the cwd below.
+# proved. -f for files; -d via the second argument for the cwd below. The form found
+# goes to RP rather than stdout, so a caller needs no $(...) to read it.
 resolve_path() {
-  rp=$(printf '%s' "$1" | tr '\\' '/' | tr -s '/')
+  slash "$1"; rp=$SL
+  while :; do case $rp in *//*) rp=${rp%%//*}/${rp#*//} ;; *) break ;; esac; done
   rt=${2:--f}
-  if [ "$rt" "$rp" ]; then printf '%s' "$rp"; return 0; fi
+  if [ "$rt" "$rp" ]; then RP=$rp; return 0; fi
   dl=$(printf '%s' "$rp" | sed -n 's|^\([A-Za-z]\):/.*|\1|p' | tr 'A-Z' 'a-z')
   rest=$(printf '%s' "$rp" | sed -n 's|^[A-Za-z]:/\(.*\)|\1|p')
   if [ -n "$dl" ]; then
     for cand in "/mnt/$dl/$rest" "/$dl/$rest"; do
-      if [ "$rt" "$cand" ]; then printf '%s' "$cand"; return 0; fi
+      if [ "$rt" "$cand" ]; then RP=$cand; return 0; fi
     done
   fi
   return 1
@@ -142,35 +170,51 @@ ROOT=$(pwd)
 # case (on a case-sensitive host that only errs toward checking), and tried against
 # `pwd`, MSYS's `pwd -W`, and the WSL mount form translated back to a drive, because
 # the hook shell's path flavour and the CLI's need not agree. A relative path is
-# relative to the root and stays in scope. The cut is by bytes on both sides, so a
-# non-ASCII root cannot shift it.
+# relative to the root and stays in scope. A root matched in its exact case is
+# stripped as a prefix; one matched only without case is cut by bytes on both sides,
+# so a non-ASCII root cannot shift it. The relative path goes to RR.
+#
+# The three root forms depend only on the root, so they are built once per call,
+# with their lowercase forms in one `tr`, rather than once per edited file.
 wm=${SDLC_WSL_MOUNT:-/mnt}
+wroot=""
+case "$ROOT" in "$wm"/?/*) wroot=$(printf '%s' "${ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;; esac
+slash "$ROOT"; g1=${SL%/}
+slash "$(cd "$ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; g2=${SL%/}
+slash "$wroot"; g3=${SL%/}
+_tk=$(printf '%s\n%s\n%s' "$g1" "$g2" "$g3" | tr '[:upper:]' '[:lower:]')
+take; h1=$TK; take; h2=$TK; take; h3=$TK
 repo_rel() {
-  rn=$(printf '%s' "$1" | tr '\\' '/'); rl=$(printf '%s' "$rn" | tr '[:upper:]' '[:lower:]')
-  wroot=""
-  case "$ROOT" in "$wm"/?/*) wroot=$(printf '%s' "${ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;; esac
-  for cand in "$ROOT" "$(cd "$ROOT" 2>/dev/null && pwd -W 2>/dev/null)" "$wroot"; do
-    c=$(printf '%s' "$cand" | tr '\\' '/'); c=${c%/}; [ -n "$c" ] || continue
-    cl=$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')
-    case "$rl" in "$cl"/*) printf '%s' "$rn" | LC_ALL=C cut -b "$(($(printf '%s' "$c" | LC_ALL=C wc -c) + 2))-"; return 0 ;; esac
+  slash "$1"; rn=$SL; rl=$(printf '%s' "$rn" | tr '[:upper:]' '[:lower:]')
+  for k in 1 2 3; do
+    eval "c=\$g$k; cl=\$h$k"
+    [ -n "$c" ] || continue
+    case "$rl" in "$cl"/*)
+      case "$rn" in
+        "$c"/*) RR=${rn#"$c"/} ;;
+        *) RR=$(printf '%s' "$rn" | LC_ALL=C cut -b "$(($(printf '%s' "$c" | LC_ALL=C wc -c) + 2))-") ;;
+      esac
+      return 0 ;;
+    esac
   done
-  case "$rl" in /*|?:/*) return 1 ;; ./*) printf '%s' "${rn#./}" ;; *) printf '%s' "$rn" ;; esac
+  case "$rl" in /*|?:/*) return 1 ;; ./*) RR=${rn#./} ;; *) RR=$rn ;; esac
 }
 
 # Best-effort move to the payload cwd when it exists in this shell's path flavour;
 # otherwise stay where the launcher started us, which is the repository root.
-WD=$(resolve_path "$W" -d) && cd "$WD"
+resolve_path "$W" -d && cd "$RP"
 
 if [ "$ST" != "ok" ]; then
   printf '%s' 'SDLC gate hook did NOT run on this edit: no file path found in the hook payload. The gate did not check this file - fix the hook before trusting it (discovery procedure: COPILOT.md in the kit folder or the kit home repository).' | emit
   exit 0
 fi
 
-OUT=$(printf '%s\n' "$O" | tail -n +3 | while IFS= read -r f; do
+OUT=$(while IFS= read -r f; do
   [ -n "$f" ] || continue
   case "$f" in {{SOURCE_GLOB}}) ;; *) continue ;; esac
-  r=$(repo_rel "$f") || continue
-  if rf=$(resolve_path "$f"); then f="$rf"; else
+  repo_rel "$f" || continue
+  r=$RR
+  if resolve_path "$f"; then f="$RP"; else
     printf 'SDLC gate hook did NOT run: the edited file was not found from the hook working directory: %s\n' "$f"
     continue
   fi
@@ -191,7 +235,10 @@ OUT=$(printf '%s\n' "$O" | tail -n +3 | while IFS= read -r f; do
   elif [ -n "$tn" ]; then
     printf 'SDLC gate hook: %s passed. Not blocking: %s\n' "$r" "$tn"
   fi
-done)
+done <<FILELIST
+$FILES
+FILELIST
+)
 
 if [ -n "$OUT" ]; then printf '%s' "$OUT" | emit; fi
 exit 0

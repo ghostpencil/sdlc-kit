@@ -60,7 +60,8 @@ Run these as commands; each states its negative case in the ledger.
   memory), `impact-check` ~8, `close-out-check` ~8
   and `tdd-guard-claude-check` under 2 (all four stop each mutation at its first failing
   case and run 8 at a time; `IMPACT_JOBS` / `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs
-  serially), `cosmetic-check` ~6 — and all
+  serially), `cosmetic-check` ~6, `gate-hook-check` under 2 (its six suite × parser
+  runs go concurrently) — and all
   eight buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a
   suite share its output file and slow each other several-fold. A scoped
   run that skips them says so, in those words, because "13: pass" over unrun suites is

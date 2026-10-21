@@ -412,6 +412,25 @@ class StopBench(Bench):
         p = self.git("push", "-q", "-u", "origin", "HEAD")
         assert p.returncode == 0, "bench push failed: " + p.stderr.decode()
 
+    template = None  # set by stop_pass: a directory holding a based proj/ + origin.git
+
+    def based(self, base):
+        """base_commit() then set_origin(base) - the arrangement all but one stop case
+        starts from. Building it costs ~0.8 s of git (a commit, a bare init, a push);
+        copying a prebuilt one costs ~0.15 s, so stop_pass builds it once per pass and
+        each case copies it, repointing origin at its own copy. Nothing timed changes:
+        the stop invocation runs after setup, as before."""
+        if self.template is None:
+            self.base_commit()
+            self.set_origin(base)
+            return
+        rmtree(os.path.join(self.root, ".git"))
+        shutil.copytree(os.path.join(self.template, "proj", ".git"),
+                        os.path.join(self.root, ".git"))
+        shutil.copytree(os.path.join(self.template, "origin.git"),
+                        os.path.join(base, "origin.git"))
+        self.git("remote", "set-url", "origin", os.path.join(base, "origin.git"))
+
     def push(self):
         p = self.git("push", "-q", "origin", "HEAD")
         assert p.returncode == 0, "bench push failed: " + p.stderr.decode()
@@ -466,44 +485,44 @@ class StopBench(Bench):
 # (name, setup(bench, base) -> payload, stdout check: None | "block-json",
 #  log must-contain, log must-NOT-contain)
 def _s_standdown(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY)
     return payload(active=True)
 
 def _s_defective(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY)
     return payload()
 
 def _s_complete(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(FULL_BODY)
+    b.based(base); b.commit(FULL_BODY)
     return payload()
 
 def _s_bare_no_guard(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.based(base); b.commit(BARE_BODY)
     return payload()
 
 def _s_bare_guard(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.based(base); b.commit(BARE_BODY)
     b.guard_state(SID)
     return payload()
 
 def _s_bare_guard_armed(b, base):
     # bare NEVER blocks: armed or not, no stdout verdict.
-    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.based(base); b.commit(BARE_BODY)
     b.guard_state(SID); b.arm()
     return payload()
 
 def _s_bare_stale_session(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.based(base); b.commit(BARE_BODY)
     b.guard_state(STALE_SID)
     return payload()
 
 def _s_bare_guard_camel(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.based(base); b.commit(BARE_BODY)
     b.guard_state(SID)
     return payload(camel=True)
 
 def _s_defective_armed(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY)
     b.arm()
     return payload()
 
@@ -513,20 +532,20 @@ def _s_no_upstream(b, base):
     return payload()
 
 def _s_pushed_out_of_scope(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY); b.push()
+    b.based(base); b.commit(DEFECTIVE_BODY); b.push()
     return payload()
 
 def _s_defective_below_head(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY); b.commit(FULL_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY); b.commit(FULL_BODY)
     return payload()
 
 def _s_crlf_defective(b, base):
-    b.base_commit(); b.set_origin(base)
+    b.based(base)
     b.commit(DEFECTIVE_BODY.replace("\n", "\r\n"))
     return payload()
 
 def _s_cap(b, base):
-    b.base_commit(); b.set_origin(base)
+    b.based(base)
     for i in range(22):
         b.commit("docs(z): bare %d\n\nProse.\n" % i)
     return payload()
@@ -536,14 +555,14 @@ def _s_bookkeeping_skipped(b, base):
     # window, with slice-loop evidence present - the exact configuration that
     # produced 19 of one adoption's 19 flag lines. It must be skipped, silently
     # and by name in the verdict.
-    b.base_commit(); b.set_origin(base)
+    b.based(base)
     b.commit_files(BARE_BODY, ["spec/PHASE_01_X.md", "spec/PROJECT_INDEX.md", "CLAUDE.md"])
     b.guard_state(SID)
     return payload()
 
 def _s_bookkeeping_beside_candidate(b, base):
     # Filtering must not cost a real catch standing next to it.
-    b.base_commit(); b.set_origin(base)
+    b.based(base)
     b.commit_files(BARE_BODY, ["spec/PROJECT_INDEX.md"])
     b.commit_files(DEFECTIVE_BODY, ["src/app.py"])
     return payload()
@@ -551,21 +570,21 @@ def _s_bookkeeping_beside_candidate(b, base):
 def _s_spec_plus_code_not_bookkeeping(b, base):
     # Conservative in one direction on purpose: one non-spec path and it stays a
     # candidate. A slice that also edits its phase spec is still a slice.
-    b.base_commit(); b.set_origin(base)
+    b.based(base)
     b.commit_files(BARE_BODY, ["spec/PROJECT_INDEX.md", "src/app.py"])
     b.guard_state(SID)
     return payload()
 
 def _s_repeat_flag_dedups(b, base):
     # The second stop of a session that already logged this flag.
-    b.base_commit(); b.set_origin(base); b.commit(BARE_BODY)
+    b.based(base); b.commit(BARE_BODY)
     b.guard_state(SID); b.seen(SID)
     return payload()
 
 def _s_dedup_never_suppresses_block(b, base):
     # Armed: a still-defective commit blocks at EVERY stop. De-dup governs
     # logging only - being mentioned once must never buy a pass.
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY)
     b.arm(); b.seen(SID)
     return payload()
 
@@ -583,23 +602,23 @@ COPILOT_NATIVE = ('{"sessionId":"%s","timestamp":1790606402101,"cwd":"D:\\p",'
                   '"stop_hook_active":false}' % SID)
 
 def _s_copilot_translated(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY)
     b.arm()
     return COPILOT_TRANSLATED
 
 def _s_copilot_native(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY)
     b.arm()
     return COPILOT_NATIVE
 
 def _s_claude_with_timestamp(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(DEFECTIVE_BODY)
+    b.based(base); b.commit(DEFECTIVE_BODY)
     b.arm()
     return ('{"session_id":"%s","hook_event_name":"Stop","permission_mode":"default",'
             '"timestamp":"2026-09-28T14:40:02.101Z","stop_hook_active":false}' % SID)
 
 def _s_empty_payload(b, base):
-    b.base_commit(); b.set_origin(base); b.commit(FULL_BODY)
+    b.based(base); b.commit(FULL_BODY)
     return ""
 
 STOP_CASES = [
@@ -808,11 +827,22 @@ def stop_pass(src, verbose, only=None, first_only=False):
     """Runs every stop case (or just the one named by `only`) in its own bench repo;
     returns (failures, {name: secs}). first_only stops at the first failing case."""
     failures, times = [], {}
+    template = tempfile.mkdtemp(prefix="closeout-tmpl-")
+    try:
+        StopBench(template, src).based(template)
+        _stop_cases(src, verbose, only, first_only, template, failures, times)
+    finally:
+        rmtree(template)
+    return failures, times
+
+
+def _stop_cases(src, verbose, only, first_only, template, failures, times):
     for name, setup, stdout_kind, contains, absent in STOP_CASES:
         if only is not None and name != only:
             continue
         with tempfile.TemporaryDirectory() as base:
             b = StopBench(base, src)
+            b.template = template
             pl = setup(b, base)
             t0 = time.perf_counter()
             code, out, log = b.run_stop(pl)
@@ -841,7 +871,6 @@ def stop_pass(src, verbose, only=None, first_only=False):
                 print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
             if problems and first_only:
                 break
-    return failures, times
 
 
 def unit_pass(src, verbose, first_only=False):

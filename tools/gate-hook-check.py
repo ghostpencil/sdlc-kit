@@ -30,7 +30,7 @@ has been made to speak (invariant 13).
 Kit-development artifact: root only, never inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/gate-hook-check.py
 """
-import io, json, os, shutil, stat, subprocess, sys, tempfile, traceback
+import concurrent.futures, io, json, os, shutil, stat, subprocess, sys, tempfile, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPILOT_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.json")
@@ -250,6 +250,13 @@ def copilot_suite(parser, check):
         r = ctx(ap(("Update", os.path.join(pj.root, "src", "rel.py"))))
         check("typecheck block reads $r: repo-relative, /-separated, from an absolute path",
               "rel=src/rel.py" in r, r)
+        # A root matched only without case takes the byte cut, not the prefix strip.
+        # The scope case above passes with $r empty - this dialect still lints the
+        # file - so the cut's own result is pinned here.
+        if os.name == "nt":
+            r = ctx(ap(("Update", pj.root.upper() + "\\src\\rel.py")))
+            check("...and from a root spelled in another case (Windows)",
+                  "rel=src/rel.py" in r, r)
 
         # Each check named, with only its own output.
         pj.put("src/l.py", True)
@@ -598,30 +605,45 @@ def ts_recipe_suite(parser, check):
             rmtree(base)
 
 
+def run_suite(label, suite, parser):
+    """One suite under one parser; returns (lines, failed). Each run is its own temp
+    project, so the six run concurrently and buffer their lines for in-order output."""
+    lines, failed = [], []
+
+    def check(name, cond, detail=""):
+        if not cond:
+            failed.append(name)
+        lines.append(("  PASS  " if cond else "  FAIL  ") + name +
+                     (("\n          " + str(detail)) if not cond and detail else ""))
+
+    guarded("%s [parser: %s]" % (label, parser), None, suite, parser, check)
+    return lines, failed
+
+
 def main():
     rc = 0
-    for parser in ("python", "node"):
-        if not PARSER_DIRS.get(parser):
-            print("=== %s === SKIPPED - not installed here, so this dialect is "
-                  "UNPROVEN on this machine\n" % parser)
-            rc = 1
-            continue
-        for label, suite in (("copilot gate hook", copilot_suite),
-                             ("claude code gate hook", claude_suite),
-                             ("typescript recipe block", ts_recipe_suite)):
+    jobs = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        for parser in ("python", "node"):
+            if not PARSER_DIRS.get(parser):
+                jobs.append((parser, None, None))
+                continue
+            for label, suite in (("copilot gate hook", copilot_suite),
+                                 ("claude code gate hook", claude_suite),
+                                 ("typescript recipe block", ts_recipe_suite)):
+                jobs.append((parser, label, pool.submit(run_suite, label, suite, parser)))
+        for parser, label, fut in jobs:
+            if fut is None:
+                print("=== %s === SKIPPED - not installed here, so this dialect is "
+                      "UNPROVEN on this machine\n" % parser)
+                rc = 1
+                continue
+            lines, failed = fut.result()
             print("=== %s [parser: %s] ===" % (label, parser))
-            failed = []
-
-            def check(name, cond, detail=""):
-                if not cond:
-                    failed.append(name)
-                print(("  PASS  " if cond else "  FAIL  ") + name +
-                      (("\n          " + str(detail)) if not cond and detail else ""))
-
-            guarded("%s [parser: %s]" % (label, parser), None, suite, parser, check)
+            print("\n".join(lines))
             if failed:
                 rc = 1
-            print()
+            print(flush=True)
     if guarded.crashed:
         print("CRASHED passes: %s" % ", ".join(guarded.crashed))
         rc = 1

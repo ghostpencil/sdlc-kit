@@ -25,6 +25,15 @@
 # (measured 2026-09-28, Copilot 1.0.88 / Claude Code 2.1.283), and on it this hook
 # exits 0 at once - the Copilot gate is the one gating that session. Silent by
 # design: it is reached only on a payload that names its own CLI.
+#
+# The string work uses parameter expansion, not `printf | sed` or `tr`: every
+# pipeline in a $(...) is two or three processes, and Windows sh pays tens of
+# milliseconds for each, on every edit (measured 2026-10-21). Results go to TK and
+# SL, names no lint or typecheck value uses.
+NL='
+'
+take() { case $_tk in *"$NL"*) TK=${_tk%%"$NL"*}; _tk=${_tk#*"$NL"} ;; *) TK=$_tk; _tk="" ;; esac; }
+slash() { SL=""; _sl=$1; while :; do case $_sl in *\\*) SL="$SL${_sl%%\\*}/"; _sl=${_sl#*\\} ;; *) SL="$SL$_sl"; return 0 ;; esac; done; }
 i=$(cat); JP=""; JN=""; for c in python python3; do if command -v "$c" >/dev/null 2>&1; then JP=$c; break; fi; done; if [ -z "$JP" ] && command -v node >/dev/null 2>&1; then JN=node; fi; jr(){ if [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null | tr -d "\r"; elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null | tr -d "\r"; else return 127; fi; }; if [ -z "$JP" ] && [ -z "$JN" ]; then echo "SDLC gate hook did NOT run: no JSON parser (python or node) on the PATH of the shell Claude Code runs hooks in. The gate did not check this file." >&2; exit 2; fi; o=$(printf '%s' "$i" | jr '
 import sys,json
 d=json.loads(sys.stdin.buffer.read().decode("utf-8","replace"))
@@ -38,7 +47,7 @@ if("hook_event_name" in d&&"timestamp" in d&&!("permission_mode" in d)){process.
 const a=d.tool_input||{};
 const p=a.file_path||a.path||a.filePath||"";
 process.stdout.write(p?("ok\n"+p+"\n"):"nopath\n");
-'); st=$(printf '%s' "$o" | sed -n 1p); f=$(printf '%s' "$o" | sed -n 2p); if [ "$st" = "copilot" ]; then exit 0; fi; if [ "$st" != "ok" ]; then echo "SDLC gate hook did NOT run on this edit: no file path found in the hook payload. The gate did not check this file - fix the hook before trusting it." >&2; exit 2; fi; case "$f" in {{SOURCE_GLOB}}) ;; *) exit 0 ;; esac; if [ -n "$CLAUDE_PROJECT_DIR" ]; then cd "$CLAUDE_PROJECT_DIR" || { echo "SDLC gate hook did NOT run: could not enter CLAUDE_PROJECT_DIR ($CLAUDE_PROJECT_DIR)." >&2; exit 2; }; fi
+'); _tk=$o; take; st=$TK; take; f=$TK; if [ "$st" = "copilot" ]; then exit 0; fi; if [ "$st" != "ok" ]; then echo "SDLC gate hook did NOT run on this edit: no file path found in the hook payload. The gate did not check this file - fix the hook before trusting it." >&2; exit 2; fi; case "$f" in {{SOURCE_GLOB}}) ;; *) exit 0 ;; esac; if [ -n "$CLAUDE_PROJECT_DIR" ]; then cd "$CLAUDE_PROJECT_DIR" || { echo "SDLC gate hook did NOT run: could not enter CLAUDE_PROJECT_DIR ($CLAUDE_PROJECT_DIR)." >&2; exit 2; }; fi
 # Scope: a file outside the project is not this project's source - a session
 # scratchpad, a temp file, another checkout - and linting it against this project's
 # config fails for reasons that are not the edit's (two adopters, sdlc-kit#15 and #17:
@@ -48,13 +57,19 @@ process.stdout.write(p?("ok\n"+p+"\n"):"nopath\n");
 # errs toward checking), tried against every form the root can take in this shell -
 # `pwd`, MSYS's `pwd -W`, and CLAUDE_PROJECT_DIR as the CLI spelled it. A relative
 # path is relative to the root and stays in scope. `r` is the repo-relative path,
-# which a typecheck block may use to find the edited file in a project-wide report;
-# the cut is by bytes on both sides, so a non-ASCII root cannot shift it.
-r=""; fn=$(printf '%s' "$f" | tr '\\' '/'); fl=$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')
-for c in "$PWD" "$(pwd -W 2>/dev/null)" "$CLAUDE_PROJECT_DIR"; do
-  c=$(printf '%s' "$c" | tr '\\' '/'); c=${c%/}; [ -n "$c" ] || continue
-  cl=$(printf '%s' "$c" | tr '[:upper:]' '[:lower:]')
-  case "$fl" in "$cl"/*) r=$(printf '%s' "$fn" | LC_ALL=C cut -b "$(($(printf '%s' "$c" | LC_ALL=C wc -c) + 2))-"); break ;; esac
+# which a typecheck block may use to find the edited file in a project-wide report.
+# A root matched in its exact case is stripped as a prefix; one matched only without
+# case is cut by bytes on both sides, so a non-ASCII root cannot shift it. The file
+# and the three roots are lowercased together, in one `tr`.
+r=""; slash "$f"; fn=$SL
+slash "$PWD"; c1=${SL%/}; slash "$(pwd -W 2>/dev/null)"; c2=${SL%/}; slash "$CLAUDE_PROJECT_DIR"; c3=${SL%/}
+_tk=$(printf '%s\n%s\n%s\n%s' "$fn" "$c1" "$c2" "$c3" | tr '[:upper:]' '[:lower:]'); take; fl=$TK; take; l1=$TK; take; l2=$TK; take; l3=$TK
+for k in 1 2 3; do
+  eval "c=\$c$k; cl=\$l$k"; [ -n "$c" ] || continue
+  case "$fl" in "$cl"/*)
+    case "$fn" in "$c"/*) r=${fn#"$c"/} ;; *) r=$(printf '%s' "$fn" | LC_ALL=C cut -b "$(($(printf '%s' "$c" | LC_ALL=C wc -c) + 2))-") ;; esac
+    break ;;
+  esac
 done
 if [ -z "$r" ]; then case "$fl" in /*|?:/*) exit 0 ;; ./*) r=${fn#./} ;; *) r=$fn ;; esac; fi
 if [ ! -f "$f" ]; then echo "SDLC gate hook did NOT run: the edited file was not found from the project directory: $f" >&2; exit 2; fi
