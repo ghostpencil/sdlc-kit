@@ -6613,3 +6613,55 @@ cycle, which is `/next-slice`'s. The classifier extension stays 0.36.0's (ruling
 
 **§84.7's 0.35.0 list is complete.** Held to 0.36.0 as ruled: B's detector, C's
 launcher anchoring, E's classifier extension, the rest of F.
+
+### 84.15 Added to 0.36.0, 2026-10-21 — the update note does not warn about guard-test fixtures
+
+Found at TFit's 0.35.1 update ([tfit-qa-app#33](https://github.com/ghostpencil/tfit-qa-app/pull/33)),
+the first real run of 0.35.1's hook walk-through. Two of the project's own guard tests
+went red after the guard re-derive. Their `RED` fixture was `"Exit code 1\nFAILED
+tests/test_new.py::test_it"`, which has no pytest report banner. Under 0.35.0's
+`{{TEST_REPORT_PATTERN}}` such a run is correctly refused, so the break was the guard
+working: the fixture described exactly the case A exists to refuse. Fixed there by
+giving the fixture the real `==== FAILURES ====` banner, and by adding a test that a
+wrapper failure is not counted.
+
+**Exposure, measured the same day:** only TFit has guard tests. chainmail and ai-news
+hold none, so their 0.35.1 updates will not hit it. The cost falls on future adopters
+who write guard tests.
+
+**The 0.36.0 item (owner, 2026-10-21):** `/sdlc-update`'s 0.35.0 guard bullet gains
+the sentence the 0.31.2 note already carries in its own form. Where the project has
+its own guard tests, run them after the re-derive. A fixture that fakes a failing run
+must include the runner's real report, because a fixture without it is now refused.
+Fix the fixture; never loosen the pattern to fit it. The README's *Updating an adopted
+project* section is checked for the same sentence, since the two must agree.
+
+### 84.16 Added to 0.36.0, 2026-10-21 — the walk-through can carry amendments, never retire one
+
+Found at the same TFit update. The step-5 helper's proposal is a three-way merge of
+the target template into the committed script, so **every** local amendment is
+carried by construction. The step's own text says an amendment is "retired only where
+a version note retires it". The 0.35.0 notes retire two: the shell-written-test count
+in the guard, and the `freshness()` hunk, which is kit-owned and so not the helper's.
+Yet the helper has no way to act on a retirement. TFit's guard carried three
+amendments: one retired by the note, one subsumed by the new template (a heredoc
+strip, which the template's `<<` rule now covers), and one to keep (the leading-`cd`
+strip). The proposal merged all three with 0 conflicts. The retired ones would have
+shipped silently had the amendment list not been read by hand. The kept file was then
+**built by hand** (the target template, filled, plus the one kept hunk), outside the
+helper, so the helper's own checks (values read back, base found, diff shown) did not
+cover the file actually written.
+
+**Why it matters beyond one update:** a retirement the merge cannot express is a rule
+the walk-through states and does not run. That is the lineage's most persistent class
+(a step that verifies an act occurred, not that its outcome holds). It also bites
+hardest where amendments are most numerous, which is the adopter most invested in
+the kit.
+
+**The 0.36.0 item (owner, 2026-10-21), to be designed at build time:** the helper
+takes the amendments to drop, by name or by the hunk the amendment report prints. It
+merges against a committed file with those hunks removed, and reports each drop
+beside the version note or subsumption that justified it. A dropped hunk that the
+target template does not cover is named as a behavior change, never silently lost.
+Proof: a fixture with three amendments (one to retire, one subsumed, one to keep)
+yields a proposal equal to the target template, filled, plus the kept hunk only.
