@@ -10,7 +10,7 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
-## 0.35.1 — unreleased
+## 0.35.1 — 2026-10-21
 
 The hook scripts start far fewer processes, and `/sdlc-update` now walks an owner
 through every change to a project-owned hook script and offers to apply it.
@@ -34,8 +34,12 @@ through every change to a project-owned hook script and offers to apply it.
   the full diff. A yes writes the file, checks its syntax and runs setup's proof for it.
   A failing proof restores the committed script. A no is recorded and not re-asked until
   the template changes again. Proven on the two adopters' real 0.34.1 scripts: both
-  guards merged clean, both gate hooks surfaced their local patches as conflicts, and the
-  unchanged skill ledger read `CURRENT`.
+  guards merged clean, both gate hooks surfaced their local patches as conflicts, the
+  unchanged skill ledger read `CURRENT`, and a deliberately wrong values file surfaced as
+  amendments and conflicts rather than a silent write. The helper's stops — `NO TARGET`,
+  `UNCOMMITTED`, `NOT COMMITTED`, `NO BASE`, `UNRESOLVED`, `MERGE FAILED` — were each seen
+  to fire. It also works from a linked worktree, and finds a skill ledger by its pre-0.31.1
+  template name.
 
 ### Proofs
 - `tools/tdd-guard-check.py` gains case 2e: a root reported in another case still

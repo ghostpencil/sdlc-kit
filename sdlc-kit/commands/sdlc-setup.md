@@ -552,7 +552,10 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `.github/hooks/sdlc-skill-ledger.sh` — the ledger path, that `.git/` is
    per-clone so the ledger describes one machine, and that it records
    tool-dispatched activations only, so a missing line for a slash-invocable
-   command is no signal either way. Say in the same breath that adding
+   command is no signal either way. Name the proof's **catch** — the ledger line read
+   back, quoted, per CLI — and its **reach note**: the activation arises in ordinary
+   operation whenever a session dispatches a skill through its tool, and a slash-typed
+   command never does. Say in the same breath that adding
    or removing the hook later means updating this line, because nothing else will. Declined: say so **with the date — never delete
    the line**. `/sdlc-update` reads it exactly as it reads the TDD-guard note: a
    recorded decline is settled; a missing line is a project that never had the choice.

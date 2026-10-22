@@ -32,7 +32,8 @@ IN=$(cat)
 # The string work below uses parameter expansion, not `printf | sed` or `tr`: every
 # pipeline in a $(...) is two or three processes, and Windows sh pays tens of
 # milliseconds for each, on every edit (measured 2026-10-21: ~1.5 s of a call was
-# forks). Results go to TK and SL, names no lint or typecheck value uses.
+# forks). Results go to TK and SL. The lint value and typecheck block must not assign
+# any name this file sets for itself: TK SL _tk _sl RP RR rp g1-g3 h1-h3 k c cl.
 NL='
 '
 # take: the first line of $_tk into TK, and $_tk loses it.

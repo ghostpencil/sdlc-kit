@@ -184,13 +184,16 @@ setup (launch route, shell, JSON parser, lint reachability, the dispatch check's
 verdict, CLI version), the **catch** its proof saw (the hook's report on the deliberate
 lint error, naming the file), and the **reach note** the rule above requires:
 {{HOOK_ENVIRONMENT}}
-<!-- The hook scripts in this section and the next (the gate hook, the TDD guards, the
-     skill ledger) are this project's own once instantiated, so a kit fix reaches them
-     only through /sdlc-update's walk-through, which shows the full diff and writes
-     nothing without the owner's yes. A declined re-derive is recorded here, one dated
-     line per script — `Hook re-derive declined: <script> at kit X.Y.Z (<date>)` — and
-     never deleted: /sdlc-update reads it so the question is not re-asked until that
-     script's template changes again. Setup writes no such line; only a decline does. -->
+<!-- The hook scripts this record and the guard and ledger notes below describe (the
+     gate hook, the TDD guards, the skill ledger) are this project's own once
+     instantiated, so a kit fix reaches them only through /sdlc-update's walk-through,
+     which shows the full diff and writes nothing without the owner's yes. A declined
+     re-derive is recorded here, one dated line per declined offer — `Hook re-derive
+     declined: <script> at kit <the target offered> (<date>)` — and never deleted:
+     /sdlc-update reads the newest line for a script so the question is not re-asked
+     until that script's template changes again, and a later accepted re-derive marks
+     the line superseded rather than removing it. Setup writes no such line; only a
+     decline does. -->
 
 {{TDD_GUARD_NOTE}}
 <!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
@@ -285,6 +288,9 @@ lint error, naming the file), and the **reach note** the rule above requires:
      because nothing else will), names the ledger
      file, and says in the same breath that `.git/` is per-clone: the ledger records
      this machine's sessions only, and a retro citing it must say whose clone it read.
+     It names the proof's catch — the ledger line read back at setup, quoted, per CLI —
+     and its reach note: a skill dispatched through the tool writes one in ordinary
+     operation; a slash-typed command never does.
      If the ledger was declined, the note says so WITH THE DATE — it does not delete
      this line. A missing line and a declined offer are different facts: /sdlc-update
      offers the ledger when this project never had the choice, and must not badger an

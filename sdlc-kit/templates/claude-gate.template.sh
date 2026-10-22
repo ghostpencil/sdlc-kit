@@ -29,7 +29,8 @@
 # The string work uses parameter expansion, not `printf | sed` or `tr`: every
 # pipeline in a $(...) is two or three processes, and Windows sh pays tens of
 # milliseconds for each, on every edit (measured 2026-10-21). Results go to TK and
-# SL, names no lint or typecheck value uses.
+# SL. The lint value and typecheck block must not assign any name this file sets for
+# itself: TK SL _tk _sl c1-c3 l1-l3 k c cl.
 NL='
 '
 take() { case $_tk in *"$NL"*) TK=${_tk%%"$NL"*}; _tk=${_tk#*"$NL"} ;; *) TK=$_tk; _tk="" ;; esac; }

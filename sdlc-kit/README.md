@@ -88,8 +88,9 @@ TDD-ordering guards,
 `.github/hooks/sdlc-skill-ledger.sh` with its launcher — `sdlc-skill-ledger.json` on
 Copilot, a settings block on Claude Code) is **project-owned** and is never
 overwritten by an update — it holds your recorded gate baseline, owner decisions, and
-gotchas. The trade-off is worth knowing: a fix to a *recipe* in a later release reaches
-those files only as a changelog entry you apply by hand.
+gotchas. The trade-off is worth knowing: a fix to a hook script's template in a later
+release reaches it only through `/sdlc-update`'s walk-through, which shows you the full
+diff and offers to apply it — never by overwrite.
 
 ## Verifying this bundle
 

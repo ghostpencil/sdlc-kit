@@ -276,7 +276,15 @@ restored, and the `git diff` after the run stays mandatory because a killed runn
 restores nothing), the **close-out Stop launcher's moved-cwd message** (a launcher run
 below the root must be seen to name the directory it looked from), and `/sdlc-update`'s
 **friction enumeration** (an entry the release does not address must be seen listed as
-`nothing in range`, never dropped) — the
+`nothing in range`, never dropped), and `/sdlc-update`'s **hook-script walk-through**
+(0.35.1 — its helper must be seen to stop, never propose, with `UNRESOLVED` on a
+placeholder the target template adds, `NO TARGET` on a tag that is not a release,
+`UNCOMMITTED` on a script with local changes, and `NO BASE` on values no release's
+template fills; a value read wrong must be seen as a local amendment on its line, a
+local patch as a merge conflict, and an unchanged script as `CURRENT`; a re-derived
+script whose setup proof fails is restored from `HEAD`. Proven on two adopters' real
+0.34.1 scripts, one run with a deliberately wrong values file — not by a `tools/`
+suite) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without

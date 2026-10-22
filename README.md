@@ -317,7 +317,7 @@ The whole procedure rests on this split:
 | `.github/hooks/sdlc-close-out.json` (Copilot, offered from 0.22.0: the checker's stop-time backstop wiring — present only where accepted) | **kit** | Same rule — compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes your accept; the update never adds or removes it. |
 | `.github/hooks/sdlc-impact.py` (both CLIs, from 0.28.0: the architecture-impact adapter) | **kit** | Same rule — compared against `templates/sdlc-impact.template.py`, which it copies verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined. |
 | `.github/hooks/sdlc-cosmetic.py` (both CLIs, from 0.34.0: the cosmetic-edit classifier) | **kit** | Same rule — compared against `templates/sdlc-cosmetic.template.py`, which it copies verbatim. Installed unconditionally — it can only grant an exemption — so it is never offered or declined. |
-| `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A recipe fix in a new release therefore reaches you as a changelog entry you apply by hand — it cannot arrive silently. |
+| `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A fix to a hook script's template therefore reaches you only through `/sdlc-update`'s hook-script walk-through, which shows you the full diff and writes only on your yes — it cannot arrive silently; a spec-file change is handed to you as a diff to fold in. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
 Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names
@@ -341,8 +341,10 @@ to `.github/hooks/sdlc-cosmetic.py`.
 A kit release that changes only
 the non-installed templates and reference docs is an adoption-only change — it affects new
 adoptions, not yours, **with one standing exception**: a template change to a
-project-owned file you instantiated (the hook scripts, the spec files) reaches you
-only as a hand-apply, and the per-version transition notes name each one.
+project-owned file you instantiated reaches you only with your review — a hook script
+through the update's walk-through, which offers to apply it and shows the full diff; a
+spec file as a diff handed to you to fold in — and the per-version transition notes
+name each one.
 `CHANGELOG.md` marks each entry accordingly.
 
 ### The procedure
@@ -1026,12 +1028,15 @@ only as a hand-apply, and the per-version transition notes name each one.
 
    **0.35.1 makes three hook scripts start far fewer processes, with no change in what
    they decide.** The Copilot TDD guard and both edit-time gate hooks spent most of each
-   call starting small `sed`/`tr` processes, which Windows `sh` makes slow: about 2 s a
-   guard call and 1.5 s a gate-hook call before your lint. They now use shell builtins
-   (about 0.85 s and 0.65 s). All three are yours, so the change arrives only through the
-   walk-through below; it saves about a second per edit and per shell command on
-   Windows, less elsewhere, and a script you keep decides exactly as before. The update
-   command's 0.35.1 note states the same procedure.
+   call starting small `sed`/`tr` processes, which Windows `sh` makes slow. Measured
+   2026-10-21 on the kit's Windows development machine: a guard call ~2 s before and
+   ~0.85 s after, a gate-hook call ~1.5 s before and ~0.65 s after, plus your lint; your
+   own host's saving is not measured. All three are yours, so the change arrives only
+   through the walk-through below, and a script you keep decides exactly as before. The
+   new bodies set names of their own (listed in the update command's 0.35.1 note and in
+   each template's comment), which your lint value or typecheck block must not assign:
+   the walk-through searches your values for them and shows any hit as a conflict. The
+   update command's 0.35.1 note states the same procedure.
 
    **Every project-owned hook script gets a walk-through, and an offer to apply it for
    you.** The five scripts instantiated from templates — `sdlc-gate.sh`,
@@ -1041,15 +1046,19 @@ only as a hand-apply, and the per-version transition notes name each one.
    reads your values out of the installed file, finds the release the script was
    derived from (not always the version you are on: an earlier update may have offered
    a change you declined), and merges the new template into your file three ways, so
-   your own local edits carry over. Then it walks you through it, one numbered decision
-   per script: what changes in behavior, each local edit and whether it is carried,
-   each merge conflict with both sides and a recommended resolution, what keeping the
-   script costs, and the full diff of the file it would write. On your yes it writes
-   that file, checks its syntax, runs the proof setup runs for it and records the
-   catch; a failing proof puts the committed script back and reports. On your no it
-   records the decline in `spec/SDLC.md`, so it is not re-asked until the template
-   changes again. The command carries the helper script that does the reading and
-   merging; it writes nothing in your tree until you say yes.
+   your own local edits carry over; a value a version note offers to change goes in a
+   second, target-only values file, so the merge applies it. It refuses a script with
+   uncommitted changes, since a failed proof restores from `HEAD`. Then it walks you
+   through it, one numbered decision per script: what changes in behavior, each local
+   edit and whether it is carried, each merge conflict with both sides and a
+   recommended resolution, what keeping the script costs, and the full diff of the file
+   it would write. On your yes it writes that file, checks its syntax, runs the proof
+   setup runs for it and records the catch, named, with its reach note; a failing proof
+   puts the committed script back and reports. On your no it records the decline in
+   `spec/SDLC.md`, one dated line per declined offer, so it is not re-asked until the
+   template changes again; a later yes marks the line superseded. The command carries
+   the helper script that does the reading and merging; it writes nothing in your tree
+   until you say yes — its working files go under the git directory.
 
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
@@ -1179,8 +1188,9 @@ mode is for. It documents reality (including a red gate) rather than pretending,
 starts you in STABILIZATION until the gate is green.
 
 **Where do the skills come from?** Two provenances inside the kit, plus one optional
-plugin. Five `skills/` files are **vendored** (third-party, MIT-attributed — the TDD
-skill set, mutation-testing, hypothesis-tests, and python-pro, whose license is
+plugin. Seven `skills/` files in five directories are **vendored** (third-party,
+MIT-attributed — the TDD skill set, `tdd` with its two references and `tdd-guide`,
+mutation-testing, hypothesis-tests, and python-pro, whose license is
 self-declared with no identified upstream, as `THIRD_PARTY_NOTICES.md` states rather
 than settles; NOT part of either CLI); three are
 **kit-written** (`diff-review`, `change-simplify`, `change-verify` — the review,

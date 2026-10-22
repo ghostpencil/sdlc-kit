@@ -245,9 +245,9 @@ against the upstream artifact.
   On either CLI: `sdlc-kit/reference/REVIEW_LENSES.md` into `.claude/commands/`, and
   each `sdlc-kit/skills/<name>/` directory into `.claude/skills/<name>/`, copied whole
   so `tdd/tdd-references/` travels with it — the eight `SKILL.md` files share a
-  basename, so copy directories, not files. The gate hook is project-owned and is not touched;
-  if the target changes the hook recipe, that is a changelog entry for the owner to
-  apply by hand, exactly as on the Claude side.
+  basename, so copy directories, not files. The gate hook is project-owned and is not
+  copied over; a change to its template reaches it through the hook-script
+  walk-through below, exactly as on the Claude side.
 - The symmetric case: files **removed from the target's install set** — listed in the
   old version's manifest under an install mapping but absent from the target's. An
   `UNCHANGED` one is provably the kit's and is deleted; a `DRIFTED` one goes to the
@@ -874,7 +874,7 @@ against the upstream artifact.
   **project-owned** files, so the update replaces neither: the guard scripts
   (`.github/hooks/sdlc-tdd-guard.py` / `.sh`) consult the classifier only once their
   bodies are re-derived from the 0.34.0 templates with the project's three resolved
-  patterns carried over — offer that at the halt where the guards are installed, and
+  patterns carried over — offer that at the hook-script walk-through below, and
   say a guard left as it is keeps today's rule exactly. The docs-only rule lives in
   `SDLC.template.md` step 4 of the slice loop: hand the owner that diff to fold into
   `spec/SDLC.md`; until it is folded the project's process file says a source comment
@@ -931,8 +931,8 @@ against the upstream artifact.
   successful `cat vitest.config.ts` no longer records a GREEN; configs, one-off script
   directories and the graph tool's directory stop being production source; and three
   encoding defects that let a non-ASCII path slip the guard are fixed. The guard
-  scripts are **project-owned**, so the update replaces neither: at the halt where the
-  guards are installed, offer to re-derive `.github/hooks/sdlc-tdd-guard.py` / `.sh`
+  scripts are **project-owned**, so the update replaces neither: at the hook-script
+  walk-through below, offer to re-derive `.github/hooks/sdlc-tdd-guard.py` / `.sh`
   from the 0.35.0 templates with the project's three resolved patterns carried over
   and the two new ones resolved the way setup does — `TEST_REPORT_PATTERN` from
   the recipe's runner table, `GUARD_EXEMPT_PATTERN` proposed from the tree and
@@ -949,23 +949,23 @@ against the upstream artifact.
   the breach. Say so, and delete nothing without the owner's yes.
 - **0.35.0 also changes the edit-time gate hook's body** (both dialects): it skips a
   file outside the project, names the check that failed and prints only that check's
-  output, runs the lint value as one group so a compound `lint && format check` has
-  both commands' output, and passes a typecheck block's non-blocking note (`tn`) back as
+  output, runs the lint value as one group so a compound `lint && format check` has both
+  commands' output, and passes a typecheck block's non-blocking note (`tn`) back as
   context instead of a failure. The hook script (`.github/hooks/sdlc-gate-claude.sh` /
   `sdlc-gate.sh`) is **project-owned**, so the update replaces neither: offer, at the
-  same halt, to re-derive it from the 0.35.0 template with the project's source glob,
-  lint command and typecheck block carried over, and three recipe changes offered, not
-  imposed — the format check folded into the lint value where the project's gate runs
-  one (read the gate; never assume a formatter); a TypeScript block that runs a
+  same walk-through, to re-derive it from the 0.35.0 template with the project's source
+  glob, lint command and typecheck block carried over, and three recipe changes offered,
+  not imposed — the format check folded into the lint value where the project's gate
+  runs one (read the gate; never assume a formatter); a TypeScript block that runs a
   project-wide `tsc` or a workspace `typecheck` script offered GATE_RECIPES's
   one-tsconfig block in its place; and a Python block that assigns `m=` corrected to
-  `t=`, without which mypy's errors never printed. Python projects are also offered
-  the opt-in `--ignore F401,F821,F841` lint variant, with its cost said. A local patch
-  that already does one of these (an out-of-repo skip, a per-tsconfig filter) is
-  retired where the template now does it and carried where it is project-specific.
-  Prove the re-derived hook the way setup does — a deliberate lint error in a scratch
-  source file is reported — and record the catch, named, with its reach note where
-  setup records the hook's proof; say a hook left as it is keeps today's behavior.
+  `t=`, without which mypy's errors never printed. Python projects are also offered the
+  opt-in `--ignore F401,F821,F841` lint variant, with its cost said. A local patch that
+  already does one of these (an out-of-repo skip, a per-tsconfig filter) is retired
+  where the template now does it and carried where it is project-specific. Prove the
+  re-derived hook the way setup does — a deliberate lint error in a scratch source file
+  is reported — and record the catch, named, with its reach note where setup records the
+  hook's proof; say a hook left as it is keeps today's behavior.
 - **0.35.0 adds the edit-tools rule:** code — source and test files, less the guard's
   exempt paths — changes only through the editor tools, overriding any harness
   guidance that permits shell edits, because the edit-time hook and the guards see
@@ -999,15 +999,17 @@ against the upstream artifact.
   they decide.** The Copilot TDD guard (`sdlc-tdd-guard.sh`) and both edit-time gate
   hooks (`sdlc-gate.sh`, `sdlc-gate-claude.sh`) did their string work through dozens
   of `$(printf … | sed)` and `tr` pipelines per call, and Windows `sh` pays tens of
-  milliseconds for each process: a guard call took ~2 s, a gate-hook call ~1.5 s
-  before the project's own lint ran. The bodies now use shell builtins: a guard call
-  ~0.85 s, a gate-hook call ~0.65 s plus the lint. All three are project-owned, so this
-  arrives only through the walk-through below. Recommend it on a Windows host, where
-  it saves about a second on every edit and every shell command; elsewhere the saving
-  is smaller. Say that a script left as it is decides exactly as before, only slower.
-  The bodies' new helpers write to `TK` and `SL` in the gate hooks: if the project's
-  lint value or typecheck block uses either name, that is a conflict to show the
-  owner, not one to resolve silently.
+  milliseconds for each process. Measured 2026-10-21 on the kit's Windows development
+  machine: a guard call ~2 s before and ~0.85 s after, a gate-hook call ~1.5 s before
+  and ~0.65 s after, plus the project's own lint. This host's saving is not measured
+  here; say so. All three are project-owned, so this arrives only through the
+  walk-through below. Recommend it on a Windows host, where the saving is largest;
+  say that a script left as it is decides exactly as before, only slower. The new
+  bodies set names of their own, which a project's lint value or typecheck block must
+  not assign — in the Copilot gate hook `TK`, `SL`, `_tk`, `_sl`, `RP`, `RR`, `rp`,
+  `g1`–`g3`, `h1`–`h3`, `k`, `c`, `cl`; in the Claude gate hook `TK`, `SL`, `_tk`,
+  `_sl`, `c1`–`c3`, `l1`–`l3`, `k`, `c`, `cl`. Search the project's values for each:
+  a hit is a conflict to show the owner, not one to resolve silently.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from
@@ -1018,30 +1020,41 @@ against the upstream artifact.
   through this walk-through, so it runs for **every installed script of the five**,
   whether or not a version note above names it — a note says what a change means;
   the helper below says whether there is one. A hand-apply that depends on someone
-  reading the changelog is the kind of step this kit exists to remove.
+  reading the changelog is the kind of step this kit exists to remove. The version
+  notes' re-derive offers are made here, as this one decision per script — never as
+  a second, separate offer.
 
   For each installed script, in order:
 
-  1. **Read its values, never retype them.** Write a `values.json` mapping each
-     `{{PLACEHOLDER}}` in the template to the exact text the installed file holds in
-     its place (`git cat-file -p :<path>` for the committed bytes; a multi-line
+  1. **Read its values, never retype them.** Write a `values.json` under the git
+     directory (`$(git rev-parse --git-dir)/sdlc-update/`, so nothing lands in the
+     working tree), mapping each placeholder marker in the template — the key spelled
+     exactly as the template spells it, braces included — to the exact text the
+     committed file holds in its place (`git show HEAD:<path>`; a multi-line
      typecheck block is copied whole). The helper checks you: a value read wrong
-     shows up as a difference on that line. Where a local patch has replaced a
+     shows up as a local amendment on that line. Where a local patch has replaced a
      placeholder's text outright — a rewritten typecheck tail, say — the original
      value is no longer in the file: take it from the gate record in `spec/SDLC.md`
      or the patch's own comment, say which, and expect the patch to surface as an
-     amendment.
-  2. **Run the helper** (below). It finds the release the script was derived from —
-     the one whose template, filled with those values, is closest to the installed
+     amendment. A value a version note offers to **change** (a format check folded
+     into the lint value, a corrected typecheck block) goes in a second file holding
+     only the keys that change, confirmed with the owner first: it fills the target
+     template alone, so the merge applies it the way it applies a template change.
+  2. **Run the helper** (below). It refuses a script with uncommitted changes, since
+     a failed proof restores from `HEAD`, and a target that is not a release tag. It
+     finds the release the script was derived from — the one, no newer than the
+     target, whose template, filled with those values, is closest to the committed
      file — because the version the project is on is not always it: an earlier
      update may have offered a change and been declined. Then it prints either
      `CURRENT` (nothing to offer; say so in one line) or a proposal: the **local
-     amendments** (the derived-from template, filled, against the installed file),
+     amendments** (the derived-from template, filled, against the committed file),
      the **proposed file** (a three-way merge of the target template into the
-     installed one, so amendments carry), and **`diff -u` from installed to
+     committed one, so amendments carry), and **`diff -u` from committed to
      proposed**. A placeholder the target template adds stops it with `UNRESOLVED`:
      resolve that value the way `sdlc-setup.md` does and the version note says,
-     confirm it with the owner, add it to `values.json`, and run it again.
+     confirm it with the owner, add it to `values.json`, and run it again. Every
+     other stop names its cause (`NO TARGET`, `UNCOMMITTED`, `NOT COMMITTED`,
+     `NO BASE`, `MERGE FAILED`); none of them is a proposal.
   3. **Walk the owner through it — a numbered, explicitly marked decision per
      script** (`Decision N: <script> — apply the proposal / keep as it is`). In
      plain words: what changes behaviorally, from the changelog entries in range
@@ -1050,53 +1063,76 @@ against the upstream artifact.
      note retires it, and then named; every merge conflict, shown with both sides and
      a recommended resolution; and what keeping the script costs, as concretely as
      the notes allow ("a guard left as it is keeps today's rules exactly"). Then the
-     full diff from installed to proposed, so the owner reviews the file that will be
+     full diff from committed to proposed, so the owner reviews the file that will be
      written, not a description of it. Offer to apply it for them; never apply it on
      a summary alone.
   4. **On yes:** write the proposed file — with every conflict resolved the way the
      owner chose, and no `<<<<<<<` marker left in it — then check its syntax (`sh -n`
      with an `sh` that resolves, Git Bash's on Windows; `python -m py_compile` for the
-     `.py`), then run the proof `sdlc-setup.md` runs when it installs that file. Record
-     the proof's catch where setup records it. A proof that fails puts the committed
-     script back (`git show HEAD:<path> > <path>`) and goes to the owner with its
-     output. Never report a re-derived script as working on its syntax check alone.
+     `.py`), then run the proof `sdlc-setup.md` runs when it installs that file.
+     Record the proof's catch, named, and its reach note, where setup records them.
+     A proof that fails puts the committed script back — from a POSIX shell, since
+     PowerShell's `>` re-encodes the bytes: `git show HEAD:<path> > <path>` — and
+     goes to the owner with its output. Never report a re-derived script as working
+     on its syntax check alone. Where the script carries a decline line (step 5),
+     append `— superseded by re-derive at kit <target> (<date>)` to it; never delete
+     it.
   5. **On no:** say in one line what the project keeps, and record the decline in
      `spec/SDLC.md` *Records*, after the edit-time hook's record, where the template
-     says it goes — `Hook re-derive declined: <script> at kit X.Y.Z (<date>)` — so a
-     later update does not re-ask it. Before offering a script, read those lines: one
-     naming it at a version whose template the helper's target still matches means
-     say so in one line and move on; a later template change means offer it again and
-     name the earlier decline.
-
-  The helper writes nothing in the working tree: its proposals go under `.git/`.
+     says it goes — `Hook re-derive declined: <script> at kit <target offered>
+     (<date>)` — so a later update does not re-ask it. Before offering a script, read
+     those lines: for the newest one naming it, unsuperseded,
+     `git -C /tmp/kit diff --quiet <that version> "$T" -- sdlc-kit/templates/<template>`
+     succeeding means the template has not changed since the decline — say so in one
+     line and move on; failing means offer it again and name the earlier decline. A
+     second decline is a second line: the newest governs.
 
   ```bash
-  # Run once per installed script. $T is the target tag (e.g. v0.35.1); the last
-  # argument is step 2's full clone, so every release tag is there to search. It is an
-  # argument, not a constant, because Git Bash translates a /tmp path only on a
-  # command line - native Windows git cannot open one written inside the script.
+  # Run once per installed script. T is the target tag; the kit clone is an argument,
+  # not a constant, because Git Bash translates a /tmp path only on a command line -
+  # native Windows git cannot open one written inside the script.
+  T=v0.35.1                                # the release this update targets
+  GD=$(git rev-parse --git-dir); mkdir -p "$GD/sdlc-update"
   cat > /tmp/kit-rederive.py <<'PY'
   import difflib, json, os, re, subprocess, sys
+  # <script> <template> <values.json> <target tag> <kit clone> [<target-only values>]
   path, tpl, vals_file, target, kit = sys.argv[1:6]
+  tgt_file = sys.argv[6] if len(sys.argv) > 6 else None
+  OLD_NAMES = {"skill-ledger.template.sh": ["skill-ledger-claude.template.sh"]}
   run = lambda *a: subprocess.run(a, capture_output=True)
-  show = lambda tag: run("git", "-C", kit, "show",
-                         "%s:sdlc-kit/templates/%s" % (tag, tpl)).stdout.decode("utf-8")
-  installed = run("git", "cat-file", "-p", ":" + path).stdout.decode("utf-8")
-  if not installed:
-      sys.exit("NOT COMMITTED: %s - commit it first; the merge reads committed bytes" % path)
-  vals = json.load(open(vals_file, encoding="utf-8"))
-  def fill(body):
-      for k, v in vals.items():
-          body = body.replace(k, v)
-      return body, sorted(set(re.findall(r"\{\{[A-Z_]+\}\}", body)))
-  def diff(a, b, la, lb):
-      return list(difflib.unified_diff(a.splitlines(), b.splitlines(), la, lb, lineterm=""))
+  def show(tag):                                # a renamed template, by every name
+      for name in [tpl] + OLD_NAMES.get(tpl, []):
+          p = run("git", "-C", kit, "show", "%s:sdlc-kit/templates/%s" % (tag, name))
+          if p.returncode == 0 and p.stdout:
+              return p.stdout.decode("utf-8")
+      return ""
   tags = [t for t in run("git", "-C", kit, "tag", "--sort=-v:refname")
           .stdout.decode().split() if re.fullmatch(r"v\d+\.\d+\.\d+", t)]
-  best = None                                   # newest tag wins a tie
-  for tag in tags:
+  if target not in tags:
+      sys.exit("NO TARGET: %r is not a release tag in %s - set T" % (target, kit))
+  target_body = show(target)
+  if not target_body:
+      sys.exit("NO TARGET: %s holds no %s - check the template name" % (target, tpl))
+  if run("git", "status", "--porcelain", "--", path).stdout.strip():
+      sys.exit("UNCOMMITTED: %s has uncommitted changes - commit or stash them; a "
+               "failed proof restores the script from HEAD" % path)
+  head = run("git", "show", "HEAD:" + path)
+  if head.returncode != 0:
+      sys.exit("NOT COMMITTED: %s is not in HEAD - commit it first" % path)
+  installed = head.stdout.decode("utf-8")
+  vals = json.load(open(vals_file, encoding="utf-8"))
+  tvals = dict(vals, **json.load(open(tgt_file, encoding="utf-8"))) if tgt_file else vals
+  def fill(body, v):
+      for k, x in v.items():
+          body = body.replace(k, x)
+      return body, sorted(set(re.findall(r"\{\{[A-Z_]+\}\}", body)))
+  def diff(a, b, la, lb):
+      return list(difflib.unified_diff(a.splitlines(), b.splitlines(), la, lb,
+                                       lineterm=""))
+  best = None                       # no newer than the target; the newest wins a tie
+  for tag in tags[tags.index(target):]:
       body = show(tag)
-      filled, left = fill(body) if body else (None, ["(absent)"])
+      filled, left = fill(body, vals) if body else (None, ["(absent)"])
       if left:
           continue
       n = len(diff(filled, installed, "", ""))
@@ -1104,9 +1140,9 @@ against the upstream artifact.
           best = (tag, n, filled)
   if best is None:
       sys.exit("NO BASE: no release's %s, filled with these values, resembles %s - "
-               "re-read the values from the installed file" % (tpl, path))
+               "re-read the values from the committed file" % (tpl, path))
   base_tag, _, base = best
-  new, left = fill(show(target))
+  new, left = fill(target_body, tvals)
   if left:
       sys.exit("UNRESOLVED in %s's template: %s - resolve each as setup does, add it "
                "to %s, run again" % (target, ", ".join(left), vals_file))
@@ -1115,20 +1151,22 @@ against the upstream artifact.
             % (path, target))
       sys.exit(0)
   print("%s: derived from %s" % (path, base_tag))
-  out = os.path.join(".git", "sdlc-update"); os.makedirs(out, exist_ok=True)
+  out = os.path.join(run("git", "rev-parse", "--git-dir").stdout.decode().strip(),
+                     "sdlc-update")
+  os.makedirs(out, exist_ok=True)
   name = os.path.basename(path)
   files = {}
   for label, text in (("installed", installed), ("base", base), ("target", new)):
       files[label] = os.path.join(out, "%s.%s" % (name, label))
       open(files[label], "w", encoding="utf-8", newline="").write(text)
-  m = run("git", "merge-file", "-p", "--diff3", "-L", "installed",
+  m = run("git", "merge-file", "-p", "--diff3", "-L", "committed",
           "-L", "derived-from " + base_tag, "-L", "target " + target,
           files["installed"], files["base"], files["target"])
   if not 0 <= m.returncode <= 127:              # a conflict count, or git failed
       sys.exit("MERGE FAILED: %s" % m.stderr.decode("utf-8", "replace"))
   proposed = os.path.join(out, name + ".proposed")
   open(proposed, "wb").write(m.stdout)
-  amend = diff(base, installed, "%s template, filled" % base_tag, "installed")
+  amend = diff(base, installed, "%s template, filled" % base_tag, "committed")
   print("LOCAL AMENDMENTS (%s):" % ("none" if not amend else "%d lines" % len(amend)))
   print("\n".join(amend))
   print("MERGE CONFLICTS: %d" % m.returncode)
@@ -1136,7 +1174,7 @@ against the upstream artifact.
   print("\n".join(diff(installed, m.stdout.decode("utf-8"), path, path + " (proposed)")))
   PY
   python /tmp/kit-rederive.py .github/hooks/sdlc-gate.sh copilot-hook.template.sh \
-    values-gate.json "$T" /tmp/kit
+    "$GD/sdlc-update/values-gate.json" "$T" /tmp/kit
   ```
 
 - **Touch nothing project-owned** (the table above). The kit cannot regenerate those
@@ -1210,15 +1248,15 @@ against the upstream artifact.
   An entry the owner does not confirm keeps `RULING OPEN`; nothing is flipped without
   that word.
   Do them last, so an aborted update never claims a version it does not hold.
-  **More lines join them only when this update actually put an offer to the
-  owner** — the TDD-guard offer and the skill-ledger offer (step 5's re-offer
-  clauses), and each declined hook-script re-derive (`Hook re-derive declined:`, step
-  5's walk-through) — then their answer is recorded in
-  `spec/SDLC.md` the way setup records it, decline included. Each is written only when
-  its offer was made and answered in this session, never inferred and never rewritten:
-  an update that did not ask does not get to record an answer. Without it a decline
-  leaves no trace and every later update re-asks a settled question, which is the whole
-  reason the lines exist.
+  **More lines join them only when this update actually put an offer to the owner** —
+  the TDD-guard offer and the skill-ledger offer (step 5's re-offer clauses), and each
+  declined hook-script re-derive (`Hook re-derive declined:`, step 5's walk-through) —
+  then their answer is recorded in `spec/SDLC.md` the way setup records it — a declined
+  re-derive in the form the walk-through gives, since setup writes none — decline
+  included. Each is written only when its offer was made and answered in this session,
+  never inferred and never rewritten: an update that did not ask does not get to record
+  an answer. Without it a decline leaves no trace and every later update re-asks a
+  settled question, which is the whole reason the lines exist.
 - Land as a normal PR (`chore/update-sdlc-kit-X.Y.Z`).
   Report to the owner what changed *behaviorally* (from the changelog), not just which
   files moved.
