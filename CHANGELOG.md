@@ -10,6 +10,42 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.35.1 — unreleased
+
+The hook scripts start far fewer processes, and `/sdlc-update` now walks an owner
+through every change to a project-owned hook script and offers to apply it.
+
+### Changed
+- **[adoption-only]** **The Copilot TDD guard and both edit-time gate hooks do their
+  string work with shell builtins** (`tdd-guard.template.sh`, `copilot-hook.template.sh`,
+  `claude-gate.template.sh`). Each call ran dozens of `$(printf … | sed)` and `tr`
+  pipelines, and Windows `sh` pays tens of milliseconds a process: a guard call took
+  ~2 s and a gate-hook call ~1.5 s before the project's lint. Now ~0.85 s and ~0.65 s.
+  Nothing they decide changes. All three are project-owned once instantiated, so an
+  adopted project gets this through `/sdlc-update`'s walk-through (below), not by copy.
+- **[installable]** **`/sdlc-update` walks the owner through every project-owned hook
+  script whose template changed, and offers to apply it with review.** It runs for each
+  of the five instantiated scripts a project holds, whether or not a version note names
+  it. A helper reads the project's values from the installed file and finds the release
+  the script was derived from — the closest filled template, since a declined offer
+  leaves a script behind its version stamp. It then three-way merges the target template
+  in, so local amendments carry over. The owner gets one numbered decision per script:
+  the behavior change, each amendment, each conflict, the cost of keeping the script, and
+  the full diff. A yes writes the file, checks its syntax and runs setup's proof for it.
+  A failing proof restores the committed script. A no is recorded and not re-asked until
+  the template changes again. Proven on the two adopters' real 0.34.1 scripts: both
+  guards merged clean, both gate hooks surfaced their local patches as conflicts, and the
+  unchanged skill ledger read `CURRENT`.
+
+### Proofs
+- `tools/tdd-guard-check.py` gains case 2e: a root reported in another case still
+  reduces, and the mutation that drops that fallback is caught. 48 mutations.
+- `tools/gate-hook-check.py` gains the Copilot twin of the relative-path case for a root
+  spelled in another case: the scope case alone passed with `$r` empty. 138 cases.
+- Suite runtimes: impact 35 → 8 min, tdd-guard 54 → 29 min, gate-hook 4 → 1.3 min,
+  close-out's stop pass 47 → 37 s. Every caught set is unchanged. All eight suites now
+  delete their temp repos, where git's read-only objects had leaked 19,211 directories.
+
 ## 0.35.0 — 2026-10-21
 
 The graph refreshes behind two switches: cheap at every slice end, full at the phase end

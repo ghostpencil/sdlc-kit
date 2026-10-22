@@ -1024,6 +1024,33 @@ only as a hand-apply, and the per-version transition notes name each one.
    a *missing* block may mean a moved cwd. The update command's 0.35.0 note states the
    same procedure.
 
+   **0.35.1 makes three hook scripts start far fewer processes, with no change in what
+   they decide.** The Copilot TDD guard and both edit-time gate hooks spent most of each
+   call starting small `sed`/`tr` processes, which Windows `sh` makes slow: about 2 s a
+   guard call and 1.5 s a gate-hook call before your lint. They now use shell builtins
+   (about 0.85 s and 0.65 s). All three are yours, so the change arrives only through the
+   walk-through below; it saves about a second per edit and per shell command on
+   Windows, less elsewhere, and a script you keep decides exactly as before. The update
+   command's 0.35.1 note states the same procedure.
+
+   **Every project-owned hook script gets a walk-through, and an offer to apply it for
+   you.** The five scripts instantiated from templates — `sdlc-gate.sh`,
+   `sdlc-gate-claude.sh`, `sdlc-tdd-guard.sh`, `sdlc-tdd-guard.py`,
+   `sdlc-skill-ledger.sh` — are yours, so a kit fix to one reaches you only this way, and
+   the update does it for each one you have, whether or not a version note names it. It
+   reads your values out of the installed file, finds the release the script was
+   derived from (not always the version you are on: an earlier update may have offered
+   a change you declined), and merges the new template into your file three ways, so
+   your own local edits carry over. Then it walks you through it, one numbered decision
+   per script: what changes in behavior, each local edit and whether it is carried,
+   each merge conflict with both sides and a recommended resolution, what keeping the
+   script costs, and the full diff of the file it would write. On your yes it writes
+   that file, checks its syntax, runs the proof setup runs for it and records the
+   catch; a failing proof puts the committed script back and reports. On your no it
+   records the decline in `spec/SDLC.md`, so it is not re-asked until the template
+   changes again. The command carries the helper script that does the reading and
+   merging; it writes nothing in your tree until you say yes.
+
 5. **Touch nothing project-owned.** Do not let an update rewrite `spec/SDLC.md`,
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
@@ -1054,13 +1081,14 @@ only as a hand-apply, and the per-version transition notes name each one.
    overwrite.
    Those lines are the only project-owned content
    an update writes, and the absent-only ones never overwrite an answer already there.
-   Two more
+   More
    join them **only when this update actually put an offer to you** — the TDD-guard
-   offer and the skill-ledger offer each record your answer in `spec/SDLC.md`, a
-   decline included, so no later update re-asks
+   offer, the skill-ledger offer and each declined hook-script re-derive record your
+   answer in `spec/SDLC.md`, a decline included, so no later update re-asks
    it — and an **accepted** offer also installs its artifacts (the guard pair, the
-   ledger hook, a re-derived guard or gate-hook script), each written only on your word
-   at that halt. The empty `spec/PRODUCT_CONTRACT.md` the 0.23.0 note creates is the
+   ledger hook, a hook script re-derived at the walk-through, with its proof's record),
+   each written only on your word at that halt. The empty `spec/PRODUCT_CONTRACT.md`
+   the 0.23.0 note creates is the
    other: a verbatim template copy, only when absent. An update that did not
    ask does not record an answer. And each `RULING OPEN` friction entry you confirm the
    release fixed — checked against the installed file — is flipped in place to
