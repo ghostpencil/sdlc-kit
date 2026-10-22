@@ -6665,3 +6665,43 @@ beside the version note or subsumption that justified it. A dropped hunk that th
 target template does not cover is named as a behavior change, never silently lost.
 Proof: a fixture with three amendments (one to retire, one subsumed, one to keep)
 yields a proposal equal to the target template, filled, plus the kept hunk only.
+
+### 84.17 Added to 0.36.0, 2026-10-22 — the report-pattern table has no Maven row
+
+Found at ai-news's 0.35.1 update ([ai-news-dashboard#23](https://github.com/ghostpencil/ai-news-dashboard/pull/23)).
+`reference/GATE_RECIPES.md`'s `{{TEST_REPORT_PATTERN}}` table names pytest, vitest
+and jest, so the value for a Maven project had to be measured during the update. Measured
+there (Maven 3.9.2, Surefire 3.2.5, `mvn -q test` on a scratch test):
+`<<< (FAILURE|ERROR)!|COMPILATION ERROR`. An assertion failure prints `<<< FAILURE! --
+in …` at character 80. A test that does not compile prints `[ERROR] COMPILATION ERROR :`
+at character 8. Both are counted. An unrecognised flag and `-Dtest=NoSuchTestXyz` (`No
+tests matching pattern`) are both refused, though all four exit 1. The verdicts are the
+same in the Python and Node regex dialects. A live Copilot proof logged `RED observed`
+for the real red and refused the bad flag. The cost, stated in the adopter's record:
+a compile error in **production** code also counts as a RED, as pytest's import error
+does. The quiet re-run is `-q`, which the project already uses.
+
+**The 0.36.0 item:** a Maven row in the table, with these values, the versions, and the
+cost sentence. Before it ships, one re-measurement covers a pass (it must print no
+marker) and a missing `mvn`, the two cases the table's preamble claims for every row
+that this measurement did not run.
+
+### 84.18 Added to 0.36.0, 2026-10-22 — an update cannot see a fold an earlier update missed
+
+Found at the same update. ai-news's `spec/SDLC.md` still let a friction entry retire
+once a retro absorbed it, with no recorded outcome. Kit 0.27.0 changed that rule, and
+the command files that enforce it had arrived at that hop, but the spec never got the
+change. This is not the first time on this adopter: its spec never carried 0.26.0's
+reconcile pass either, found at the 0.29.0 update. Both were found by reading, by
+chance. `/sdlc-update` hands the owner the `SDLC.template.md` diff from the installed
+version to the target, so a rule missed at an earlier hop sits below every later diff.
+No later update looks for it, and the spec, which wins over the commands, goes on
+stating the old rule.
+
+**The 0.36.0 item, to be designed at build time:** each version note that requires a
+fold into `spec/SDLC.md` names a short marker phrase the folded rule carries. The update
+greps the project's spec for every marker from **every** version up to the target, not
+only those after the installed one, and lists each one absent at the plan halt, before
+the re-stamp. A project that reworded a rule on purpose answers once, and the answer is
+recorded so it is not re-asked. Proof: ai-news's spec as it stood before #23 is flagged
+for the 0.27.0 marker, and its spec after #23 is not.
