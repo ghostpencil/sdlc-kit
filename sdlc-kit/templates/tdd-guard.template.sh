@@ -48,9 +48,10 @@
 # .git/sdlc-tdd/deny-enabled exists; without it they log and always exit 0. Arm deny only
 # once the log shows the guards recognizing the project's own test runs.
 #
-# This is a COOPERATIVE BACKSTOP, NOT A SECURITY BOUNDARY. Writes made through the
-# shell tool are invisible to it, and the session can read or edit this script and its
-# state. It exists to make TDD ordering the path of least resistance, not to make
+# This is a COOPERATIVE BACKSTOP, NOT A SECURITY BOUNDARY. A write made through the
+# shell tool is not seen as it happens, only reported at the stop (outside_writes,
+# below, 0.36.0), and the session can read or edit this script and its state. It
+# exists to make TDD ordering the path of least resistance, not to make
 # violating it impossible. (Both were observed in pre-release trials: a session read
 # this script's own source to learn the recognized command format, complied with it,
 # and could as easily have edited the state files instead.)

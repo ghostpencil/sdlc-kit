@@ -22,8 +22,10 @@
 #     same launcher-line discipline as the gate/guard split,
 #     forced this time by the shell being unknowable rather than by a re-parse.
 #   - Write paths arrive one per call in tool_input.file_path, absolute Windows
-#     form; hooks run with the project root as cwd (measured, undocumented) and
-#     $CLAUDE_PROJECT_DIR set (documented).
+#     form; hooks start in the session's cwd, which a shell `cd` moves (measured
+#     2026-10-16, sdlc-kit#13) - so every launcher in .claude/settings.json anchors
+#     at the repository root first (0.36.0) - and $CLAUDE_PROJECT_DIR is set
+#     (documented).
 #
 # G1 - observed-RED write guard: a production-source write is a violation unless a
 #      test file has been edited this session AND a failing test run has been
@@ -56,8 +58,9 @@
 # arming one arms both). Without it they log and never block.
 #
 # This is a COOPERATIVE BACKSTOP, NOT A SECURITY BOUNDARY. The session can read
-# and edit this script and its state; writes made through the shell tool are
-# invisible to it. Never runs the test suite inline: state reads and writes only.
+# and edit this script and its state; a write made through the shell tool is not
+# seen as it happens, only reported at the stop (changed_outside, below, 0.36.0).
+# Never runs the test suite inline: state reads and writes only.
 #
 # Timeout fail direction is UNDOCUMENTED for Claude Code hooks (probe, 2026-08-12);
 # the default hook timeout is 10 minutes and this script does no I/O beyond
