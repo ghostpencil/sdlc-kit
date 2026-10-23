@@ -84,8 +84,13 @@ arc an adopter closes.
 (tfit-qa-app#36, ai-news-dashboard#24, chainmail-webfactory#4), and all three are
 between phases.
 
-**Four arcs have run since the last clock reading, and none has been read.** The last
-reading is §76.5: the tenth report, TFit Phase 09 under 0.30.0.
+**Four arcs have run since the §76.5 reading, and §87 reads them (2026-10-23).** Its
+findings: two clocks failed on their own pre-registered terms (`change-simplify`'s
+negative half, and `stop-check` with zero catches and five false
+candidates), `secrets and exposure` reached zero, CONTRACT has its confirmed catch, and
+IMPACT can start at TFit P12. The rulings owed are in §87.5. The denominator ruling
+(§87.2) is taken: (B), every eligible arc since the last reading. The bullets below
+stay as they were until the remaining rulings are taken.
 
 | Arc | Merged | Kit it ran under | Retro |
 |---|---|---|---|
@@ -98,8 +103,8 @@ ai-news has run no arc since Phase 05 (2026-08-17). Issues #11–#17 came out of
 arcs and were triaged in §84 as findings, **not as clock readings**. The evidence each
 clock needs is mostly mechanical: the `lenses:`, `quality:`, `mutation:` and `verify:`
 lines in slice commit bodies, the friction logs, and the guard and backstop logs in each
-clone's git directory. **Reading these four arcs is the next owed act. Several clocks
-below may already be decided by them.** An arc counts toward a clock only when it ran
+clone's git directory. **§87 reads them. Taking the §87.5 rulings is the next owed
+act.** An arc counts toward a clock only when it ran
 under the release the clock starts from, so the per-clock eligible arcs are given below.
 
 **Clocks the next reading decides:**
@@ -7321,3 +7326,276 @@ Released 2026-10-23: commit `0586e6e`, tag `v0.37.1`, workflow run 39992669238 g
 the first run. Tarball verified from the download: checksum OK, VERSION 0.37.1, manifest
 45/45, the new marker present. **§86 is closed.** Next: the adopter updates, all three
 from 0.35.1 to 0.37.1 in one update.
+
+---
+
+## 87. The four unread arcs read against the standing clocks — two clocks fail on
+## their own pre-registered terms, one lens reaches zero, and one is saved only by
+## the adopter the clock was not written for — 2026-10-23
+
+The arcs: TFit Phases 10, 11 and 12 (kit 0.32.0) and chainmail Phase 01 (kit 0.33.0),
+plus TFit Phase 09 (0.30.0) for the two `stop-check` lines that start from 0.29.0. The
+evidence was read from the slice commit bodies, `.git/sdlc-close-out/log`,
+`.git/sdlc-tdd/guard.log`, `.git/sdlc-skill-ledger.jsonl`, the backlogs and the phase
+specs in each clone. **Every decisive quote below was re-checked against the tree**, not
+only taken from the extraction. Nothing here is ruled. §87.5 lists the rulings owed.
+
+### 87.1 The arcs, as measured
+
+| Arc | Slices | Records (5 keys) | Tests | Floor | Retro |
+|---|---|---|---|---|---|
+| TFit P10 (tunnel token) | 1 | 1/1 | 845 → 859 | 67 held | skipped |
+| TFit P11 (retrieval scale) | 5 | 5/5 | 859 → 948 | 67 → 69 | skipped |
+| TFit P12 (structured retrieval) | 9 (S9 skipped by ruling) | 9/9 | 948 → 1,253 | 69 → 72 | skipped |
+| chainmail P01 (blueprint renderer) | 11 (S11 docs-only) | 11/11 | 1 → 216 | set at 99/97/99/90 | #17 |
+
+The record lines are complete on all 26 slices, and every `quality:` line carries its
+`reuse:` half. Every `verify: ran` line carries its `not exercised:` half (TFit P12 S1
+capitalizes it). The adopters write them.
+
+**All three TFit arcs skipped `/sdlc-retro`** (rulings in `4f2ecbc`, `fcbf5b0`,
+`f48efd7`). That matters below twice: IMPACT's evidence channel *is* the retro, and
+R3.8's aging rule only runs inside one.
+
+### 87.2 The denominator question, which has to be ruled before any clock is
+
+Every two-arc clock written since §63 assumed one adopter running arcs in series:
+"arc two" was simply the next one. Three adopters now run concurrently: TFit P12 and
+chainmail P01 merged on the same day. Two readings are possible, and **they give opposite
+verdicts on two clocks**, so the choice cannot be made after seeing the results without
+looking like it was:
+
+- **(A) Chronological.** Arc two is the first eligible arc after arc one, which is TFit
+  P10, a one-slice hotfix. Under (A), `change-simplify` *passes*. P10's standards review
+  was clean, and the clock closed before P12 and chainmail showed the founding miss.
+  `untrusted input` is *unreadable* in P10, with zero applications, and is decided only
+  by P11 at two clean applications. That puts it at zero catches, so it is deleted.
+- **(B) Every eligible arc since the last reading is the reading.** This is what the
+  Standing clocks section's own **Eligible:** lines already say ("all four unread
+  arcs"), written before this reading. Under (B), `change-simplify` *fails* (§87.3 (ii))
+  and `untrusted input` is *kept* (§87.3 (i)).
+
+**Recommend (B).** It is the rule already written down, it was written before the
+evidence, and it is the only one that does not let a one-slice hotfix decide a deletion.
+(A) is the assumed-denominator defect the lineage keeps finding, this time choosing which
+arc counts. Everything below is read under (B), and each verdict says where (A) would
+differ.
+
+### 87.3 Clock by clock
+
+**(i) The three STD lenses: one deleted on the evidence, two kept.** Applications and
+catches across the four arcs, counted from the `lenses:` lines (slices only; whole-arc
+reviews noted separately):
+
+| lens | TFit P10 | P11 | P12 | chainmail P01 | catches |
+|---|---|---|---|---|---|
+| `secrets and exposure` | 1 | 4 | 3 | 4 | **0** |
+| `untrusted input` | 0 | 2 | 7 | 9 | **3**, all chainmail |
+| `logging and swallowed errors` | 1 | 4 | 9 | 4 | **2** |
+
+- **`secrets and exposure`: delete.** Arc one had 3 applications and arc two has 12
+  slice applications plus two whole-arc verdicts. Every one is `clean`, and the denominator
+  is real. The final clock (§54 (b), no further extension) says a lens with no lens-named
+  catch is deleted, with the conventions' enforcement lines re-pointed in the same
+  batch. (A) gives the same verdict.
+- **`untrusted input`: keep.** There are three lens-named findings on chainmail. S2 found
+  "Ajv allErrors on untrusted blueprints" (backlog 9, still open). S3 found "raw
+  themeId/layoutId/componentType echoed into error messages" (fixed in S6). S4 found
+  "brand.logoAssetId bounded only by minLength 1 … echoed raw" (fixed in S6). The
+  whole-arc review's MEDIUM finding, that the bytes checked and the bytes shipped came
+  through two media tables (fixed in `c0ad8bd`), was also filed under this lens. TFit's
+  nine applications are all clean. **Under (A) this lens is deleted.** It survives only
+  on the TypeScript adopter's first arc, which no clock anticipated.
+- **`logging and swallowed errors`: keep.** It was unreadable at arc one (zero
+  applications, and §76.5 (i) said do not restart). It now has two slice catches:
+  TFit P12 S7, "retrieval.py as_of_html swallowed every duckdb.Error silently — fixed",
+  and chainmail S6, "edge catch maps to 503 with no log … SiteBuildError.cause is never
+  surfaced" (backlog 16, fixed in S7). There is a third at chainmail's whole-arc review
+  (D26). (A) gives the same verdict, from P12's catch.
+
+**(ii) `change-simplify`: the negative half fired, in two arcs, and the clock fails
+outright on its own terms (§70.7 (ii)).** The positive half is over-met. Every TFit
+`quality:` line names its search, chainmail names it on 10 of 11 (S11 is a stated
+docs-only skip), and Reuse moves are applied in P11 S2/S3, P12 S2/S3/S5/S6/S8/S10 and
+chainmail S3/S5/S6/S7/S9/S10. The failure condition was "a reuse or duplication finding
+first raised by `diff-review` or the whole-arc review on a diff this pass had already
+passed over". Each instance below was verified in the tree:
+
+- **TFit P12 S4 (`e5a6620`), against slice `diff-review`, which became #189.** S4 added
+  `tools/run_kind_recall.shipped_keys` (`blocks[floor:]` over the rendered headers).
+  That duplicated `tools/measure_retrieval_scale.py:200,239` (`CITED_UNIT` plus the same
+  slice), already on the base. The pass's own record line says so: *"MISSED
+  tools/measure_retrieval_scale.py CITED_UNIT + beyond-floor slice (my grep used an
+  escaped pattern), caught by the review and deferred as #189"*.
+- **chainmail S6 (`2e8c048`), against the whole-arc review.** S6 added
+  `CANONICAL_SCHEMAS` in `apps/storefront/src/site/sites-build.ts`, a three-element
+  list byte-identical to `SCHEMA_FILES` in
+  `packages/adapters-local/src/ajv-schema-validator.ts`, which has been there since S2.
+  S6's reuse search names six families and no schema list. Neither the slice review nor
+  the quality pass raised it. The whole-arc review raised it (LOW #4), and `c0ad8bd`
+  fixed it ("one SCHEMA_FILES list").
+- **chainmail S3 (`cdb745e`), against slice `diff-review`, which became backlog 13.** The
+  `type@version` key format was built in both of S3's new files. S3's search list does
+  not include it, and its "one duplicate found and fixed" is a different duplicate. It
+  is still open, and it is the first cleanup slice of Phase 02.
+- Probable, not counted: two items of TFit's #210 (P12 whole-arc review): the Haiku pin
+  repeated in two modules, and `answer_model.OPUS` restating `tfit_qa_server.MODEL`.
+  Neither appears in any `quality:` line, though S10's says it "searched every model-id
+  literal repo-wide".
+
+The shape has changed from the founding miss, and the ruling should know that. In
+Phase 04 the pass said "nothing to do" without searching. Now it searches, says what it
+searched, and the search's scope misses: an escaped grep pattern, or a family nobody
+listed. The redirect worked as a behavior change and did not make the pass sufficient on
+duplication: `diff-review` and the arc review still catch what it misses. **The
+no-extension commitment is already spent (§70.7 (ii)), so the honest options are
+deletion, or a ruling that says in terms why the pre-registration does not bind.** Under
+(A) it passes on P10 alone.
+
+**(iii) CONTRACT: arc two has run, and the first criterion's catch came from the walk,
+not the per-arc check.** §57.5's deciding half is a confirmed catch within two arcs.
+
+- TFit P10: preserved contract `n/a`, with no entries on the touched surfaces. But
+  `/end-phase` step 7's contract walk, sent to its own session as #161 and run on
+  2026-10-11 (`d512ff4`), found **two owner-ratified clauses that were never built**.
+  P06 B4 was dropped, with the spec amended. P06 D6/B1, "tags and metadata as filters",
+  was restored as #162 and delivered in P12 S5. It also found about 50 ratified
+  behaviors absent from the contract, all entered. **This is exactly §56's founding
+  defect, caught by the mechanism built for it**, which is outcome B/C of §14 rather than
+  D.
+- TFit P11: 167/167 named pins found and passing. No catch.
+- TFit P12: the close's contract check reproduced #172, an order-dependent failure of a
+  P11 contract pin that predates the arc. That is a real defect in a pin, not a
+  regression the arc introduced. Reconciling the contract also amended the entry the arc
+  had changed by owner decision (#203).
+- chainmail P01: the contract was empty, so the check was vacuous. 17 entries were
+  written at the close.
+
+**Read: confirmed catch, keep.** The #161 walk ran during the TFit P10 → P11 interval,
+inside the eligible window, so (A) gives the same verdict.
+
+**(iv) `stop-check`: five eligible arcs, zero catches, five false candidates. Delete
+(option D).**
+
+| Arc | non-empty windows | genuine slice inspected | flags | true / false |
+|---|---|---|---|---|
+| TFit P09 | 1 | 0 | `aeb70f5` (bare, tooling) | 0 / 1 |
+| TFit P10 | 4 | `d1cb543`, complete | none | — |
+| TFit P11 | **0** | 0 | none | — |
+| TFit P12 | 2 | 0 | `32bc9fd` (**defective**), `34fb639` (bare, `ARCHIVE_GUIDE.md`) | 0 / 2 |
+| chainmail P01 | 2 | 0 | `97c4b8a`, `a20d9d0` (bare, hook chores) | 0 / 2 |
+
+§73.8: one false candidate fails the arming bar and restarts the clock once, and a second
+false candidate is deletion. The first false candidate (P09) went unread for two months,
+so the restart never ran. Four more followed. One of them, `32bc9fd`, is in the
+**defective-record** class, the class §52.2 calls stateless and reliable: an
+out-of-loop tooling commit that voluntarily carried one `mutation:` line was read as
+"partial presence proves close-out intent". The window is also collapsing for a
+structural reason. Both adopters push every slice right away (TFit's branch tracking,
+chainmail's D27 draft PR), so `@{u}..HEAD` is empty at nearly every stop. TFit P11 is the
+zero-denominator arc §73.8 calls deletion by unreadability. Every reading points the same
+way. `/end-slice` step 8's fail-closed `check` is a separate control and is untouched.
+
+**(v) The bare-flag arming bar: not met.** False bare candidates appear in P09, P12 and
+chainmail. P10 is the one arc with a zero false count, so the letter of §73.8 re-opens
+the question there. That is moot if (iv) deletes `stop-check`, and in any case it would
+mean arming on a single one-slice arc.
+
+**(vi) §76.9(d), the two record-line halves: the restatement was enough, so do not build
+the observer.** `reuse:` is on 26/26 slice `quality:` lines and `not exercised:` is on
+every `verify: ran` line. (α) is answered and (β) is not owed.
+
+**(vii) The docs-only verification form: one readable arc, no catch.** TFit had no
+docs-only slice in three arcs. chainmail S11 is the only application: 14 README paths
+opened, all present, and every documented command run green. The one broken documented
+command of the arc, acceptance item 8 (`pnpm start` with no root script), was found at
+`/next-slice`'s preview, not by the docs form. By the precedent that an arc which cannot
+exercise a control does not count against it, the TFit arcs do not count. **Arc one of
+two, zero catches.** The next docs slice anywhere decides.
+
+**(viii) IMPACT: recommend starting the clock at TFit P12, with zero comprehension
+events.** chainmail P01's graph was stale for the whole arc (every view `PARTIAL`, 7 →
+115 files behind) and was refreshed only after the merge, so it does not count, as
+under §76.7 ruling 4. TFit P10 and P11: freshness cannot be determined. TFit P12: the
+graph was incomplete through S2 (`current at the base` with ten files missing, the
+friction that became #11). It was fully rebuilt on 2026-10-15 after `32bc9fd`, and the
+plugin's incremental runs follow each later slice commit in `guard.log`. **S3–S10 ran on
+a usable graph.** No comprehension event is recorded anywhere. The strict start
+condition, a graph "regenerated under [the kit's] trigger", is not what happened: the
+adopter's own coverage tooling forced the rebuild. The purpose of the condition, a
+usable graph, was met. **The channel is the real problem.** §66.6 collects comprehension
+events "in the retro/field-report channel", and TFit skipped all three retros. A clock
+whose only evidence channel the adopter has stopped using cannot be read, whatever the
+graph's state.
+
+**(ix) The slice-end graph refresh (0.33.0): arc one at zero, and it never ran.**
+chainmail skipped it at 11 of 11 slice closes for cost, then ruled it off at the retro.
+There was no `current at the base` reading during the arc. Neither TFit nor ai-news had
+folded it during these arcs, but both records now read "slice-end incremental on", so
+the second arc can come from either. **Arc one of two, no catch.**
+
+**(x) COSMETIC and the phase-end coverage trigger: no eligible arc** (all four ran
+before 0.34.0). The pre-release evidence is worth recording against COSMETIC's catch
+criterion. TFit P11 took 7 comment-only refactor licences, every one after a DENY on a
+docstring or comment edit. That is exactly the write COSMETIC exempts, two releases
+early. `32bc9fd` is TFit building the coverage trigger's precursor for itself.
+
+**(xi) `mutation-testing`: zero dispatches in all four ledgers** (and in TFit's whole
+ledger, ever). The inlined rules are followed: byte-exact scripted restores,
+sha256-verified, in P12 S3/S7/S8/S10, and inverted-hunk restores in P11 S1. As §70.7
+ruling 4 predicted, nothing is owed.
+
+**(xii) R3.8's aging rule: its "healthy state" premise no longer holds.** The Standing
+clocks section keeps it because "the retro sweep consumes friction entries in their own
+arc". With three TFit retros skipped, TFit's friction log has entries that are three
+phases old: ten were added in P10–P12, and five of those are still open. The rule lives
+inside `/sdlc-retro`, so it has not run either. The carry-forward the rule backstops is
+now real, and its trigger is the step being skipped.
+
+### 87.4 What the reading found that no clock asks about
+
+- **The retro is now optional in practice, and three clocks read through it.** These are
+  IMPACT's comprehension events, R3.8's aging and the friction harvest. TFit's three
+  skips were each ruled by the owner, with nothing wrong in that, but the kit has no
+  statement of what a skipped retro costs the clocks. ai-news has run no arc since
+  2026-08-17.
+- **The Stop-time window assumes the work is not pushed.** Push-per-slice is the norm on
+  both active adopters, which bears on (iv) and on anything else built on `@{u}..HEAD`.
+- **`guard.log` charged `.ua/` plugin scratch as production writes** under 0.32.0, with a
+  DENY on `.ua/intermediate/gen-batch-1.py` in TFit P12. This is already fixed: 0.35.0
+  (`0b6d483`) exempts `.ua/*` in the guard template itself. The next guard-log read
+  should confirm those writes now log as exempt.
+- **Compound-command refusals**: 53 in TFit P12 and 62 in chainmail P01, mostly
+  `ruff && mypy && pytest` chains and pipes to `tail`. These are counts for the standing
+  `2>&1` watch item, which said to count before changing anything.
+
+### 87.5 Decisions owed
+
+1. **§87.2, the denominator.** (B) every eligible arc since the last reading, or (A)
+   chronological. Recommend **(B)**. Rule this first, because (2) and (3) depend on it.
+2. **`secrets and exposure`: delete**, with its enforcement lines re-pointed in the same
+   batch (§54 (b)). The verdict is the same under (A) and (B).
+3. **`change-simplify`: the pre-registered failure fired twice**, and three times
+   counting chainmail S3. The options are (a) delete as pre-registered, keeping
+   `diff-review`'s duplication axis as the only reuse control, or (b) keep it with a
+   written ruling that the pre-registration does not bind, and why. Recommend **(a)**:
+   the pass's own record lines show it searching and still missing, and the reviewers
+   catching what it misses, which is the division of labor §53 set out to end.
+4. **`stop-check`: delete** (option D). Every reading of §73.8 reaches it. The
+   bare-flag arming question closes with it.
+5. **CONTRACT: keep**, with the #161 walk as the confirmed catch.
+6. **IMPACT: start the clock at TFit P12** as arc one, zero events, and decide whether
+   comprehension events need a channel other than the retro.
+7. **R3.8 / skipped retros**: no rule change is proposed. Record that the premise
+   changed, and ask the owner whether a skipped retro should at least run the friction
+   sweep.
+8. **Tell the adopters** what their arcs decided, as §76.7 ruling 5 did. TFit's P12
+   friction entries and chainmail's open backlog 13 relate to (3).
+
+### 87.6 Ruled 2026-10-23 — the denominator, (B)
+
+**§87.5 (1) RULED (B): every eligible arc since the last reading is the reading.** This
+is the rule the Standing clocks section's **Eligible:** lines already stated, and it now
+holds as a ruling for every multi-arc clock, not only the ones read here. The §87.3
+verdicts stand as written under (B). §87.5 (2)–(8) are still owed. Under (B), (2)
+and (3) are no longer contingent on anything.
