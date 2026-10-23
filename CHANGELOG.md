@@ -14,7 +14,7 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
-## 0.37.0 — unreleased
+## 0.37.0 — 2026-10-23
 
 The pre-release sanity pass's remainder (`FEATURE_PLAN.md` §86, ruled 2026-10-23). One
 offered skill leaves the kit, and three numbers and lists that lived in two places now
