@@ -7271,3 +7271,11 @@ only in setup, the tree complete. Four reading agents covered invariants 1–3, 
 - `PROJECT_INDEX.template.md`'s BUILD (mid-feature) status variant carries no floor
   line at all. This predates the batch, and the pointer comment now reads as covering
   every mode.
+
+### 86.8 Released — 0.37.0, 2026-10-23
+
+Release commit `df2d343`, tag `v0.37.0`, workflow run 39992029844 green on the first
+run. The four workflow gates were simulated first on an export of the index. Tarball
+verified from the download: checksum OK, VERSION 0.37.0, manifest 45/45, seven skill
+directories with no `tdd-guide`, `reference/UPDATE_NOTES.md` present, the 0.37.0 marker
+in the template. Adopter updates (all three on 0.35.1) are no longer held for §86.
