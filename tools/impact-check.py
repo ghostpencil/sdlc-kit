@@ -408,6 +408,14 @@ def c_phase_scope(b):
     return ("phase", "main")
 
 
+def c_phase_untracked_outside(b):
+    """The arc is committed at the merge halt; an untracked file is not part of it
+    (the eleventh field report's finding 9: an IDE directory and a crash dump)."""
+    c_phase_scope(b)
+    b.write("sh.exe.stackdump", "an untracked crash dump\n")
+    return ("phase", "main")
+
+
 def c_graph_inside_change_set(b):
     """The slice-end refresh: the graph was rebuilt at a commit INSIDE the arc. The
     phase view's base is where the arc branched, so the plain diff is non-empty - and
@@ -476,8 +484,12 @@ def c_unknown_mode(b):
 
 # ---- coverage: the phase-end trigger for a full rebuild (FEATURE_PLAN.md §83).
 
-def coverage_bench(b, files, plugin=CLAUDE_HOME + ("2.9.7",)):
+def coverage_bench(b, files, plugin=CLAUDE_HOME + ("2.9.7",), gone=()):
     b.install_graph()
+    # The graph's own files exist in the tree, except any the case says it lost.
+    for rel in IN_GRAPH:
+        if rel not in gone:
+            b.write(rel, "present\n")
     b.commit("graph present")
     b.install_scanner(plugin, "2.9.7", files=files)
     return ("coverage",)
@@ -497,6 +509,13 @@ def c_cov_script_missing(b):
 
 def c_cov_docs_never_trigger(b):
     return coverage_bench(b, IN_GRAPH + [DOCS_NOT_IN_GRAPH, CONFIG_NOT_IN_GRAPH])
+
+
+def c_cov_gone_file(b):
+    """A file the graph still describes and the tree no longer holds (the scanner,
+    reading the tree, no longer lists it either)."""
+    return coverage_bench(b, [f for f in IN_GRAPH if f != "tfit_ratelimit.py"],
+                          gone=("tfit_ratelimit.py",))
 
 
 def c_cov_newest_version_wins(b):
@@ -577,6 +596,19 @@ def c_rc_graph_behind(b):
     built = b.commit("graph built here")
     b.set_meta_commit(built)
     b.write("usage_store.py", "the slice's change\n")
+    b.commit("the slice")
+    return ("refresh-check",)
+
+
+def c_rc_count_excludes_graph_files(b):
+    """A tracked graph directory: the refresh commit touches only UA files, and they
+    are not project files behind."""
+    b.install_graph()
+    b.write("usage_store.py", "original\n")
+    built = b.commit("graph built here")
+    b.set_meta_commit(built)
+    b.write("usage_store.py", "the slice's change\n")
+    b.write("tfit_qa_server.py", "the slice's other change\n")
     b.commit("the slice")
     return ("refresh-check",)
 
@@ -862,7 +894,8 @@ CASES = [
      # One tracked file modified plus one untracked file added = 2. The point is that
      # the untracked one is IN the denominator and named as unmatched, not that the
      # count is large.
-     ["changed-files: 2", "never_added.py", "unmatched-files: 1"], [], None),
+     ["changed-files: 2", "never_added.py", "unmatched-files: 1"],
+     ["untracked-files"], None),
 
     ("all_nodes_of_a_changed_file_map", c_multiple_nodes_one_file,
      ["SDLC IMPACT: COMPLETE", "changed-files: 1", "mapped-files: 1",
@@ -891,11 +924,18 @@ CASES = [
      ["SDLC IMPACT: COMPLETE"], None),
 
     ("graph_current_at_base_despite_slice_edits", c_graph_current_at_base,
-     ["SDLC IMPACT: COMPLETE", "current at the base"],
+     ["SDLC IMPACT: COMPLETE", "current at the base",
+      "graph-coverage: not checked by this view"],
      ["may be stale", "PARTIAL"], None),
 
     ("phase_scope_spans_the_arc", c_phase_scope,
-     ["scope: phase", "changed-files: 2"], ["scope: slice"], None),
+     ["scope: phase", "changed-files: 2", "untracked-files: 0",
+      "graph-coverage: not checked by this view"], ["scope: slice"], None),
+
+    ("phase_scope_untracked_outside_the_denominator", c_phase_untracked_outside,
+     ["scope: phase", "changed-files: 2", "untracked-files: 1",
+      "untracked: sh.exe.stackdump", "unmatched-files: 0"],
+     ["changed-files: 3"], None),
 
     ("graph_refreshed_inside_the_arc_is_current", c_graph_inside_change_set,
      ["built inside this change set"], ["may be stale"], None),
@@ -919,7 +959,14 @@ CASES = [
      ["SDLC IMPACT: COMPLETE", "scope: coverage",
       "scanner: understand-anything 2.9.7 (Claude Code plugin cache)",
       "scanned-code-files: 6", "missing-code-files: 0", "missing-other-files: 0",
-      "full-rebuild: not needed"], ["PARTIAL", "needed -"], None),
+      "gone-files: 0", "full-rebuild: not needed"], ["PARTIAL", "needed -", "gone:"],
+     None),
+
+    ("coverage_names_a_gone_file_and_triggers_nothing", c_cov_gone_file,
+     # Named, never a trigger: an incremental run or the next full rebuild drops it.
+     ["SDLC IMPACT: COMPLETE", "missing-code-files: 0", "gone-files: 1",
+      "gone: tfit_ratelimit.py", "full-rebuild: not needed"],
+     ["PARTIAL", "needed -"], None),
 
     ("coverage_missing_code_file_triggers_rebuild", c_cov_code_missing,
      ["SDLC IMPACT: PARTIAL", "scanned-code-files: 7", "missing-code-files: 1",
@@ -973,7 +1020,12 @@ CASES = [
      ["SDLC IMPACT: ERROR", "malformed"], ["COMPLETE", "PARTIAL"], None),
 
     ("refresh_runs_when_the_graph_is_behind", c_rc_graph_behind,
-     ["refresh needed", "run /understand"], ["skipped"], None),
+     ["refresh needed", "1 project files behind", "run /understand"], ["skipped"],
+     None),
+
+    ("refresh_count_leaves_out_the_graph_directory", c_rc_count_excludes_graph_files,
+     ["refresh needed", "2 project files behind"], ["skipped", "3 project files"],
+     None),
 
     ("refresh_skipped_when_the_graph_is_at_head", c_rc_graph_at_head,
      ["refresh skipped", "already at HEAD", "would stop to ask"], ["needed"], None),
@@ -1061,7 +1113,8 @@ CASES.append(("ua_files_excluded_even_when_git_sees_them",
 # UA's artifacts and the project's denominator.
 UNIGNORED = {"not_ignored_ua_dir_writes_nothing",
              "ua_files_excluded_even_when_git_sees_them",
-             "tracked_graph_refresh_commit_is_not_staleness"}
+             "tracked_graph_refresh_commit_is_not_staleness",
+             "refresh_count_leaves_out_the_graph_directory"}
 
 
 def case_pass(adapter_src, verbose=True, first_only=False):
@@ -1180,6 +1233,33 @@ MUTATIONS = [
     ("missing_node_not_detected",
      '    node = shutil.which("node")\n    if not node:',
      '    node = "node"\n    if not node:'),
+    ("phase_counts_untracked_files",
+     '    if scope != "phase":\n        changed, untracked',
+     '    if True:\n        changed, untracked'),
+    ("slice_drops_untracked_files",
+     '        changed, untracked = sorted(changed + untracked), []',
+     '        changed, untracked = sorted(changed), []'),
+    ("phase_untracked_not_named",
+     '        fields.append(("untracked-files", len(untracked)))',
+     '        pass'),
+    ("view_claims_nothing_about_coverage",
+     '    fields.append(("graph-coverage", "not checked',
+     '    (("graph-coverage", "not checked'),
+    ("gone_files_never_found",
+     '                  and not os.path.exists(os.path.join(root, p)))',
+     '                  and False)'),
+    ("gone_files_trigger_a_rebuild",
+     '    fields.append(("full-rebuild", "needed - /understand --full" if missing',
+     '    fields.append(("full-rebuild", "needed - /understand --full" if missing or gone'),
+    ("refresh_count_includes_the_graph_directory",
+     '            [f for f in out.split("\\n")\n'
+     '             if f and f != ua_name and not f.startswith(ua_name + "/")])',
+     '            [f for f in out.split("\\n")\n             if f])'),
+    ("refresh_count_dropped",
+     '    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s, %s: run /understand"\n'
+     '          % (commit[:8], head[:8], behind))',
+     '    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s: run /understand"\n'
+     '          % (commit[:8], head[:8]))'),
     ("refresh_never_skipped_at_head",
      '    if commit == head:',
      '    if False:'),

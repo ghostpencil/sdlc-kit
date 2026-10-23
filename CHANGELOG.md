@@ -10,6 +10,69 @@ matters at update time. Entries marked **[adoption-only]** change `templates/**`
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project.
 
+## 0.36.0 — unreleased
+
+The rest of §84's ruled work, and four items from the 0.35.1 adopter updates
+(`FEATURE_PLAN.md` §85, ruled 2026-10-22). The guards now report code written past them
+and stop charging a formatting fix to a test. An update now looks for every process
+rule an earlier update missed, and can retire a local amendment instead of carrying it.
+Setup offers the architecture-graph tool.
+
+### Added
+- **[adoption-only]** **The TDD guards report code that changed outside the editor
+  tools** (`tdd-guard-claude.template.py`, `tdd-guard.template.sh`). The session's first
+  hook call records where it started. At each stop, a code file whose content differs
+  from that start, and that no pre-write let through, is named. Armed, the stop blocks
+  once; in logging mode it logs. Content, not mtime, so the hash-verified mutation
+  runner never trips it, and a write the guard denied and the shell then made is
+  caught. Commits dated before the session (a pull, a merge) are not charged. One
+  adoption made about 28 such writes unseen in one armed phase (sdlc-kit#16, #17).
+- **[installable]** **`/sdlc-update` looks for every process rule an earlier update
+  missed.** Step 4 greps `spec/SDLC.md` for a marker phrase per rule, for every release
+  from 0.15.0 up to the target rather than only the hops in range, and puts each
+  absence to the owner: fold now, or "reworded on purpose", recorded once. A reading
+  of three adopters' specs found six missed folds, and several template rules whose
+  release note never asked for a fold.
+- **[installable]** **The hook re-derive helper can retire a local amendment.** It
+  numbers each amendment and takes `--drop N[,N…]`; a dropped amendment's lines revert
+  to the template's before the merge, and each drop is reported as covered by the
+  target template or as a `BEHAVIOR CHANGE`. Before this every amendment was carried by
+  construction, so one a version note retired would have shipped silently.
+- **[installable]** **Setup offers Understand Anything** (sdlc-kit#12): the install
+  commands for both CLIs, the auto-update question, tracked or git-ignored, and lint and
+  format ignores for its directory. The answers land in a new *Records* →
+  *Architecture graph* line (`{{GRAPH_TOOL_NOTE}}`).
+- **[adoption-only]** A Maven (Surefire) row in GATE_RECIPES's `{{TEST_REPORT_PATTERN}}`
+  table, measured, with its cost: a production compile error counts as a RED.
+
+### Changed
+- **[adoption-only]** **A comment- or format-only edit to a test is not a new cycle.**
+  The guards ask the cosmetic classifier about a test edit when a live red or a
+  refactor licence is at stake; a cosmetic edit keeps both. Before, the edit-time
+  hook's format fix on a test, landing after its red run, staled the red (field
+  report 11, finding 4).
+- **[installable]** **The impact adapter** (kit-owned): at `phase` scope untracked
+  files sit outside the denominator on their own line; every view states that it does
+  not check coverage (`graph-coverage:`); `coverage` names files the graph holds and
+  the tree lost (`gone`), which trigger nothing; `refresh-check` says how many files
+  the graph is behind. `freshness()`'s wording is unchanged.
+- **[installable]** `/end-phase` re-runs `coverage` after `--full` and quotes it as the
+  evidence. `/end-slice` quotes the files-behind count, and a step skipped for the same
+  reason in three consecutive slices becomes friction.
+- **[installable]** The plugin's auto-update is described as it is, in setup,
+  `/end-phase` and the template: it writes nothing itself, and orders the agent to run
+  the incremental update unprompted, at its token cost. "Reminds rather than refreshes"
+  was wrong both ways.
+- **[installable]** `/sdlc-update`'s 0.35.0 guard note: run your own guard tests after
+  the re-derive; a fixture faking a red must carry the runner's real report.
+
+### Proofs
+- New `tools/rederive-check.py`: the re-derive helper's text, extracted from the
+  command, against a three-amendment fixture; and every fold marker present exactly
+  once in the template.
+- `tools/impact-check.py` 48 cases, 58 mutations; `tools/tdd-guard-claude-check.py`
+  110 cases; `tools/tdd-guard-check.py` gains C11–C15 and D1–D10.
+
 ## 0.35.1 — 2026-10-21
 
 The hook scripts start far fewer processes, and `/sdlc-update` now walks an owner

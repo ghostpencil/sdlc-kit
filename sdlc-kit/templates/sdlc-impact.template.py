@@ -221,15 +221,19 @@ def is_ignored(root, rel):
 
 
 def change_set(root, base, ua_name):
-    """Every project file changed since `base`, from four sources the spec names.
+    """(tracked, untracked): every project file changed since `base`, from the four
+    sources the spec names.
 
-    Committed since base, staged, unstaged, and untracked-but-not-ignored. A slice
-    that committed mid-way is covered by the first; a slice mid-flight by the rest.
-    UA's own generated files are excluded by path, mechanically, so the denominator
-    is the project's own changed files and regenerating the overlay can never inflate
-    the next run's count.
+    Committed since base, staged, unstaged - and, kept apart, untracked-but-not-
+    ignored. A slice that committed mid-way is covered by the first; a slice
+    mid-flight by the rest. The caller decides where the untracked ones go: a slice in
+    flight counts them, while a phase sits committed at its merge halt, where an
+    untracked file is not part of the arc (one adoption's phase view read 133 against
+    a 116-file arc, from an IDE directory and a crash dump). UA's own generated files
+    are excluded by path, mechanically, so the denominator is the project's own
+    changed files and regenerating the overlay can never inflate the next run's count.
     """
-    files = set()
+    files, untracked = set(), set()
     for args in (("diff", "--name-only", base, "--"),
                  ("diff", "--name-only", "--cached", "--"),
                  ("diff", "--name-only", "--")):
@@ -238,12 +242,13 @@ def change_set(root, base, ua_name):
             files.update(out.split("\n"))
     code, out = git("-C", root, "ls-files", "--others", "--exclude-standard")
     if code == 0 and out:
-        files.update(out.split("\n"))
+        untracked.update(out.split("\n"))
     prefix = ua_name + "/" if ua_name else None
-    return sorted(
-        f for f in files
-        if f and not (prefix and (f == ua_name or f.startswith(prefix)))
-    )
+
+    def project(paths):
+        return sorted(f for f in paths
+                      if f and not (prefix and (f == ua_name or f.startswith(prefix))))
+    return project(files), project(untracked - files)
 
 
 def load_graph(ua_path):
@@ -585,6 +590,13 @@ def cmd_coverage(root):
         return emit("UNAVAILABLE", "coverage", [("scanner", label)],
                     reason="cannot check - %s" % problem)
     graphed = {n.get("filePath") for n in graph.get("nodes", []) if n.get("filePath")}
+    # The other direction: files the graph still describes that the tree no longer
+    # holds. Named, never a trigger - the view maps a deleted file to its old node,
+    # which is what a change set deleting it should show, and the next full rebuild
+    # drops them.
+    gone = sorted(p for p in graphed
+                  if not (p == ua_name or p.startswith(ua_name + "/"))
+                  and not os.path.exists(os.path.join(root, p)))
     trigger = sorted(p for p, cat in files if cat in TRIGGER_CATEGORIES)
     missing = [p for p in trigger if p not in graphed]
     other = sorted(p for p, cat in files
@@ -597,6 +609,9 @@ def cmd_coverage(root):
     fields.append(("missing-other-files", len(other)))
     if other:
         fields.append(("missing-other", named(other)))
+    fields.append(("gone-files", len(gone)))
+    if gone:
+        fields.append(("gone", named(gone)))
     fields.append(("full-rebuild", "needed - /understand --full" if missing
                    else "not needed"))
     return emit("PARTIAL" if missing else "COMPLETE", "coverage", fields)
@@ -752,8 +767,18 @@ def cmd_refresh_check(root):
         print("sdlc-impact: refresh skipped - the graph is already at HEAD (%s); "
               "/understand would stop to ask" % head[:8])
         return 0
-    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s: run /understand"
-          % (commit[:8], head[:8]))
+    # How far behind, in files: a skip stated at every slice close reads the same at
+    # 15 files as at 115 (one adoption, eleven slices), and the count is what makes a
+    # repeated skip visible as debt.
+    behind = "files behind: unknown"
+    code, out = git("-C", root, "diff", "--name-only", commit, "HEAD", "--")
+    if code == 0:
+        ua_name = os.path.basename(ua_path)
+        behind = "%d project files behind" % len(
+            [f for f in out.split("\n")
+             if f and f != ua_name and not f.startswith(ua_name + "/")])
+    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s, %s: run /understand"
+          % (commit[:8], head[:8], behind))
     return 0
 
 
@@ -770,7 +795,9 @@ def run(scope, root, base, base_branch):
         return emit("UNAVAILABLE", scope, [],
                     reason="Understand Anything knowledge graph not found in %s" % ua_name)
 
-    changed = change_set(root, base, ua_name)
+    changed, untracked = change_set(root, base, ua_name)
+    if scope != "phase":
+        changed, untracked = sorted(changed + untracked), []
     changed_ids, unmatched = map_nodes(graph, changed)
     affected = one_hop(graph, changed_ids)
     layer_names = layers_for(graph, changed_ids + affected)
@@ -792,7 +819,19 @@ def run(scope, root, base, base_branch):
         # and the second field report's whole lesson is that a count without its
         # members is a denominator nobody can check.
         fields.append(("unmatched", named(unmatched)))
+    if scope == "phase":
+        # Outside the denominator, and named: an untracked file at the merge halt is
+        # not the arc's, but it may be work someone forgot to add.
+        fields.append(("untracked-files", len(untracked)))
+        if untracked:
+            fields.append(("untracked", named(untracked)))
     fields.append(("graph-freshness", fresh_text))
+    # Freshness dates the graph's build; it never counted the graph's files. One
+    # adoption read "current at the base" over a graph missing ten tracked files, so
+    # the view says what it did not check, every time, in a fixed place.
+    fields.append(("graph-coverage", "not checked by this view - freshness dates the "
+                                     "graph, it does not count its files; the "
+                                     "coverage mode does"))
     fields.append(("overlay", overlay))
 
     state = "COMPLETE" if not unmatched and not stale else "PARTIAL"

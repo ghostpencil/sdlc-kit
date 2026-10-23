@@ -264,14 +264,102 @@ take; CODE=$v
 take; REPORT=$v
 PATHS=$rest
 
+# Code that changed OUTSIDE the editor tools (0.36.0). This guard sees only the editor
+# tools, so a shell write to source or a test was invisible to it: one adoption made
+# about 28 unseen production writes in one armed phase (field report 11, finding 2).
+# Detection, not prevention. The session's start is recorded, and at stop every code
+# file whose CONTENT differs from that start, and that no pre-write saw, is reported.
+# Content, never mtime, so the hash-verified mutation runner, which puts the same bytes
+# back, never trips it. Commits dated before the session began (a pull, a merge) are
+# not the session's. "Code" is the guard's own: SOURCE_GLOB minus the exempt paths,
+# tests included. Fails open: any git failure reports nothing. Known costs: a
+# formatter or generator writing into code nobody edited this session reads as a
+# breach (the cure is the exempt pattern for generated directories); and so does a
+# commit pulled in from elsewhere while the session runs. The session's FIRST tool
+# call takes the snapshot, so a shell write in that very call is missed. The git
+# directory and root are named outright: discovery could walk past a harness's bare
+# temp root into whatever repository encloses it.
+sdlc_git() {
+  git -c core.quotepath=false -C "$SDLC_REPO_ROOT" --git-dir="$GD" --work-tree="$SDLC_REPO_ROOT" "$@" 2>/dev/null
+}
+is_code() {
+  case "$1" in .ua/*|.understand-anything/*|{{GUARD_EXEMPT_PATTERN}}) return 1 ;; esac
+  case "${1##*/}" in {{SOURCE_GLOB}}) return 0 ;; esac
+  return 1
+}
+# Repo-relative paths git reports as changed or untracked; a rename's new name.
+status_paths() {
+  sdlc_git status --porcelain=v1 -uall | awk '{ p = substr($0, 4); i = index(p, " -> "); if (i) p = substr(p, i + 4); print p }'
+}
+# "<blob id><TAB><path>" for each path in the file $1 - an empty id for a file that is
+# not there - in one git call.
+blob_ids() {
+  : > "$S/.there"; : > "$S/.gone"
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    if [ -f "$SDLC_REPO_ROOT/$p" ]; then printf '%s\n' "$p" >> "$S/.there"
+    else printf '\t%s\n' "$p" >> "$S/.gone"; fi
+  done < "$1"
+  if [ -s "$S/.there" ]; then
+    sdlc_git hash-object --stdin-paths < "$S/.there" > "$S/.ids" || return 1
+    paste "$S/.ids" "$S/.there"
+  fi
+  cat "$S/.gone"
+}
+record_start() {
+  : > "$S/.cand"
+  while IFS= read -r p; do
+    [ -n "$p" ] && is_code "$p" && printf '%s\n' "$p" >> "$S/.cand"
+  done <<STATUS
+$(status_paths)
+STATUS
+  { sdlc_git rev-parse HEAD || echo; date +%s; blob_ids "$S/.cand"; } > "$S/session-start" 2>/dev/null
+}
+# The code files changed this session that no pre-write saw, not yet reported.
+outside_writes() {
+  [ -f "$S/session-start" ] || return 0
+  { IFS= read -r h0; IFS= read -r t0; } < "$S/session-start"
+  st=$(status_paths) || return 0
+  now=$(sdlc_git rev-parse HEAD)
+  if [ -n "$h0" ] && [ -n "$now" ] && [ "$now" != "$h0" ]; then
+    st="$st$NL$(sdlc_git log --no-merges --since=@"$t0" --name-only --format= "$h0..HEAD")"
+  fi
+  : > "$S/.code"
+  while IFS= read -r p; do
+    [ -n "$p" ] && is_code "$p" && printf '%s\n' "$p" >> "$S/.code"
+  done <<CANDIDATES
+$(printf '%s\n' "$st" | awk 'NF && !seen[$0]++')
+CANDIDATES
+  # Seen or already reported drops out, case-folded because Windows reports either
+  # case. One awk, not a grep per path: MSYS grep aborts on -i with -F (measured
+  # 2026-10-22, Git for Windows), which read as "not seen" for every file.
+  : >> "$S/seen-writes"; : >> "$S/reported-writes"
+  awk 'FILENAME != ARGV[3] { skip[tolower($0)] = 1; next } !(tolower($0) in skip)' \
+    "$S/seen-writes" "$S/reported-writes" "$S/.code" > "$S/.cand"
+  [ -s "$S/.cand" ] || return 0
+  blob_ids "$S/.cand" > "$S/.now" || return 0
+  tail -n +3 "$S/session-start" > "$S/.start"
+  : > "$S/.base"
+  if [ -n "$h0" ]; then
+    set --
+    while IFS= read -r p; do set -- "$@" "$p"; done < "$S/.cand"
+    sdlc_git ls-tree "$h0" -- "$@" | awk -F '\t' '{ split($1, m, " "); print m[3] "\t" $2 }' > "$S/.base"
+  fi
+  awk -F '\t' 'FILENAME == ARGV[1] { start[$2] = $1; had[$2] = 1; next }
+               FILENAME == ARGV[2] { base[$2] = $1; next }
+               { was = ($2 in had) ? start[$2] : base[$2]; if ($1 != was) print $2 }' \
+    "$S/.start" "$S/.base" "$S/.now"
+}
+
 # Observations are SESSION-scoped: a red observed in an earlier session does not
 # license a production write in this one. A new sessionId resets them.
 prev=""
 [ -f "$S/session" ] && IFS= read -r prev < "$S/session"
 if [ -n "$SID" ] && [ "$SID" != "$prev" ]; then
-  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" "$S/prod-write-observed" 2>/dev/null
+  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" "$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" 2>/dev/null
   printf '%s' "$SID" > "$S/session" 2>/dev/null
   log "new session $SID - previous observations cleared"
+  record_start
 fi
 
 # The output schemas below were measured against the CLI, not taken from documentation.
@@ -308,7 +396,7 @@ case "$MODE" in
 
   pre-write)
     [ -n "$PATHS" ] || { log "no paths parsed from the write payload"; exit 0; }
-    prod=""; test_touched=""; nprod=0; pfile=""
+    prod=""; test_touched=""; nprod=0; pfile=""; ntest=0; tfile=""; prel=""
     # The candidate repository roots (why there are three: inside the loop, below).
     # They depend only on the root, so they are built once per call, not per path:
     # separators normalized and the trailing slash dropped, plus each one lowercased,
@@ -403,11 +491,13 @@ case "$MODE" in
         case "$b" in {{SOURCE_GLOB}}) log "exempt from the guard (not production source, not a test): $n" ;; esac
         continue ;;
       esac
-      case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
-      case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac
+      # A test write is never denied, so it is seen through the editor tools at once:
+      # the stop-time detector leaves it alone.
+      case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); tfile="$SDLC_REPO_ROOT/$n"; printf '%s\n' "$n" >> "$S/seen-writes"; continue ;; esac
+      case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); tfile="$SDLC_REPO_ROOT/$n"; printf '%s\n' "$n" >> "$S/seen-writes"; continue ;; esac
       case "$b" in {{SOURCE_GLOB}})
         if [ -z "$prod" ]; then prod="$p"; else prod="$prod, $p"; fi
-        nprod=$((nprod + 1)); pfile="$SDLC_REPO_ROOT/$n" ;;
+        nprod=$((nprod + 1)); pfile="$SDLC_REPO_ROOT/$n"; prel="$prel$n$NL" ;;
       esac
     done <<PATHLIST
 $PATHS
@@ -446,6 +536,12 @@ PATHLIST
       # actually WENT THROUGH. The deny branch sets nothing on purpose - a denied
       # write leaves the tree unchanged, and a stop guard armed by it would demand a
       # green for code that was never written.
+      # Every branch but the deny lets the write through, so every branch but the deny
+      # records it as seen. A denied write changed nothing; a shell retry of the same
+      # file is exactly what the stop-time detector exists to catch.
+      if [ -n "$ok" ] || [ ! -f "$S/deny-enabled" ]; then
+        printf '%s' "$prel" >> "$S/seen-writes"
+      fi
       if [ "$ok" = "red" ]; then
         touch "$S/prod-write-observed" 2>/dev/null
         log "OK production write (red observed since last test edit): $prod"
@@ -464,6 +560,24 @@ PATHLIST
         touch "$S/prod-write-observed" 2>/dev/null
         log "VIOLATION production write without observed red: $prod"
       fi
+    fi
+    # A comment or formatting edit to a test is not a new cycle. Before 0.36.0 the
+    # edit-time hook's format fix on a test, landing after its red run, staled the red
+    # and revoked the licence (one adoption, its own field report). Asked only of a
+    # single-file test write, and only when something is at stake - a live red or a
+    # refactor licence - so an edit that would cost nothing never pays for the
+    # classifier. Like the production ask, it can only GRANT.
+    if [ -n "$test_touched" ] && [ "$ntest" = 1 ] && [ "$nprod" = 0 ] && [ -n "$JP" ] \
+       && [ -f "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" ] \
+       && { { [ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && [ "$S/red-observed" -nt "$S/last-test-edit" ]; } || [ -f "$S/refactor-license" ]; }; then
+      cout=$(printf '%s' "$IN" | "$JP" "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" write "$tfile" 2>/dev/null; printf '\n%s' "$?")
+      crc=$(printf '%s\n' "$cout" | tail -n 1 | tr -d '\r')
+      cdetail=$(printf '%s\n' "$cout" | sed '$d' | head -n 1 | tr -d '\r')
+      if [ "$crc" = 0 ]; then
+        log "test edit is cosmetic (${cdetail:-cosmetic}) - not a new cycle: the red stands and no license is revoked: $tfile"
+        exit 0
+      fi
+      log "not cosmetic (${cdetail:-classifier exit $crc}): $tfile"
     fi
     # A test edit invalidates any earlier red: the new test needs its own observed red.
     # It also revokes any refactor license - a new test is a new cycle, and a window
@@ -590,8 +704,24 @@ PATHLIST
     # exactly a never-ran stop). A planning, docs, or bookkeeping session runs no
     # tests by design; refusing its stop enforces a rule about writes against a
     # session that made none.
+    # The outside-writes report runs before that scoping on purpose: a session whose
+    # only code writes went through the shell never arms G2, and is exactly the one to
+    # report.
+    outside=$(outside_writes)
+    said=""
+    if [ -n "$outside" ]; then
+      printf '%s\n' "$outside" >> "$S/reported-writes"
+      ol=$(printf '%s\n' "$outside" | awk 'NF { printf "%s%s", (n++ ? ", " : ""), $0 }')
+      if [ -f "$S/deny-enabled" ]; then
+        log "stop: BLOCK - code changed outside the editor tools: $ol"
+        said="TDD ordering: code changed outside the editor tools this session: $ol. Code - source and tests - changes only through the editor tools, the only writes this guard can see (the project instructions, Always-Active Rules); a shell write leaves the TDD order unverifiable. Tell the owner which files changed that way, how, and why."
+      else
+        log "stop: WOULD-REPORT - code changed outside the editor tools: $ol"
+      fi
+    fi
     if [ ! -f "$S/prod-write-observed" ] && [ ! -f "$S/last-test-edit" ]; then
       log "stop: clean (no production write or test edit this session - nothing to guard)"
+      [ -n "$said" ] && emit_block "$said"
       exit 0
     fi
     reason=""
@@ -604,10 +734,11 @@ PATHLIST
       log "stop: clean (green observed, not stale)"
     elif [ -f "$S/deny-enabled" ]; then
       log "stop: BLOCK - $reason"
-      emit_block "TDD ordering: $reason. (Run the tests as a single bare command so the guard can read that run's exit code.)"
+      said="${said:+$said }TDD ordering: $reason. (Run the tests as a single bare command so the guard can read that run's exit code.)"
     else
       log "stop: WOULD-BLOCK - $reason"
     fi
+    [ -n "$said" ] && emit_block "$said"
     exit 0 ;;
 
   *) log "unknown mode: $MODE"; exit 0 ;;

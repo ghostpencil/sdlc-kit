@@ -536,7 +536,16 @@ Update `spec/PROJECT_INDEX.md`:
   the sweep has to guess about. Slice close is the last moment the evidence is still
   accurate; the retro reads this log and cannot reconstruct what was never recorded —
   one adoption's retros produced 23 findings across three arcs while the log gained
-  zero entries, because no step ever prompted the writing.
+  zero entries, because no step ever prompted the writing. **A stated skip counts
+  too:** a step this file or `/next-slice` prescribes, skipped for the same reason in
+  this slice and the two before it, is friction whatever each slice's own verdict was.
+  Write one line naming the step, the reason, and the three slices. Count from the
+  arc's own records (`git log <base>..HEAD`; the earlier slices' commit bodies). The
+  graph refresh is the one you can count mechanically: where the graph was built
+  before the previous two slices' commits, this close is its third skip in a row. One
+  adoption skipped that refresh at all eleven slice closes, each with a stated cost
+  reason, while the graph fell from 15 files behind to 115, and never wrote a line,
+  because a stated skip does not read as friction from inside one slice.
 - Note the next slice up, so `/next-slice` in a fresh session can orient without help.
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).
@@ -611,7 +620,9 @@ project's process file says so.** Read the `Graph refresh:` line in `spec/SDLC.m
   question, or has no build commit, where it would run a full analysis, which is the
   phase end's job. `refresh needed` → run the graph tool's own incremental analysis
   (`/understand`, never `--full` here), which re-analyses only the changed files.
-  `no knowledge graph` → one line.
+  Quote the files-behind count it prints. A needed refresh that is not run anyway
+  (the owner declines the cost, the tool cannot run) is stated with that count, so a
+  repeated skip reads as growing debt (step 9). `no knowledge graph` → one line.
 
 It runs after the block above so the close-out footprint is drawn from the same graph as
 the preview, and "changed from the preview" compares like with like; the next slice then

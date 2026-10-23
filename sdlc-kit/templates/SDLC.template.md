@@ -113,8 +113,8 @@ for the *owner* to follow.
 ## Records
 
 The per-project record the close-outs run on: the scope, the gate and its baseline
-and floor, the CI line, the hook and guard notes, and the model policy live in this
-one section, with the approved libraries — a command session reading those values
+and floor, the CI line, the hook and guard notes, the architecture graph's setup, and
+the model policy live in this one section, with the approved libraries — a command session reading those values
 loads these lines, not the rest of the file. Each record names the section whose rules
 govern it. A few values live
 at the step that uses them instead: the run command and acceptance surface (*Phase
@@ -238,10 +238,12 @@ lint error, naming the file), and the **reach note** the rule above requires:
      edits, with a formatter's or generator's output and /end-slice step 5's
      hash-verified mutation runner the only exceptions; a test written through the
      shell does not license its red (it is out of process, and counting it would
-     reward the breach); and the guards are a cooperative backstop, not a security
-     boundary. The stop guard is session-scoped (owner-decided
-     2026-08-08): it binds only a session that wrote production code or edited a test,
-     so a planning, docs, or bookkeeping session stops clean by construction. The note
+     reward the breach); the stop reports any code that changed outside the editor
+     tools (0.36.0 — armed, it blocks once and asks for the owner to be told); and the
+     guards are a cooperative backstop, not a security boundary. The stop guard is
+     session-scoped (owner-decided 2026-08-08): it binds only a session that wrote
+     production code or edited a test, so a planning, docs, or bookkeeping session
+     stops clean by construction, unless it changed code through the shell. The note
      also names the artifact that decides the mode (`.git/sdlc-tdd/deny-enabled`,
      present means deny — arming or disarming means updating the line), records the
      proof run that was made to fail, and says `.git/` is per-clone: the flag, state,
@@ -357,6 +359,17 @@ The dependencies the project declared at adoption ({{ADOPTION_DATE}}), plus:
      manifest gained that this list does not name is a finding whoever sees it. Before
      this record the approvals landed in phase-spec decisions and an ad-hoc index line,
      and one arc deferred a verification for want of a moment to ask. -->
+
+### Architecture graph
+
+{{GRAPH_TOOL_NOTE}}
+<!-- Setup resolves the line above to the graph tool's state at adoption: Understand
+     Anything installed (and its version), found already present, or declined with the
+     date; its auto-update setting; and whether its directory is tracked or git-ignored.
+     Rules: *Architecture impact view*. The commands read tracked-or-ignored from git
+     itself, never from this line, which is for the owner and the retro. A project
+     without the tool records that once, and the view reads UNAVAILABLE until a
+     graph exists. -->
 
 ### Model policy
 
@@ -561,7 +574,10 @@ Its four states are worth knowing apart:
 - **PARTIAL** — the footprint was computed and something is missing *and named*:
   files the graph does not know, or a graph that may predate the work. The counts are
   printed with their denominators (`changed-files` beside `mapped-files`) so
-  incompleteness is loud rather than inferred.
+  incompleteness is loud rather than inferred. At phase scope the arc is committed, so
+  untracked files sit outside the denominator on their own `untracked-files` line.
+  Neither state says the graph holds every file: freshness dates the graph's build,
+  and the view says so on its `graph-coverage` line. Only the `coverage` mode counts.
 - **UNAVAILABLE** — the capability's environment is absent. Not a failure.
 - **ERROR** — the adapter itself broke on a readable graph. That is kit friction and
   belongs in the friction log; a graph that exists and will not parse reports here and
@@ -621,24 +637,30 @@ Without a stated trigger the graph ages silently and every run of the view repor
 freshness line was the only thing that said so (field, 2026-09-01).
 
 **Do not rely on the graph tool's own auto-update to do this.** Where the tool offers
-such a setting, turn it on — it is strictly better than nothing — but treat it as a
-reminder, not a refresh. Measured against the Understand Anything plugin at kit 0.31.0:
-its `autoUpdate` flag defaults to off, and turning it on enables two hooks that both only
-*print a message asking the agent* to merge the graph by hand — neither writes it. On
-Claude Code one of those hooks matches the **Bash** tool only, so on a project whose
-primary shell is PowerShell a commit fires nothing at all, and the plugin's own prompt
-describes itself as triggered by a post-commit hook the plugin does not ship. On Copilot
-CLI both hooks are dead as shipped. Measured 2026-10-20 on 1.0.100, three ways: Copilot
-runs the bash session-start command in PowerShell; it runs a plugin's hooks in the
-plugin's own directory, where they look for the graph; and it discards both hooks'
-output forms, delivering only a top-level `additionalContext`. `plugin-fix` rewrites
-both to a script that
-does the plugin's checks and prints its message in the form Copilot delivers. Measured
-the same day, that form reaches the agent at session start and after a tool call. A
-setting named auto-update
-that reminds rather than updates is exactly the kind of claim this process re-derives
-rather than trusts. The refreshes above are what make the view's
-freshness a property of this process instead of a property of a vendor's hook matcher.
+such a setting, it is the owner's choice, and the refreshes above stay the process's
+own either way. Measured against the Understand Anything plugin (2.9.4 and 2.9.7, read
+2026-10-22): its `autoUpdate` flag defaults to off. Turning it on enables two hooks, and
+neither writes the graph. Each prints an instruction: the session-start hook when the
+graph is not at `HEAD`, the commit hook after a command it reads as a commit. The
+instruction tells the agent it MUST run the plugin's incremental update, without asking
+the user. That is a whole pipeline (a deterministic plan, an analyzer agent per batch of
+structurally changed files, a merge, and at times an architecture pass or a full
+rebuild), run unprompted at the agent's token cost. So the setting is a standing order
+to spend, not a refresh the process can count: whether the graph moves depends on the
+agent obeying mid-task. On Claude Code the commit hook matches the **Bash** tool only,
+so on a project whose primary shell is PowerShell a commit fires nothing at all; where
+it does fire,
+its commit test is a whole-line regex that also matches `git merge-base` and a heredoc
+body naming a commit. On Copilot CLI both hooks are dead as shipped. Measured 2026-10-20
+on 1.0.100, three ways: Copilot runs the bash session-start command in PowerShell; it
+runs a plugin's hooks in the plugin's own directory, where they look for the graph; and
+it discards both hooks' output forms, delivering only a top-level `additionalContext`.
+`plugin-fix` rewrites both to a script that does the plugin's checks, reads the command
+words rather than the line, and prints the plugin's message in the form Copilot
+delivers. Measured the same day, that form reaches the agent at session start and after
+a tool call. A setting named auto-update is exactly the kind of claim this process
+re-derives rather than trusts. The refreshes above are what make the view's freshness a
+property of this process instead of a property of a vendor's hook matcher.
 
 **Freshness answers one question only:** had the tree already moved on from the graph
 *before this work began*? It compares the graph's build commit against the slice or

@@ -491,11 +491,14 @@ read before it is reconciled is a decision taken twice.
   `Graph refresh:` line there first. No such line → the project predates the rule: say
   so and run nothing. `phase-end full-when-code-missing off` → one line. `on` → run
   `python .github/hooks/sdlc-impact.py coverage` and quote its block:
-  - `full-rebuild: needed` → run `/understand --full`, then re-run
-    `python .github/hooks/sdlc-impact.py phase <main>` once and state the freshness line
-    it now prints.
+  - `full-rebuild: needed` → run `/understand --full`, then re-run `coverage` once and
+    quote its block: `COMPLETE` is this step's evidence that the rebuild added the
+    files. If it still reads `PARTIAL`, name the files it still lists as an owner
+    action. Never run a second `--full`.
   - `full-rebuild: not needed` → the graph is complete. Say so and run nothing. Files
     it lists under `missing-other` are docs or config: name them, never rebuild for them.
+    Files under `gone` are ones the graph still describes and the tree no longer holds.
+    Name them as well; they trigger nothing, because the next full rebuild drops them.
   - `UNAVAILABLE … cannot check`, or the tool cannot run in this CLI → state one line
     and mark an owner action in the hand-back (`OWNER: run /understand --full` where the
     block named missing files, otherwise `OWNER: run the coverage check where the plugin
@@ -504,8 +507,9 @@ read before it is reconciled is a decision taken twice.
     `python .github/hooks/sdlc-impact.py plugin-fix`, then a new session. Offer it;
     never run it yourself, because it writes outside the repository.
 
-  Do not skip this because the tool advertises an auto-update. That setting reminds
-  rather than refreshes, and the template says why. A graph missing whole files reads
+  Do not skip this because the tool advertises an auto-update. That setting writes
+  nothing: it tells the agent to run an incremental update unprompted, which may or
+  may not happen, and incremental cannot add a file. The template says why. A graph missing whole files reads
   `current` while the view leaves those files out, which is what one real adoption
   measured: ten files absent at a phase close.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).

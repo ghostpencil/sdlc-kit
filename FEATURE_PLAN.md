@@ -6705,3 +6705,221 @@ only those after the installed one, and lists each one absent at the plan halt, 
 the re-stamp. A project that reworded a rule on purpose answers once, and the answer is
 recorded so it is not re-asked. Proof: ai-news's spec as it stood before #23 is flagged
 for the 0.27.0 marker, and its spec after #23 is not.
+
+## 85. The 0.36.0 batch — §84.7's held items and §84.15–§84.18 — opened 2026-10-22
+
+Scope, as ruled (§84.7 ruling 1, and §84.15–§84.18 added by the owner): **B's detector**,
+**C's launcher anchoring**, **E's classifier extension to test paths**, **the rest of F**
+(#12, #11's residues, #17 f5 fixes 2–3, #17 f9, and the auto-update wording), and the
+four update-time items (**84.15** the guard-test fixture sentence, **84.16** retiring an
+amendment in the walk-through, **84.17** the Maven report-pattern row, **84.18** the
+missed-fold markers). All three adopters are on 0.35.1 and verified (2026-10-22); none
+of this waits on field data.
+
+### 85.1 Build order
+
+Cheapest and fully ruled first. Each item that needs a ruling waits at 85.3 and does not
+block the items before it.
+
+1. **Text, ruled: 84.15, 84.17, and F's auto-update wording.** Built 2026-10-22 (85.2).
+2. **F, adapter side (`sdlc-impact.template.py`, `tools/impact-check.py`):** #17 f9
+   (untracked files leave the phase-scope denominator, on their own line); #11's
+   residues (`gone:` files the graph holds and the tree lost, the `coverage` re-run
+   after `--full` quoted as evidence, and the `slice`/`phase` freshness wording that
+   reads as completeness); #17 f5 fix 2 (a `refresh-check` file count).
+3. **F, text:** #17 f5 fix 3 (a step skipped for the same reason in three consecutive
+   slices is friction, in `/end-slice` step 9); #12 (setup offers the plugin where it is
+   absent: the offer, the auto-update question, the `.ua/` tracked-or-ignored question,
+   lint and format ignores for the UA directory, and the choices in *Records*).
+4. **E:** the guard's test branch asks the cosmetic classifier before marking
+   `last-test-edit`; a cosmetic test edit keeps the red and the refactor licence. Both
+   dialects, cases in both guard suites.
+5. **84.16:** the walk-through helper takes the amendments to drop (design at build time,
+   as ruled), with the three-amendment fixture.
+6. **84.18:** fold markers, once 85.3(3) is ruled.
+7. **B's detector**, once 85.3(1) is ruled.
+8. **C's bench and launcher prefix**, once 85.3(2) is ruled.
+9. Update notes, README, CHANGELOG, `/kit-check`, release.
+
+### 85.2 Built 2026-10-22 — step 1
+
+- **84.17:** re-measured here before shipping, as the item required: Maven 3.9.2,
+  Surefire 3.2.5, JUnit 5.10.2, `mvn -q test`. A pass (quiet and loud) and a missing
+  `mvn` (bash exit 127, and PowerShell's *not recognized*) print no marker, in the
+  Python and Node regex dialects. The red and the compile error match at characters 80
+  and 8, as the adopter measured. GATE_RECIPES gains the row, the versions and the cost
+  sentence.
+- **84.15:** `/sdlc-update`'s 0.35.0 guard bullet and the README's paragraph say: run
+  your own guard tests after the re-derive; a fixture faking a failing run must carry
+  the runner's real report; fix the fixture, never the pattern.
+- **F's auto-update wording, re-measured by reading both installed plugin versions
+  (2.9.4, 2.9.7; their `hooks.json` are identical):** neither hook writes the graph;
+  each orders the agent to run the incremental pipeline, which dispatches analyzer
+  agents, "without asking the user". So "reminds rather than refreshes … merge by hand"
+  was wrong in both directions: the hook does more than remind, and still refreshes
+  nothing itself. Corrected in the three homes §84.4 named (`SDLC.template.md`,
+  `sdlc-setup.md`, `end-phase.md`), and in three more it did not name: the README's
+  0.31.0 and 0.35.0 notes, and `/sdlc-update`'s 0.35.0 `plugin-fix` note, which called
+  the delivered orders "reminders". Setup's "still worth doing" became "the owner's call"
+  — the price is now stated, not one boolean.
+
+### 85.3 Decisions owed
+
+1. **B's detector — the design.** §84.5 B settled *detect, don't prevent*, and content
+   over mtime. The build needs a concrete design:
+   - **Start of session** (when the guard first sees a new `session_id`): record `HEAD`,
+     the session's start time, and the git hash of every code file that is modified or
+     untracked at that moment. That is three git calls, once per session.
+   - **Every write `pre-write` lets through** (a test edit, a licensed write, a cosmetic
+     write, a logged violation) appends its path to a `seen` list. A denied write is not
+     added: the tree did not change, and a shell retry of the same file must still be
+     caught.
+   - **At stop:** the candidates are the code files that differ from `HEAD` or are
+     untracked, plus those named by non-merge commits made since the session started
+     (`git log --no-merges --since`). That way a slice commit does not hide a shell
+     write, and a merge or pull does not charge the session with other people's files.
+     The detector drops any file whose content still equals its start hash, so the
+     hash-verified mutation runner never trips it and neither does a file that was dirty
+     before the session began. It drops anything in `seen`, and anything outside code
+     (`SOURCE_GLOB` minus the exempt pattern). That is three git calls per stop.
+   - **The report seat:** armed (`deny-enabled`), the stop blocks **once** per path set,
+     with `file changed outside the editor tools: <path>` and an instruction to tell the
+     owner. This follows the doctrine that refusals and observations are spoken. In
+     logging mode, it logs. `stop_hook_active` stands down, as G2 does.
+   - **Its stated cost:** codegen or a formatter that writes into code paths not edited
+     this session reads as a breach. The cure is the exempt pattern for generated
+     directories, never a wider rule.
+
+   Recommended as above. The alternative, logging only even when armed, keeps the
+   detector out of the stop path but makes it a log nobody reads, which is the failure
+   the guard doctrine exists to prevent.
+2. **C's bench spend.** The `cd "$(git rev-parse --show-toplevel)" || exit 2;` prefix
+   needs a live run on both CLIs: the both-dialect bench, a `cd` into a subdirectory,
+   then each hook triggered, with the `sh -c` close-out block's quoting included.
+   Expected cost, from §84.8: about four Copilot sessions (~1.5–3.6 credits each) and a
+   few Claude Code Haiku sessions. Recommended: yes. Without the run, C stays held,
+   because a launcher that errors denies every Copilot edit.
+3. **84.18's depth.** Each `/sdlc-update` version note that requires a fold into
+   `spec/SDLC.md` gets a marker phrase. The update checks every marker from **every**
+   version up to the target. The question is where the list starts. Recommended: every
+   fold note there is (0.15.0 onward). The marker is taken from the **current**
+   template's wording of the rule, because a later rewrite supersedes the old one. A
+   marker whose rule was later reworded moves with the rule. Owner answers ("reworded on
+   purpose") are recorded as one *Records* line in `spec/SDLC.md`, so they are not
+   asked again. The cheaper alternative starts at 0.26.0, the earliest miss found so
+   far; it would leave the older folds unchecked for the adopter most likely to have
+   missed them.
+
+### 85.4 Built 2026-10-22 — steps 2–5
+
+- **F, adapter** (`sdlc-impact.template.py`): `change_set()` returns tracked and
+  untracked apart. At `phase` scope the untracked files leave the denominator, on their
+  own `untracked-files` / `untracked` lines (#17 f9); a slice still counts them. Every
+  `slice`/`phase` block gains a fixed `graph-coverage: not checked by this view …` line
+  (#11's wording residue). `freshness()`'s strings are **unchanged on purpose**: TFit's
+  own tests assert them exactly, and the slice-end refresh clock is read by the phrase
+  `current at the base`. `coverage` names `gone` files (graphed, absent from the tree)
+  and triggers nothing for them: a change set that deletes a file still maps it to its
+  old node, which is right, and the next full rebuild drops them. `refresh-check` prints
+  how many project files the graph is behind, UA's own files left out (#17 f5 fix 2).
+  `tools/impact-check.py`: 48 cases, 58 mutations caught (8 new), exit 0.
+- **F, text:** `/end-phase` step 7 re-runs `coverage` after `--full` and quotes it as the
+  evidence, and names `gone` files (#11). `/end-slice` quotes the files-behind count, and
+  step 9 makes a stated skip in three consecutive slices friction, with the graph refresh
+  counted mechanically (#17 f5 fix 3). The template's state list says what the view does
+  not check.
+- **#12:** setup's Round 3 gains *the architecture-graph offer* (both CLIs' install
+  commands, read from the plugin's README; auto-update; tracked or ignored, recommending
+  ignored and pairing auto-update with ignored only; lint and format ignores), and
+  Existing mode asks it only where no UA directory exists. The answers land in a new
+  *Records* → *Architecture graph* subsection as **`{{GRAPH_TOOL_NOTE}}`**, resolved at
+  step 5 from what is true then: an install still pending is recorded as pending.
+- **E:** both guard dialects ask the cosmetic classifier about a test edit **only when
+  something is at stake** (a red newer than the last test edit, or a refactor licence).
+  That is the production rule's economy: an edit that would cost nothing never pays. A
+  cosmetic test edit is logged and leaves the red, the licence and the close-out survival
+  count alone. Shell dialect: single-file test writes only, like the production ask.
+  `tools/tdd-guard-claude-check.py` 100/100, every mutation caught (3 new);
+  `tools/tdd-guard-check.py` gains C11–C15 and 3 mutations (run green, 85.6).
+- **84.16:** the helper numbers each local amendment (by `difflib` opcode against the
+  derived-from template, filled), and takes `--drop N[,N…]`. A dropped amendment's lines
+  go back to the template's before the merge, and each drop is reported as either "the
+  target template changes this region too" or `BEHAVIOR CHANGE`. A number it did not
+  print stops it (`NO SUCH AMENDMENT`), and a drop is never hidden behind `CURRENT`.
+  Step 3 says a retirement must **run** through `--drop`, never a hand-built file. **New
+  root proof `tools/rederive-check.py`**: it extracts the helper's text from the command,
+  so the two cannot drift, and runs 84.16's three-amendment fixture. 8 cases, 7 mutations
+  caught. The helper had no standing proof before: its stops were checked by hand at the
+  0.35.1 release. README tree, `/kit-check` (nine suites) and the invariant-13
+  population updated.
+
+Update notes owed at step 9: `{{GRAPH_TOOL_NOTE}}` is a new placeholder in a
+project-owned file (a fold, plus the line to write); the guard's E change reaches
+adopters through the walk-through; the adapter is kit-owned and replaced, so a project's
+own tests on its output lines (TFit's) are told about the new `graph-coverage`,
+`untracked-files` and `gone-files` lines and the refresh-check wording.
+
+### 85.5 Ruled 2026-10-22 — all three of 85.3, as recommended
+
+1. **B's detector** as designed in 85.3(1): content against the session's start, merges
+   and pulls excluded, and armed it **blocks once** per path set; logging mode logs.
+2. **C's bench is spent:** a live run on both CLIs before the launcher prefix ships.
+3. **84.18's markers cover every fold note from 0.15.0 on**, phrased from the current
+   template; a "reworded on purpose" answer is recorded once in *Records*.
+
+### 85.6 Built 2026-10-22 — B's detector and 84.18's markers
+
+- **B** (ruling 85.5(1)), both guard dialects. The session's first hook call records
+  `HEAD`, the time, and the blob ids of the code files already modified
+  (`session-start`). `pre-write` appends every code path it lets through to
+  `seen-writes`; a denied write is not added. At stop, **before** G2's session scoping
+  (a shell-only session never arms G2), the candidates are `git status` plus the
+  non-merge commits since the start time. Each candidate is kept only if it is code,
+  unseen, unreported, and its content differs from its start (the recorded id, else
+  the start `HEAD`'s blob). Armed, the stop blocks once, with the message joined to
+  G2's when both speak; logging mode logs `WOULD-REPORT`. Git is called with
+  `--git-dir`/`--work-tree` named, so a harness's bare temp root cannot reach an
+  enclosing repository; any git failure reports nothing. Stated costs: generated code
+  outside the exempt pattern, a pull from elsewhere mid-session, and a shell write in
+  the session's very first call. Proofs on a **real** git repository:
+  `tools/tdd-guard-claude-check.py` 110/110, every mutation caught (8 new: seen not
+  recorded, denied recorded as seen, presence over content, `--since` dropped, the
+  session's commits missed, log-only when armed, re-reporting, exempt charged); one
+  first draft of the `--since` mutation (`@0`) survived and was replaced by dropping
+  the argument. `tools/tdd-guard-check.py` gains D1–D10 and the same 8 mutations, and
+  two earlier mutations re-pointed (their anchors moved with E and B). The shell
+  dialect needs git on the hook's PATH; the suite adds it for these cases. Docs:
+  GATE_RECIPES *What these guards are not*, the guard-note recipes in setup and the
+  template, and the `CLAUDE.template.md` rule.
+- **84.18** (ruling 85.5(3)): `/sdlc-update` step 4 checks **every** marker from 0.15.0
+  up to the target, whatever the installed version. An absence is a numbered decision:
+  fold now, or "reworded on purpose", recorded once as a `Fold marker answered:` line
+  in *Records*. The 32 markers were drawn by a reading agent from the current template,
+  each a one-line phrase occurring exactly once. Three candidates sitting inside the
+  template's HTML comments were dropped: an adopter who kept the comments matches them
+  whether or not the fold was done. `tools/rederive-check.py` now asserts every marker
+  occurs exactly once, and is seen to fail when one rule's wording is removed.
+  **Proof as ruled, verified by hand:** ai-news's spec has `implemented in <commit>` 0
+  times at `f243499` (before #23) and once at `1877859` (#23).
+- **What the reading found, beyond the proof.** Several template rules shipped with **no
+  fold instruction** in their release's note: 0.27.0's friction-closure, gotcha
+  absorption, check verdict, backlog id and inversion recipe; 0.29.0's baseline stamp;
+  0.31.0's record halves; and 0.35.0's bare-run confirmation. Missed folds in adopters'
+  current specs: **ai-news** lacks 0.26.0's index budget and four of 0.27.0's rules
+  (checked by hand: `budget of 25` and `inverting the edit that made it` both 0 at
+  HEAD). **TFit** lacks 0.33.0's sibling-branch freshness sentence (checked by hand,
+  0), whose local `freshness()` amendment 0.35.1 retired without the text being
+  folded. chainmail misses none. The first 0.36.0 update on each will put these to the
+  owner, so nothing is filed now.
+- **Found by the shell suite's first run: MSYS `grep` aborts on `-i` with `-F`**
+  (Git for Windows, measured 2026-10-22: exit 134 and a `grep.exe.stackdump` in the
+  working directory). The shell dialect's first draft looked up each candidate with
+  `grep -qixF` against the seen list, so on Windows every file read as unseen, and an
+  editor write was reported as a shell write (D2, D3 failed; D1 passed for the wrong
+  reason). It is now one case-folded `awk` pass. The kit holds no other `grep -i -F`.
+- **Shell suite after the fix:** `tools/tdd-guard-check.py` 144 (python) + 134 (node)
+  cases, all passed; all 59 mutations caught; exit 0; no stackdump.
+
+**Left in the batch (85.1 steps 8–9):** C's live bench on both CLIs, then the launcher
+prefix; then VERSION, MANIFEST, `/kit-check` and the release. All of 85.2–85.6 is
+uncommitted on `main`.

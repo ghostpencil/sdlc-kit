@@ -101,8 +101,33 @@ questionnaire.
   Actions); any always-active
   rules for CLAUDE.md (portability, serialization, DI seams for external services);
   the **runtime conventions** — how the software logs and fails (see below); the
-  **model policy** (see below); anything the owner already knows about Phase 1
-  (recorded for `/plan-phase`, not acted on now).
+  **model policy** (see below); the **architecture-graph offer** (see below); anything
+  the owner already knows about Phase 1 (recorded for `/plan-phase`, not acted on now).
+
+  **The architecture-graph offer.** Ask whether the owner wants the Understand Anything
+  plugin, which draws the *Architecture impact view* (`spec/SDLC.md`). Say what it
+  costs: building a graph spends model tokens, and so does each refresh. Without it the
+  view reads `UNAVAILABLE`, and nothing else in the process changes. A **no** ends the
+  offer, and setup behaves exactly as it did before this offer existed. On a **yes**:
+  - The owner installs it, because plugin commands are typed by the owner and never
+    run by the agent. On Claude Code that is `/plugin marketplace add
+    Egonex-AI/Understand-Anything`, then `/plugin install understand-anything`. On
+    Copilot CLI it is `copilot plugin install
+    Egonex-AI/Understand-Anything:understand-anything-plugin`, and then `plugin-fix`
+    (step 5). Before the first `/understand`, agree the graph's scope in
+    `.understandignore`; at minimum exclude any kit folder, `.claude/` and the plugin's
+    own directory.
+  - Ask whether the plugin's auto-update goes on, stating what it does (step 5's three
+    points). Then ask whether the plugin's directory (`.ua/`) is **tracked or
+    git-ignored**. Recommend ignored, and pair auto-update with ignored only. A tracked
+    directory is dirtied by every auto-update after every commit, and the adapter
+    writes its overlay only into an ignored one. For a tracked directory, ignore its
+    scratch paths (`.ua/intermediate/`, `.ua/tmp/`, `.ua/diff-overlay.json`), and
+    say the slice-end refresh lands as its own `chore(graph):` commit.
+  - Either way, exclude the plugin's directory from the linter and the formatter
+    (the formatter's ignore file, the linter's ignore list, or the stack's
+    equivalent), or the gate reads the graph's JSON.
+  - The answers resolve `{{GRAPH_TOOL_NOTE}}` (step 5).
 
   **The runtime-conventions ask.** Two questions, recorded as the *Runtime
   Conventions* section of `CLAUDE.md`: how the software **logs** — framework or
@@ -208,7 +233,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `{{ISOLATION_HARNESS}}` for step 4, which authors what it describes).
    `{{HOOK_ENVIRONMENT}}`, `{{TDD_GUARD_NOTE}}`, `{{SKILL_LEDGER_NOTE}}`, and
    `{{CLOSE_OUT_CHECK_NOTE}}` are all left for step 6, which measures the first,
-   decides the middle two, and proves the last.
+   decides the middle two, and proves the last. `{{GRAPH_TOOL_NOTE}}` is left for step
+   5, which records the graph tool as it then stands.
    `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
    <date> on the walking skeleton, <this session's shell>)`, which step 2 just proved.
    The record names where it was measured, because a later session comparing against
@@ -479,8 +505,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      through the editor tools, overriding any harness guidance that permits shell
      edits; a formatter's or generator's output and `/end-slice` step 5's
      hash-verified mutation runner are the only exceptions), says a test written
-     through the shell does not license its red, and says the guards are a
-     cooperative backstop, not a security boundary
+     through the shell does not license its red, says the stop reports any code that
+     changed outside the editor tools (0.36.0: armed, it blocks once and asks for the
+     owner to be told), and says the guards are a cooperative backstop, not a security boundary
      (*The TDD-ordering guards* in
      `reference/GATE_RECIPES.md` is the full recipe) — because the note is the
      proactive statement of them: the guard's own messages say them only reactively,
@@ -612,10 +639,19 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    quotes it, which is the whole of its behavior there. Most projects will never
    install a graph, and installing the adapter anyway costs one file and keeps the
    commands' instructions true for the projects that do. Do **not** ask the owner
-   whether they want it, and do not look for a graph at setup time: the commands
-   discover it at run time, so a graph added six months from now works with no
-   re-run of setup (`spec/SDLC.md`, *Architecture impact view*, is the canonical
-   statement and is instantiated whether or not a graph exists).
+   whether they want the adapter. The graph tool itself is Round 3's offer, a separate
+   question. The commands discover a graph at run time, so a graph added six months
+   from now works with no re-run of setup (`spec/SDLC.md`, *Architecture impact view*,
+   is the canonical statement and is instantiated whether or not a graph exists).
+
+   **Resolve `{{GRAPH_TOOL_NOTE}}`** (*Records* → *Architecture graph*) on every
+   adoption, from what is true now, not from what was planned. If the owner declined
+   the offer, record `none — Understand Anything declined <date>; the impact view reads
+   UNAVAILABLE`. If the owner installed it, or step 1 found a UA directory present,
+   record: installed or found present, the plugin version, auto-update on or off (read
+   from its `config.json`), and the directory tracked or git-ignored (from `git
+   check-ignore`). If the owner said yes but the install has not happened yet, record
+   it as pending with the date, never as installed.
 
    One thing to tell the owner in the setup summary, once, where a `.ua/` or
    `.understand-anything/` directory **is** already present: the adapter writes its
@@ -643,18 +679,20 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the name will not run the slice-end and phase-boundary regenerations that actually
    keep the graph current (`spec/SDLC.md`, *Architecture impact view*):
 
-   - It **reminds; it does not refresh.** Measured against the Understand Anything
-     plugin at kit 0.31.0: the flag defaults to off, and turning it on enables two
-     hooks whose entire output is a message asking the *agent* to merge the graph by
-     hand. Neither writes the graph.
+   - It **does not refresh; it orders the agent to.** Measured against the Understand
+     Anything plugin (2.9.4 and 2.9.7, read 2026-10-22): the flag defaults to off, and
+     turning it on enables two hooks. Neither writes the graph. Each tells the agent it
+     MUST run the plugin's incremental update without asking the user: at session start
+     when the graph is not at `HEAD`, and after every commit. That update dispatches
+     analyzer agents for the changed files, so it spends tokens unprompted, mid-task.
    - On Claude Code, one of those hooks matches the **Bash** tool only. On a project
      whose primary shell is PowerShell, a commit fires nothing at all — worth saying
      explicitly when the runtime interview established a non-Bash shell. On Copilot
      CLI, neither hook works until `plugin-fix` has run (offered above); say so when
      Copilot is a runtime.
-   - Turning it on is still worth doing: the session-start staleness check is a real
-     signal, and it costs one boolean. It is a supplement to the process's own
-     regenerations, never a substitute for them.
+   - Turning it on is the owner's call: the session-start staleness check is a real
+     signal, and the price is the unprompted runs. Either way it is a supplement to the
+     process's own regenerations, never a substitute for them.
 
    **Install the cosmetic classifier — both CLIs, always, and grant-only.**
    `sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py`, copied verbatim; it
@@ -804,7 +842,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    spree — and the **model policy** — same poll,
    same recording rules as New mode Round 3 (`{{MODEL_POLICY}}` in `spec/SDLC.md`;
    `{{DEFAULT_MODEL}}` in `.claude/settings.json` or the line deleted; never into a
-   command file). If CI already enforces a coverage floor,
+   command file) — and the **architecture-graph offer**, as in New mode Round 3, asked
+   only where step 1 found no `.ua/` or `.understand-anything/` directory (one that is
+   present gets step 5's notes instead). If CI already enforces a coverage floor,
    resolve `{{COVERAGE_FLOOR}}` (*Records* in `spec/SDLC.md`) with the existing
    number as-is — **after proving the claim**: confirm the enforcing step actually
    runs in the commands CI executes (a threshold bound to a build phase CI never

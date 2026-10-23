@@ -987,6 +987,164 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                   "red observed since last test edit" in c.tail()
                   and not any("cosmetic" in l for l in c.loglines()[n:]), c.tail())
 
+            # 0.36.0: a cosmetic TEST edit is not a new cycle (field report 11, f4).
+            tbody = "def test_pay():\n    # the sum\n    assert pay(1, 2) == 3\n"
+            os.makedirs(os.path.join(CR, "tests"), exist_ok=True)
+
+            def tedit(old, new):
+                io.open(os.path.join(CR, "tests", "test_payments.py"), "w",
+                        encoding="utf-8", newline="").write(tbody)
+                a = {"path": os.path.join(CR, "tests", "test_payments.py"),
+                     "old_str": old, "new_str": new}
+                return {"sessionId": SID, "cwd": CR, "toolName": "edit",
+                        "toolArgs": json.dumps(a)}
+
+            c.reset_state(); c.arm_deny()
+            c.run("pre-write", tedit("== 3", "== 4"))
+            c.run("observe-test", shell(CR, "pytest -q", 1))
+            out = c.run("pre-write", tedit("# the sum", "# the total"))
+            check("C11 a comment-only test edit after the red is logged cosmetic",
+                  out == "" and "test edit is cosmetic (python-ast)" in c.tail(),
+                  c.tail())
+            out = c.run("pre-write", cedit("a + b", "a - b"))
+            check("C12 ...and the red still licenses the production write",
+                  out == "" and "red observed since last test edit" in c.tail(),
+                  c.tail() + " | " + repr(out))
+            c.run("pre-write", tedit("== 3", "== 5"))
+            out = c.run("pre-write", cedit("a + b", "a - b"))
+            check("C13 a real test edit after the red still stales it (denied)",
+                  denied(out), c.tail())
+            c.reset_state(); c.arm_deny()
+            io.open(os.path.join(c.state, "session"), "w").write(SID)
+            io.open(os.path.join(c.state, "refactor-license"), "w").write(
+                "step: change-simplify\n")
+            c.run("observe-test", shell(CR, "pytest -q", 0))
+            c.run("pre-write", tedit("# the sum", "# the total"))
+            check("C14 a comment-only test edit keeps the refactor licence",
+                  os.path.exists(os.path.join(c.state, "refactor-license"))
+                  and "test edit is cosmetic" in c.tail(), c.tail())
+            c.reset_state()
+            n = len(c.loglines())
+            c.run("pre-write", tedit("# the sum", "# the total"))
+            check("C15 nothing at stake (no red, no licence): the classifier is not "
+                  "asked", "test edit recorded" in c.tail()
+                  and not any("cosmetic" in l for l in c.loglines()[n:]), c.tail())
+
+        # D: code changed outside the editor tools (0.36.0, field report 11, f2). A REAL
+        # git repository, and git on the PATH as a real hook shell has it: the detector
+        # compares content against the session's start, so a bench without git would
+        # prove only that it fails open.
+        d = Bench(os.path.join(base, "det"), guard_src)
+        d.path = os.pathsep.join([b.path, _dir_of("git")]) if b.path else None
+        DR = d.root
+
+        def g(*a, **env):
+            subprocess.run(("git", "-C", DR) + a, capture_output=True, check=True,
+                           env=dict(os.environ, **env))
+
+        def put(rel, text):
+            f = os.path.join(DR, rel)
+            os.makedirs(os.path.dirname(f), exist_ok=True)
+            io.open(f, "w", encoding="utf-8", newline="").write(text)
+
+        g("init", "-q", ".")
+        g("config", "user.email", "proof@example.invalid")
+        g("config", "user.name", "proof")
+        g("config", "core.autocrlf", "false")
+        put(".gitignore", ".github/\n")
+        for rel in ("pay.py", "fee.py", "tests/test_pay.py", "tools/gen.py", "README.md"):
+            put(rel, "original %s\n" % rel)
+        g("add", "-A")
+        g("commit", "-q", "-m", "base")
+        dsess = [0]
+
+        def begin(armed=True):
+            """A fresh session: its first call takes the snapshot."""
+            dsess[0] += 1
+            d.reset_state()
+            if armed:
+                d.arm_deny()
+            d.run("observe-test", shell(DR, "echo start", 0, sid="s%d" % dsess[0]))
+            return "s%d" % dsess[0]
+
+        def reason(out):
+            try:
+                return (json.loads(out) if out.startswith("{") else {}).get("reason") or ""
+            except ValueError:
+                return ""
+
+        sid = begin()
+        put("pay.py", "shell wrote this\n")
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D1 armed: a shell write to code blocks the stop, naming the file",
+              "changed outside the editor tools this session: pay.py" in reason(out),
+              repr(out) + " | " + d.tail())
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D2 ...once: the next stop does not repeat it", out == "", repr(out))
+        g("checkout", "--", "pay.py")
+
+        sid = begin(armed=False)
+        d.run("pre-write", write(DR, [("Update", "pay.py")], sid=sid))
+        put("pay.py", "the editor tool wrote this\n")
+        put("fee.py", "but the shell wrote this\n")
+        d.run("stop-check", stop(DR, sid=sid))
+        lg = [l for l in d.loglines() if "outside the editor tools" in l]
+        check("D3 logging mode: logged, naming only the file no pre-write saw",
+              len(lg) == 1 and "WOULD-REPORT" in lg[0] and "fee.py" in lg[0]
+              and "pay.py" not in lg[0], repr(lg))
+        g("checkout", "--", "pay.py", "fee.py")
+
+        sid = begin()
+        put("pay.py", "a mutation\n")
+        put("pay.py", "original pay.py\n")
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D4 the same bytes put back (the mutation runner) report nothing",
+              out == "", repr(out))
+
+        put("fee.py", "dirty before the session began\n")
+        sid = begin()
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D5 a file already dirty at the start, untouched, reports nothing",
+              out == "", repr(out))
+        put("fee.py", "and then the shell changed it\n")
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D6 ...but a shell change to it reports", "fee.py" in reason(out),
+              repr(out))
+        g("checkout", "--", "fee.py")
+
+        sid = begin()
+        put("pay.py", "shell write, then committed\n")
+        g("commit", "-q", "-am", "in-session commit")
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D7 a shell write the session committed still reports",
+              "pay.py" in reason(out), repr(out))
+
+        sid = begin()
+        put("tools/gen.py", "exempt script\n")
+        put("README.md", "docs\n")
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D8 exempt paths and non-code files report nothing", out == "", repr(out))
+        g("checkout", "--", "tools/gen.py", "README.md")
+
+        sid = begin()
+        out = d.run("pre-write", write(DR, [("Update", "fee.py")], sid=sid))
+        put("fee.py", "denied above, so written through the shell\n")
+        out2 = d.run("stop-check", stop(DR, sid=sid))
+        check("D9 a denied write retried through the shell reports",
+              '"permissionDecision":"deny"' in out and "fee.py" in reason(out2),
+              repr(out) + " | " + repr(out2))
+        g("checkout", "--", "fee.py")
+
+        g("checkout", "-q", "-b", "elsewhere")
+        put("fee.py", "someone else's older commit\n")
+        g("commit", "-q", "-am", "old work", GIT_COMMITTER_DATE="2020-01-01T00:00:00")
+        g("checkout", "-q", "-")
+        sid = begin()
+        g("merge", "-q", "--ff-only", "elsewhere")
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D10 a pull or merge of commits dated before the session reports nothing",
+              out == "", repr(out))
+
         # R: a RED needs the runner's own report (FEATURE_PLAN.md 84, sdlc-kit#16). A
         # wrapper failing before the runner starts exits with a failed test's code.
         def ctx(out):
@@ -1177,7 +1335,9 @@ MUTATIONS = [
          '"permissionDecisionReason":"guard error"}\'\n  exit 0\nfi\n\nrest=$F')),
     ("classify by source glob before test pattern (the defect ENF.2 predicted)",
      lambda s: s.replace(
-         'case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; continue ;; esac',
+         'case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); '
+         'tfile="$SDLC_REPO_ROOT/$n"; printf \'%s\\n\' "$n" >> "$S/seen-writes"; '
+         'continue ;; esac',
          'case "$b" in {{SOURCE_GLOB}}) prod="$prod $p"; continue ;; esac')),
     ("never stand down on stop_hook_active (fights the documented block cap)",
      lambda s: s.replace('if [ "$ACTIVE" = "true" ]; then', 'if false; then')),
@@ -1263,9 +1423,9 @@ MUTATIONS = [
      lambda s: s.replace(
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
          '"$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" '
-         '"$S/prod-write-observed" 2>/dev/null',
+         '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" 2>/dev/null',
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
-         '"$S/prod-write-observed" 2>/dev/null')),
+         '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" 2>/dev/null')),
     ("drop G2's session scoping (the stop guard binds planning and docs sessions "
      "again)",
      lambda s: s.replace(
@@ -1298,6 +1458,39 @@ MUTATIONS = [
      "a licensed write logged as something else)",
      lambda s: s.replace('if [ -z "$ok" ] && [ "$nprod" = 1 ] && [ -n "$JP" ]',
                          'if [ "$nprod" = 1 ] && [ -n "$JP" ]')),
+    ("never record an editor write as seen (every editor write reads as a shell "
+     "write at stop)",
+     lambda s: s.replace('        printf \'%s\' "$prel" >> "$S/seen-writes"', '        :')),
+    ("record a DENIED write as seen (its shell retry goes unreported)",
+     lambda s: s.replace('if [ -n "$ok" ] || [ ! -f "$S/deny-enabled" ]; then',
+                         'if true; then')),
+    ("compare by presence, not content (restored bytes, and a file dirty before the "
+     "session, report)",
+     lambda s: s.replace('if ($1 != was) print $2', 'print $2')),
+    ("charge every commit since the start's HEAD to the session (a merge of older "
+     "work reports)",
+     lambda s: s.replace('--no-merges --since=@"$t0" ', '--no-merges ')),
+    ("miss what the session committed (a shell write, then a commit, hides it)",
+     lambda s: s.replace('    st="$st$NL$(sdlc_git log', '    : "$st$NL$(sdlc_git log')),
+    ("report outside writes to the log only, even armed",
+     lambda s: s.replace('      [ -n "$said" ] && emit_block "$said"\n      exit 0',
+                         '      exit 0')),
+    ("report the same files at every stop",
+     lambda s: s.replace('      printf \'%s\\n\' "$outside" >> "$S/reported-writes"',
+                         '      :')),
+    ("charge exempt paths as code",
+     lambda s: s.replace('  case "$1" in .ua/*|.understand-anything/*|{{GUARD_EXEMPT_PATTERN}}) '
+                         'return 1 ;; esac\n', '')),
+    ("never ask the classifier about a test edit (a format fix after the red stales "
+     "it - field report 11, finding 4)",
+     lambda s: s.replace('if [ -n "$test_touched" ] && [ "$ntest" = 1 ]',
+                         'if false && [ "$ntest" = 1 ]')),
+    ("ask the classifier about every test edit (nothing at stake still pays for it)",
+     lambda s: s.replace(' || [ -f "$S/refactor-license" ]; }; then',
+                         ' || true; }; then')),
+    ("ask about a test edit only under a live red (a cosmetic edit still revokes the "
+     "refactor licence)",
+     lambda s: s.replace(' || [ -f "$S/refactor-license" ]; }; then', '; }; then')),
     ("count any failing exit as a RED (a wrapper's failure licenses a production "
      "write - sdlc-kit#16)",
      lambda s: s.replace('elif [ "$REPORT" != "1" ]; then', 'elif false; then')),

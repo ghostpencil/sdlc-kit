@@ -222,6 +222,67 @@ times, and both stayed `RULING OPEN` for seven weeks because nothing asked. A
 an `open` one is left for the next `/sdlc-retro`, whose carry-forward re-checks it
 against the upstream artifact.
 
+**Then the process-file rules an earlier update may have missed — every marker, from
+the first.** `spec/SDLC.md` is project-owned, so a rule reaches it only by the owner
+folding the template diff, and each update hands over only the diff from the
+installed version forward. A rule missed at an earlier hop sits below every later
+diff, and the spec, which wins over the commands, goes on stating the old rule. One
+adopter's spec missed two releases' rules this way, each found by chance, and a
+reading of three adopters' specs found six more. So for **every** row below whose
+version is no newer than the target, whatever the installed version, run
+`grep -cF -- '<marker>' spec/SDLC.md`, skipping a row the spec's *Records* already
+answers (`Fold marker answered:`, below). List
+each absent marker at this halt with its rule and the current template's text for
+that rule, as a numbered decision (`Decision N: <version> <rule> — fold now / reworded
+on purpose`). An absence is a question, not proof: a spec that wraps a line inside
+the phrase, or tags it `(kit X.Y.Z)`, hides a rule it holds, so read the section
+before you call it missing. A fold the owner takes goes into this update's spec
+change. A "reworded on purpose" answer is recorded once in *Records*, after the
+hook-script re-derive lines: `Fold marker answered: <version> "<marker>" — reworded
+on purpose (<date>)`. Without that record the question would come back at every
+update.
+
+The markers are phrases from the current `SDLC.template.md`, one line each, and each
+occurs there exactly once. Where a later release rewrote a rule, the marker follows the
+rewrite. Several rows are rules the template gained with **no** fold instruction in
+their release's note, which is how they were missed. A release that changes a rule in
+`SDLC.template.md` adds or moves its row here.
+
+| Version | Rule | Marker |
+|---|---|---|
+| 0.15.0 | a RED is observed and recorded as it happens | `RED is observed, not assumed` |
+| 0.15.0 | the slice verification step | `exercise the changed behavior through the path` |
+| 0.15.0 | the friction log's one entry shape | `<friction> — open` |
+| 0.17.0 | a finding against a ratified decision takes halt 3 | `is a spec conflict and takes this halt` |
+| 0.17.0 | the coverage floor is proven to fire | `prove it fires — once` |
+| 0.17.0 | the run's log is part of acceptance | `log output is part of the acceptance` |
+| 0.20.0 | the record is verified after the commit | `Verify the record: run the close-out checker` |
+| 0.20.0 | the `RED:` zero-form | `behavior batches writing the zero-form` |
+| 0.23.0 | the product contract | `is the current-truth statement of owner-ratified` |
+| 0.23.0 | the *Records* section | `The per-project record the close-outs run on` |
+| 0.23.0 | closed items retire out of the index | `Closed items retire out of the index` |
+| 0.26.0 | the index line budget | `budget of 25` |
+| 0.27.0 | a friction line closes only with an outcome | `implemented in <commit>` |
+| 0.27.0 | a retro's absorption does not close a gotcha | `absorption records that the finding was transmitted` |
+| 0.27.0 | a check records its negative verdict | `check records its verdict whether or not` |
+| 0.27.0 | a mutation is undone by inverting the edit | `inverting the edit that made it` |
+| 0.27.0 | a backlog id is the next integer up | `integer above the file's current maximum` |
+| 0.29.0 | a control row records its catch and reach | `flagged state arises in ordinary operation` |
+| 0.29.0 | the baseline names its commit | `commit it was measured at` |
+| 0.31.0 | `quality:` names its reuse search | `searched, not eyeballed` |
+| 0.31.0 | `verify:` names what it did not exercise | `not exercised: <what could not be reached` |
+| 0.32.0 | the docs-only slice | `A docs-only slice is declared here` |
+| 0.32.0 | the verification's docs form | `the step runs in a narrower form` |
+| 0.33.0 | the slice-end graph refresh | `Slice end — incremental` |
+| 0.33.0 | a graph built inside the change set reads current | `one built on a sibling branch` |
+| 0.34.0 | a cosmetic edit keeps a slice docs-only | `docs-only only on the cosmetic` |
+| 0.35.0 | the graph refresh switch line | `Graph refresh: slice-end incremental` |
+| 0.35.0 | the scripted mutation runner | `whole-file restore is a scripted runner's, byte-exact` |
+| 0.35.0 | the approved libraries record | `### Approved libraries` |
+| 0.35.0 | a draft PR for CI is not the phase PR | `PR opened only so CI runs` |
+| 0.35.0 | a restored mutation is confirmed by a bare run | `restored and confirmed green by a` |
+| 0.36.0 | the architecture graph record | `### Architecture graph` |
+
 ### 5. Apply
 
 - Copy the target version's files over the `UNCHANGED` set and whatever `DRIFTED` files
@@ -922,8 +983,9 @@ against the upstream artifact.
   `understand` skill until its list-form `argument-hint` is a string, so no Copilot
   session has been able to refresh the graph. That is a likely reason for a stale graph
   on a Copilot project. The mode also rewrites the plugin's auto-update hooks, which
-  never ran on Copilot, so a project with `autoUpdate` on starts getting its reminders
-  at the next session. Say that before asking. It writes outside the repository, so
+  never ran on Copilot, so a project with `autoUpdate` on starts getting its orders to
+  run the plugin's incremental update unprompted, at the agent's token cost, from the
+  next session. Say that before asking. It writes outside the repository, so
   run it only on a yes.
 - **0.35.0 also makes the TDD guards count the test, not the command.** A failing run
   is a RED only when the runner's own report is in its output; a command that only
@@ -942,7 +1004,11 @@ against the upstream artifact.
   refused) before it is trusted, and `sh -n` where the shell dialect is installed; the
   guard note in `spec/SDLC.md` *Records* then names both values and the proof's catch
   — the refused wrapper failure's `NOT counted` line, quoted — with its reach note, as
-  setup writes it. **A local amendment
+  setup writes it. **If the project has its own guard tests, run them after the
+  re-derive.** A fixture that fakes a failing run must carry the runner's real report
+  (the pattern's marker), because one without it is now refused — that is the guard
+  working, as one adopter's update found. Fix the fixture; never loosen the pattern to
+  fit it. **A local amendment
   that counts a test file written through the shell as a test edit is retired, not
   carried as a hunk** (owner ruling, 0.35.0): once the edit-tools
   rule exists, a shell-written test is out of process, and licensing its red rewards
@@ -1010,6 +1076,24 @@ against the upstream artifact.
   `g1`–`g3`, `h1`–`h3`, `k`, `c`, `cl`; in the Claude gate hook `TK`, `SL`, `_tk`,
   `_sl`, `c1`–`c3`, `l1`–`l3`, `k`, `c`, `cl`. Search the project's values for each:
   a hit is a conflict to show the owner, not one to resolve silently.
+- **0.36.0 changes both TDD-guard dialects twice, and both arrive only through the
+  walk-through below.** The stop now names code that changed outside the editor tools
+  (armed, it blocks once and asks for the owner to be told), and a comment- or
+  format-only test edit no longer stales a live red or revokes a refactor licence. Say
+  both, and say a guard left as it is keeps today's rules: shell writes stay unseen. The
+  shell dialect's report needs `git` on the hook shell's PATH; without it the report is
+  silent and the guard otherwise unchanged. Where the project has its own guard tests,
+  run them after the re-derive (as for 0.35.0).
+- **0.36.0 adds *Records* → *Architecture graph*** (`spec/SDLC.md`, project-owned): hand
+  the owner the template's subsection to fold and the line to write, resolved the way
+  setup resolves `{{GRAPH_TOOL_NOTE}}`, from what is true now (the plugin installed or
+  not, its version, auto-update, the directory tracked or ignored). The markers check
+  in step 4 asks for it too.
+- **0.36.0 changes the impact adapter's output** (kit-owned, replaced as usual): phase
+  views gain `untracked-files`, every view gains `graph-coverage:`, `coverage` gains
+  `gone-files`, and `refresh-check`'s needed line names how many files the graph is
+  behind. `freshness()`'s wording is unchanged. A project with its own tests on these
+  lines is told before the replace.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from
@@ -1054,15 +1138,25 @@ against the upstream artifact.
      resolve that value the way `sdlc-setup.md` does and the version note says,
      confirm it with the owner, add it to `values.json`, and run it again. Every
      other stop names its cause (`NO TARGET`, `UNCOMMITTED`, `NOT COMMITTED`,
-     `NO BASE`, `MERGE FAILED`); none of them is a proposal.
+     `NO BASE`, `MERGE FAILED`, and `NO SUCH AMENDMENT` for a `--drop`
+     number it did not print); none of them is a proposal.
   3. **Walk the owner through it — a numbered, explicitly marked decision per
      script** (`Decision N: <script> — apply the proposal / keep as it is`). In
      plain words: what changes behaviorally, from the changelog entries in range
-     that touch its template, and from any version note above; each local amendment
-     and whether it is carried — carried by default, retired only where a version
-     note retires it, and then named; every merge conflict, shown with both sides and
-     a recommended resolution; and what keeping the script costs, as concretely as
-     the notes allow ("a guard left as it is keeps today's rules exactly"). Then the
+     that touch its template, and from any version note above; each local amendment,
+     by the number the helper printed, and whether it is carried. An amendment is
+     carried by default. It is retired only where a version note retires it, or where
+     the target template now does what it did (subsumed). Name the reason, and get the
+     owner's yes. A retirement must then **run**: re-run the helper with `--drop N[,N…]`
+     and present that proposal, never a hand-built file, which no check of the
+     helper's would cover. For each drop it prints whether the target template changes
+     that region too (read the proposal to confirm it does what the amendment did), or
+     `BEHAVIOR CHANGE`, which means the template's old text comes back; say that one to
+     the owner in plain words. A merge carries every amendment by construction, so
+     without `--drop` a retired amendment ships silently. Then every merge conflict,
+     shown with both sides and a recommended resolution; and what keeping the script
+     costs, as concretely as the notes allow ("a guard left as it is keeps today's
+     rules exactly"). Then the
      full diff from committed to proposed, so the owner reviews the file that will be
      written, not a description of it. Offer to apply it for them; never apply it on
      a summary alone.
@@ -1096,8 +1190,14 @@ against the upstream artifact.
   cat > /tmp/kit-rederive.py <<'PY'
   import difflib, json, os, re, subprocess, sys
   # <script> <template> <values.json> <target tag> <kit clone> [<target-only values>]
-  path, tpl, vals_file, target, kit = sys.argv[1:6]
-  tgt_file = sys.argv[6] if len(sys.argv) > 6 else None
+  #   [--drop N[,N...]]   local amendments to retire, numbered as an earlier run printed
+  args, drop = sys.argv[1:], set()
+  if "--drop" in args:
+      i = args.index("--drop")
+      drop = {int(n) for n in (args[i + 1:i + 2] or [""])[0].split(",") if n.strip()}
+      del args[i:i + 2]
+  path, tpl, vals_file, target, kit = args[:5]
+  tgt_file = args[5] if len(args) > 5 else None
   OLD_NAMES = {"skill-ledger.template.sh": ["skill-ledger-claude.template.sh"]}
   run = lambda *a: subprocess.run(a, capture_output=True)
   def show(tag):                                # a renamed template, by every name
@@ -1146,17 +1246,31 @@ against the upstream artifact.
   if left:
       sys.exit("UNRESOLVED in %s's template: %s - resolve each as setup does, add it "
                "to %s, run again" % (target, ", ".join(left), vals_file))
-  if base == new:
+  b_lines, i_lines = base.splitlines(True), installed.splitlines(True)
+  ops = difflib.SequenceMatcher(None, b_lines, i_lines, autojunk=False).get_opcodes()
+  amends = [o for o in ops if o[0] != "equal"]
+  if drop - set(range(1, len(amends) + 1)):
+      sys.exit("NO SUCH AMENDMENT: %s - %s has %d; run without --drop to list them"
+               % (sorted(drop - set(range(1, len(amends) + 1))), path, len(amends)))
+  if base == new and not drop:
       print("CURRENT: %s already matches the %s template - nothing to offer"
             % (path, target))
       sys.exit(0)
   print("%s: derived from %s" % (path, base_tag))
+  # A retired amendment is merged as if it had never been made: its lines go back to
+  # the derived-from template's before the merge, so the target's text wins there.
+  dropped = [o for n, o in enumerate(amends, 1) if n in drop]
+  committed = "".join("".join(b_lines[o[1]:o[2]] if o in dropped else i_lines[o[3]:o[4]])
+                      for o in ops)
+  t_ops = [o for o in difflib.SequenceMatcher(None, b_lines, new.splitlines(True),
+                                              autojunk=False).get_opcodes()
+           if o[0] != "equal"]
   out = os.path.join(run("git", "rev-parse", "--git-dir").stdout.decode().strip(),
                      "sdlc-update")
   os.makedirs(out, exist_ok=True)
   name = os.path.basename(path)
   files = {}
-  for label, text in (("installed", installed), ("base", base), ("target", new)):
+  for label, text in (("installed", committed), ("base", base), ("target", new)):
       files[label] = os.path.join(out, "%s.%s" % (name, label))
       open(files[label], "w", encoding="utf-8", newline="").write(text)
   m = run("git", "merge-file", "-p", "--diff3", "-L", "committed",
@@ -1166,9 +1280,22 @@ against the upstream artifact.
       sys.exit("MERGE FAILED: %s" % m.stderr.decode("utf-8", "replace"))
   proposed = os.path.join(out, name + ".proposed")
   open(proposed, "wb").write(m.stdout)
-  amend = diff(base, installed, "%s template, filled" % base_tag, "committed")
-  print("LOCAL AMENDMENTS (%s):" % ("none" if not amend else "%d lines" % len(amend)))
-  print("\n".join(amend))
+  print("LOCAL AMENDMENTS (%s, against the %s template, filled):"
+        % (len(amends) or "none", base_tag))
+  for n, (_, i1, i2, j1, j2) in enumerate(amends, 1):
+      print("AMENDMENT %d%s - template lines %d-%d, committed lines %d-%d:"
+            % (n, " (DROPPED)" if n in drop else "", i1 + 1, i2, j1 + 1, j2))
+      hunk = ("".join("-" + l for l in b_lines[i1:i2]) +
+              "".join("+" + l for l in i_lines[j1:j2]))
+      print(hunk if hunk.endswith("\n") else hunk + "\n", end="")
+  for n, (_, i1, i2, _, _) in [(n, o) for n, o in enumerate(amends, 1) if n in drop]:
+      if any(t1 <= i2 and i1 <= t2 for _, t1, t2, _, _ in t_ops):
+          print("DROP %d: the %s template changes this region too - check in the "
+                "proposal that it does what the amendment did" % (n, target))
+      else:
+          print("DROP %d: BEHAVIOR CHANGE - the %s template leaves this region as the "
+                "amendment found it, so dropping it reverts to the template's text"
+                % (n, target))
   print("MERGE CONFLICTS: %d" % m.returncode)
   print("PROPOSED FILE: %s\n" % proposed)
   print("\n".join(diff(installed, m.stdout.decode("utf-8"), path, path + " (proposed)")))

@@ -832,6 +832,157 @@ def unit(guard_src, verbose=True, counter=None, first_only=False):
         case("29j a write already licensed never consults the classifier",
              "red observed since last test edit" in c.tail()
              and not any("cosmetic" in l for l in c.loglines()[n:]))
+
+        # --- 0.36.0: a cosmetic TEST edit is not a new cycle (field report 11, f4) ---
+        tbody = "def test_pay():\n    # the sum\n    assert pay(1, 2) == 3\n"
+        test_f = os.path.join(c.root, "tests", "test_pay.py")
+        os.makedirs(os.path.dirname(test_f), exist_ok=True)
+
+        def tedit(old, new):
+            io.open(test_f, "w", encoding="utf-8", newline="").write(tbody)
+            return {"session_id": SID, "cwd": c.root, "hook_event_name": "PreToolUse",
+                    "tool_name": "Edit", "permission_mode": "default",
+                    "tool_input": {"file_path": win(c.root, "tests/test_pay.py"),
+                                   "old_string": old, "new_string": new}}
+
+        c.reset_state()
+        c.arm_deny()
+        c.run("pre-write", tedit("== 3", "== 4"))
+        c.run("observe-test", red(c.root, "pytest -q"))
+        out = c.run("pre-write", tedit("# the sum", "# the total"))
+        case("29k a comment-only test edit after the red is logged cosmetic",
+             out == "" and "test edit is cosmetic (python-ast)" in c.tail())
+        out = c.run("pre-write", edit("a + b", "a - b"))
+        case("29l ...and the red still licenses the production write",
+             out == "" and "red observed since last test edit" in c.tail())
+        c.run("pre-write", tedit("== 3", "== 5"))
+        out = c.run("pre-write", edit("a + b", "a - b"))
+        case("29m a real test edit after the red still stales it (denied)",
+             '"permissionDecision":"deny"' in out)
+        c.reset_state()
+        c.arm_deny()
+        c.seed("refactor-license", "step: change-simplify\n")
+        c.run("observe-test", green(c.root, "pytest -q"))
+        c.run("pre-write", tedit("# the sum", "# the total"))
+        case("29n a comment-only test edit keeps the refactor licence",
+             c.state_has("refactor-license")
+             and "test edit is cosmetic" in c.tail())
+        c.reset_state()
+        n = len(c.loglines())
+        c.run("pre-write", tedit("# the sum", "# the total"))
+        case("29o nothing at stake (no red, no licence): the classifier is not asked",
+             "test edit recorded" in c.tail()
+             and not any("cosmetic" in l for l in c.loglines()[n:]))
+
+        # --- 0.36.0: code changed outside the editor tools (field report 11, f2) ---
+        # A REAL git repository: the detector compares content against the session's
+        # start, so a bench without git would prove only that it fails open.
+        d = Bench(os.path.join(base, "det"), guard_src)
+        D = d.root
+
+        def g(*a, **env):
+            e = dict(os.environ, **env)
+            subprocess.run(("git", "-C", D) + a, capture_output=True, check=True, env=e)
+
+        def put(rel, text):
+            f = os.path.join(D, rel)
+            os.makedirs(os.path.dirname(f), exist_ok=True)
+            io.open(f, "w", encoding="utf-8", newline="").write(text)
+
+        g("init", "-q", ".")
+        g("config", "user.email", "proof@example.invalid")
+        g("config", "user.name", "proof")
+        put(".gitignore", ".github/\n")
+        for rel in ("pay.py", "fee.py", "tests/test_pay.py", "tools/gen.py", "README.md"):
+            put(rel, "original %s\n" % rel)
+        g("add", "-A")
+        g("commit", "-q", "-m", "base")
+        sess = [0]
+
+        def begin(armed=True):
+            """A fresh session: its first call takes the snapshot."""
+            sess[0] += 1
+            shutil.rmtree(d.state)
+            os.makedirs(d.state)
+            if armed:
+                d.arm_deny()
+            d.run("observe-test", green(D, "echo start", sid="s%d" % sess[0]))
+            return "s%d" % sess[0]
+
+        def blocked(out):
+            try:
+                return (json.loads(out) if out else {}).get("reason") or ""
+            except ValueError:
+                return ""
+
+        sid = begin()
+        put("pay.py", "shell wrote this\n")
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36a armed: a shell write to code blocks the stop, naming the file",
+             "changed outside the editor tools this session: pay.py" in blocked(out))
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36b ...once: the next stop does not repeat it", out == "")
+        g("checkout", "--", "pay.py")
+
+        sid = begin(armed=False)
+        d.run("pre-write", write(D, "pay.py", sid=sid))
+        put("pay.py", "the editor tool wrote this\n")
+        put("fee.py", "but the shell wrote this\n")
+        d.run("stop-check", stop(D, sid=sid))
+        lg = [l for l in d.loglines() if "outside the editor tools" in l]
+        case("36c logging mode: logged, naming only the file no pre-write saw",
+             len(lg) == 1 and "WOULD-REPORT" in lg[0] and "fee.py" in lg[0]
+             and "pay.py" not in lg[0])
+        g("checkout", "--", "pay.py", "fee.py")
+
+        sid = begin()
+        put("pay.py", "a mutation\n")
+        put("pay.py", "original pay.py\n")
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36d the same bytes put back (the mutation runner) report nothing",
+             out == "")
+
+        put("fee.py", "dirty before the session began\n")
+        sid = begin()
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36e a file already dirty at the start, untouched, reports nothing",
+             out == "")
+        put("fee.py", "and then the shell changed it\n")
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36f ...but a shell change to it reports", "fee.py" in blocked(out))
+        g("checkout", "--", "fee.py")
+
+        sid = begin()
+        put("pay.py", "shell write, then committed\n")
+        g("commit", "-q", "-am", "in-session commit")
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36g a shell write the session committed still reports",
+             "pay.py" in blocked(out))
+
+        sid = begin()
+        put("tools/gen.py", "exempt script\n")
+        put("README.md", "docs\n")
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36h exempt paths and non-code files report nothing", out == "")
+        g("checkout", "--", "tools/gen.py", "README.md")
+
+        sid = begin()
+        out = d.run("pre-write", write(D, "fee.py", sid=sid))
+        put("fee.py", "denied above, so written through the shell\n")
+        out2 = d.run("stop-check", stop(D, sid=sid))
+        case("36i a denied write retried through the shell reports",
+             '"permissionDecision":"deny"' in out and "fee.py" in blocked(out2))
+        g("checkout", "--", "fee.py")
+
+        g("checkout", "-q", "-b", "elsewhere")
+        put("fee.py", "someone else's older commit\n")
+        g("commit", "-q", "-am", "old work", GIT_COMMITTER_DATE="2020-01-01T00:00:00")
+        g("checkout", "-q", "-")
+        sid = begin()
+        g("merge", "-q", "--ff-only", "elsewhere")
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36j a pull or merge of commits dated before the session reports nothing",
+             out == "")
     except _FirstFailure:
         pass
     finally:
@@ -949,6 +1100,46 @@ MUTATIONS = [
     ("write bytecode on the import by path (__pycache__/ lands in the working tree)",
      "sys.dont_write_bytecode = True",
      "pass"),
+    ("never record an editor write as seen (every Edit-tool write reads as a shell "
+     "write at stop)",
+     '    if ok or label or not present("deny-enabled"):\n'
+     '        add_lines("seen-writes", [rel])',
+     '    if False:\n        add_lines("seen-writes", [rel])'),
+    ("record a DENIED write as seen (its shell retry goes unreported)",
+     '    if ok or label or not present("deny-enabled"):',
+     '    if True:'),
+    ("compare by presence, not content (the mutation runner's restored bytes, and a "
+     "file dirty before the session, report)",
+     '    return [p for p in cands if now.get(p) != dirty.get(p, was.get(p, ""))]',
+     '    return cands'),
+    ("charge every commit since the start's HEAD to the session (a merge of older "
+     "work reports)",
+     '"--since=@%d" % start.get("time", 0),',
+     ''),
+    ("miss what the session committed (a shell write, then a commit, hides it)",
+     '        cands.update(l for l in (out or "").split("\\n") if l.strip())',
+     '        pass'),
+    ("report outside writes to the log only, even armed",
+     '        if said:\n            emit({"decision": "block", "reason": said})',
+     '        if False:\n            emit({"decision": "block", "reason": said})'),
+    ("report the same files at every stop",
+     '        add_lines("reported-writes", outside)',
+     '        pass'),
+    ("charge exempt paths as code",
+     '            and not match_any(rel, GUARD_EXEMPT_PATTERN))\n\n\ndef status_paths',
+     '            )\n\n\ndef status_paths'),
+    ("never ask the classifier about a test edit (a format fix after the red stales "
+     "it - field report 11, finding 4)",
+     '            label = cosmetic(p, rel)\n            if label:',
+     '            label = ""\n            if label:'),
+    ("ask the classifier about every test edit (nothing at stake still pays for it)",
+     '                or present("refactor-license"):\n            label = cosmetic(p, rel)',
+     '                or True:\n            label = cosmetic(p, rel)'),
+    ("ask about a test edit only under a live red (a cosmetic edit still revokes the "
+     "refactor licence)",
+     '                and newer("red-observed", "last-test-edit")) \\\n'
+     '                or present("refactor-license"):',
+     '                and newer("red-observed", "last-test-edit")):'),
     ("consult the classifier on an already licensed write (cost on every write, and "
      "a licensed write logged as something else)",
      'label = "" if ok else cosmetic(p, rel)',

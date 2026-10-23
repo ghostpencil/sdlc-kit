@@ -284,7 +284,17 @@ template fills; a value read wrong must be seen as a local amendment on its line
 local patch as a merge conflict, and an unchanged script as `CURRENT`; a re-derived
 script whose setup proof fails is restored from `HEAD`. Proven on two adopters' real
 0.34.1 scripts, one run with a deliberately wrong values file — not by a `tools/`
-suite) — the
+suite), the 0.36.0 controls — the helper's **amendment retirement** (`--drop`,
+`tools/rederive-check.py`, which runs the helper's text extracted from the command: a
+proposal with two of three amendments dropped must be seen to equal the target
+template, filled, plus the kept one, a drop the target does not cover must be seen
+named `BEHAVIOR CHANGE`, and an unprinted number must be seen to stop it), the
+guards' **cosmetic test edit** (both guard suites: a comment-only test edit under a live
+red must be seen to keep the red and a refactor licence, and a real one must still be
+seen to stale it), and the impact adapter's **phase-scope untracked line**, **gone
+files** and **refresh-check count** (`tools/impact-check.py` — an untracked file must be
+seen outside the phase denominator, a gone file named and triggering nothing, and the
+graph directory's own commit left out of the count) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without

@@ -243,6 +243,8 @@ tools/impact-check.py                ← proves the architecture-impact adapter,
 tools/cosmetic-check.py              ← proves the cosmetic-edit classifier, corpus + mutations
                                        (TypeScript installs passed in with --ts; not vendored)
 tools/shipped-lint-check.py          ← lints every shipped .py with stock ruff, + mutations
+tools/rederive-check.py              ← proves /sdlc-update's hook re-derive helper, extracted
+                                       from the command, cases + mutations
 tools/impact-fixtures/               ← the IMPACT proof's seed pair, minimized from a real
                                        Understand Anything graph + overlay, a real scanner
                                        output for coverage, and the plugin's hooks.json
@@ -856,7 +858,7 @@ name each one.
    *Architecture impact view* section, where you have one, now names a **regeneration
    trigger** — regenerate the graph at `/end-phase`'s post-merge bookkeeping, and do
    not rely on the graph tool's own auto-update to do it (measured: on the Understand
-   Anything plugin that setting reminds rather than refreshes, and one of its two hooks
+   Anything plugin that setting writes nothing itself, and one of its two hooks
    matches the Bash tool only). The update command's 0.31.0 notes state the same
    procedure.
 
@@ -965,7 +967,8 @@ name each one.
    `plugin-fix` mode: Copilot refuses Understand Anything's `understand` skill until
    one frontmatter field is rewritten, so no Copilot session could refresh the graph
    before it. The same mode makes the plugin's auto-update hooks work on Copilot, where
-   they never ran, so a project with `autoUpdate` on starts getting their reminders.
+   they never ran, so a project with `autoUpdate` on starts getting their orders to
+   run the plugin's incremental update unprompted — say so before your yes.
    It writes outside the repository, into the plugin's install, so it runs only on your
    yes. The update command's 0.35.0 note states the same procedure.
 
@@ -982,8 +985,10 @@ name each one.
    rules. A re-derived guard is proven the way setup now proves it — one real red
    counted, one wrapper failure refused — plus `sh -n` where the shell dialect is
    installed, and its note in `spec/SDLC.md` names both values and the refused line,
-   with a reach note. A local amendment that counts a shell-written test as a test
-   edit is retired
+   with a reach note. If you have your own guard tests, run them after the re-derive:
+   a fixture that fakes a failing run must carry the runner's real report, because one
+   without it is now refused — fix the fixture, never loosen the pattern to fit it. A
+   local amendment that counts a shell-written test as a test edit is retired
    rather than carried. The update command's 0.35.0 note states the same procedure.
 
    **0.35.0 also changes the edit-time gate hook's body.** It skips files outside the
@@ -1037,6 +1042,24 @@ name each one.
    each template's comment), which your lint value or typecheck block must not assign:
    the walk-through searches your values for them and shows any hit as a conflict. The
    update command's 0.35.1 note states the same procedure.
+
+   **0.36.0 changes both TDD-guard dialects twice.** The stop names code that changed
+   outside the editor tools (armed, it blocks once), and a comment- or format-only test
+   edit no longer stales a live red or revokes a refactor licence. The guards are yours,
+   so this arrives only through the walk-through below; a guard you keep leaves shell
+   writes unseen. The shell dialect's report needs `git` on the hook shell's PATH. Run
+   your own guard tests after the re-derive. The update command's 0.36.0 note states
+   the same procedure.
+
+   **0.36.0 adds *Records* → *Architecture graph*** to `spec/SDLC.md`: the update hands
+   you the subsection and the line to write, from what is true now (the plugin installed
+   or not, auto-update, its directory tracked or ignored). **The impact adapter's output
+   gains lines** (`untracked-files` at phase scope, `graph-coverage:`, `gone-files`, and
+   a files-behind count in `refresh-check`); it is kit-owned and replaced, so tests of
+   your own on its lines are named before the replace. And **step 4 now looks for every
+   process rule an earlier update missed**, from 0.15.0 on, by a marker phrase per rule,
+   and asks you about each absent one: fold it now, or record it as reworded on
+   purpose. The update command's 0.36.0 notes and step 4 state the same procedure.
 
    **Every project-owned hook script gets a walk-through, and an offer to apply it for
    you.** The five scripts instantiated from templates — `sdlc-gate.sh`,

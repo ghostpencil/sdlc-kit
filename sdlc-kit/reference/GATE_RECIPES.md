@@ -613,6 +613,14 @@ a pass, a missing wrapper binary and a CLI usage error):
 | pytest | `=+ (FAILURES\|ERRORS) =+` | not needed unless `-s`; drop it |
 | vitest | `^\s*FAIL\s\|Test Files +\d+ failed` | `--silent=true --reporter=dot` (`--silent` alone keeps a failing test's console output in 4.1) |
 | jest | `^\s*FAIL\s\|Test Suites: \d+ failed` | `--silent` |
+| Maven (Surefire) | `<<< (FAILURE\|ERROR)!\|COMPILATION ERROR` | `-q` |
+
+The Maven row was measured separately: Maven 3.9.2, Surefire 3.2.5 and JUnit 5.10.2,
+with `mvn -q test`. An assertion red prints `<<< FAILURE!` at character 80. A test that
+does not compile prints `[ERROR] COMPILATION ERROR :` at character 8. Neither marker
+appears in a pass (quiet or not), an unrecognised flag, `-Dtest=` matching no test, or a
+missing `mvn` (`bash` exit 127, PowerShell's *not recognized*). Its cost: a compile
+error in **production** code also counts as a RED, just as pytest counts an import error.
 
 vitest's ` RUN  v…` start line is **not** a marker: it prints on every run, a pass and
 "No test files found" included. The value is a regular expression in the subset Python
@@ -691,8 +699,19 @@ armed (sdlc-kit#15, #16, #17). Code is `{{SOURCE_GLOB}}` minus the exempt patter
 docs, configs and exempt scripts stay shell-writable. The exceptions are a tool's own
 output (a formatter's `--write`, codegen) and `/end-slice` step 5's hash-verified
 mutation runner. A test written through the shell does not license its red: once the
-rule exists it is out of process, and counting it would reward the breach. A detector
-that reports such writes at the stop is held to 0.36.0. Two more honest limits: G2 accepts
+rule exists it is out of process, and counting it would reward the breach. **Since
+0.36.0 the stop reports such writes.** At a session's first hook call the guard
+records `HEAD` and the content of every code file already modified. At each stop it
+names every code file whose content differs from that start and that no pre-write let
+through. That covers the working tree and what the session committed, but not commits
+dated before the session began (a pull, a merge). Armed, it blocks the stop once per
+set of files and asks for the owner to be told; in logging mode it logs. Content,
+never mtime, so the hash-verified runner, which puts the same bytes back, never trips
+it; and a write the guard denied, then made through the shell, is caught. Its costs:
+a formatter or generator writing into code nobody edited this session reads as a
+breach (exempt generated directories), a commit pulled in mid-session reads as the
+session's, and a shell write in the session's very first tool call predates the
+snapshot. It detects, never prevents. Two more honest limits: G2 accepts
 any green test run rather than a full gate run, and a session that satisfies the guard
 can still delete the test afterwards — which is why the evidence lines in the slice
 commit body, not the guard, are what make TDD ordering auditable after the fact, and

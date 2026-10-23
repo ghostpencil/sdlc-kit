@@ -66,6 +66,7 @@
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from fnmatch import fnmatch
@@ -258,8 +259,9 @@ def emit(obj):
 
 
 # A comment or formatting edit needs no red (GATE_RECIPES.md, cosmetic exemption).
-# Asked only of a write that would otherwise be denied or logged as a violation, so a
-# licensed write never pays for it. The classifier can only GRANT: missing, broken, unsure - each returns "" and
+# Asked only of a production write that would otherwise be denied or logged as a
+# violation, so a licensed write never pays for it - and of a test edit that would
+# otherwise stale a live red or revoke a licence (0.36.0). The classifier can only GRANT: missing, broken, unsure - each returns "" and
 # today's rule applies. Imported in-process (no second python), with bytecode writing
 # off - an import by path would otherwise drop __pycache__/ into the working tree.
 def cosmetic(path, rel):
@@ -282,6 +284,121 @@ def cosmetic(path, rel):
         return detail
     log("not cosmetic (%s): %s" % (detail, rel))
     return ""
+
+
+# Code that changed OUTSIDE the editor tools (0.36.0). This guard sees only the editor
+# tools, so a shell write to source or a test was invisible to it: one adoption made
+# about 28 unseen production writes in one armed phase (field report 11, finding 2).
+# Detection, not prevention. The session's start is recorded, and at stop every code
+# file whose CONTENT differs from that start, and that no pre-write saw, is reported.
+# Content, never mtime, so the hash-verified mutation runner, which puts the same bytes
+# back, never trips it. Commits dated before the session began (a pull, a merge) are
+# not the session's. "Code" is the guard's own: SOURCE_GLOB minus the exempt paths,
+# tests included. Fails open: any git failure reports nothing. Known costs: a
+# formatter or generator writing into code nobody edited this session reads as a
+# breach (the cure is the exempt pattern for generated directories); and so does a
+# commit pulled in from elsewhere while the session runs. The session's FIRST tool
+# call takes the snapshot, so a shell write in that very call is missed.
+def git(*args):
+    # The resolved git directory and root, named outright: git's own discovery could
+    # walk past a harness's bare temp root into whatever repository encloses it.
+    try:
+        p = subprocess.run(("git", "-c", "core.quotepath=false", "-C", ROOT,
+                            "--git-dir=" + GD, "--work-tree=" + ROOT) + args,
+                           capture_output=True)
+    except OSError:
+        return None
+    return p.stdout.decode("utf-8", "replace") if p.returncode == 0 else None
+
+
+def is_code(rel):
+    return (match_any(rel.rsplit("/", 1)[-1], SOURCE_GLOB)
+            and not match_any(rel, ALWAYS_EXEMPT)
+            and not match_any(rel, GUARD_EXEMPT_PATTERN))
+
+
+def status_paths():
+    out = git("status", "--porcelain=v1", "-z", "-uall")
+    if out is None:
+        return None
+    paths, items, i = [], out.split("\0"), 0
+    while i < len(items):
+        if len(items[i]) > 3:
+            paths.append(items[i][3:])
+            if items[i][0] in "RC":
+                i += 1          # a rename's source follows as a field of its own
+        i += 1
+    return paths
+
+
+def blob_ids(paths):
+    """{path: the blob id of its working-tree content, "" when it is not there}."""
+    there = [p for p in paths if os.path.isfile(os.path.join(ROOT, p))]
+    out = git("hash-object", "--", *there) if there else ""
+    if out is None:
+        return None
+    ids = dict.fromkeys(paths, "")
+    ids.update(zip(there, out.split()))
+    return ids
+
+
+def record_start():
+    dirty = [p for p in (status_paths() or []) if is_code(p)]
+    start = {"head": (git("rev-parse", "HEAD") or "").strip(), "time": int(time.time()),
+             "dirty": (blob_ids(dirty) or {}) if dirty else {}}
+    try:
+        with open(sf("session-start"), "w", encoding="utf-8") as f:
+            json.dump(start, f)
+    except OSError:
+        pass
+
+
+def lines_of(name):
+    try:
+        with open(sf(name), encoding="utf-8") as f:
+            return {os.path.normcase(l.rstrip("\n")) for l in f if l.strip()}
+    except OSError:
+        return set()
+
+
+def add_lines(name, paths):
+    try:
+        with open(sf(name), "a", encoding="utf-8") as f:
+            f.write("".join(p + "\n" for p in paths))
+    except OSError:
+        pass
+
+
+def changed_outside():
+    """Code files changed this session that no pre-write saw, not yet reported."""
+    try:
+        with open(sf("session-start"), encoding="utf-8") as f:
+            start = json.load(f)
+    except (OSError, ValueError):
+        return []
+    paths = status_paths()
+    if paths is None:
+        return []
+    head0, cands = start.get("head") or "", set(paths)
+    if head0 and (git("rev-parse", "HEAD") or "").strip() not in ("", head0):
+        out = git("log", "--no-merges", "--since=@%d" % start.get("time", 0),
+                  "--name-only", "--format=", head0 + "..HEAD")
+        cands.update(l for l in (out or "").split("\n") if l.strip())
+    skip = lines_of("seen-writes") | lines_of("reported-writes")
+    cands = sorted(p for p in cands if is_code(p) and os.path.normcase(p) not in skip)
+    if not cands:
+        return []
+    now = blob_ids(cands)
+    if now is None:
+        return []
+    dirty, was = start.get("dirty") or {}, {}
+    clean = [p for p in cands if p not in dirty]
+    if head0 and clean:
+        for row in (git("ls-tree", head0, "--", *clean) or "").split("\n"):
+            meta, _, p = row.partition("\t")
+            if p:
+                was[p] = meta.split()[-1]
+    return [p for p in cands if now.get(p) != dirty.get(p, was.get(p, ""))]
 
 
 try:
@@ -321,13 +438,15 @@ if SID:
     if SID != prev:
         for n in ("red-observed", "green-observed", "last-test-edit",
                   "refactor-license", "close-out-license",
-                  "close-out-survivals", "prod-write-observed"):
+                  "close-out-survivals", "prod-write-observed",
+                  "seen-writes", "reported-writes"):
             clear(n)
         try:
             with open(sf("session"), "w") as f:
                 f.write(SID)
         except OSError:
             pass
+        record_start()
         log("new session %s - previous observations cleared" % SID)
 
 TOOL_INPUT = D.get("tool_input") or {}
@@ -380,6 +499,21 @@ if MODE == "pre-write":
             log("exempt from the guard (not production source, not a test): %s" % rel)
         sys.exit(0)
     if match_any(rel, TEST_PATH_PATTERN) or match_any(base, TEST_PATH_PATTERN):
+        # Seen through the editor tools: the stop-time detector leaves it alone.
+        add_lines("seen-writes", [rel])
+        # A comment or formatting edit to a test is not a new cycle. Before 0.36.0 the
+        # edit-time hook's format fix on a test, landing after its red run, staled the
+        # red and revoked the licence (one adoption, its own field report). Asked only
+        # when something is at stake - a live red or a refactor licence - so an edit
+        # that would cost nothing never pays for the classifier. It can only GRANT.
+        if (present("red-observed") and present("last-test-edit")
+                and newer("red-observed", "last-test-edit")) \
+                or present("refactor-license"):
+            label = cosmetic(p, rel)
+            if label:
+                log("test edit is cosmetic (%s) - not a new cycle: the red stands and "
+                    "no license is revoked: %s" % (label, rel))
+                sys.exit(0)
         # A test edit invalidates any earlier red and revokes any refactor
         # license - a new test is a new cycle.
         mark("last-test-edit")
@@ -419,6 +553,11 @@ if MODE == "pre-write":
         # they differ only in what a test edit does to them.
         ok = "lic"
     label = "" if ok else cosmetic(p, rel)
+    # Every branch but the deny lets the write through, so every branch but the deny
+    # records it as seen. A denied write changed nothing; a shell retry of the same
+    # file is exactly what the stop-time detector exists to catch.
+    if ok or label or not present("deny-enabled"):
+        add_lines("seen-writes", [rel])
     # The marker records a production write that actually WENT THROUGH; the deny
     # branch sets nothing on purpose - a denied write leaves the tree unchanged,
     # and a stop guard armed by it would demand a green for code never written.
@@ -580,9 +719,29 @@ if MODE == "stop-check":
     if str(D.get("stop_hook_active")).lower() == "true":
         log("stop: stop_hook_active set - standing down")
         sys.exit(0)
+    # Runs before the session scoping below on purpose: a session whose only code
+    # writes went through the shell never arms G2, and is exactly the one to report.
+    outside = changed_outside()
+    said = ""
+    if outside:
+        add_lines("reported-writes", outside)
+        said = ("TDD ordering: code changed outside the editor tools this session: %s. "
+                "Code - source and tests - changes only through the editor tools, the "
+                "only writes this guard can see (CLAUDE.md, Always-Active Rules); a "
+                "shell write leaves the TDD order unverifiable. Tell the owner which "
+                "files changed that way, how, and why." % ", ".join(outside))
+        if present("deny-enabled"):
+            log("stop: BLOCK - code changed outside the editor tools: %s"
+                % ", ".join(outside))
+        else:
+            log("stop: WOULD-REPORT - code changed outside the editor tools: %s"
+                % ", ".join(outside))
+            said = ""
     if not present("prod-write-observed") and not present("last-test-edit"):
         log("stop: clean (no production write or test edit this session - "
             "nothing to guard)")
+        if said:
+            emit({"decision": "block", "reason": said})
         sys.exit(0)
     reason = ""
     if not present("green-observed"):
@@ -594,12 +753,13 @@ if MODE == "stop-check":
         log("stop: clean (green observed, not stale)")
     elif present("deny-enabled"):
         log("stop: BLOCK - %s" % reason)
-        emit({"decision": "block",
-              "reason": "TDD ordering: %s. (Run the tests as a single bare "
-                        "command so the guard can count that run as the test's "
-                        "own.)" % reason})
+        said = ((said + " ") if said else "") + (
+            "TDD ordering: %s. (Run the tests as a single bare command so the guard "
+            "can count that run as the test's own.)" % reason)
     else:
         log("stop: WOULD-BLOCK - %s" % reason)
+    if said:
+        emit({"decision": "block", "reason": said})
     sys.exit(0)
 
 

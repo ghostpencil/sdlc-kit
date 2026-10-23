@@ -44,7 +44,7 @@ Run these as commands; each states its negative case in the ledger.
   each referenced step and confirm it is the one the sentence means.
 - **13 — the `tools/` proof suites are RUN, not read:** invariant 13's population names
   them, and reading one establishes only that it *states* its negative cases. Run all
-  eight — `python -u tools/{gate-hook,tdd-guard,tdd-guard-claude,skill-ledger,impact,close-out,shipped-lint}-check.py`,
+  nine — `python -u tools/{gate-hook,tdd-guard,tdd-guard-claude,skill-ledger,impact,close-out,shipped-lint,rederive}-check.py`,
   and `python -u tools/cosmetic-check.py --ts <dir> --ts <dir>` with one directory per
   supported `typescript` major (each holding `node_modules/typescript`; or `COSMETIC_TS`,
   separated by `os.pathsep`) — and quote each exit code beside its case and mutation
@@ -61,8 +61,8 @@ Run these as commands; each states its negative case in the ledger.
   and `tdd-guard-claude-check` under 2 (all four stop each mutation at its first failing
   case and run 8 at a time; `IMPACT_JOBS` / `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs
   serially), `cosmetic-check` ~6, `gate-hook-check` under 2 (its six suite × parser
-  runs go concurrently) — and all
-  eight buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a
+  runs go concurrently), `rederive-check` under 1 — and all
+  nine buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a
   suite share its output file and slow each other several-fold. A scoped
   run that skips them says so, in those words, because "13: pass" over unrun suites is
   exactly the all-clear this command's prime directive forbids.
@@ -160,8 +160,10 @@ For each, read the named files in full — do not sample — and cite evidence p
   guard-exempt pattern, the edit-time hook's file scope, the Copilot commit detector,
   the scripted mutation runner, the close-out Stop launcher's moved-cwd message, and
   `/sdlc-update`'s friction enumeration (all 0.35.0), `/sdlc-update`'s hook-script
-  walk-through and its helper's stops (0.35.1), the `tools/` proof suites, and
-  this command.
+  walk-through and its helper's stops (0.35.1), the helper's amendment retirement
+  (`tools/rederive-check.py`), the guards' cosmetic test edit, and the impact
+  adapter's phase-scope untracked line, gone files and refresh-check count (all
+  0.36.0), the `tools/` proof suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that

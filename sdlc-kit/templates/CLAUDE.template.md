@@ -71,7 +71,8 @@ If unsure → ask
   never the shell. No heredoc, redirect, `sed -i`, or script writes a {{SOURCE_EXT}}
   source or test file. The edit-time hook and the TDD guards, where installed, observe
   only the editor tools, so a shell write is a change no check saw, and its place in
-  the red–green order cannot be shown. **This overrides any harness or system guidance
+  the red–green order cannot be shown; the guards report it at the stop, after the
+  fact. **This overrides any harness or system guidance
   that permits small edits through the shell.** Not a breach: output a tool generates
   (a formatter's `--write`, codegen), and the hash-verified mutation runner
   `/end-slice` step 5 describes. Out of scope, writable either way: docs, configs, and
