@@ -6988,28 +6988,31 @@ owner's call).
 ### 85.8 Released 2026-10-23 — 0.36.0 (tag `v0.36.0`)
 
 Step 9. The release `/kit-check` ran the mechanical checks and the suites, and four
-reading agents covered invariants 1–3, 5–8 and 11–16 plus the lens↔rule map over the
-whole kit. **Eight suites completed green on the release tree; `tdd-guard-check` did
-not complete on it** — Claude Code's memory reaper stopped the run at 50 of 59
-mutations (both unit passes green, 50 caught, none survived). It is reported as
-incomplete, not passed: the full suite was green on `b3eb117`, the shell guard's only
-change since is `c835fc3`'s four header-comment lines, and no mutation anchor in the
-suite names that text — so the nine uncaught-in-this-run mutations were decided by a
-run of identical code, and the release went ahead on that evidence. Nothing release-blocking; fixed in the release commit:
-invariant 4 — the 0.36.0 update note named `{{GRAPH_TOOL_NOTE}}` literally, the first `{{`
-in an installed file other than `sdlc-setup.md`; invariant 6 — two step references in
-setup's new graph-offer text (both from `60b8b38`) named step 5 and an unqualified step 1
-for New mode step 6 and Existing mode step 1, and that survey never listed the UA
-directory the sentences lean on; invariant 13 — `kit-check.md`'s derived denominator
-omitted three of the six 0.36.0 controls the ledger names; invariant 7/8 cosmetics —
-`sdlc-update.md` step 3's lead sentence named only the Claude Code directories, its 0.16.0
-note lacked the "until 0.21.0" qualifier the README carries, the root README claimed setup
-verifies Claude Code built-ins, and the ledger's invariant 4 omitted the hook scripts
-setup's exit grep includes. Two findings went to §86 as rulings (86.1(5) the stated-skip
-rule, 86.1(6) setup's unstamped baseline). Manifest 45/45 regenerated from committed
-content. #11, #12, #13 and #17 closed by hand with the deviations §85 records (the `;`
-anchor; #17 f1's fix 1 built inverted, fix 3 not built by 84.2; #11's agent runs `--full`
-itself where it can). §86 holds what the pre-release pass deferred.
+reading agents covered invariants 1–3, 5–8 and 11–16 plus the lens↔rule map over the whole
+kit. **Eight suites completed green on the release tree; `tdd-guard-check` did not
+complete on it** — Claude Code's memory reaper stopped the run at 50 of 59 mutations (both
+unit passes green, 50 caught, none survived). It is reported as incomplete, not passed:
+the full suite was green on `b3eb117`, the shell guard's only change since is `c835fc3`'s
+four header-comment lines, and no mutation anchor in the suite names that text — so the
+nine uncaught-in-this-run mutations were decided by a run of identical code, and the
+release went ahead on that evidence. Nothing release-blocking; fixed in the release
+commit: invariant 4 — the 0.36.0 update note named `{{GRAPH_TOOL_NOTE}}` literally, the
+first `{{` in an installed file other than `sdlc-setup.md`; invariant 6 — two step
+references in setup's new graph-offer text (both from `60b8b38`) named step 5 and an
+unqualified step 1 for New mode step 6 and Existing mode step 1, and that survey never
+listed the UA directory the sentences lean on; invariant 13 — `kit-check.md`'s derived
+denominator omitted three of the six 0.36.0 controls the ledger names; invariant 7/8
+cosmetics — `sdlc-update.md` step 3's lead sentence named only the Claude Code
+directories, its 0.16.0 note lacked the "until 0.21.0" qualifier the README carries, the
+root README claimed setup verifies Claude Code built-ins, and the ledger's invariant 4
+omitted the hook scripts setup's exit grep includes. Two findings went to §86 as rulings
+(86.1(5) the stated-skip rule, 86.1(6) setup's unstamped baseline). Manifest 45/45
+regenerated from committed content. #11, #12, #13 and #17 closed by hand with the
+deviations §85 records (the `;` anchor; #17 f1's fix 1 built inverted, fix 3 not built by
+84.2; #11's agent runs `--full` itself where it can). §86 holds what the pre-release pass
+deferred. Published tarball verified from the download: checksum, VERSION 0.36.0, 45/45
+manifest, the anchor on all seven launchers, the stop-time detector in both guards, no
+kit-development pointer inside.
 
 ## 86. Post-0.36.0 — the pre-release sanity pass's remainder — opened 2026-10-23
 
