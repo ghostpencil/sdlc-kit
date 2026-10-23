@@ -6984,3 +6984,115 @@ is why.
 
 **Left in the batch:** step 9 — VERSION, MANIFEST, `/kit-check`, the release (the
 owner's call).
+
+## 86. Post-0.36.0 — the pre-release sanity pass's remainder — opened 2026-10-23
+
+The owner asked for a sanity pass before 0.36.0: every hook body read against its
+recipe and the SDLC template, every command and skill read for contradictions, and the
+prompts read for simplification without loss. What was safe to fix went into the
+release (`405a3aa`, `c835fc3`, `2ad72b8` — ten prose contradictions, the guard header
+comments, and the re-derive helper's hard-coded target tag). **No hook defect was
+found.** This section holds what was *not* fixed, in three classes: rulings the owner
+owes, hook observations to measure before touching, and the simplification backlog.
+None of it blocks 0.36.0; all of it is sized for one session after the release, with
+the rulings first because the backlog's largest item needs one.
+
+### 86.1 Rulings owed
+
+1. **The coverage floor has three homes against a one-home rule.**
+   `PROJECT_INDEX.template.md:30-42` states ONE NUMBER, ONE HOME and names the floor's
+   home as `spec/SDLC.md` *Records*; the same template's phase block (`:51-58`) says it
+   "carries the coverage-floor line" in every mode; `end-phase.md:403-412` asserts
+   agreement between the index, `spec/SDLC.md` and the enforcing threshold. The index
+   copy exists because `/end-phase`'s bookkeeping asserts it, so the choice is: (a)
+   the phase block becomes a pointer ("recorded in spec/SDLC.md", as `:51` already does
+   for the gate baseline) and the end-phase bullet asserts two values, or (b) the ONE
+   HOME comment names the index line as a deliberate, asserted second copy. (a) is the
+   rule as written; (b) is the practice as built. Recommend (a): the gate baseline
+   already takes that path (`sdlc-setup.md:905`, the template's `:51`) and the
+   reconcile pass still searches for the old value.
+2. **Two offered skills contradict the kit's own rules.** `sdlc-setup.md:288` offers
+   `tdd-guide/` and `python-pro/`. `tdd-guide` is test generation from requirements
+   and coverage analysis — the tracer-bullet, one-failing-test-first discipline the
+   core `tdd/` skill and both guards enforce is not its model; `python-pro` runs
+   `mypy --strict`, `black` and `ruff` as its own step 5, which asserts a project's
+   toolchain against invariant 1 and against the gate that already runs whichever of
+   those the project has. Options: stop offering both (the §16 bar — neither has a
+   confirmed catch on record), or keep the offer and add one sentence to each row of
+   `SKILLS.md:68,73` saying the kit's rules win where the skill disagrees. Recommend
+   the sentence for `python-pro` (its idiom content has value) and dropping the
+   `tdd-guide` offer.
+3. **`mutation-testing`'s pre-flight is unsatisfiable where the kit invokes it.**
+   `mutation-testing/SKILL.md:21` requires a clean working tree; `/end-slice` §5 runs
+   it on the uncommitted slice (`end-slice.md:234-257`), so the pre-flight can never
+   pass there and a session either skips the skill or stashes the slice. One sentence
+   fixes it, in one of two places: the `SKILLS.md:69` row (which already says the step
+   states the rules that bite) or §5 itself. Editing the vendored file is the option
+   to rule out (invariant 3: diverging a vendored skill is noted, not silent).
+   Recommend the `SKILLS.md` row.
+4. **`/end-slice` §3's copy of `change-simplify` omits the trimmed-gate clause.**
+   `end-slice.md:68-82` restates the skill's three safety rules; the skill's §3
+   (`change-simplify/SKILL.md:120-128`) adds that the gate between moves may be
+   trimmed, the final gate may not, and the report states which form ran. §76.3 made
+   the command's copy load-bearing, so the omission is a half-restated contract — the
+   same defect §76.3 found in this skill. Add the clause to the command (one bullet);
+   do not cut the command's copy.
+
+### 86.2 Hook observations — measure before touching
+
+Neither is a defect; both are recorded so they are not rediscovered as one.
+
+- **`2>&1` reads as compound in both guards.** The compound check reads the raw command
+  for `;`, `&` or `|` (`tdd-guard-claude.template.py:640-648`,
+  `tdd-guard.template.sh:645-659`), so `pytest 2>&1` is NOT counted and the session is
+  told to re-run bare. This is deliberate (a stripping bug there would admit a genuine
+  compound and record a false GREEN). Before narrowing it, count the `NOT counted
+  (compound` lines in the three adopters' `guard.log` files and see how many carry a
+  bare redirect and nothing else; under a handful, leave it.
+- **One byte/character mismatch across the shell hooks.** `tdd-guard.template.sh:468`
+  relativizes with `cut -c $((${#c} + 2))-`; the two gate hooks use byte-based
+  `LC_ALL=C cut -b` with `wc -c` (`claude-gate.template.sh:71`,
+  `copilot-hook.template.sh:196`). They differ only on a non-ASCII path, and the guard
+  reaches that line only when the prefix match already failed. Align to the gate form
+  if the guard suite gains a non-ASCII case; otherwise leave it.
+
+### 86.3 Simplification backlog — needs a ruling before the first item
+
+The CLAUDE.md rule that `sdlc-update.md` and the README's *Updating an adopted
+project* section state the same procedure and must agree is what makes the largest
+item a decision, not an edit.
+
+1. **The README duplicates every version note (~500 lines).** `README.md:554-1052`
+   carries a per-release note for 0.16.0 through 0.36.0, each a near-paraphrase of
+   the matching `sdlc-update.md` note (`:332-1100`). Two copies that must agree, each
+   edited at every release — the 0.31.0 regeneration-trigger claim fixed in `405a3aa`
+   was exactly a copy going stale. Options: (a) the README keeps the procedure and
+   points at the command's notes, dropping its own; (b) both move to a new
+   `reference/UPDATE_NOTES.md` and both files point there. Either way the must-agree
+   sentence in CLAUDE.md changes to name the one home. Recommend (a): the command is
+   installed, the README is not, and an adopter's agent reads the command.
+2. **The transition notes 0.14.0–0.31.3 are dead weight for every current adopter.**
+   `sdlc-update.md:321-904` (~580 lines) describes transitions all three adopters
+   completed before 0.35.1. Move them to `reference/UPDATE_NOTES.md` (or the README's
+   historical section, under (a) above) and leave one line in the command saying where
+   a pre-0.32.0 project finds them. Depends on item 1's ruling so the two are not
+   moved twice; the `rederive-check` suite reads the helper block only, so the move
+   does not touch a proof.
+3. **Setup's `{{TDD_GUARD_NOTE}}` instructions restate the recipe.**
+   `sdlc-setup.md:473-543` lists what the note must record; `GATE_RECIPES.md`'s guard
+   section and the template comment under the placeholder say the same. Keep the list
+   in one place (the recipe, which setup already reads at that step) and have setup
+   point at it. `skill-ledger-check.py` is the one suite that reads `sdlc-setup.md`;
+   run it after, and the invariant-3 placeholder check in `/kit-check`.
+4. **Within-file repeats, about fifty lines.** The "installed at `.claude/skills/…`
+   and available on both CLIs" sentence appears once in each of `end-slice.md`,
+   `diff-review`, `change-simplify` and `change-verify` and once in setup; the
+   mutation-sample rule is stated at `end-slice.md:254-257` and again at `:346-347`
+   (where line 347 also runs to 155 characters, past the wrap). Each is a
+   one-sentence pointer in place of a paragraph. No proof suite reads these files;
+   `/kit-check`'s reading pass is the check.
+
+Order: 86.1 in one sitting (four rulings, each one sentence), then 86.3(1) ruled, then
+86.3(1)–(2) built together, then 86.3(3)–(4) and 86.1's four edits in one commit, all
+nine suites, `/kit-check`. No release of its own unless 86.1(2) drops an offer — that
+changes setup's install list, which is 0.37.0's note.
