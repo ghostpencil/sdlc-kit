@@ -7297,3 +7297,8 @@ catch, so a later session could not tell a wired floor from a recorded one. Buil
   update would add a gate to an update that has none.
 - The index template's BUILD variant gains both pointer lines (§86.7's second item).
 - Invariant 16's check, in the ledger and in `/kit-check`, names the floor's row.
+
+Released 2026-10-23: commit `0586e6e`, tag `v0.37.1`, workflow run 39992669238 green on
+the first run. Tarball verified from the download: checksum OK, VERSION 0.37.1, manifest
+45/45, the new marker present. **§86 is closed.** Next: the adopter updates, all three
+from 0.35.1 to 0.37.1 in one update.
