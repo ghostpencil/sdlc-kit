@@ -162,7 +162,11 @@ regardless (rules: *The Gate*).
      observed figure (printed, or read from that run's coverage report artifact where
      the check prints only pass/fail), using CI's exact invocation; it only ever
      raises. Lowering it to pass a build defeats its only purpose — existing coverage
-     debt is a backlog item, not a merge blocker. -->
+     debt is a backlog item, not a merge blocker. The floor is a control, so once a
+     figure exists the row also carries the prove-it-fires catch BY NAME (the failing
+     run's line, and the gate command or CI job it failed in) and a reach note: whether
+     a run has fallen below the floor on its own, or only in the proof. A floor set
+     before 0.37.1 without one says "catch not recorded" until its next proof. -->
 
 An edit-time hook ({{HOOK_CONFIG_PATH}}) runs the lint/typecheck steps on every edited
 source file inside the project, so most gate failures surface at edit time rather than
@@ -469,7 +473,9 @@ the failure; then set the real value. The record and the threshold agreeing prov
 about whether the enforcing step ever *runs* in the commands the gate executes — a
 floor bound to a build phase the gate never reaches passes every reconcile and
 enforces nothing. Same discipline as the edit-time hook's install proof: a check
-that has never been seen to fail is not yet a check.
+that has never been seen to fail is not yet a check. The proof's catch is recorded on
+the *Records* row, named, with its reach note; a proof whose evidence went nowhere
+leaves the next session unable to tell a wired floor from a recorded one.
 
 If local and CI disagree about a measurement — a pass/fail, an error count, a coverage
 figure — CI is authoritative. And the disagreement is itself a finding: work out *why*

@@ -287,6 +287,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.37.0 | the index carries no coverage-floor figure | `the index points here` |
 | 0.37.0 | the quality pass's trimmed gate between moves | `run in full, once, after the last move` |
 | 0.37.0 | the phase close stamps an unstamped baseline | `An unstamped gate baseline is stamped here` |
+| 0.37.1 | the coverage floor records its catch and reach | `The proof's catch is recorded on` |
 
 ### 5. Apply
 
@@ -581,6 +582,17 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   reach note; a project whose guard note lacks them adds them when folding. Setup's
   baseline stamp, the guard note's one list and `python-pro`'s caveat reach only a
   fresh adoption, and the 0.14.0–0.31.3 notes now live in `reference/UPDATE_NOTES.md`.
+- **0.37.1 makes the coverage floor a recorded control.** Its *Records* row in
+  `spec/SDLC.md` now carries the prove-it-fires catch, named (the failing line and the
+  command or CI job it failed in), and a reach note, like every other control row. The
+  rule is in `templates/SDLC.template.md` (*Coverage floor* and the row's comment), and
+  step 4's marker table puts it to the owner as a fold. **Nothing is re-proved during
+  the update.** A project whose floor exists but whose proof was never recorded writes
+  `catch not recorded (floor set before 0.37.1)` on the row when folding, and the next
+  `/end-phase` re-proves it and records the catch. A floor still `TBD` needs nothing
+  until one is established. The index template's mid-feature status variant also gains
+  the two pointer lines; a project adopted mid-feature folds them only if its index
+  restates either value.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from

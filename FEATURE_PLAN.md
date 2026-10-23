@@ -7279,3 +7279,21 @@ run. The four workflow gates were simulated first on an export of the index. Tar
 verified from the download: checksum OK, VERSION 0.37.0, manifest 45/45, seven skill
 directories with no `tdd-guide`, `reference/UPDATE_NOTES.md` present, the 0.37.0 marker
 in the template. Adopter updates (all three on 0.35.1) are no longer held for §86.
+
+### 86.9 0.37.1 — the coverage floor as a control (ruled and built 2026-10-23)
+
+The owner took the recommendation on §86.7's open item: yes, the floor is an
+invariant-16 control. Its prove-it-fires run was mandatory, but no record kept the
+catch, so a later session could not tell a wired floor from a recorded one. Built:
+
+- The row comment in `SDLC.template.md` and *Coverage floor* now ask for the catch by
+  name (the failing line and the command or CI job it failed in) and a reach note.
+  Marker row `The proof's catch is recorded on`.
+- `/end-phase` records the catch when it first establishes a floor, and re-proves a row
+  reading `catch not recorded`. Setup's Existing-mode wiring check proves by watching
+  the floor fail, and records the same.
+- **No re-proof in an update:** an existing floor folds as `catch not recorded (floor
+  set before 0.37.1)`, and the next phase close proves it. Forcing a proof inside an
+  update would add a gate to an update that has none.
+- The index template's BUILD variant gains both pointer lines (§86.7's second item).
+- Invariant 16's check, in the ledger and in `/kit-check`, names the floor's row.

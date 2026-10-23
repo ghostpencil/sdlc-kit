@@ -14,6 +14,24 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.37.1 — 2026-10-23
+
+The coverage floor is recorded as the control it already was (`FEATURE_PLAN.md`
+§86.9, ruled 2026-10-23). Its proof was mandatory, and its evidence went nowhere.
+
+### Changed
+- **[adoption-only]** **The floor's *Records* row carries its catch and a reach note**
+  (`SDLC.template.md`, the row comment and *Coverage floor*). The prove-it-fires run's
+  failing line is recorded by name, with the command or CI job it failed in, and the
+  row says whether a run has fallen below the floor on its own. Setup's Existing-mode
+  wiring check now proves by watching the floor fail, and records the same.
+- **[installable]** **`/end-phase` records the catch when it first establishes a floor**,
+  and re-proves a row that reads `catch not recorded`. `/sdlc-update`'s 0.37.1 note asks
+  an adopted project to fold the rule without re-proving anything; the next phase close
+  does that.
+- **[adoption-only]** `PROJECT_INDEX.template.md`'s mid-feature (BUILD) status variant
+  gains the gate-baseline and coverage-floor pointer lines the other variants carry.
+
 ## 0.37.0 — 2026-10-23
 
 The pre-release sanity pass's remainder (`FEATURE_PLAN.md` §86, ruled 2026-10-23). One

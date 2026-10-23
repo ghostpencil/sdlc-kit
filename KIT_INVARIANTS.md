@@ -393,7 +393,8 @@ to fail; 16 asks whether anything will ever make it.
 
 **Check:** reading pass over every control record `templates/SDLC.template.md` seeds and
 every `commands/sdlc-setup.md` step that writes one — each demands the catch by name and
-a reach note. **Specimen:** the close-out checker's stop-time backstop. Its setup proof
+a reach note. A threshold with a prove-it-fires rule is a control too: the coverage
+floor's row was a number with no catch until 0.37.1, though its proof was mandatory. **Specimen:** the close-out checker's stop-time backstop. Its setup proof
 genuinely catches, because the operator constructs an unpushed commit missing a record
 key — but `/end-slice` commits, checks and pushes in one step, so that state essentially
 never arises: **96 of 125 stops had an empty window, every one of the other 29 held zero

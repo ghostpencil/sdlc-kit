@@ -417,7 +417,11 @@ read before it is reconciled is a decision taken twice.
   set it above the observed number, run the gate's own commands (and CI's, if they
   differ), watch the failure, then set the real value — record and threshold
   agreeing proves nothing about whether the enforcing step ever runs in the commands the
-  gate executes (`spec/SDLC.md`, *Coverage floor*, states the rule). The
+  gate executes (`spec/SDLC.md`, *Coverage floor*, states the rule). Record the catch
+  on the floor's *Records* row in the same docs commit: the failing line, named, the
+  command or CI job it failed in, and the reach note (constructed for the proof, until
+  a run falls below the floor on its own). A row reading "catch not recorded" is
+  re-proved the same way at this close. The
   recorded number is a claim; the threshold value
   is the enforcement — a mismatch means the ratchet is not actually ratcheting. Read
   the measured number off the enforced run's own output: CI's printed figure where

@@ -805,8 +805,12 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    number as-is — **after proving the claim**: confirm the enforcing step actually
    runs in the commands CI executes (a threshold bound to a build phase CI never
    reaches enforces nothing — `spec/SDLC.md`, *Coverage floor*, states the
-   prove-it-fires rule). A floor that turns out to be recorded but not wired is an
-   owner finding at setup, not a number to copy. If CI enforces none, resolve it as
+   prove-it-fires rule). Proving it means watching it fail: set the threshold above
+   the observed figure, run CI's own invocation, and restore. Record that catch on the
+   row, named (the failing line and the command or job it failed in), with the reach
+   note — whether CI history shows a run falling below the floor on its own. A floor
+   that turns out to be recorded but not wired is an owner finding at setup, not a
+   number to copy. If CI enforces none, resolve it as
    `TBD from first CI run` and do not
    propose one.
 3. **Generate** (same placeholder-resolution rules as New mode):

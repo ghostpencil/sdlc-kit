@@ -172,7 +172,8 @@ For each, read the named files in full — do not sample — and cite evidence p
   outcomes); each names the artifact that enforces or evidences it and the step that
   reconciles the two, or is explicitly claim-only.
 - **16 — a control's record says whether its trigger occurs on its own:** every control
-  record `templates/SDLC.template.md` seeds, and every `commands/sdlc-setup.md` step
+  record `templates/SDLC.template.md` seeds — the coverage floor's row included, as a
+  threshold with a prove-it-fires rule — and every `commands/sdlc-setup.md` step
   that writes one, demands the catch **by name** (what was flagged) and a **reach
   note** — whether the flagged state arises in ordinary operation or was constructed
   for the proof. Every install proof in the kit is already a catch-proof, so the

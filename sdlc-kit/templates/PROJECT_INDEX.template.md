@@ -51,7 +51,10 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
       Gate baseline: recorded in spec/SDLC.md (its single home — do not restate the
       counts here, they would go stale silently when the baseline moves).
       Coverage floor: recorded in spec/SDLC.md."
-     or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature.
+     or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature,
+      followed by the same two pointer lines:
+      "Gate baseline: recorded in spec/SDLC.md.
+      Coverage floor: recorded in spec/SDLC.md."
      In every mode the coverage-floor line is a POINTER, like the baseline's: the floor's
      one home is spec/SDLC.md *Records*, and /end-phase asserts that value against the
      enforced threshold (the CI workflow file, or the build file's check rule where the
