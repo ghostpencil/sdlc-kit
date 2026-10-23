@@ -1196,7 +1196,7 @@ their release's note, which is how they were missed. A release that changes a ru
   # Run once per installed script. T is the target tag; the kit clone is an argument,
   # not a constant, because Git Bash translates a /tmp path only on a command line -
   # native Windows git cannot open one written inside the script.
-  T=v0.35.1                                # the release this update targets
+  T=v$(cat /tmp/kit/sdlc-kit/VERSION)   # the target tag, read from the clone, never typed
   GD=$(git rev-parse --git-dir); mkdir -p "$GD/sdlc-update"
   cat > /tmp/kit-rederive.py <<'PY'
   import difflib, json, os, re, subprocess, sys
