@@ -45,6 +45,17 @@ Setup offers the architecture-graph tool.
 - **[adoption-only]** A Maven (Surefire) row in GATE_RECIPES's `{{TEST_REPORT_PATTERN}}`
   table, measured, with its cost: a production compile error counts as a RED.
 
+- **[adoption-only]** **Every Claude Code launcher starts at the repository root**
+  (`settings.template.json`, sdlc-kit#13): each gains `cd "$(git rev-parse
+  --show-toplevel)"; `. After a shell `cd` below the root, the launchers looked for
+  their scripts there: test runs went unrecorded, the gate was skipped in silence, and
+  the guard's launcher denied every edit until the session `cd`'d back. Measured live
+  on both CLIs: Claude Code 2.1.309 reproduced the defect unanchored and ran every hook
+  from the root anchored; Copilot 1.0.103, which runs this file through PowerShell
+  7.6.8, ran every edit- and shell-path launcher. `;`, never `|| exit 2`: Windows
+  PowerShell 5.1 cannot parse `||`, and there a PreToolUse launcher that fails to parse
+  denies every edit. The file is project-owned; the update hands over the prefix.
+
 ### Changed
 - **[adoption-only]** **A comment- or format-only edit to a test is not a new cycle.**
   The guards ask the cosmetic classifier about a test edit when a live red or a
@@ -72,6 +83,10 @@ Setup offers the architecture-graph tool.
   once in the template.
 - `tools/impact-check.py` 48 cases, 58 mutations; `tools/tdd-guard-claude-check.py`
   110 cases; `tools/tdd-guard-check.py` gains C11–C15 and D1–D10.
+- `tools/close-out-check.py` gains `launcher_claude_moved_cwd_starts_at_root`, from a
+  subdirectory with a space and a `$` in its name inside a linked worktree (removing
+  the anchor fails it); `tools/gate-hook-check.py` pins the anchor on all seven
+  launchers, and that none carries `||`.
 
 ## 0.35.1 — 2026-10-21
 

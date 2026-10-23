@@ -1053,11 +1053,23 @@ def wt_pass(src, verbose):
                   "did not run" not in p.stdout.decode("utf-8", "replace") and n1 > n0,
                   p.stdout.decode("utf-8", "replace"))
         # A moved cwd is not a missing script. Claude Code starts hooks in the session's
-        # cwd, which a shell `cd` moves and keeps moved (sdlc-kit#13), so its message
-        # names where it looked - a directory name with a space and a `$` in it, so a
-        # word-split or re-expanded path shows. Copilot pins "cwd": "." to the root.
+        # cwd, which a shell `cd` moves and keeps moved (sdlc-kit#13); since 0.36.0 the
+        # launcher anchors itself at `git rev-parse --show-toplevel` first (85.7). From
+        # a subdirectory - its name carrying a space and a `$`, so a word-split or
+        # re-expanded path shows - of this linked worktree, it must run the script.
+        # Copilot pins "cwd": "." to the root.
         sub = os.path.join(wt_r, "apps", "store $front")
         os.makedirs(sub)
+        n0 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
+        p = subprocess.run(["sh", "-c", claude_cmd[0] if claude_cmd else "false"], cwd=sub,
+                           input=payload().encode(), capture_output=True)
+        n1 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
+        check("launcher_claude_moved_cwd_starts_at_root",
+              "did not run" not in p.stdout.decode("utf-8", "replace") and n1 > n0,
+              p.stdout.decode("utf-8", "replace"))
+        # Where git cannot name the root (here: a .git file naming nothing), the anchor
+        # changes nothing, and the message names where it looked.
+        _reopen_git(wt_r, "gitdir: %s\n" % os.path.join(base, "nowhere").replace(os.sep, "/"))
         p = subprocess.run(["sh", "-c", claude_cmd[0] if claude_cmd else "false"], cwd=sub,
                            input=payload().encode(), capture_output=True)
         out = p.stdout.decode("utf-8", "replace").strip()

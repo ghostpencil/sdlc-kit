@@ -294,7 +294,16 @@ red must be seen to keep the red and a refactor licence, and a real one must sti
 seen to stale it), and the impact adapter's **phase-scope untracked line**, **gone
 files** and **refresh-check count** (`tools/impact-check.py` — an untracked file must be
 seen outside the phase denominator, a gone file named and triggering nothing, and the
-graph directory's own commit left out of the count) — the
+graph directory's own commit left out of the count), the guards' **outside-the-editor
+report** (both guard suites, on a real git repository: a code file written by the shell
+must be seen named at the stop and, armed, blocked once, while a file already dirty at
+the session's start, a mutation restored to its start content, and a commit dated
+before the session must be seen not charged), `/sdlc-update`'s **fold markers**
+(`tools/rederive-check.py`: every marker must be seen exactly once in the template, and
+a template with one removed must be seen to fail), and the Claude Code launchers' **root
+anchor** (`tools/close-out-check.py`: from a subdirectory of a linked worktree the
+backstop launcher must be seen to run the script; the case was seen to fail with the
+anchor removed; `tools/gate-hook-check.py` pins the anchor on every launcher) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without

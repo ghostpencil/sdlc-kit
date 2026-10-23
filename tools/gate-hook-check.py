@@ -36,6 +36,11 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPILOT_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.json")
 COPILOT_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "copilot-hook.template.sh")
 CLAUDE_TPL = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json")
+# Every Claude launcher starts at the repository root, wherever a shell `cd` left the
+# session (0.36.0, FEATURE_PLAN.md 85.7). `;`, never `|| exit 2`: Copilot runs these
+# through PowerShell, where Windows PowerShell 5.1 cannot parse `||`, and a PreToolUse
+# launcher that fails to parse denies every edit there.
+ANCHOR = 'cd "$(git rev-parse --show-toplevel)"; '
 CLAUDE_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "claude-gate.template.sh")
 
 RECIPES = os.path.join(REPO, "sdlc-kit", "reference", "GATE_RECIPES.md")
@@ -382,12 +387,16 @@ def claude_suite(parser, check):
     post = {g.get("matcher"): g["hooks"][0] for g in tpl["hooks"]["PostToolUse"]}
     check("gate launcher is the bare split line (located by matcher, not index)",
           post.get("Edit|Write", {}).get("command")
-          == "sh .github/hooks/sdlc-gate-claude.sh",
+          == ANCHOR + "sh .github/hooks/sdlc-gate-claude.sh",
           repr(post.get("Edit|Write", {}).get("command")))
     check("ledger launcher is the bare split line",
           post.get("Skill", {}).get("command")
-          == "sh .github/hooks/sdlc-skill-ledger.sh",
+          == ANCHOR + "sh .github/hooks/sdlc-skill-ledger.sh",
           repr(post.get("Skill", {}).get("command")))
+    every = [h["command"] for gs in tpl["hooks"].values() for g in gs for h in g["hooks"]]
+    check("every Claude launcher starts with the root anchor, and none carries '||'",
+          len(every) == 7 and all(c.startswith(ANCHOR) and "||" not in c for c in every),
+          repr([c[:60] for c in every]))
     check("stop backstop invokes the checker's stop-check without the pin",
           any("sdlc-close-out.sh stop-check" in h["command"]
               for g in tpl["hooks"]["Stop"] for h in g["hooks"]))

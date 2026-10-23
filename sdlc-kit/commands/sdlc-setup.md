@@ -308,7 +308,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    Claude Code, a pair: `claude-gate.template.sh` → `.github/hooks/sdlc-gate-claude.sh`
    (instantiated — the hook's placeholders live here) and `settings.template.json` →
    `.claude/settings.json` (its `Edit|Write` block is the bare launcher,
-   `sh .github/hooks/sdlc-gate-claude.sh`; only `{{HOOK_STATUS_MESSAGE}}` and
+   `sh .github/hooks/sdlc-gate-claude.sh`, behind the root anchor every launcher there
+   carries — *Where the launchers start* in `GATE_RECIPES.md`; copy the anchor as is;
+   only `{{HOOK_STATUS_MESSAGE}}` and
    `{{DEFAULT_MODEL}}` resolve in the settings file, and no hook block may gain a
    `"shell"` key — measured 2026-08-15 on Claude Code 2.1.231 headless and 2.1.233
    interactive, a pinned hook can silently never fire).

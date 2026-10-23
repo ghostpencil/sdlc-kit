@@ -6921,5 +6921,66 @@ own tests on its output lines (TFit's) are told about the new `graph-coverage`,
   cases, all passed; all 59 mutations caught; exit 0; no stackdump.
 
 **Left in the batch (85.1 steps 8–9):** C's live bench on both CLIs, then the launcher
-prefix; then VERSION, MANIFEST, `/kit-check` and the release. All of 85.2–85.6 is
-uncommitted on `main`.
+prefix; then VERSION, MANIFEST, `/kit-check` and the release. 85.2–85.6 committed as
+`60b8b38` (2026-10-23); step 8 is 85.7.
+
+### 85.7 Measured and built 2026-10-23 — C (the launchers start at the root)
+
+**The bench** (`copilot-ci-test`, both dialects, current kit hook bodies instantiated
+for the run and the original config restored after). One prompt per session: `cd spec`
+in the session's shell, run `node ../test.js`, append a comment to a test file, stop.
+The gate's lint value logged its `$PWD` so a gate run was visible.
+
+| Run | CLI, launch route | Launchers | Result |
+|---|---|---|---|
+| c0 | Claude Code 2.1.309 (Haiku), Git Bash | unanchored (control) | **defect reproduced**: both `observe-test` calls *can't open file* `spec/.github/hooks/…` (runs unrecorded); the first Edit **denied** (PreToolUse exit 2) until the model `cd ..`'d unprompted |
+| c1 | Claude Code, Git Bash | `cd "$(git rev-parse --show-toplevel)" \|\| exit 2; …` | `GREEN observed: node ../test.js` from `spec/`; edit allowed first time; gate ran with `pwd` = root; guard stop clean; close-out block status 0 |
+| — | Copilot 1.0.103 (Haiku 4.5), PowerShell | same | a probe in `settings.local.json`: **pwsh 7.6.8 Core, cwd = root** after the shell's `cd`; 6/6 preToolUse ok; failures only the two §79.2 records (`sh` not recognized: the gate's PostToolUse and the close-out Stop). 4.39 credits |
+| c2 | Claude Code, Git Bash | `cd "$(…)"; …` (final) | identical to c1 |
+| — | Copilot 1.0.103, Git Bash | final | 6/6 preToolUse, 4/4 postToolUse ok (the `sh` gate launcher ran, then stood down on the Copilot payload); the one failure the close-out block's quoting (`unexpected EOF while looking for matching` — §79.2's, unchanged). 2.86 credits |
+
+**Why `;` and not `|| exit 2` — measured offline from `spec/`:** both forms reach the
+root under `sh` and pwsh 7; under **Windows PowerShell 5.1 the `||` form is a parse
+error**, the `;` form works. Copilot measured on pwsh 7 here, but a parse error in a
+PreToolUse launcher denies every edit there (§79.2), and Claude Code's `"shell":
+"powershell"` option is the other way into PowerShell. The `||` buys nothing in `sh`:
+outside a repository `cd ""` succeeds, so it never fires. Also offline: a linked
+worktree (`linked [wt]/sub`) reaches its own root under `sh`; pwsh refuses a path
+containing `[`/`]` (wildcard), and both forms then exit 0 and run from where they
+started — so the bracket case is a stated limit, not a deny. A path with a space works
+in both.
+
+**Built:**
+- `settings.template.json`: all seven launchers gain `cd "$(git rev-parse
+  --show-toplevel)"; `.
+- `GATE_RECIPES.md` *Where the launchers start*: the held sentence replaced by the
+  measurement, the `;` reason, the rejected `${CLAUDE_PROJECT_DIR:-.}` form, and what
+  the anchor does not cover (brackets; git unable to name the root, where 0.35.0's
+  message still says where it looked); the ledger paragraph names the anchor.
+  `COPILOT.md`'s both-dialect bullet gains the 1.0.103 re-measurement. `sdlc-setup.md`
+  step 6 says to copy the anchor as is.
+- Update: `.claude/settings.json` is project-owned, so a manual note in `/sdlc-update`
+  (the prefix for each kit launcher installed, never for a project's own hook, copied
+  exactly) and the README's matching paragraph. CHANGELOG.
+- **Proof:** `close-out-check.py` gains `launcher_claude_moved_cwd_starts_at_root`
+  (from `apps/store $front` in the real linked worktree, the backstop launcher runs the
+  script); the moved-cwd *message* case now runs where git cannot name the root (a
+  `.git` file naming nothing). **Removing the anchor from the template by hand failed
+  the new case** and nothing else. `gate-hook-check.py` pins the anchor on all seven
+  launchers and the absence of `||`; it and `skill-ledger-check.py` re-pinned their
+  exact launcher strings. close-out 26 unit + 7 docs + 23 stop, 35 mutations; gate and
+  ledger exit 0.
+- `KIT_INVARIANTS.md` invariant 13's population gains the anchor — and B's report and
+  84.18's markers, which 85.6 built without adding (the denominator this list warns
+  about).
+
+**A miss from 85.6, caught here:** `tools/shipped-lint-check.py`, not among the suites
+re-run for B, failed on B's detector in `tdd-guard-claude.template.py` — two
+comprehensions named their variable `l` (ruff E741), so an adopter whose gate lints
+`.github/hooks/` would have gone red on the re-derived guard. Renamed `ln`, with the
+suite's one mutation anchor on that line; lint 3 files, 5 mutations, exit 0. It shipped
+in `60b8b38`, never in a release. The release `/kit-check` runs all nine suites; this
+is why.
+
+**Left in the batch:** step 9 — VERSION, MANIFEST, `/kit-check`, the release (the
+owner's call).

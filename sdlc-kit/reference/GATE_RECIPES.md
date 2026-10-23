@@ -500,13 +500,31 @@ file* and its test runs went unrecorded; the gate launcher exited 127, which Pos
 treats as non-blocking, so **the gate was skipped in silence**; and the close-out Stop
 block's `-e`/`-f` test failed, which until 0.35.0 printed the same *is missing* message
 a real missing script prints. That message now says *not found from `<pwd>`* and tells
-the session to `cd` back to the root, so the two cases read differently. **The cure
-is to `cd` back to the project root**; prefer `git -C <dir>` or a subshell `( cd <dir>
-&& … )`, which leave the session's cwd alone. Anchoring the launchers themselves waits
-for a bench on both CLIs: the adopter's `cd "${CLAUDE_PROJECT_DIR:-.}"` prefix is safe
-on Claude Code, but Copilot runs `.claude/settings.json` through PowerShell, which
-reads `${CLAUDE_PROJECT_DIR:-.}` as one variable name, expands it to empty, lands the
-hook in the home directory, and so denies every edit (measured 2026-10-20, pwsh 7).
+the session to `cd` back to the root, so the two cases read differently. **Since
+0.36.0 every launcher in `.claude/settings.json` starts with the root anchor
+`cd "$(git rev-parse --show-toplevel)"; `**, so a moved session no longer moves its
+hooks. Measured live 2026-10-23 on the bench, after a `cd spec` in the session's shell:
+on Claude Code 2.1.309 (Git Bash) the unanchored launchers reproduced the defect — two
+test runs unrecorded, the first edit **denied** by the guard's *can't open file* exit 2
+until the model `cd`'d back by itself — and the anchored ones recorded the run GREEN,
+let the edit through first time, and ran the gate, the guard's stop and the close-out
+block from the root. On Copilot 1.0.103, which runs these launchers through PowerShell
+7.6.8 from the root whatever its own shell did, every edit- and shell-path launcher
+succeeded from both launch routes; the only failures were the ones `COPILOT.md`
+already records for a both-dialect project (`sh` not found from a PowerShell launch;
+the close-out block's quoting mangled from Git Bash), and the Claude-dialect scripts stand down under a Copilot
+payload anyway. The anchor is `;`-joined, never `|| exit 2`: Windows PowerShell 5.1
+cannot parse `||`, and on Copilot a PreToolUse launcher that fails to parse **denies
+every edit**; in `sh` the `||` branch almost never fires, because `cd ""` succeeds.
+The adopter's `cd "${CLAUDE_PROJECT_DIR:-.}"` form was rejected for the same reason —
+PowerShell reads `${CLAUDE_PROJECT_DIR:-.}` as one variable name, expands it to empty
+and lands in the home directory (measured 2026-10-20, pwsh 7). It also reaches a linked
+worktree's own root. **What the anchor does not cover:** a project path containing `[`
+or `]`, which PowerShell's `cd` reads as a wildcard and refuses (the launcher then runs
+from wherever it started, as before); and a session where git cannot name the root, where
+the close-out message above still says where it looked. Prefer `git -C <dir>` or a
+subshell `( cd <dir> && … )` all the same: the anchor keeps the hooks at the root, but
+the session's own relative paths still move with its cwd.
 
 **Claude Code on Windows must find Git Bash, or every `sh` hook silently fails to run.**
 Measured 2026-09-27 on Claude Code 2.1.283 with Git for Windows installed at a
@@ -841,7 +859,8 @@ launcher boundary (measured 2026-08-07) corrupted every backslash-carrying body 
 returned empty for `$(cat)`. An inline body cannot follow a worktree's `.git` file
 without a `$` that boundary also eats, so it moved into the script. Claude Code: the
 `"Skill"`-matcher block in `.claude/settings.json` (part of `settings.template.json`)
-is a bare launcher, `sh .github/hooks/sdlc-skill-ledger.sh` — split 2026-08-15 with the
+is a bare launcher, `sh .github/hooks/sdlc-skill-ledger.sh` behind the root anchor
+(*Where the launchers start*, above) — split 2026-08-15 with the
 gate hook, because the per-hook `"shell": "bash"` pin the inline body depended on was
 measured never firing (*The hook environment*). Setup removes the launcher(s) and skips
 the script install if the ledger is declined — the *record* of the decline lives in

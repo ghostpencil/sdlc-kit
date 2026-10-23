@@ -1117,7 +1117,7 @@ MUTATIONS = [
      '"--since=@%d" % start.get("time", 0),',
      ''),
     ("miss what the session committed (a shell write, then a commit, hides it)",
-     '        cands.update(l for l in (out or "").split("\\n") if l.strip())',
+     '        cands.update(ln for ln in (out or "").split("\\n") if ln.strip())',
      '        pass'),
     ("report outside writes to the log only, even armed",
      '        if said:\n            emit({"decision": "block", "reason": said})',

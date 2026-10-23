@@ -1094,6 +1094,17 @@ their release's note, which is how they were missed. A release that changes a ru
   `gone-files`, and `refresh-check`'s needed line names how many files the graph is
   behind. `freshness()`'s wording is unchanged. A project with its own tests on these
   lines is told before the replace.
+- **0.36.0 anchors every launcher in `.claude/settings.json` at the repository root**
+  (Claude Code projects): each kit launcher gains the prefix
+  `cd "$(git rev-parse --show-toplevel)"; `, so a shell `cd` below the root no longer
+  leaves test runs unrecorded, the gate skipped in silence, or every edit denied by the
+  guard's launcher until the session `cd`s back. The file is project-owned: hand the
+  owner the prefix to put at the front of each kit launcher that is installed — the
+  guard's four, the gate's, the ledger's, the close-out `Stop` block — never edit the
+  file, and never prefix a hook the project added itself. It must be copied exactly:
+  `;`, never `|| exit 2`, because Copilot runs these launchers through PowerShell, where
+  5.1 cannot parse `||`, and a PreToolUse launcher that fails to parse denies every
+  edit. Until it is added, the 0.35.0 message is the only sign of a moved cwd.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from

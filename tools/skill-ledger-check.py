@@ -35,7 +35,10 @@ CLAUDE_TPL = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json
 CLAUDE_SH_TPL = os.path.join(REPO, "sdlc-kit", "templates", "skill-ledger.template.sh")
 COPILOT_LAUNCHER_SCRIPT = ".github/hooks/sdlc-skill-ledger.sh"
 SETUP_MD = os.path.join(REPO, "sdlc-kit", "commands", "sdlc-setup.md")
-LAUNCHER = "sh .github/hooks/sdlc-skill-ledger.sh"
+# Every Claude launcher starts at the repository root, wherever a shell `cd` left the
+# session (0.36.0, FEATURE_PLAN.md 85.7).
+ANCHOR = 'cd "$(git rev-parse --show-toplevel)"; '
+LAUNCHER = ANCHOR + "sh .github/hooks/sdlc-skill-ledger.sh"
 
 ISO_LINE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z ")
 
@@ -230,7 +233,7 @@ def claude_wiring():
     cmd = claude_launcher_command()
     case("claude: the Skill block holds the bare launcher, not a hook body "
          "(the 0.24.0 split, pinned so it cannot reverse)", cmd == LAUNCHER, repr(cmd))
-    installed = LAUNCHER.split(" ", 1)[1]          # .github/hooks/sdlc-skill-ledger.sh
+    installed = LAUNCHER.rsplit(" ", 1)[1]         # .github/hooks/sdlc-skill-ledger.sh
     setup = io.open(SETUP_MD, encoding="utf-8").read()
     tpl = os.path.basename(CLAUDE_SH_TPL)
     i = setup.find(tpl)

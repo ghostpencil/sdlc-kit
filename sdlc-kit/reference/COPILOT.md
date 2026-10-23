@@ -777,7 +777,10 @@ launcher routes). What moved:
   never fire under Copilot at all (the tool arrives as lowercase `skill`; a failing
   command arrives as a `PostToolUse` success). `CLAUDE_PROJECT_DIR` is set by Copilot
   too, and `COPILOT_CLI` / `CLAUDECODE` leak across a nested launch — neither
-  discriminates.
+  discriminates. **Re-measured 2026-10-23 on 1.0.103** with 0.36.0's root-anchored
+  launchers: the PowerShell is 7.6.8 (Core), it starts at the repository root even after
+  the session's own shell `cd`'d below it, every edit- and shell-path launcher
+  succeeded from both launch routes, and the failures were exactly the two above.
 - `/skills reload` and `/skills info <name>` still work (confirmed in a real interactive
   session, 1.0.83 and 1.0.88); `copilot -p "/skills reload"` does **not** run the
   command — the text goes to the model, which answers as if it had.

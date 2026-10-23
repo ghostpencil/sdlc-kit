@@ -356,7 +356,7 @@ def record_start():
 def lines_of(name):
     try:
         with open(sf(name), encoding="utf-8") as f:
-            return {os.path.normcase(l.rstrip("\n")) for l in f if l.strip()}
+            return {os.path.normcase(ln.rstrip("\n")) for ln in f if ln.strip()}
     except OSError:
         return set()
 
@@ -383,7 +383,7 @@ def changed_outside():
     if head0 and (git("rev-parse", "HEAD") or "").strip() not in ("", head0):
         out = git("log", "--no-merges", "--since=@%d" % start.get("time", 0),
                   "--name-only", "--format=", head0 + "..HEAD")
-        cands.update(l for l in (out or "").split("\n") if l.strip())
+        cands.update(ln for ln in (out or "").split("\n") if ln.strip())
     skip = lines_of("seen-writes") | lines_of("reported-writes")
     cands = sorted(p for p in cands if is_code(p) and os.path.normcase(p) not in skip)
     if not cands:

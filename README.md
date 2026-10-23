@@ -1061,6 +1061,15 @@ name each one.
    and asks you about each absent one: fold it now, or record it as reworded on
    purpose. The update command's 0.36.0 notes and step 4 state the same procedure.
 
+   **0.36.0 anchors every Claude Code launcher at the repository root.** Each kit
+   launcher in `.claude/settings.json` gains the prefix
+   `cd "$(git rev-parse --show-toplevel)"; `, so a shell `cd` below the root no longer
+   leaves test runs unrecorded, the gate skipped, or every edit denied until the session
+   `cd`s back. The file is yours, so the update hands you the prefix for each kit
+   launcher you have installed; copy it exactly — `;`, never `|| exit 2`, which
+   Windows PowerShell 5.1 cannot parse, and Copilot runs these launchers through
+   PowerShell. The update command's 0.36.0 note states the same procedure.
+
    **Every project-owned hook script gets a walk-through, and an offer to apply it for
    you.** The five scripts instantiated from templates — `sdlc-gate.sh`,
    `sdlc-gate-claude.sh`, `sdlc-tdd-guard.sh`, `sdlc-tdd-guard.py`,
