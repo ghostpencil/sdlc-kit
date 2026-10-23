@@ -73,11 +73,36 @@ two field arcs" — by owner ruling 2026-08-14**, closing the flag that stood he
 2026-08-05 (put at two halts before being ruled; the digest above carries the
 re-denominated form, and every clock in this section was already counted in arcs).
 
-**Refreshed 2026-09-27, against the tree at 0.31.0.** Shipped machinery is listed by its
+**Refreshed 2026-10-23, against the tree at 0.37.1.** Shipped machinery is listed by its
 clock, not by its build state; the history of each entry lives in the section it cites.
+The previous refresh (2026-09-27, at 0.31.0) said no adopter had run a phase since
+0.31.0. That had been false for two weeks, and a session orienting from it said the same
+thing to the owner. A refresh is owed at every release that adds a rule, and at every
+arc an adopter closes.
 
-**Clocks the next field arc reads** (both adopters are on 0.31.2, merged 2026-09-28 —
-ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
+**Where the adopters stand.** All three are on 0.37.1, merged 2026-10-23
+(tfit-qa-app#36, ai-news-dashboard#24, chainmail-webfactory#4), and all three are
+between phases.
+
+**Four arcs have run since the last clock reading, and none has been read.** The last
+reading is §76.5: the tenth report, TFit Phase 09 under 0.30.0.
+
+| Arc | Merged | Kit it ran under | Retro |
+|---|---|---|---|
+| TFit Phase 10 (tunnel token leak) | 2026-10-10 | 0.32.0 | skipped by owner ruling |
+| TFit Phase 11 (retrieval scale) | 2026-10-13 | 0.32.0 | none |
+| TFit Phase 12 (structured retrieval) | 2026-10-19 | 0.32.0 | none |
+| chainmail Phase 01 (blueprint renderer) | 2026-10-19 | 0.33.0 | #17, the eleventh report |
+
+ai-news has run no arc since Phase 05 (2026-08-17). Issues #11–#17 came out of these
+arcs and were triaged in §84 as findings, **not as clock readings**. The evidence each
+clock needs is mostly mechanical: the `lenses:`, `quality:`, `mutation:` and `verify:`
+lines in slice commit bodies, the friction logs, and the guard and backstop logs in each
+clone's git directory. **Reading these four arcs is the next owed act. Several clocks
+below may already be decided by them.** An arc counts toward a clock only when it ran
+under the release the clock starts from, so the per-clock eligible arcs are given below.
+
+**Clocks the next reading decides:**
 
 - **The three STD lenses — one final ATTRIBUTED clock, two arcs, no further extension**
   (§54 (b), ruled 2026-08-14; restarted §70.7 (i) once the denominator became
@@ -86,48 +111,68 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
   **Arc one read (§76.5 (i)):** `secrets and exposure` (3 applications) and
   `untrusted input` (2) are at **zero catches** with a real denominator;
   `logging and swallowed errors` recorded **no application** and stays unreadable —
-  not a reason to restart again. Arc two decides the two readable lenses.
+  not a reason to restart again. Arc two decides the two readable lenses. **Eligible:**
+  all four unread arcs.
 - **`change-simplify` — final two-sided clock, two arcs** (§70.7 (ii); the
   no-extension commitment is spent and cannot be spent again). Positive: one arc records
   a **Reuse-axis move that names its search**. Negative, disqualifying: a reuse or
   duplication finding first raised by `diff-review` or the whole-arc review on a diff
   this pass already passed over. **Arc one counted as satisfying the positive half**
   (§76.7 ruling 3 — not an extension); negative half checked and not triggered. Arc two is
-  read against 0.31.0's corrected `/end-slice` §3 record line.
+  read against 0.31.0's corrected `/end-slice` §3 record line. **Eligible:** all four.
 - **CONTRACT — §16 clock, arc one spent** (§57.5; started under 0.26.0 per §70.7 (iii)).
   §56.2's second criterion — a phase touching a contract surface demonstrably encounters
   its entries — was **met on arc one** (§76.5 (iii): 9 pins, 4 surfaces). Arc two decides
   the first criterion; no confirmed catch after two arcs → deletion candidate.
-- **IMPACT — shipped 0.28.0; clock NOT started** (§66.6). Arc one did not count: the
-  graph was stale for the whole window (§76.7 ruling 4). 0.31.0 shipped the kit's own
-  phase-boundary regeneration trigger and the `autoUpdate` offer with its measured limits
-  (auto-remind, not auto-update); the clock starts at the first arc run with a graph
-  regenerated under that trigger, and counts only arcs with a usable graph.
+  **Eligible:** all four. TFit's Phase 10 close sent its contract walk to backlog #161,
+  which is itself evidence to read.
 - **`stop-check` — two-arc clock from the release carrying the filter (0.29.0)** (§73.8).
   Catch: flags a genuine slice commit lacking its close-out record. A false candidate
   fails §52.2's arming bar, and the clock restarts once; a second false candidate is
   deletion. **Both arcs at a zero non-empty-window denominator is deletion, not
-  extension.** The tenth report's arc (run under 0.30.0) has **not been read** against
-  this clock — §76.5 is silent on it; read both arcs together at the next retro.
+  extension.** The tenth report's arc (0.30.0) is still unread against this clock as
+  well. **Eligible:** that arc plus all four, five in all.
 - **Bare-flagging arming bar (§52.2) — log-only.** Unmet at 4 false candidates
   (§70.7 (iv)). It re-opens at the first arc whose false count is zero under the 0.29.0
-  filter, and not before (§73.8).
+  filter, and not before (§73.8). **Eligible:** the same five.
+- **§76.9(d) — the two 0.31.0 record-line halves have no observer.** Ruled (α) then (β):
+  read arc two's records first; build a log-only observer only if the restatement was not
+  enough. **Eligible:** all four.
+- **The docs-only verification form — §16 clock, two arcs, from 0.32.0** (§80.3). Catch:
+  a documented command or path a docs slice added, run or opened and found broken. No
+  confirmed catch in two arcs → deletion candidate. **Eligible:** all four, where a docs
+  slice occurred.
+- **IMPACT — shipped 0.28.0; clock NOT started** (§66.6). Arc one did not count: the
+  graph was stale for the whole window (§76.7 ruling 4). 0.31.0 shipped the kit's own
+  phase-boundary regeneration trigger and the `autoUpdate` offer with its measured limits
+  (auto-remind, not auto-update); the clock starts at the first arc run with a graph
+  regenerated under that trigger, and counts only arcs with a usable graph. **To check:**
+  whether TFit's Phases 10–12 had one. TFit's graph is behind as of the 0.37.1 update,
+  so its next arc starts the clock only if the graph is regenerated first.
+
+**Clocks no arc has reached yet:**
+
 - **The slice-end graph refresh — §16 clock, two arcs, from 0.33.0** (§81). Catch: a
   slice preview that reads `current at the base` because the previous slice refreshed,
   where it would otherwise have read `may be stale`. No such reading in two arcs (the
   post-commit tooling alone keeping it current, or the refresh never run) → deletion
-  candidate.
+  candidate. **Eligible so far:** chainmail Phase 01 only, where the owner later ruled
+  the slice-end refresh off.
+- **COSMETIC — §16 clock from the release that armed it, 0.34.0** (§82). Catch: a
+  comment- or formatting-only write that would otherwise have needed a licence or been
+  denied, exempted with no behavioral change (§82's value criterion, item 1 of its
+  ramp proposal). **Eligible so far:** none.
 - **The phase-end coverage trigger — §16 clock, two arcs, from 0.35.0** (§83). Catch: a
   phase close where `coverage` named code or script files missing from a graph whose
   freshness read current, and the full rebuild added them. No such close in two arcs
   across the adopters running it → deletion candidate (TFit's ten-file gap is the
-  pre-release instance and does not count).
-- **The docs-only verification form — §16 clock, two arcs, from the release carrying it**
-  (§80.3). Catch: a documented command or path a docs slice added, run or opened and
-  found broken. No confirmed catch in two arcs → deletion candidate.
-- **§76.9(d) — the two 0.31.0 record-line halves have no observer.** Ruled (α) then (β):
-  read arc two's records first; build a log-only observer only if the restatement was not
-  enough.
+  pre-release instance and does not count). **Eligible so far:** none.
+- **Rules shipped in 0.36.0–0.37.1 fall under the §16 regime with no catch criterion
+  written yet.** The guards' outside-the-editor report (§85), `/sdlc-update`'s fold
+  markers (§84.18) and its standing optional-hook record check, the setup and phase-close
+  baseline stamps, and the coverage floor's recorded catch (§86.9). Each needs its catch
+  stated at its first reading, before an arc is counted against it. The launcher anchor
+  is a fix, not a rule, and carries no clock.
 
 **Settled clocks and contingent keeps:**
 
@@ -135,57 +180,31 @@ ai-news-dashboard#20 and tfit-qa-app#27; neither has run a phase since 0.31.0):
   arc one, 2026-08-06 (§32.3).
 - **`mutation-testing` — kept as depth; the inlined rules are the operative path**
   (§70.7 ruling 4). Three consecutive arcs at zero dispatches, as that ruling predicted;
-  §76.5 (v) records a **confirmed catch for the inlining** itself.
+  §76.5 (v) records a **confirmed catch for the inlining** itself. The three adopters'
+  skill ledgers still show zero dispatches (checked 2026-10-23, §86.4).
 - **R3.8's aging rule — contingent keep, still unexercised** (§16): the retro sweep
   consumes friction entries in their own arc, so the older-than-one-phase carry has never
   had one to carry. That is the healthy state; the rule is its backstop.
 
 **Held work — owed, not scheduled:**
 
-- **§76 finding 4 — the docs-only slice: RULED (§80.2, §80.3) and BUILT 2026-10-02**
-  (§80.4), unreleased; ships with §79.4 as 0.32.0.
-- **§77's residue — the docs perf pass still asserts on `max()`** (§77.7). The unit
-  pass breached first, at 0.32.0's release run (5340 ms slowest, one stall), and got the
-  median treatment then; the cap-20 walk breached in the same run (8.29 s, single sample)
-  and got its ruled best-of-2 (§80.7). The docs pass gets the median on its first breach.
-- **§78 — the hook launchers' silent not-at-root skip, filed 2026-09-27, not ruled.**
-  Measured: every Copilot hook but the ledger is inert below the root on builds before
-  1.0.88; a linked worktree disarms them on every build (measured, §78.2) and the Claude
-  dialect's guard and backstop by reading. `/skills reload`/`info` confirmed working
-  (§78.4). Launcher fix DESIGNED and bench-measured (§78.5: `"cwd": "."` + `[ -e .git ]`,
-  state in `git rev-parse --git-dir`); all three rulings taken (§78.6); BUILT 2026-09-27
-  (§78.7), which also found the 0.28.1 guard fix blind on the WSL route and fixed it.
-  Claude Code worktree session run live (guard + backstop pass from PowerShell; a Git
-  Bash launch cannot find Git Bash here — §78.7). `/kit-check` run, eleven findings fixed
-  (§78.8); RELEASED as 0.31.1. A harness-contract regression it shipped, caught by
-  TFit's own tests during its update, is fixed as 0.31.2 (§78.9). **CLOSED 2026-09-28:**
-  both adopters updated and MERGED onto 0.31.2, verified after merge; ai-news' guard.log
-  showed the WSL gap had been live there (24 `.ua/` writes, no source escaped). On this
-  machine `CLAUDE_CODE_GIT_BASH_PATH` is now set at user scope (owner's go), so a Git
-  Bash-launched Claude Code session runs its `sh` hooks — recorded in TFit's spec.
-- **§79 — Copilot runs the Claude-dialect hooks from `.claude/settings.json`, filed
-  2026-09-27; direction RULED 2026-09-28 (§79.1): each Claude hook detects a Copilot
-  payload and does nothing. Bench-measured (§79.2): the discriminator is `timestamp`
-  without `permission_mode`, and Copilot obeys this file's outputs — a PreToolUse
-  launcher that errors *denies the edit*. Launchers ruled (A), BUILT 2026-09-28 as 0.31.3
-  (§79.3). Both-dialect projects only; neither adopter exposed.
-- **§79.4 — invariant 16 in three setup-written control records** — BUILT 2026-10-02
-  with §80 (§80.5), unreleased.
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
-- **COSMETIC — opened 2026-10-19, ruled, BUILT and RELEASED as 0.34.0/0.34.1** (§82):
-  the TDD guard exempts a comment- or formatting-only write to Python, Java, C# or
-  TypeScript source, judged by a parser comparison plus a directive-line check;
-  difftastic measured and not adopted. Ships **armed**, no log-only stage (§82.9,
-  an owner override of the ramp); one shared `sdlc-cosmetic.py`; test plan approved;
-  JS-family files included where `typescript` resolves. Nothing owed before the build.
+- **A second home for the gate's test command** (§86.1(6), "related, not a number"):
+  `TESTING.template.md` restates the command `SDLC.template.md` *Records* holds, and the
+  *Records* reconcile searches for numbers only. Not ruled.
 
-**Standing inputs:** issues **#11–#17** (filed 2026-10-15 → 10-19; six field reports
-— #17 the eleventh, a Phase 01 retro — and one enhancement) are **triaged in §84**
-(2026-10-20), **all five decisions ruled** (§84.7); all seven stay open until their
-fixes ship. Every field report through the tenth (`sdlc-kit#10`, §76) is
-triaged, ruled, and shipped (0.31.0); the #10 reply was posted 2026-09-04.
+Everything the previous refresh listed as held has shipped or closed: the docs-only
+slice (0.32.0), §78 (0.31.1/0.31.2), §79 and §79.4 (0.31.3, 0.32.0), COSMETIC
+(0.34.0/0.34.1), and §77's residue, whose docs pass now asserts on the median (§82.10).
+
+**Standing inputs:** no issue is open on `sdlc-kit`. Issues #11–#17 are closed: #14–#16
+with 0.35.0, the rest with 0.36.0. Every field report through the eleventh (#17, §84) is
+triaged, ruled and shipped. Adopter-side, TFit's friction log carries entries the 0.37.1
+update left for its next retro: two licence-revocation entries that are only partly
+fixed, and two entries fixed in range. Its change-simplify gate entry was closed on the
+owner's confirmation (tfit-qa-app#37).
 
 **The Copilot bench is still standing** (§29.3): fixture repo
 `D:\AICourse\copilot-ci-test`; `pr-review-toolkit` installed on the owner's Copilot CLI;
