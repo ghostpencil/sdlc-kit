@@ -21,8 +21,10 @@ arc). It can also be run directly on any range.
 
 Arguments, all optional:
 
-- **A scope** — `working` (uncommitted changes, the default at slice end),
-  `<main>...HEAD` (the arc, the default at phase end), or any git range.
+- **A scope** — `working` (uncommitted changes), `<ref>` (the working tree against a
+  commit — `/end-slice` passes the slice base, so staged and already-committed slice
+  work are in the range), `<main>...HEAD` (the arc, the default at phase end), or any
+  git range.
 - **An axis** — `spec` or `standards` to run one alone. Default is both.
 
 ## What this skill is not
@@ -44,7 +46,10 @@ Arguments, all optional:
 ### 1. Pin the fixed point, and say what it is
 
 Establish the exact range before reading anything: `git status` and `git diff` for
-`working`, `git diff <main>...HEAD` for an arc. State the range and the file count in
+`working`, `git diff <ref>` for the working tree against a commit (plain `git diff`
+omits staged work — with staged files and an empty `working` range, widen the scope
+rather than report an empty diff), `git diff <main>...HEAD` for an arc. State the range
+and the file count in
 the report. A review whose scope was never stated cannot be checked for coverage later,
 and "reviewed the changes" is the claim that hides a missed file.
 

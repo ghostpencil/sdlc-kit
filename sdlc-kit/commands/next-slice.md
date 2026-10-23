@@ -58,7 +58,9 @@ shell; a failed reproduction from a different environment downgrades the entry t
 "could not reproduce here", never to a corrected cause.
 
 Either way, when the cause does not hold where it was claimed to hold, correct the
-entry in place and re-scope the slice against what is actually true.
+entry in place — and the halt-2 skip lapses (`spec/SDLC.md`, *Owner halt points*): a
+slice recorded OWNER-DECIDED on that cause goes back to the owner with what is
+actually true, exactly as a changed number does below, and is re-scoped on the answer.
 
 **An entry whose fix deletes a record-shaped artifact adds one check to its
 re-derivation:** the deletion rule's contract-and-specs search (`spec/SDLC.md`,
@@ -95,7 +97,8 @@ and let the owner take it as a numbered decision inside this halt.
 The re-derivation is done when every marker has had its proportional check, every
 `estimated` number the slice implements carries a recorded derivation, and every
 ratified method it implements through has been run or explicitly substituted — any
-changed cause corrected in place, any changed number or method back to the owner.
+changed cause corrected in place and, like any changed number or method, back to the
+owner.
 
 ### 3. Ensure the branch
 

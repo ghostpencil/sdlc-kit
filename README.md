@@ -854,13 +854,10 @@ name each one.
    line carries `reuse: <what was searched, and against what>` — the close-out checker
    is unchanged and structural-only, so **existing records stay valid and nothing
    fails**; slices closed after the update should carry the new halves, and old commit
-   bodies are not retrofitted. Also fold into `spec/SDLC.md` by hand: the
-   *Architecture impact view* section, where you have one, now names a **regeneration
-   trigger** — regenerate the graph at `/end-phase`'s post-merge bookkeeping, and do
-   not rely on the graph tool's own auto-update to do it (measured: on the Understand
-   Anything plugin that setting writes nothing itself, and one of its two hooks
-   matches the Bash tool only). The update command's 0.31.0 notes state the same
-   procedure.
+   bodies are not retrofitted. The update command's 0.31.0 notes state the same
+   procedure. (0.31.0 also named a graph **regeneration trigger** in the
+   *Architecture impact view* section; 0.35.0's two refresh switches replaced it, so
+   apply that release's fold, below, rather than anything from this one.)
 
    **0.31.1 re-arms every hook launcher that read "not at the root" as "not a
    repo".** The launchers tested for a `.git` *directory* and exited 0 otherwise, so

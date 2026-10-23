@@ -101,8 +101,9 @@ directory tells them apart, so they are copied as directories, never as files.
   [mattpocock/skills](https://github.com/mattpocock/skills)
   (`skills/engineering/tdd/`), **MIT license** — redistribution is fine; keep this
   attribution. Verified 2026-07-19 against the repo's pre-2026-06-30 revision
-  (word-for-word match; our copies have install-layout link paths and, in the two
-  reference files, examples localized per project). The upstream skill was later
+  (word-for-word match; our copies differ only in install-layout link paths — the two
+  reference files keep upstream's own examples, a dungeon game, and setup copies them
+  as they are). The upstream skill was later
   reshaped ("reference-only with pre-agreed seams", red→green without a refactor
   stage) — worth a look when next refreshing the kit.
 - `hypothesis-tests/SKILL.md` — verbatim from

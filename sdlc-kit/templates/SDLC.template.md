@@ -196,7 +196,7 @@ lint error, naming the file), and the **reach note** the rule above requires:
      decline does. -->
 
 {{TDD_GUARD_NOTE}}
-<!-- Setup resolves {{TDD_GUARD_NOTE}} to a statement of whether the TDD-ordering guards
+<!-- Setup resolves the line above to a statement of whether the TDD-ordering guards
      are installed, which CLI they run on, and whether they are in logging or deny mode.
      When installed, the note also states the rules the guards impose on a coding
      session — the note is the proactive statement; the guard's own messages state them
@@ -270,7 +270,7 @@ lint error, naming the file), and the **reach note** the rule above requires:
      does not have. -->
 
 {{SKILL_LEDGER_NOTE}}
-<!-- Setup resolves {{SKILL_LEDGER_NOTE}} to a statement of whether the skill-activation
+<!-- Setup resolves the line above to a statement of whether the skill-activation
      ledger is installed — a logging-only hook that appends one line per
      TOOL-DISPATCHED skill activation to `.git/sdlc-skill-ledger.jsonl`, so the
      retro's step-evidence sweep can read which named skills actually ran instead of
@@ -299,7 +299,7 @@ lint error, naming the file), and the **reach note** the rule above requires:
      owner who already made it. -->
 
 {{CLOSE_OUT_CHECK_NOTE}}
-<!-- Setup resolves {{CLOSE_OUT_CHECK_NOTE}} to the proven invocation of the close-out
+<!-- Setup resolves the line above to the proven invocation of the close-out
      evidence checker (`.github/hooks/sdlc-close-out.sh`, installed verbatim on every
      adoption — it takes no per-project values), one line per installed CLI, each form
      actually RUN at setup against a real commit before being recorded — the same

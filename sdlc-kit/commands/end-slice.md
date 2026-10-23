@@ -20,8 +20,10 @@ operator-performed, the policy names the moment to set it).
 
 ### 1. Sanity check
 
-- `git status` + `git diff --stat`. If the working tree is clean and nothing is
-  uncommitted, report that there is no slice to close and stop.
+- `git status` + `git diff --stat`. If the working tree is clean and the slice has
+  made no commit on the branch — nothing since `<base>`, defined below — report that
+  there is no slice to close and stop. A slice that already committed everything is
+  still a slice to close.
 - Confirm you are NOT on the main branch. If you are, stop and say so — slices live on
   a phase or cleanup branch.
 - **A slice `/next-slice` declared docs-only** (its §4 — ratified test approach `none`,
@@ -33,8 +35,11 @@ operator-performed, the policy names the moment to set it).
   classifier answers exit 0 for it. For each source file, in your shell tool, write its
   content before the slice to a temp file outside the working tree, byte for byte
   (`git show <base>:<path> > <temp>` from a POSIX shell — PowerShell's `>` re-encodes
-  it; `<base>` is `HEAD` when the slice has made no commit, else the parent of its
-  first commit), run `python .github/hooks/sdlc-cosmetic.py <temp> <path> --as <path>`,
+  it, so where the shell tool resolves no `sh` run the redirect through the `sh.exe`
+  the close-out checker note in `spec/SDLC.md` records: `& '<that sh.exe>' -c 'git show
+  <base>:<path> > <temp>'`; `<base>` is `HEAD` when the slice has made no commit, else
+  the parent of its first commit), run `python .github/hooks/sdlc-cosmetic.py <temp>
+  <path> --as <path>`,
   and quote the line it prints in the hand-back (step 10). A file absent at the base or
   absent now, any exit other than 0 (no python included), or no classifier installed
   voids the declaration — and so does any source file at all where `spec/SDLC.md` slice-loop
@@ -126,9 +131,11 @@ precondition.
 
 ### 4. Slice code review
 
-Run the `diff-review` skill on the working diff (uncommitted changes, plus any commits
-this slice has already made on the branch — `git diff <main>...HEAD` if the slice spans
-commits). It reviews along two axes that fail independently and are reported side by
+Run the `diff-review` skill on the slice's diff: `git diff <base>` — the working tree
+against the slice base step 1 defines, which covers uncommitted, staged and
+already-committed slice work alike. Never `<main>...HEAD`: every slice of the arc
+accumulates on one branch, so that range is the whole phase, `/end-phase`'s review.
+It reviews along two axes that fail independently and are reported side by
 side, never merged: **Spec** — does this implement the slice's exit criteria, and only
 those — and **Standards** — does it follow the conventions recorded in `CLAUDE.md`
 *Runtime Conventions*. The skill is installed at
@@ -566,6 +573,9 @@ the mode (`/sdlc-update`'s transition note names the window) has no line to run 
 so in the hand-back rather than guessing an invocation.
 
 ### 10. Hand back
+
+Push the branch first (`git push`) — the slice commit and its docs commit together, so
+the work is not stranded locally. Never a PR here; that is `/end-phase` (Notes).
 
 Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open with a
 plain-English executive summary in bullets: what the slice now does, gate green (test

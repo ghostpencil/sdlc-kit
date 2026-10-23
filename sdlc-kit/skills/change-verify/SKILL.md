@@ -69,7 +69,9 @@ says so (`verify: skipped — no command or path added`).
 ### 1. Pin what changed
 
 Establish the change set before anything else: `git status` and `git diff` for the
-working tree, `git diff <main>...HEAD` for an arc. State the range and the file count.
+working tree (`git diff <base>` when the caller names a slice base — `/end-slice` does
+— which also covers staged and already-committed slice work), `git diff <main>...HEAD`
+for an arc. State the range and the file count.
 
 **Never ask the caller what the change was — read it.** The diff is on disk, and a
 verification that begins by requesting a scope it could have looked up has already

@@ -114,10 +114,10 @@ questionnaire.
     Egonex-AI/Understand-Anything`, then `/plugin install understand-anything`. On
     Copilot CLI it is `copilot plugin install
     Egonex-AI/Understand-Anything:understand-anything-plugin`, and then `plugin-fix`
-    (step 5). Before the first `/understand`, agree the graph's scope in
+    (step 6). Before the first `/understand`, agree the graph's scope in
     `.understandignore`; at minimum exclude any kit folder, `.claude/` and the plugin's
     own directory.
-  - Ask whether the plugin's auto-update goes on, stating what it does (step 5's three
+  - Ask whether the plugin's auto-update goes on, stating what it does (step 6's three
     points). Then ask whether the plugin's directory (`.ua/`) is **tracked or
     git-ignored**. Recommend ignored, and pair auto-update with ignored only. A tracked
     directory is dirtied by every auto-update after every commit, and the adapter
@@ -127,7 +127,7 @@ questionnaire.
   - Either way, exclude the plugin's directory from the linter and the formatter
     (the formatter's ignore file, the linter's ignore list, or the stack's
     equivalent), or the gate reads the graph's JSON.
-  - The answers resolve `{{GRAPH_TOOL_NOTE}}` (step 5).
+  - The answers resolve `{{GRAPH_TOOL_NOTE}}` (step 6).
 
   **The runtime-conventions ask.** Two questions, recorded as the *Runtime
   Conventions* section of `CLAUDE.md`: how the software **logs** — framework or
@@ -234,7 +234,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `{{HOOK_ENVIRONMENT}}`, `{{TDD_GUARD_NOTE}}`, `{{SKILL_LEDGER_NOTE}}`, and
    `{{CLOSE_OUT_CHECK_NOTE}}` are all left for step 6, which measures the first,
    decides the middle two, and proves the last. `{{GRAPH_TOOL_NOTE}}` is left for step
-   5, which records the graph tool as it then stands.
+   6, which records the graph tool as it then stands.
    `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
    <date> on the walking skeleton, <this session's shell>)`, which step 2 just proved.
    The record names where it was measured, because a later session comparing against

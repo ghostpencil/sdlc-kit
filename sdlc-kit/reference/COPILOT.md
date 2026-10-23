@@ -2,9 +2,10 @@
 
 The process this kit installs is CLI-neutral: phases → slices → TDD cycles, gated by
 lint + typecheck + tests, with five owner halt points. What is *not* neutral is where
-files go, what the gate hook is called, and which supporting tools exist. This file is
-the one place that mapping is stated. `/sdlc-setup` reads it after the owner confirms
-the target CLI; nothing else in the kit restates it.
+files go, what the gate hook is called, and which supporting tools exist. The install
+list in `/sdlc-setup` (New mode step 5) is the definition of that mapping; this file
+carries the evidence and the reasoning behind its Copilot column, and `/sdlc-setup`
+reads it after the owner confirms the target CLI.
 
 **Everything below is dated evidence, not a durable fact.** Copilot CLI moves fast —
 capabilities named here were verified on the dates in *Provenance* at the end, against
@@ -32,9 +33,9 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 
 A repo that answers **both** at the interview gets both columns. Nothing is written
 twice: the seven commands exist once per CLI in different formats, and the eight skill
-directories exist once in a shared directory. Two rows are Copilot-only by nature —
-the sweep agent and the model pin — and the table says so in place rather
-than letting a dual-CLI project assume symmetry.
+directories exist once in a shared directory. One row is Copilot-only by nature — the
+sweep agent file — and the model pin has a different mechanism on each CLI; the table
+says so in place rather than letting a dual-CLI project assume symmetry.
 
 ### Why `CLAUDE.md` is not translated — and why `AGENTS.md` is prohibited
 
