@@ -17,10 +17,9 @@ provenance detail, including how each local copy was verified against its upstre
 |---|---|---|
 | `skills/tdd/SKILL.md`, `skills/tdd/tdd-references/tests.md`, `skills/tdd/tdd-references/mocking.md` | [mattpocock/skills](https://github.com/mattpocock/skills) (`skills/engineering/tdd/`) | Copyright (c) 2026 Matt Pocock |
 | `skills/hypothesis-tests/SKILL.md` (verbatim), `skills/mutation-testing/SKILL.md` (condensed derivative) | [honnibal/claude-skills](https://github.com/honnibal/claude-skills) | Copyright (c) 2026 Matthew Honnibal |
-| `skills/tdd-guide/SKILL.md` (truncated, lightly adapted) | [alirezarezvani/claude-code-skill-factory](https://github.com/alirezarezvani/claude-code-skill-factory) (`generated-skills/tdd-guide/`) | Copyright (c) 2025 Reza Rezvani |
 | `skills/python-pro/SKILL.md` | attributed in-file to [github.com/Jeffallan](https://github.com/Jeffallan) (attribution header kept intact) | see file header |
 
-Each of the three repositories above is distributed under the MIT License. The
+Each of the two repositories above is distributed under the MIT License. The
 license text below applies to each, with the copyright line as listed in the table:
 
 ```

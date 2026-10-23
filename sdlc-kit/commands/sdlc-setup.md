@@ -235,11 +235,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `{{CLOSE_OUT_CHECK_NOTE}}` are all left for step 6, which measures the first,
    decides the middle two, and proves the last. `{{GRAPH_TOOL_NOTE}}` is left for step
    6, which records the graph tool as it then stands.
-   `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures (established
-   <date> on the walking skeleton, <this session's shell>)`, which step 2 just proved.
-   The record names where it was measured, because a later session comparing against
-   it needs to know whether it is comparing like with like. Never write a baseline
-   you have not measured.
+   `{{GATE_BASELINE}}` is `green — 0 lint / 0 type / 0 test failures @ <stamped at
+   close-out> (established <date> on the walking skeleton, <this session's shell>)`,
+   which step 2 just proved. The record names where it was measured, because a later
+   session comparing against it needs to know whether it is comparing like with like.
+   Never write a baseline you have not measured. The `@` stamp the template requires
+   cannot be written yet — nothing is committed — so close-out step 2 replaces the
+   marker with the initial commit's short sha, in a commit of its own.
 4. **Author and prove the test-isolation harness.** `spec/TESTING.md` §Test Isolation
    specifies the checks; implement them for this stack in the test harness: outbound
    network blocked, credential env vars cleared and credential paths pointed at
@@ -255,14 +257,14 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the definition, and `reference/COPILOT.md` carries the evidence and the reasoning
    behind the Copilot column.
 
-   The seven kit commands are user-typed workflow entry points; the eight kit skills
-   (five vendored, three kit-written) are model-invocable capabilities. They install
+   The seven kit commands are user-typed workflow entry points; the seven kit skills
+   (four vendored, three kit-written) are model-invocable capabilities. They install
    to different places for that reason:
 
    | | Claude Code | Copilot CLI |
    |---|---|---|
    | the 7 commands | `.claude/commands/<name>.md` | `.github/skills/<name>/SKILL.md` |
-   | the 8 skill directories | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
+   | the 7 skill directories | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
    | `REVIEW_LENSES.md` | `.claude/commands/REVIEW_LENSES.md` | the same path — it is a document, not an executable |
 
    Packaging a command as a Copilot skill is mechanical, and the shape is **exact**: a
@@ -285,9 +287,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      exists on both CLIs), `change-simplify/` (always — `/end-slice` step 3 names it;
      the step is optional, the skill is not, because a step that may run needs the
      skill present to decide against), and `change-verify/` (always — `/end-slice`
-     step 6 and `/end-phase` step 2 name it); then `tdd-guide/` (offer), `python-pro/` +
+     step 6 and `/end-phase` step 2 name it); then `python-pro/` +
      `hypothesis-tests/` (Python projects only — offer). Copy directories, not files:
-     the eight `SKILL.md` files share a basename and only their parent directory tells
+     the seven `SKILL.md` files share a basename and only their parent directory tells
      them apart.
    - `reference/REVIEW_LENSES.md` → `.claude/commands/REVIEW_LENSES.md` (always) —
      `end-slice.md` §4 points at that installed path, so skipping this breaks the
@@ -476,71 +478,20 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      template does), the proof you just ran — the report-pattern proof's catch
      included, the refused wrapper failure's `NOT counted` line quoted — and the
      **reach note** *Records* requires — this proof constructs its own violation, so
-     say whether one has been seen to arise on its own. **When
-     installed, the note also states the rules the guards impose on a coding
-     session** — a test run registers only as a single bare command (no `;`, `&` or
-     `|`; flags and single-test selectors are fine), and a command that only names
-     the runner (`cat`, `grep`, `git`, `pip install`, a package manager's `add`, a
-     heredoc) is never one; a failing run counts as a RED only when the runner's own
-     report is in its output (the resolved `{{TEST_REPORT_PATTERN}}`, named), so a
-     wrapper's failure is refused out loud, and a red whose report a long output
-     pushed out of reach is re-run quieter; files matching the resolved
-     `{{GUARD_EXEMPT_PATTERN}}` (named) and the graph tool's directory are neither
-     production nor tests; the stop guard's green is
-     any counted green, full-suite assurance being the end-slice gate's job; and a
-     behavior-preserving edit (refactor, simplification, mutation testing — including
-     a temporary mutation to prove a test of existing behavior bites, at any point in
-     the cycle, not only at close-out)
-     is licensed without a fresh red by declaring it, one line naming the step and
-     move to `.git/sdlc-tdd/refactor-license`, valid only behind a counted green and
-     revoked by the next test edit — **except during `/end-slice`, which declares
-     `.git/sdlc-tdd/close-out-license` instead**: same rules, except a test edit does
-     not revoke it, because close-out's own step order edits tests between its
-     production writes, and each test edit it survives is counted in the log; and the
-     guards see **only files inside the
-     repository** — an absolute path outside the repo root is neither licensed nor
-     denied (0.25.0), so a scratch script under a session temp directory is not a
-     production write and costs no license, while a relative path always is one;
-     and the guards see **only the editor tools** — a source or test file written
-     through the shell is invisible to them, so the note restates `CLAUDE.md`'s
-     edit-tools rule (code — `{{SOURCE_GLOB}}` minus the exempt pattern — changes only
-     through the editor tools, overriding any harness guidance that permits shell
-     edits; a formatter's or generator's output and `/end-slice` step 5's
-     hash-verified mutation runner are the only exceptions), says a test written
-     through the shell does not license its red, says the stop reports any code that
-     changed outside the editor tools (0.36.0: armed, it blocks once and asks for the
-     owner to be told), and says the guards are a cooperative backstop, not a security boundary
-     (*The TDD-ordering guards* in
-     `reference/GATE_RECIPES.md` is the full recipe) — because the note is the
-     proactive statement of them: the guard's own messages say them only reactively,
-     at the refusal or counted run itself, and a session that meets them first as an
-     unexplained refusal probes the guard instead of complying
-     (field, 2026-08-08). The note also says the stop guard is **session-scoped**
-     (owner-decided 2026-08-08): it binds only a session that wrote production code
-     or edited a test, so a planning, docs, or bookkeeping session stops clean by
-     construction. **Name the
-     artifact that decides the mode** — the flag file `.git/sdlc-tdd/deny-enabled`,
-     present means deny — and say in the same breath that arming or disarming deny means
-     updating this line, because nothing else will. The note is written at the one moment
-     it can only say "logging", and the ramp exists to change that later; a mode recorded
-     without its flag file is a number in prose drifting from the thing that enforces it.
-     State the other half too: `.git/` is **not** committed, so the flag, the state and
-     the log live in one clone only. This line is repo-wide and is therefore a claim
-     about the machine setup ran on — say whose, and let a teammate check their own.
-     And say what `.git/` means in every kit path: the repository's git directory —
-     `.git/` itself in an ordinary checkout, and in a linked worktree (where `.git` is a
-     file) the directory `git rev-parse --git-dir` prints; so the flag, the state and
-     the log are per-WORKTREE too — a linked worktree keeps its own git directory, so
-     arming deny in one checkout does not arm another. **A
-     decline is recorded too, with the date — never delete the line.** `/sdlc-update`
-     re-offers the guards to a project that never had the choice, and reads this to tell
-     that apart from an owner who considered them and said no; deleting the record
-     erases the difference and turns a decision into a recurring question. Never
-     describe guards the project does not have. On a project answering **both** CLIs,
-     the note says which sessions each installed dialect covers — the `.sh` guard
-     Copilot's, the `.py` guard Claude Code's, each standing down in the other CLI's
-     sessions — because an unqualified "TDD ordering is enforced" is false in every
-     session whose CLI has no dialect installed.
+     say whether one has been seen to arise on its own. Everything else the note states
+     is listed **once**, in the comment under the placeholder in
+     `templates/SDLC.template.md` (it travels into `spec/SDLC.md`): when installed, the
+     rules the guards impose on a coding session — the note is their proactive
+     statement, and a session that meets them first as unexplained refusals probes the
+     guard instead of complying (field, 2026-08-08) — then the session-scoped stop, the
+     flag file that decides the mode, what `.git/` means per clone and per worktree, a
+     dated decline that is never deleted, and, on a project answering both CLIs, which
+     sessions each dialect covers. Write every item that comment names, with the
+     resolved values it asks for named; it is the one list, so a rule the guards gain
+     is added there and nowhere else. One thing only setup can supply: `.git/` is not
+     committed, so the line is a claim about the machine setup ran on — say whose, and
+     let a teammate check their own. *The TDD-ordering guards* in
+     `reference/GATE_RECIPES.md` is the full recipe.
 
    **Then offer the skill-activation ledger — both CLIs, optional, logging-only.** *The
    skill-activation ledger* in `reference/GATE_RECIPES.md` is the recipe and carries the
@@ -884,7 +835,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      from `README.template.md` with the interview's resolved values. An existing
      README is never rewritten by setup; a run-command disagreement stays the owner
      finding step 2 surfaced, not an edit.
-   - Commands, the eight kit skills (five vendored, three kit-written), and
+   - Commands, the seven kit skills (four vendored, three kit-written), and
      `reference/REVIEW_LENSES.md` installed
      per New mode step 5 — the destinations depend on the confirmed target CLI; hook
      installed and verified per New mode step 6, merged with any existing hooks rather
@@ -899,12 +850,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 4. **Baseline the gate honestly.** Run it, then resolve `{{GATE_BASELINE}}` in
    `spec/SDLC.md` with what you measured — this is the placeholder step 3 could not fill,
    because the measurement did not exist yet. Leave it unresolved until now rather than
-   guessing; the close-out `{{` check in step 3.1 is what catches you forgetting.
-   - Green → `green — 0 lint / 0 type / 0 test failures (measured <date>, <this
-     session's shell>)`.
+   guessing; the close-out `{{` check in step 3.1 is what catches you forgetting. The
+   `@` stamp the template requires is not HEAD's: step 3 has already written the
+   isolation harness and the hook scripts into the tree this run measures, uncommitted,
+   so write `@ <stamped at close-out>` and let close-out step 2 stamp the adoption
+   commit.
+   - Green → `green — 0 lint / 0 type / 0 test failures @ <stamped at close-out>
+     (measured <date>, <this session's shell>)`.
    - Red → do NOT block setup and do NOT fix code now. Record the exact counts
-     (`N lint / N type / N test failures (measured <date>, <this session's shell>)`)
-     as the baseline in
+     (`N lint / N type / N test failures @ <stamped at close-out> (measured <date>,
+     <this session's shell>)`) as the baseline in
      `spec/SDLC.md` — its single home; PROJECT_INDEX's phase block points there rather
      than restating the counts — and set status STABILIZATION. The
      surrounding template text already says an increase is a regression — do not restate
@@ -950,6 +905,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    reach note — in this same commit (amend it). If the
    owner declines the commit, the note keeps saying the proof is owed — a note
    claiming a proof that never ran is the exact defect the checker exists to catch.
+   **Both modes, then: stamp the gate baseline** — replace `@ <stamped at close-out>` in
+   `spec/SDLC.md` with the short sha of the commit just made (New mode: the amended
+   initial commit; Existing mode: the adoption commit on `chore/adopt-sdlc`), and commit
+   that alone on the same branch (`docs: stamp gate baseline @ <short-sha>`). The stamp
+   names the commit the gate measured, and a commit cannot carry its own sha, so the
+   stamp is always the commit after the one it names. Declined commit → the marker
+   stays, and the first `/end-phase` reconcile stamps it from its own run.
 3. Report: what was generated, skill/plugin verification results — **file-level only:
    source and installed copies checked; the listing check is still owed, and the report
    says how per CLI: on Copilot the owner types `/skills reload` and checks it now, on

@@ -54,23 +54,22 @@ fields and let `/sdlc-update` re-verify the file against its manifest.
 
 ## Shipped in `sdlc-kit/skills/` — what gets installed when
 
-Five are vendored from upstreams; `diff-review/`, `change-simplify/`, and
+Four are vendored from upstreams; `diff-review/`, `change-simplify/`, and
 `change-verify/` are kit-written. The install mechanics are identical, but the
 *provenance regime* is not — see the note below the table.
 
 Each is a skill directory holding a `SKILL.md`, copied whole into
-`.claude/skills/<name>/`. The eight `SKILL.md` files share a basename — only the parent
+`.claude/skills/<name>/`. The seven `SKILL.md` files share a basename — only the parent
 directory tells them apart, so they are copied as directories, never as files.
 
 | Directory | Install when | What it is |
 |---|---|---|
 | `tdd/` (`SKILL.md` + `tdd-references/{tests,mocking}.md`) | **always** | Core TDD skill: tracer-bullet vertical slicing, behavior-over-implementation testing, mock policy. `SKILL.md` links into `tdd-references/` relatively, so the subfolder travels with it. |
-| `tdd-guide/` | optional | Broader multi-framework TDD guide (test generation, coverage analysis) — useful for teams new to TDD. |
-| `mutation-testing/` | **always** | Test-suite strength assessment by injecting deliberate bugs. Installs with the core set since 0.5.0. **It is reference depth, not a dispatched step:** `/end-slice` §5 names it for a pass that gets difficult, but the rules that bite — safe restore, one mutation at a time, a stated 3–8 sample — are stated in the command itself as of 0.27.0, because two field arcs measured **zero** activations against roughly a hundred mutations actually run. Do not restore the "the step invokes it" wording; the ledger disagrees with it. |
+| `mutation-testing/` | **always** | Test-suite strength assessment by injecting deliberate bugs. Installs with the core set since 0.5.0. **It is reference depth, not a dispatched step:** `/end-slice` §5 names it for a pass that gets difficult, but the rules that bite — safe restore, one mutation at a time, a stated 3–8 sample — are stated in the command itself as of 0.27.0, because two field arcs measured **zero** activations against roughly a hundred mutations actually run. Do not restore the "the step invokes it" wording; the ledger disagrees with it. **Its clean-tree pre-flight does not apply at §5:** the slice under test is uncommitted by design, so a clean tree is unreachable there and stashing the slice to reach one is exactly what §5's restore rules forbid. Where the kit invokes it, the command's check-before-restore rule replaces that pre-flight; the vendored text is left unedited. |
 | `diff-review/` | **always** | The two-axis reviewer (Spec + Standards) named by `/end-slice` step 4 and `/end-phase` step 5. Required since 0.14.0 — without it both commands name a reviewer that does not exist. **Kit-written, not vendored:** see the provenance note below. |
 | `change-simplify/` | **always** | The post-green quality pass named by `/end-slice` step 3. Required since 0.14.0 even though the step is optional — the decision to skip it is only available if the skill is there to skip. **Kit-written, not vendored.** |
 | `change-verify/` | **always** | The verification pass named by `/end-slice` step 6 (since 0.15.0) and `/end-phase` step 2. Required since 0.14.0 — without it the commands name a pass that does not exist. **Kit-written, not vendored.** |
-| `python-pro/` | Python projects only | Typed, strict-mypy Python idioms (attribution: github.com/Jeffallan). |
+| `python-pro/` | Python projects only | Typed, strict-mypy Python idioms (attribution: github.com/Jeffallan). **The kit's rules win where it disagrees:** its own workflow runs `mypy --strict`, `black` and `ruff`, but the project's gate, recorded in `spec/SDLC.md`, is the only toolchain a session runs, and the `tdd` skill's one-failing-test-first order governs test writing. Read it for idiom, not procedure. |
 | `hypothesis-tests/` | Python projects only | Property-based test authoring with Hypothesis. |
 
 **Provenance & licensing:**
@@ -120,12 +119,6 @@ directory tells them apart, so they are copied as directories, never as files.
   `argument-hint` frontmatter, at roughly half the length; the upstream long form is
   worth consulting when refreshing the kit. The condensed text itself has no public
   GitHub match — it appears to be a local adaptation.
-- `tdd-guide/SKILL.md` — from
-  [alirezarezvani/claude-code-skill-factory](https://github.com/alirezarezvani/claude-code-skill-factory)
-  (`generated-skills/tdd-guide/SKILL.md`), **MIT license**. Verified 2026-07-19: our
-  copy is the upstream's first ~120 lines with invocation syntax and one example
-  adapted; the dropped tail documents companion Python scripts that were never
-  installed.
 - `python-pro/SKILL.md` — carries `author: https://github.com/Jeffallan`. **Diverged
   2026-07-19:** the "Reference Guide" table was removed — it pointed at five
   `references/*.md` companion files that were never part of the kit, so every path

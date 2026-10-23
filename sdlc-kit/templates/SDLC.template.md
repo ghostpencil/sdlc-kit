@@ -246,7 +246,10 @@ lint error, naming the file), and the **reach note** the rule above requires:
      stops clean by construction, unless it changed code through the shell. The note
      also names the artifact that decides the mode (`.git/sdlc-tdd/deny-enabled`,
      present means deny — arming or disarming means updating the line), records the
-     proof run that was made to fail, and says `.git/` is per-clone: the flag, state,
+     proof's catch BY NAME (the denied or logged write, the stop guard's would-block,
+     the report-pattern proof's RED and its quoted `NOT counted` line) with the reach
+     note *Records* requires — whether such a violation has been seen to arise on its
+     own or only in the proof — and says `.git/` is per-clone: the flag, state,
      and log describe the machine that wrote the note, not this checkout. It also says
      what `.git/` MEANS in every kit path — the licences, the flag, the state, the logs:
      the repository's git directory, which is `.git/` itself in an ordinary checkout
@@ -263,7 +266,9 @@ lint error, naming the file), and the **reach note** the rule above requires:
      The note names the dialect(s) installed — Copilot (`.github/hooks/
      sdlc-tdd-guard.sh` + `.json`), Claude Code (`.github/hooks/sdlc-tdd-guard.py`
      plus the four hook blocks in `.claude/settings.json`) — and on a project running
-     both CLIs says which sides are covered; the deny flag and state are shared, so
+     both CLIs says which sides are covered — an unqualified "TDD ordering is
+     enforced" is false in every session whose CLI has no dialect installed; the deny
+     flag and state are shared, so
      arming deny arms every installed dialect. With both dialects installed it also
      says a Copilot contributor needs `python` on PATH: Copilot runs the Claude
      dialect's launchers too, and one that cannot start denies the edit. Never describe a guard this project
@@ -446,8 +451,9 @@ known: if the coverage measured for the merged branch rose over the arc, post-me
 bookkeeping sets the threshold — in whichever artifact carries it: the CI workflow
 file, or the build file's check rule where the workflow only invokes the check — to
 just under the measured figure (in the same docs commit as the PROJECT_INDEX update),
-then asserts that the floor recorded in *Records* and in `spec/PROJECT_INDEX.md` is
-identical to that threshold value — the bookkeeping is not done until they are. The
+then asserts that the floor recorded in *Records* — its one home; the index points here
+and carries no copy — is identical to that threshold value — the bookkeeping is not
+done until they are. The
 measured figure is read off the enforced run's own output: CI's printed number where
 the check prints one, else the coverage report artifact the same run produced — a
 check that prints only pass/fail yields no printed figure ever, and waiting for one
@@ -459,7 +465,7 @@ prevent.
 
 **When the floor is first established, prove it fires — once.** Set it above the
 observed number, run the gate's own commands (and CI's, if they differ), and watch
-the failure; then set the real value. Two homes agreeing on a number proves nothing
+the failure; then set the real value. The record and the threshold agreeing proves nothing
 about whether the enforcing step ever *runs* in the commands the gate executes — a
 floor bound to a build phase the gate never reaches passes every reconcile and
 enforces nothing. Same discipline as the edit-time hook's install proof: a check
@@ -834,14 +840,18 @@ Run `/end-slice` when the slice's exit criteria are met:
    worsened the condition). It runs here and not later because the reviewer should read
    the code that will actually be committed. **Behavior is frozen**: every move is
    behavior-preserving, one move at a time with the gate between, and an improvement
-   that would change behavior is a finding rather than an edit. It requires a green
+   that would change behavior is a finding rather than an edit. The gate between moves
+   may be trimmed to lint, the typecheck and the tests covering the axis the move
+   touched; the gate is then run in full, once, after the last move, and the `quality:`
+   line records which form ran between moves. It requires a green
    gate — a quality pass over red code cannot tell an improvement from a fix. It is
    **read-only about the tree's shape** exactly as the review is — no `git
    checkout/restore/stash` — because the code it improves is uncommitted and has no
    restore point behind it. Skipping
    it is a legitimate choice on a small or mechanical slice; skipping it silently is
    not, so say so in the hand-back either way — and the one-line outcome
-   (`quality: <N moves applied | nothing to do | skipped — reason>; reuse: <what was
+   (`quality: <N moves applied (between moves: full | trimmed) | nothing to do | skipped
+   — reason>; reuse: <what was
    searched, and against what | not searched — reason>`) is recorded in the slice
    commit body. **The `reuse:` half is required**, because the skill's rule that Reuse
    is *searched, not eyeballed* has no other durable home: one arc dispatched the skill
@@ -1084,7 +1094,9 @@ Run `/end-phase` when the last slice is done:
      not just the row:** take the number from the enforcing artifact, then search the
      whole spec set for the **old** value and report every file still carrying it.
      Reconciling one home says nothing about a second one three hundred lines away in
-     the same file.
+     the same file. An unstamped gate baseline is stamped here, green or red, from step
+     1's run on the arc branch — setup's `@ <stamped at close-out>` marker included; the
+     red-baseline decision below stamps the value it decides.
    - **The contract's absent direction.** For every ratified decision in prior phase
      specs that has neither a contract entry nor a recorded drop, ask the question no
      other check asks: is the behavior in the tree? Absent → surface it for an explicit

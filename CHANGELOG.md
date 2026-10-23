@@ -14,6 +14,62 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.37.0 — unreleased
+
+The pre-release sanity pass's remainder (`FEATURE_PLAN.md` §86, ruled 2026-10-23). One
+offered skill leaves the kit, and three numbers and lists that lived in two places now
+live in one. The update notes for 0.14.0–0.31.3 move out of `/sdlc-update` into a
+reference file. The README stops restating any of them.
+
+### Removed
+- **[installable]** **The optional `tdd-guide/` skill** (`skills/tdd-guide/`, setup's
+  offer, its `SKILLS.md` rows and its `THIRD_PARTY_NOTICES.md` attribution). Its model is
+  test generation and coverage analysis, not the one-failing-test-first order the `tdd`
+  skill and both guards enforce. All three adopters installed it, and none of their skill
+  ledgers ever recorded an activation. `/sdlc-update` removes an unchanged copy by its
+  removal clause; a drifted one goes to the owner. The kit now has seven skills, four
+  vendored and three kit-written.
+- **[adoption-only]** **The README's copy of every per-release update note**, about 500
+  lines. Each note restated the command's, and one had gone stale (the 0.31.0 claim fixed
+  in `405a3aa`). The README keeps the procedure and points at the notes' one home.
+
+### Changed
+- **[installable]** **`/sdlc-update`'s notes for 0.14.0 through 0.31.3 move to
+  `reference/UPDATE_NOTES.md`** (new, about 600 lines, shipped and not installed). Every
+  known adopter is past them. A project crossing a pre-0.32.0 version reads the file from
+  the target clone, and step 5 says so in one bullet.
+- **[adoption-only]** **The coverage floor's index line is a pointer**
+  (`PROJECT_INDEX.template.md`, `SDLC.template.md` *Coverage floor*). The floor had three
+  homes against the template's own one-number-one-home rule. `/end-phase` now asserts
+  `spec/SDLC.md` against the enforced threshold, and the index says where the floor is
+  recorded. The update's 0.37.0 note hands an adopted project the fold, comparing first.
+- **[adoption-only]** **Setup stamps the gate baseline with its commit**, as the
+  template has required since 0.29.0 (`sdlc-setup.md`). Both modes write a
+  `@ <stamped at close-out>` marker, and close-out stamps the setup commit in a commit
+  of its own: a commit cannot carry its own sha, and in Existing mode the measured tree
+  already holds setup's uncommitted harness and hooks, so HEAD is not it.
+- **[installable]** **The phase close stamps any unstamped baseline, green or red**
+  (`end-phase.md`, `SDLC.template.md` *Phase end*). Until now only the red-baseline
+  decision stamped, so a green baseline recorded before 0.29.0 never got one, and a
+  declined setup commit would have left the marker forever.
+- **[adoption-only]** **The guard note's contents are listed once**, in the comment under
+  `{{TDD_GUARD_NOTE}}` in `SDLC.template.md`. Setup's step 6 restated that list, about
+  50 lines, and now points at it, keeping only what setup alone can record. The comment
+  now asks for the proof's catch by name and a reach note, as its sibling comments
+  already did.
+- **[installable]** **`/end-slice` §3 and the template's slice step 6 state
+  `change-simplify`'s trimmed-gate rule.** The gate between moves may be trimmed and the
+  final gate may not, and the `quality:` line records which form ran. Both copies of the
+  skill's safety rules had dropped that one.
+- **[adoption-only]** **`reference/SKILLS.md`**: `python-pro`'s row says the kit's
+  rules win where its workflow disagrees. `mutation-testing`'s row says its clean-tree
+  pre-flight does not apply at `/end-slice` §5, where the slice is uncommitted by design.
+
+### Fixed
+- **[adoption-only]** The README's file tree said `/end-slice` invokes
+  `mutation-testing`. `SKILLS.md` records that it is reference depth, so the tree now says
+  so too.
+
 ## 0.36.0 — 2026-10-23
 
 The rest of §84's ruled work, and four items from the 0.35.1 adopter updates

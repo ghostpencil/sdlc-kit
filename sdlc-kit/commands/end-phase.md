@@ -307,7 +307,11 @@ read before it is reconciled is a decision taken twice.
      in the same file: one arc recorded a coverage floor in four places, corrected the
      two that a bullet happened to name, and closed green with the other two wrong. The
      output of this leg is a **file list**, not a verdict, and an empty list is the only
-     pass.
+     pass. **A gate baseline with no `@ <short-sha>` stamp is stamped here, green or
+     red,** from step 2's run on the arc branch — including setup's
+     `@ <stamped at close-out>` marker, which survives when the owner declined setup's
+     commit. The red-baseline bullet below stamps the value it decides; this sentence
+     covers every baseline that bullet never reaches.
   3. **Ratified decisions the contract never received.** For every ratified decision in
      prior phase specs that has **neither** a contract entry **nor** a recorded drop,
      ask the question no other check asks: is the behavior in the tree? Present each
@@ -405,14 +409,15 @@ read before it is reconciled is a decision taken twice.
   carries it: the CI workflow file, or the build file's check rule where the workflow
   only invokes the check (a Maven adoption's number lives in the build file; the
   workflow never sees it) — to just under the measured number, in the
-  same docs commit as the bookkeeping below. Then **assert the two homes agree**: the
-  floor recorded in `spec/PROJECT_INDEX.md` (and `spec/SDLC.md`) and that threshold
-  value must be identical — the bullet is not done until they are. **If this
+  same docs commit as the bookkeeping below. Then **assert the record and the
+  enforcement agree**: the floor recorded in `spec/SDLC.md` (*Records*, its one home —
+  `spec/PROJECT_INDEX.md` points there and carries no figure) and that threshold value
+  must be identical — the bullet is not done until they are. **If this
   arc established the floor for the first time, prove it fires before recording it:**
   set it above the observed number, run the gate's own commands (and CI's, if they
-  differ), watch the failure, then set the real value — two homes agreeing proves
-  nothing about whether the enforcing step ever runs in the commands the gate
-  executes (`spec/SDLC.md`, *Coverage floor*, states the rule). The
+  differ), watch the failure, then set the real value — record and threshold
+  agreeing proves nothing about whether the enforcing step ever runs in the commands the
+  gate executes (`spec/SDLC.md`, *Coverage floor*, states the rule). The
   recorded number is a claim; the threshold value
   is the enforcement — a mismatch means the ratchet is not actually ratcheting. Read
   the measured number off the enforced run's own output: CI's printed figure where

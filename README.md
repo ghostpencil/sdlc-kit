@@ -174,8 +174,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── tdd/                         ← THE TDD skill (not built into either CLI)
 │   │   ├── SKILL.md
 │   │   └── tdd-references/          ← tests.md + mocking.md (linked from SKILL.md)
-│   ├── tdd-guide/                   ← optional: broader TDD guide for teams new to it
-│   ├── mutation-testing/            ← always installed — /end-slice's mutation check invokes it
+│   ├── mutation-testing/            ← always installed — reference depth for /end-slice's mutation check
 │   ├── diff-review/                 ← always installed — kit-written; the reviewer /end-slice
 │   │                                   and /end-phase name (Spec + Standards axes, both CLIs)
 │   ├── change-simplify/             ← always installed — kit-written; the post-green quality
@@ -225,6 +224,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
 │   ├── COPILOT.md                   ← the Copilot CLI mapping: install paths, hook, detection
 │   ├── SKILLS.md                    ← required/recommended skills and how to install
+│   ├── UPDATE_NOTES.md              ← /sdlc-update's notes for 0.14.0–0.31.3 (read at update time)
 │   └── REVIEW_LENSES.md             → <project>/.claude/commands/ (the one installed reference file)
 ├── THIRD_PARTY_NOTICES.md           ← attributions for the vendored skills (MIT; python-pro's
 │                                       redistribution status unverified — the notices say so)
@@ -312,7 +312,7 @@ The whole procedure rests on this split:
 | Path in your project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
-| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the eight `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
+| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the seven `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
 | `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the four kit-owned files in that directory (with `sdlc-close-out.json`, `sdlc-impact.py` and `sdlc-cosmetic.py`) — every other file there is project-owned. |
@@ -327,7 +327,8 @@ your agent CLI. A project set up for both holds the seven commands twice — onc
 user-typed under `.claude/commands/`, once packaged under `.github/skills/` — and both
 copies update.
 
-`templates/` and `reference/` are read only at `/sdlc-setup` time and are never
+`templates/` and `reference/` are read only at `/sdlc-setup` time (and
+`reference/UPDATE_NOTES.md` at `/sdlc-update` time, from the kit clone) and are never
 re-applied to an already-adopted project — with six exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
@@ -496,6 +497,19 @@ name each one.
    weeks after the update that fixed them. A matched `RULING OPEN` entry is proposed for
    closure in step 6; an `open` one is left for the next retro.
 
+   Then look for every process rule an earlier update missed. The command's step 4
+   carries a table of marker phrases, one per rule `SDLC.template.md` gained from 0.15.0
+   on; each absent from your `spec/SDLC.md` is put to you as a numbered decision: fold
+   the rule now, or record it as reworded on purpose (`Fold marker answered:` in
+   *Records*), so it is not asked again.
+
+   Then read each optional hook's record against its artifact — the TDD guards, the
+   skill ledger and the close-out backstop, for each CLI you run — on every update, not
+   only the one that introduced it. A recorded decline is settled. No record line at all
+   means you never had the choice, so the offer is made now, as setup would make it, with
+   its proof. A record that disagrees with the files, either way round, is reported to
+   you rather than fixed. The command's step 5 states the full check.
+
    Then copy in any files **new in the target version's install set**. Classification
    never saw them — it enumerates what your project already holds, and your project does
    not hold them yet — so they appear in no category above and are the one class of
@@ -522,9 +536,14 @@ name each one.
    it is done, check that no skill is left at both paths — two copies of `tdd` with
    different content is the one outcome to avoid.
 
+   The third is 0.37.0's removal of the optional `tdd-guide/` skill. An unchanged copy
+   is deleted; to keep one, move it out of `.claude/skills/` to a path your project
+   owns.
+
    Before copying anything, read the per-version *[installable]* transition notes in
-   the update command itself (`commands/sdlc-update.md`, step 5) for every version you
-   are crossing — they carry what no classification can infer. The one with teeth: if
+   the update command itself (`commands/sdlc-update.md`, step 5 — and, for a version
+   older than 0.32.0, `reference/UPDATE_NOTES.md`) for every version you are
+   crossing — they carry what no classification can infer. The one with teeth: if
    your `spec/SDLC.md` predates the target's template, it still describes the old
    slice loop, and by its own first paragraph it **wins** over the updated commands —
    until you fold the template diff in, the file that outranks the new steps is the
@@ -551,521 +570,13 @@ name each one.
    unpinned checkout can make two dozen files report modified when four differ. The
    short list is the one to read closely; the long one is the noise deletions hide in.
 
-   **A project-owned file can still hold a kit defect, and 0.16.0 is the first release
-   where that bites.** On Copilot CLI the write tool is `apply_patch`, whose `toolArgs`
-   is raw patch text rather than the JSON every other tool sends; the hook body through
-   0.15.0 parsed it as JSON, so it fell to its "could not find the file" branch on every
-   single edit and never ran lint or typecheck at all. 0.16.0 fixes the template — but
-   your instantiated `.github/hooks/sdlc-gate.json` holds *your* gate commands, so no
-   update may overwrite it. You re-apply this one by hand, from the diff between the two
-   template versions. Until you do, a Copilot project's edit-time gate stays broken.
-   (Crossing 0.18.0 in the same update? Skip straight to that release's restructured
-   script-plus-launcher pair below — do not hand-write the 0.16.0 single-JSON body
-   only to replace it again.)
-   **0.16.0 changes both hook recipes for every project, on either CLI**, and the same
-   project-ownership rule means you re-apply these by hand too. The hooks now ship two
-   JSON-parser dialects and detect `python` or `node` at run time, instead of hard-coding
-   an undocumented dependency on `python`; they strip carriage returns from the parser's
-   output, because Windows `python` writes CRLF and a stray `\r` silently falsifies the
-   hook's own comparisons (Git Bash masks this, WSL bash does not); and on **Claude
-   Code** the hook now reports on stderr and exits 2 when it cannot find the edited
-   file's path, where it used to exit 0 and check nothing — a silently green gate.
-   While you are here, re-run the hook-environment probe (*The hook environment* in
-   `reference/GATE_RECIPES.md`) and compare against what `spec/SDLC.md` recorded at
-   setup — a machine that gained WSL or lost the hook's JSON parser moves that answer,
-   and nothing else ever looks again; a moved answer is a finding, not a silent edit.
-   **0.16.0 also adds the optional TDD-ordering guards (Copilot CLI only until
-   0.21.0), and every
-   update from here on checks whether your project was ever offered them.** They are
-   project-owned and optional, so nothing is installed unasked. If the guard files are
-   already there, an update leaves them alone. Two contradictions are reported to you
-   rather than resolved: the recorded line says installed but the files are gone, or
-   the files are present while the line records a decline — either is a finding, not
-   something an update settles itself. And the deny flag lives under `.git/`, so
-   whatever mode the line describes is a fact about the machine that wrote it, not
-   about this checkout. If they are not, the update reads the
-   TDD-guard line `/sdlc-setup` writes in `spec/SDLC.md`: a recorded decline is a
-   settled decision and gets a sentence, not a fresh sales pitch, while **no line at
-   all** means your project never had the choice — typically because it was set up
-   before 0.16.0 — and the guards are offered properly. Absent guards look identical on
-   disk either way, which is why the decision lives in prose. Taking them up runs
-   `sdlc-setup.md` step 6 in full, logging-mode ramp and proof step included; neither is
-   optional just because this is an update.
-   **0.18.0 adds the optional skill-activation ledger (both CLIs, logging-only), and
-   updates check for it the same two-state way.** One hook appending a line per skill
-   activation to `.git/sdlc-skill-ledger.jsonl`, so a retro can read which skills
-   actually ran; per-clone, never blocking anything. Ledger artifact present → left
-   alone. Absent → the update reads the skill-ledger line in `spec/SDLC.md`: a recorded
-   decline is settled, no line at all gets the offer with its proof step (invoke a
-   skill, read the last ledger line back). The same two contradictions are reported,
-   never silently resolved.
-   **0.18.0 also fixes the TDD-guard hook config for machines whose hook shell is the
-   WSL launcher** — the old config was silently corrupted on that route and the guards
-   never ran there. Both guard files are project-owned, so the fix arrives by hand:
-   the `.json` is a verbatim template copy you replace outright (it inherits the
-   offline proof), and the `.sh` takes a small template diff at its top. Until both
-   land, guards that look healthy from one launch environment may be inert in another.
-   **The Copilot gate hook gets the same restructure in 0.18.0, for the same
-   boundary**: `.github/hooks/sdlc-gate.json` becomes a bare launcher you replace
-   verbatim (only `timeoutSec` is ever edited), and the logic moves to a new
-   project-owned `.github/hooks/sdlc-gate.sh` you instantiate with the `{{HOOK_*}}`
-   values read out of your current hook before replacing it. On affected machines the
-   old hook reported a **false** "no JSON parser" on every edit — if you have seen
-   that message with python installed, this is why. Re-run the proof step after: a
-   deliberate lint error must produce hook feedback.
-
-   **0.19.0 and 0.19.1 change hook behavior, all of it by hand** — four TDD-guard
-   fixes in 0.19.0 (the declared refactor license, spoken refusals, the single-`&`
-   separator fix, G2 session scoping) and three hook-feedback fixes in 0.19.1
-   (spoken counted observations, the gate's truncation marker, and — Claude Code —
-   the framed lint failure in `.claude/settings.json`). All live in project-owned
-   files; apply as template diffs per the update command's notes. The `.json`
-   launchers are unchanged throughout.
-
-   **0.20.0 adds the close-out evidence checker, and only the file arrives on its
-   own** — `.github/hooks/sdlc-close-out.sh` is kit-owned and verbatim (the one
-   `.sh` there the kit owns; at this release it was also the only one carrying no
-   project values — 0.24.0's ledger script joins it there), but its wiring is
-   hand-applied:
-   `spec/SDLC.md` needs the checker note beside the gate (the proven invocation per
-   CLI — on Copilot the shell tool resolves no `sh`, so the note carries the
-   git-derived `bin\sh.exe` form, actually run before recorded), the slice loop's
-   new verify-the-record step, and the `RED:` zero-form
-   (`RED: none — no behavior batches this slice`). `/end-slice` renumbers again
-   (PROJECT_INDEX 8→9, hand-back 9→10) — notes citing those numbers go stale. The
-   update command's 0.20.0 note walks all three.
-
-   **0.21.0 adds the Claude Code TDD-guard dialect, retiring the 0.16.0 CLI gate:
-   the guard offer is now per-CLI, per dialect.** The new artifacts — a
-   project-owned `.github/hooks/sdlc-tdd-guard.py` plus four hook blocks in
-   `.claude/settings.json` — are project-owned, optional, and patterned, so nothing
-   arrives automatically. The 0.16.0 two-state check now runs per CLI your project
-   runs, with one 0.21.0-specific reading: a guard line in `spec/SDLC.md` saying the
-   guards are *Copilot-CLI-only and this project does not run that CLI* was setup's
-   pre-0.21.0 statement about the kit, **not an owner decline** — that project never
-   had the choice, so the Claude dialect is offered now as a first setup would
-   (logging mode, fail-first proof in a Claude Code session). 0.21.0 also rewords
-   the guard deny message and the guard note (the refactor license names the case,
-   not "close-out") — hand-applied as template diffs per the CHANGELOG. The update
-   command's 0.21.0 note states the same procedure.
-
-   **0.22.0 adds the close-out checker's stop-time backstop, as an offer.** The
-   checker script updates automatically and its new `stop-check` mode arrives with
-   it, but the wiring is optional and per-CLI: `.github/hooks/sdlc-close-out.json`
-   on Copilot (kit-owned verbatim, present only where you accept),
-   a `Stop` block in `.claude/settings.json` on Claude Code (project-owned, by
-   hand — and crossing 0.24.0 in the same update, install it in that release's
-   launcher-neutral form, not this one's pinned form: the `"shell": "bash"` key
-   this note originally called load-bearing was later measured never firing —
-   the 0.24.0 note below). A checker note predating
-   0.22.0 says nothing about the backstop, so the choice is put now as setup would
-   (logging mode only, fire-first proof per setup step 6; blocking is armed later via
-   `.git/sdlc-close-out/deny-enabled`, and the bare-commit class stays log-only on
-   every install); a recorded decline is settled. The update
-   command's 0.22.0 note states the same procedure.
-
-   **0.23.0 adds the product contract, and the file arrives only by hand — it is
-   project-owned.** A new spec file, `spec/PRODUCT_CONTRACT.md` (from
-   `templates/PRODUCT_CONTRACT.template.md`, placeholder-free, seeds empty), holds
-   the current-truth statement of owner-ratified externally observable behavior,
-   read at phase boundaries by the updated `/plan-phase` (preserved-contract sweep)
-   and `/end-phase` (per-item acceptance verdicts, preserved-contract check,
-   contract reconcile). The updated commands point at that file and at
-   `spec/SDLC.md` sections (*Product contract*; the phase-start, halt-4,
-   arc-review, and bookkeeping additions; the slice-loop trigger line) your
-   un-re-instantiated spec does not yet carry — the spec wins until
-   you fold the template diff. Copy the template as-is; the contract starts empty
-   on purpose — the one-time backfill over prior phases' ratified decisions is
-   offered at your next `/end-phase`, owner-confirmed there, never inferred at
-   update time. The update command's 0.23.0 note states the same procedure.
-
-   **0.23.0 also restructures `spec/SDLC.md` and gives the index an exit path —
-   both arrive only by folding the `SDLC.template.md` diff.** A *Records* section
-   now holds the per-project values the close-outs read (scope, gate commands,
-   baseline, coverage floor, CI line, the hook/environment line, the
-   guard/ledger/close-out notes, model policy — a handful of others stay at the
-   step that uses them, and the section's preamble names each), with the doctrine
-   sections below referencing it, so a command
-   session loads one bounded section instead of the whole file; folding the diff
-   **moves your recorded values verbatim** — never re-derive or re-type them from
-   the template. Until it is folded, the updated commands' *(Records)* pointers
-   degrade soft: the facts are the same lines at their old positions, and the spec
-   wins as ever. Separately, `/end-phase` now retires closed items from the two
-   growing record sections — backlog entries whose line carries a closing marker
-   (`— done (<fix commit>)` / `— dropped (owner, <date>)`), friction lines
-   absorbed more than a phase ago — to `spec/PROJECT_INDEX_HISTORY.md`, which
-   that command creates on
-   first retirement — nothing to create at update time. `CLAUDE.md`'s spec-loading
-   table changes arrive by hand too (its `spec/SDLC.md` row now names *Records*; a
-   new `spec/PROJECT_INDEX_HISTORY.md` row carrying its never-at-session-start
-   trigger) — `CLAUDE.md` is project-owned, so hand yourself the
-   `CLAUDE.template.md` table diff rather than letting an update edit the file;
-   `/end-phase`'s retirement bullet checks for the row at each close and adds it
-   in the docs commit if absent. The update command's 0.23.0 note
-   states the same procedure.
-
-   **0.24.0 rewires every Claude-dialect hook launcher-neutral, and none of it
-   arrives by updating — `.claude/settings.json` and the hook scripts are
-   project-owned.** Measured 2026-08-15 (Claude Code 2.1.231 headless, 2.1.233
-   interactive — the CLI auto-updated between the same-day benches): a hook
-   carrying the per-hook `"shell": "bash"` key never fired on either route —
-   `Stop` and `PostToolUse` alike, no error, no log — while an unpinned twin
-   fired; the same pinned block had measured working 2026-08-13 on an unrecorded
-   version. Version drift under an auto-updating CLI, and nothing the kit ships
-   depends on the pin anymore.
-   On a Claude Code project the consequence is stated plainly: **until the rewire
-   lands by hand, your gate hook, skill ledger, and stop backstop may never have
-   been running on some routes.** Hand-applies, the 0.18.0 shape: instantiate
-   `templates/claude-gate.template.sh` → `.github/hooks/sdlc-gate-claude.sh` with
-   the values read out of your current settings-file hook body, make the
-   `Edit|Write` block its bare launcher (`sh .github/hooks/sdlc-gate-claude.sh`);
-   where installed, `templates/skill-ledger.template.sh` (named
-   `skill-ledger-claude.template.sh` through 0.31.0) →
-   `.github/hooks/sdlc-skill-ledger.sh` (verbatim) with its block as
-   `sh .github/hooks/sdlc-skill-ledger.sh`, and the backstop block as the
-   launcher-neutral `sh -c "…stop-check…"` form; remove every `"shell"` key (the
-   guard blocks' `python …` lines were always neutral). Then re-run the hook proof
-   and the hook-environment probe **with its new dispatch check** (GATE_RECIPES,
-   *The hook environment*, item 4 — pinned-vs-unpinned probe pair, CLI version
-   recorded). The update command's 0.24.0 note states the same procedure.
-
-   **0.25.0 fixes both of the TDD guard's classifiers, in both dialects, and
-   neither fix arrives by updating — your instantiated guard is project-owned.**
-   Both are false-positive fixes; a control that speaks about acts that never
-   happened is one you learn to route around. (a) **A file outside the repository
-   is no longer production source.** An absolute path not under your repo root
-   used to fail `TEST_PATH_PATTERN`, match the extension-only `SOURCE_GLOB`, and
-   cost the same refactor license as an edit to your most sensitive module —
-   measured over one arc as 13 denials, 5 of them on a session scratchpad, and 12
-   writes licensed for a mandated `/end-phase` step whose own text never mentions
-   a license. Relative paths still count. (b) **The test-command pattern is
-   matched with quoted arguments stripped**, so a `git commit -m` whose body
-   quotes your RED command no longer registers as a test run. Apply each as a
-   template diff against your instantiated copy, keeping your three placeholder
-   values: `templates/tdd-guard-claude.template.py` (pre-write path handling and
-   the `observe-test` match) or `templates/tdd-guard.template.sh` (the same two).
-   The `.json` launchers and settings blocks are unchanged. **On the shell dialect
-   there is one extra consequence:** it never reduced the path at all, so an
-   absolute path to a file like `tests/conftest.py` was charged as a production
-   write — a test edit that licensed nothing, which may explain friction already
-   in your log. After applying, confirm from `guard.log` on the next real session
-   that scratchpad writes no longer appear and your own test runs still register.
-   The update command's 0.25.0 note states the same procedure.
-
-   **0.26.0 adds a third close-out-checker mode and a reconcile pass at phase
-   close; both arrive by updating, and one line of bookkeeping does not.** The
-   checker is kit-owned and copied verbatim, so `docs-check` lands with the file:
-   it counts the lines a close-out docs commit added to `spec/PROJECT_INDEX.md` and
-   reports them against an in-file budget of 25. It is **log-only on every
-   install** — it exits 0 even on its own errors and can never fail a step — so
-   unlike the stop-time backstop it is not offered, armed, or declined, and it
-   touches nothing under `.git/` beyond the existing log. `/end-slice` now runs it
-   after the docs commit, using your close-out checker note's own invocation with
-   `docs-check` where it says `check`; if your `spec/SDLC.md` carries no such note,
-   resolve it per the 0.20.0 note above first. The rule it watches — *status only,
-   one line* — now carries that number, as a budget rather than a limit: a close
-   with a genuinely large entry count answers `OVER` in the hand-back instead of
-   trimming the record to fit. Separately, `/end-phase`'s post-merge bookkeeping now
-   **opens** by re-deriving every recorded number and carried claim — the backlog
-   count, every row of *Records* (not only the two the kit shipped procedures for),
-   and every ratified decision in a prior phase spec that has neither a contract
-   entry nor a recorded drop — reporting each `recorded X / measured Y` before any
-   bullet asks you to decide anything. Expect your **first** close after updating to
-   surface divergences that accumulated under earlier releases; that backlog is the
-   pass working, not damage it did. The update command's 0.26.0 note states the same
-   procedure.
-
-   **0.27.0 adds a fifth key to the slice close-out record, and your first slice
-   after updating will fail on it once.** The commit body now carries a `lenses:`
-   line beside `RED:`/`quality:`/`mutation:`/`verify:` — the slice review's lens
-   verdicts, or `no lens triggered` when none applied. Both halves arrive by
-   updating (the command prescribes the line, the verbatim checker enforces it), and
-   because `check` mode is fail-closed a slice closed out of old habit reports
-   `INCOMPLETE - problems: lenses`; amend with the real verdict and re-run, exactly
-   as for any other key. It is a one-time relearning and it is narrow — nothing else
-   about the record changed. It is fail-closed rather than a prose rule because a
-   lens that ran and found nothing previously left no durable trace at all, and a
-   check with no negative record cannot be told apart from one that never ran.
-   **0.27.0 also replaces 0.26.0's mutation-restore recipe, which could destroy a
-   slice:** `/end-slice`'s mutation step runs before the slice commits, so
-   `git checkout -- <path>` restored the file to HEAD and took the uncommitted
-   implementation with it. The step now inverts the mutating edit instead. If you
-   are on 0.26.0, that wording is installed — until you update, do not run it on a
-   file whose slice work is uncommitted. The update command's 0.27.0 notes state the
-   same procedure.
-
-   **0.28.0 adds one kit-owned file and asks nothing of a project without a graph.**
-   `.github/hooks/sdlc-impact.py`, the architecture-impact adapter, arrives verbatim
-   with the update. It is **inert unless your project carries an Understand Anything
-   knowledge graph** — every command that quotes it prints `UNAVAILABLE` and one line,
-   and nothing gates, fails, or halts on it — which is why it installs unconditionally
-   rather than being offered. If you *do* have a graph: the overlay is written only
-   into a **git-ignored** UA directory, because `/end-phase` requires a clean tree and
-   re-asserts it before the merge, so a tracked one gets the summary and no file. And
-   the view is a comprehension aid, never verification: nothing it prints enters gate
-   truth, and its summary is deliberately not one of the close-out record's keys. The
-   update command's 0.28.0 note states the same procedure.
-
-   **0.28.1 re-arms the TDD guard's shell dialect, which 0.25.0 through 0.28.0
-   silently disarmed on Windows.** If you run Copilot CLI on Windows and applied the
-   0.25.0 guard fix above, **that guard has been skipping every write the CLI reports
-   by absolute path** — which is how that CLI reports them. The relativization compared
-   the incoming path against a root taken from `$(pwd)`, and an MSYS hook shell answers
-   `/d/foo` where the CLI sends `D:\foo`; they never prefix-match, so the write fell to
-   the *outside the repository* arm and was skipped rather than guarded. The log line
-   reads like correct behavior, which is the worst shape this can take. Measured on an
-   adopter's own recorded path: the 0.24.0 body **denies** it, 0.25.0–0.28.0 **allow**
-   it. The fix resolves the root in both flavours and cannot regress a POSIX host. It
-   is in `templates/tdd-guard.template.sh` and, like every guard change, **arrives only
-   by hand** — apply it as a template diff keeping your three placeholder values, at
-   the same time as the 0.25.0 fixes if you have not taken those yet. **The Claude /
-   Python dialect was checked and is correct**, so a Claude Code project needs nothing
-   here. Re-prove the deny afterwards against a path shape from your own `guard.log`,
-   and read the verdict **from the log**, never from the probe's exit code.
-
-   **0.29.0 quiets the stop-time backstop and asks one new thing of your *Records*.**
-   The checker is kit-owned, so all three behaviour changes arrive with the file:
-   commits touching only `spec/` and the root kit documents are **skipped before
-   classification** (bookkeeping, never a slice — and across one adoption's entire log
-   they were 100% of the flags it ever raised); a flag is logged **once per commit per
-   session**, with repeats logged as `stop: repeat`; and a stop with nothing in its
-   window logs **`stop: n/a`** instead of `stop: clean`, because a control with no
-   reach and a control that found nothing were previously the same word. Expect a
-   quieter and more informative log. Two things to fold into `spec/SDLC.md` by hand:
-   if your close-out note records a *fire-proof*, upgrade it to the **catch actually
-   seen, naming the commit**, plus a **reach note** — whether that flagged state arises
-   in ordinary operation or was constructed for the proof; and from your next
-   `/end-phase`, the gate baseline is recorded as `N @ <short-sha>`, stamped with the
-   commit its number was measured at. Nothing recomputes the baseline during the
-   update. The update command's 0.28.1 and 0.29.0 notes state the same procedure.
-
-   **0.31.0 adds a third TDD-guard licence and asks two more words of your close-out
-   records.** `.git/sdlc-tdd/close-out-license` is the refactor licence scoped to
-   `/end-slice`, differing in exactly one way: **a test edit does not revoke it.**
-   Close-out's own order edits tests between its production writes — the review fixes
-   tests, the mutation step restores them, the verification step writes a harness — so
-   a licence a test edit revokes cannot survive the step it exists for, and one
-   adoption paid seven re-declarations in a single phase without it. It arrives with
-   the guard file and needs **no decision**: nothing changes for a project that never
-   declares it, and the refactor licence is unchanged. Every test edit the close-out
-   licence survives is **counted in the guard log**, so one held open past close-out
-   shows as a large count rather than as silence. Separately, `/end-slice`'s
-   `verify:` line now carries `not exercised: <what, or "nothing">` and its `quality:`
-   line carries `reuse: <what was searched, and against what>` — the close-out checker
-   is unchanged and structural-only, so **existing records stay valid and nothing
-   fails**; slices closed after the update should carry the new halves, and old commit
-   bodies are not retrofitted. The update command's 0.31.0 notes state the same
-   procedure. (0.31.0 also named a graph **regeneration trigger** in the
-   *Architecture impact view* section; 0.35.0's two refresh switches replaced it, so
-   apply that release's fold, below, rather than anything from this one.)
-
-   **0.31.1 re-arms every hook launcher that read "not at the root" as "not a
-   repo".** The launchers tested for a `.git` *directory* and exited 0 otherwise, so
-   two situations turned your controls off without a word: a Copilot session started
-   below the repository root on CLI builds 1.0.64–1.0.87 (hooks ran in the session's
-   cwd — no gate, guard, backstop, or ledger line), and a linked worktree on any build
-   and either CLI (its `.git` is a file). Proving the fix found a third, worse one:
-   **launched from PowerShell, where Copilot's hooks run under WSL bash, the TDD guard
-   has waved through every absolute-path write since 0.25.0** — 0.28.1's fix relied on
-   `pwd -W`, which exists only in Git Bash, so `D:\…` paths were logged "outside the
-   repository". Search your `guard.log` for that line against in-repository paths.
-   Every Copilot entry now carries
-   `"cwd": "."`, every test is `[ -e .git ]`, the scripts read a worktree's `.git` file
-   themselves, each stop launcher blocks once naming a missing script — an exit code
-   reaches only Copilot's session log, never the agent — and the skill ledger's body
-   now lives in `.github/hooks/sdlc-skill-ledger.sh` for both CLIs. The close-out
-   script and its Copilot JSON arrive with the update. **The rest is yours by hand**:
-   the gate and guard JSONs replaced from their templates, the guard script (either
-   dialect) as a template diff keeping your three values, the settings file's close-out
-   `Stop` command, and — ledger installs only — the shared ledger script installed
-   **before** the new ledger JSON, which is only its launcher. Nothing moves in an
-   ordinary checkout. On Claude Code, replace an existing `sdlc-skill-ledger.sh` with the
-   shared body too. State is per-worktree, so deny armed in the main checkout does not
-   arm a worktree. Re-prove from **each launch route you use** — on Windows both Git Bash
-   and PowerShell, since the WSL gap lived on the PowerShell route only: deny armed, a
-   Copilot session started in a subdirectory, an edit to an in-repository production file
-   by its absolute path, the verdict read from `guard.log` (and the same in a worktree,
-   if you use them; on Claude Code, from your own launch route). Then fold into
-   `spec/SDLC.md`: the guard note says what `.git/` means in a worktree and that the flag
-   is per-worktree, and a Copilot ledger note names the shared script beside the JSON.
-   The update command's 0.31.1 note states the same procedure.
-
-   **0.31.2 fixes a regression 0.31.1 put into both TDD-guard dialects.** A harness that
-   pins `SDLC_REPO_ROOT` to a directory with no `.git` — your own guard tests, if you have
-   them, likely do — got no guarding at all under 0.31.1, silently; 0.31.2 restores the
-   old behavior. Real hook invocations were never affected. Apply the 0.31.1 → 0.31.2
-   template diff to your installed guard, keeping your three values and any local
-   amendments, and run your own guard tests. The update command's 0.31.2 note states the
-   same procedure.
-
-   **0.31.3 makes the Claude-dialect hooks stand down under Copilot**, which reads
-   `.claude/settings.json` too and obeys what those hooks answer. It matters only if you
-   installed both dialects' hooks. The close-out checker arrives with the update; apply
-   the 0.31.2 → 0.31.3 template diff by hand to the Claude guard and the Claude gate body,
-   keeping your values and amendments, then re-prove both from a Claude Code session (a
-   deliberate lint error still refused, the guard's proof step still catching) — a
-   hand-apply that drops the `permission_mode` clause silences both there. A single-CLI
-   project applies it for currency and sees no change. On a both-dialect project, also
-   make one edit from a Copilot session and confirm `guard.log` holds only the Copilot
-   guard's line; and every Copilot contributor needs `python` on PATH — an erroring
-   edit-time launcher denies the edit under Copilot — which you fold into `spec/SDLC.md`
-   beside the guards' installed note yourself. The update command's 0.31.3 note states
-   the same procedure.
-
-   **0.32.0 adds the docs-only slice.** A slice whose ratified test approach is `none`
-   and which touches no source or test file skips the TDD loop; `/end-slice` confirms
-   that against the diff and runs `change-verify`'s docs form (each command the diff adds
-   is run, each path it adds is opened). The commands and skill arrive with the update,
-   but the rule lives in `SDLC.template.md` slice-loop steps 4 and 9: fold that diff into
-   `spec/SDLC.md` yourself — until you do, your process file keeps every slice in the
-   loop and wins, so nothing breaks. While folding, add a reach note to three records
-   setup wrote (the hook environment, the close-out checker note, `spec/TESTING.md`'s
-   harness): what each proof caught, and whether it has arisen on its own. The update
-   command's 0.32.0 note states the same procedure.
-
-   **0.33.0 refreshes the architecture graph at every slice end**, as `/end-slice`'s last
-   act, and the impact adapter now reads a graph built inside the change set as current.
-   It matters only if your project carries an Understand Anything graph. The adapter
-   arrives with the update; fold the `SDLC.template.md` *Architecture impact view* diff
-   into `spec/SDLC.md` yourself — until you do, your process file names only the phase
-   boundary and wins. If your graph directory is tracked, each refresh needs its own
-   commit. The update command's 0.33.0 note states the same procedure.
-
-   **0.34.0 exempts comment- and layout-only source edits from the TDD guard, and lets
-   them keep a slice docs-only.** `.github/hooks/sdlc-cosmetic.py` arrives verbatim and
-   installs unconditionally: it can only grant, so a missing python or language
-   toolchain is today's rule. The guard scripts are project-owned — they consult the
-   classifier only once re-derived from the 0.34.0 templates with your three patterns
-   carried over, and a guard left as it is keeps today's rule; re-deriving one changes
-   the guard note in `spec/SDLC.md`, which says whether the guard consults it. Fold the
-   `SDLC.template.md` docs-only diff (slice loop step 4) into `spec/SDLC.md` yourself;
-   until you do, your process file says a source comment voids a docs-only slice, and
-   wins. Where the shell guard is installed, `sh -n .github/hooks/sdlc-tdd-guard.sh`
-   with an `sh` that resolves (Git Bash's on Windows): a pattern value with a space is
-   a syntax error that denies every Copilot write. The update command's 0.34.0 note
-   states the same procedure.
-
-   **0.34.1 makes the classifier lint-clean** — 0.34.0's copy failed ruff's default
-   `E741`, which turns a gate red wherever lint covers `.github/hooks/`. It is kit-owned
-   and replaced like any other; take 0.34.1 rather than 0.34.0. The update command's
-   0.34.1 note states the same.
-
-   **0.35.0 puts the graph refreshes behind two switches** — one `Graph refresh:` line
-   in `spec/SDLC.md`'s *Architecture impact view*: an incremental refresh at every slice
-   end (skipped when the graph is already at HEAD), and a full rebuild at the phase end
-   only when the adapter's new `coverage` mode finds code or script files missing from
-   the graph. It matters only if your project carries an Understand Anything graph.
-   The commands refresh nothing until the line is in your process file, so fold the
-   `SDLC.template.md` diff yourself. The update fills the line from your own recorded
-   rulings rather than asking again, and asks only about a ruling neither `on` nor `off`
-   expresses. A local `freshness()` amendment that reads any graph descending from the
-   base as current is retired rather than carried, because it reads a sibling branch's
-   graph as current. On Copilot CLI, the update also offers the adapter's new
-   `plugin-fix` mode: Copilot refuses Understand Anything's `understand` skill until
-   one frontmatter field is rewritten, so no Copilot session could refresh the graph
-   before it. The same mode makes the plugin's auto-update hooks work on Copilot, where
-   they never ran, so a project with `autoUpdate` on starts getting their orders to
-   run the plugin's incremental update unprompted — say so before your yes.
-   It writes outside the repository, into the plugin's install, so it runs only on your
-   yes. The update command's 0.35.0 note states the same procedure.
-
-   **0.35.0 also makes the TDD guards count the test, not the command.** A failing run
-   is a RED only when the runner's own report is in its output, so a wrapper's failure
-   no longer licenses a write; a command that only names the runner (a reader, `git`,
-   an install, a heredoc) never counts, so it no longer records a GREEN either; and
-   configs, one-off script directories and the graph tool's directory stop being
-   production source; and three encoding defects that let a non-ASCII path slip the
-   guard are fixed. The guard scripts are project-owned — they get this only once
-   re-derived from the 0.35.0 templates with your three patterns carried over and two
-   new ones resolved: the runner-report pattern from the recipe's table, and the exempt
-   pattern proposed from your tree, never empty. A guard left as it is keeps today's
-   rules. A re-derived guard is proven the way setup now proves it — one real red
-   counted, one wrapper failure refused — plus `sh -n` where the shell dialect is
-   installed, and its note in `spec/SDLC.md` names both values and the refused line,
-   with a reach note. If you have your own guard tests, run them after the re-derive:
-   a fixture that fakes a failing run must carry the runner's real report, because one
-   without it is now refused — fix the fixture, never loosen the pattern to fit it. A
-   local amendment that counts a shell-written test as a test edit is retired
-   rather than carried. The update command's 0.35.0 note states the same procedure.
-
-   **0.35.0 also changes the edit-time gate hook's body.** It skips files outside the
-   project, names the check that failed with only that check's output, captures both
-   halves of a compound `lint && format check` value, and hands a typecheck block's
-   non-blocking note back as context rather than as the edited file's failure. The
-   hook script is project-owned, so it changes only if you re-derive it from the 0.35.0
-   template with your glob, lint command and typecheck block carried over. Three recipe
-   changes are offered, not imposed: the format check folded into the lint value where
-   your gate runs one; for TypeScript, the recipe's one-tsconfig block in place of a
-   project-wide or workspace typecheck; for Python, `t=` where the old recipe's `m=`
-   kept mypy's errors from printing (plus an opt-in lint variant that ignores the three
-   half-way-state codes). A local patch doing one of these is retired, the rest carried.
-   A re-derived hook is proven as setup proves it; a hook left as it is behaves as
-   today. The update command's 0.35.0 note states the same procedure.
-
-   **0.35.0 also adds the edit-tools rule:** source and test files, less the guard's
-   exempt paths, change only through the editor tools, never the shell, overriding any
-   harness guidance that permits shell edits. The edit-time hook and the guards see
-   nothing a shell writes. A tool's own output and `/end-slice`'s hash-verified
-   mutation runner are the exceptions. The rule lives in your `CLAUDE.md`, restated in
-   the guard note and with the runner carve-out in `spec/SDLC.md`'s slice loop — all
-   project-owned, so the update hands you the diffs to fold; until you do, your files
-   win. The update command's 0.35.0 note states the same procedure.
-
-   **0.35.0 also gives approved libraries one home** — an *Approved libraries* record in
-   `spec/SDLC.md`, which `/plan-phase` ratifies into and `/next-slice` halts on for an
-   unlisted library. The record and `CLAUDE.md`'s *No new libraries* bullet are
-   project-owned: the update hands you both diffs, and any approvals already recorded
-   elsewhere (phase-spec decisions, an index line) are yours to move into the list.
-   Until the record exists, `/next-slice` halts on every new library. The same
-   hand-over carries *Shape*'s new sentence: a draft PR opened only so CI runs is not
-   the phase PR, and `/end-phase` marks it ready. The update command's 0.35.0 note
-   states the same procedure.
-
-   **0.35.0 also changes the close-out Stop launcher's message on Claude Code**: it says
-   *not found from `<pwd>`* and tells the session to `cd` back to the root, instead of
-   *is missing*, which a shell `cd` below the root also produced. `.claude/settings.json`
-   is yours, so the update hands you the new `Stop` command to paste in; until you do,
-   a *missing* block may mean a moved cwd. The update command's 0.35.0 note states the
-   same procedure.
-
-   **0.35.1 makes three hook scripts start far fewer processes, with no change in what
-   they decide.** The Copilot TDD guard and both edit-time gate hooks spent most of each
-   call starting small `sed`/`tr` processes, which Windows `sh` makes slow. Measured
-   2026-10-21 on the kit's Windows development machine: a guard call ~2 s before and
-   ~0.85 s after, a gate-hook call ~1.5 s before and ~0.65 s after, plus your lint; your
-   own host's saving is not measured. All three are yours, so the change arrives only
-   through the walk-through below, and a script you keep decides exactly as before. The
-   new bodies set names of their own (listed in the update command's 0.35.1 note and in
-   each template's comment), which your lint value or typecheck block must not assign:
-   the walk-through searches your values for them and shows any hit as a conflict. The
-   update command's 0.35.1 note states the same procedure.
-
-   **0.36.0 changes both TDD-guard dialects twice.** The stop names code that changed
-   outside the editor tools (armed, it blocks once), and a comment- or format-only test
-   edit no longer stales a live red or revokes a refactor licence. The guards are yours,
-   so this arrives only through the walk-through below; a guard you keep leaves shell
-   writes unseen. The shell dialect's report needs `git` on the hook shell's PATH. Run
-   your own guard tests after the re-derive. The update command's 0.36.0 note states
-   the same procedure.
-
-   **0.36.0 adds *Records* → *Architecture graph*** to `spec/SDLC.md`: the update hands
-   you the subsection and the line to write, from what is true now (the plugin installed
-   or not, its version, auto-update, its directory tracked or ignored). **The impact adapter's output
-   gains lines** (`untracked-files` at phase scope, `graph-coverage:`, `gone-files`, and
-   a files-behind count in `refresh-check`); it is kit-owned and replaced, so tests of
-   your own on its lines are named before the replace. And **step 4 now looks for every
-   process rule an earlier update missed**, from 0.15.0 on, by a marker phrase per rule,
-   and asks you about each absent one: fold it now, or record it as reworded on
-   purpose. The update command's 0.36.0 notes and step 4 state the same procedure.
-
-   **0.36.0 anchors every Claude Code launcher at the repository root.** Each kit
-   launcher in `.claude/settings.json` gains the prefix
-   `cd "$(git rev-parse --show-toplevel)"; `, so a shell `cd` below the root no longer
-   leaves test runs unrecorded, the gate skipped, or every edit denied until the session
-   `cd`s back. The file is yours, so the update hands you the prefix for each kit
-   launcher you have installed; copy it exactly — `;`, never `|| exit 2`, which
-   Windows PowerShell 5.1 cannot parse, and Copilot runs these launchers through
-   PowerShell. The update command's 0.36.0 note states the same procedure.
+   **A project-owned file can still hold a kit defect.** Your gate hook, guards and
+   ledger script hold *your* values, so no update may overwrite them, and a kit fix to
+   one of them reaches you only by hand or through the walk-through below. The version
+   notes say which releases carry such a fix and what it means; they are not restated
+   here, because two copies of every note, each edited at every release, went stale at
+   least once. Read them in the update command: step 5 of `commands/sdlc-update.md`
+   for 0.32.0 onward, and `reference/UPDATE_NOTES.md` for 0.14.0 through 0.31.3.
 
    **Every project-owned hook script gets a walk-through, and an offer to apply it for
    you.** The five scripts instantiated from templates — `sdlc-gate.sh`,
@@ -1126,7 +637,7 @@ name each one.
    it — and an **accepted** offer also installs its artifacts (the guard pair, the
    ledger hook, a hook script re-derived at the walk-through, with its proof's record),
    each written only on your word at that halt. The empty `spec/PRODUCT_CONTRACT.md`
-   the 0.23.0 note creates is the
+   the 0.23.0 note (`reference/UPDATE_NOTES.md`) creates is the
    other: a verbatim template copy, only when absent. An update that did not
    ask does not record an answer. And each `RULING OPEN` friction entry you confirm the
    release fixed — checked against the installed file — is flipped in place to
@@ -1217,13 +728,13 @@ mode is for. It documents reality (including a red gate) rather than pretending,
 starts you in STABILIZATION until the gate is green.
 
 **Where do the skills come from?** Two provenances inside the kit, plus one optional
-plugin. Seven `skills/` files in five directories are **vendored** (third-party,
-MIT-attributed — the TDD skill set, `tdd` with its two references and `tdd-guide`,
+plugin. Six `skills/` files in four directories are **vendored** (third-party,
+MIT-attributed — the TDD skill set, `tdd` with its two references,
 mutation-testing, hypothesis-tests, and python-pro, whose license is
 self-declared with no identified upstream, as `THIRD_PARTY_NOTICES.md` states rather
 than settles; NOT part of either CLI); three are
 **kit-written** (`diff-review`, `change-simplify`, `change-verify` — the review,
-quality, and verification passes the close-out commands name). All eight install
+quality, and verification passes the close-out commands name). All seven install
 project-scoped so they travel with the repo. `pr-review-toolkit`
 is an official plugin installed once per machine with one command, optional and
 Claude Code only. Details in

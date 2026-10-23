@@ -18,7 +18,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 |---|---|---|
 | Agent instructions | `CLAUDE.md` | `CLAUDE.md` — **read directly, no translation** |
 | Kit commands (7) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
-| Kit skills (8: 5 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
+| Kit skills (7: 4 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.github/hooks/sdlc-gate-claude.sh` + a bare launcher block in `.claude/settings.json`, `PostToolUse` (split 0.24.0 — the per-hook `"shell"` pin was measured never firing on Claude Code 2.1.231) | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
 | TDD-ordering guards (optional, per dialect since 0.21.0) | `.github/hooks/sdlc-tdd-guard.py` + four hook blocks in `.claude/settings.json` — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` |
@@ -32,7 +32,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |
 
 A repo that answers **both** at the interview gets both columns. Nothing is written
-twice: the seven commands exist once per CLI in different formats, and the eight skill
+twice: the seven commands exist once per CLI in different formats, and the seven skill
 directories exist once in a shared directory. One row is Copilot-only by nature — the
 sweep agent file — and the model pin has a different mechanism on each CLI; the table
 says so in place rather than letting a dual-CLI project assume symmetry.
@@ -59,7 +59,7 @@ This is a prohibition, not an omission. A future batch that "helpfully" adds
 `.claude/skills` is one of the three project skill directories Copilot CLI reads
 (`.github/skills`, `.claude/skills`, `.agents/skills`) — confirmed first-hand against
 1.0.77, where a kit skill placed there is listed under *Project skills*. Installing the
-eight skill directories there means a dual-CLI repo carries **one** copy of each skill
+seven skill directories there means a dual-CLI repo carries **one** copy of each skill
 rather than two that can drift apart. The Claude-flavoured directory name on a Copilot-only project is
 the accepted cost of that; it is a name, and the alternative is a sync surface.
 

@@ -26,11 +26,11 @@ never overwriting). Either way it leaves the project with:
 - **The seven commands** — `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`,
   `end-phase`, `sdlc-retro`, `sdlc-update` — into `.claude/commands/` (Copilot CLI:
   `.github/skills/<name>/SKILL.md`). User-typed entry points.
-- **The skills** — five vendored (`tdd`, `tdd-guide`, `mutation-testing`,
+- **The skills** — four vendored (`tdd`, `mutation-testing`,
   `python-pro`, `hypothesis-tests`) and three kit-written (`diff-review`,
   `change-simplify`, `change-verify`) — into `.claude/skills/`, which both CLIs read.
   Model-invocable; the daily commands name them by step. `python-pro` and
-  `hypothesis-tests` install on Python projects only; `tdd-guide` is optional.
+  `hypothesis-tests` install on Python projects only.
 - **The hook guards** — the edit-time gate hook (always offered), the TDD-ordering
   guards (both CLIs since 0.21.0, optional, logging mode first), and the skill-activation
   ledger (optional, logging-only, both CLIs). Detailed below.

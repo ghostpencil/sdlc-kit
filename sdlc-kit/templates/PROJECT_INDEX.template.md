@@ -45,17 +45,18 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
 **{{INITIAL_PHASE_STATUS}}**
 <!-- New Project mode:  "PRE-PHASE-1. Project scaffolded <date> via /sdlc-setup.
      No feature phases yet — run /plan-phase to define Phase 1.
-     Coverage floor: TBD from first CI run."
+     Coverage floor: recorded in spec/SDLC.md."
      Existing Project mode: either
      "STABILIZATION. SDLC adopted <date> via /sdlc-setup on an existing codebase.
       Gate baseline: recorded in spec/SDLC.md (its single home — do not restate the
       counts here, they would go stale silently when the baseline moves).
-      Coverage floor: <TBD from first CI run | the CI-enforced figure>."
+      Coverage floor: recorded in spec/SDLC.md."
      or "BUILD — Phase NN <title> (spec/PHASE_NN_*.md)" if adopting mid-feature.
-     In every mode this block carries the coverage-floor line: /end-phase's post-merge
-     bookkeeping asserts it, spec/SDLC.md's recorded floor, and the enforced threshold
-     value (the CI workflow file, or the build file's check rule where the workflow
-     only invokes the check) are identical at every phase close. -->
+     In every mode the coverage-floor line is a POINTER, like the baseline's: the floor's
+     one home is spec/SDLC.md *Records*, and /end-phase asserts that value against the
+     enforced threshold (the CI workflow file, or the build file's check rule where the
+     workflow only invokes the check). A figure written here is a third copy, and the
+     reconcile's search for the old value will report it. -->
 
 ## START HERE — Next work — *bounded*
 

@@ -127,11 +127,16 @@ The procedure exists twice by design: `commands/sdlc-update.md` (what an adopted
 runs) and the root README's *Updating an adopted project* (what a human reads). Both
 define disagreement as a kit bug. They must state the same classification rules, the
 same ownership table, and the same traps (hash committed content; never probe with a
-pipeline; check the denominator).
+pipeline; check the denominator). **The per-release version notes are the exception, and
+are not duplicated:** they have one home — step 5 of the command for 0.32.0 onward,
+`reference/UPDATE_NOTES.md` for 0.14.0 through 0.31.3 — and the README points there.
 
-**Check:** reading pass, side by side. **Specimen:** none yet — the duplication was
-created knowingly in B5 as drift-by-construction, and this invariant is the mitigation
-it was created with (plan §8.8).
+**Check:** reading pass, side by side, plus: the README carries no per-release note of
+its own. **Specimen:** the README's copy of the 0.31.0 note kept a regeneration-trigger
+claim the command's had dropped, fixed in `405a3aa`; 0.37.0 then removed the README's
+whole copy of the notes, about 500 lines (`FEATURE_PLAN.md` §86.3). The procedure's
+duplication was created knowingly in B5 as drift-by-construction, and this invariant is
+the mitigation it was created with (plan §8.8).
 
 ## 9. The README file tree matches the filesystem
 
@@ -159,7 +164,7 @@ trusted only after it flagged the 3 genuinely changed files at `v0.2.0` and no o
 ## 11. Vendored skills match their recorded provenance
 
 `skills/` holds **two provenance regimes, and the check must not conflate them.** The
-seven vendored files (across five vendored directories — `tdd/` and its two
+six vendored files (across four vendored directories — `tdd/` and its two
 `tdd-references/` files count per file, which is the point: the specimen below is one
 of them) are third-party MIT content: each either matches the upstream
 verification recorded in `reference/SKILLS.md`, or its divergence is documented there,

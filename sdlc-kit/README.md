@@ -37,8 +37,8 @@ project is written in.
 
 Setup auto-detects **New Project** mode (interview → scaffold → establish a green gate)
 or **Existing Project** mode (analyze → propose → confirm → generate, merging and never
-overwriting), instantiates every template, installs the daily commands and the eight
-skills (five vendored, three kit-written), and writes the edit-time gate hook.
+overwriting), instantiates every template, installs the daily commands and the seven
+skills (four vendored, three kit-written), and writes the edit-time gate hook.
 
 After setup the daily loop is `/plan-phase` → `/next-slice` → `/end-slice` → `/end-phase`,
 one slice per session, `/clear` between slices.
@@ -64,7 +64,8 @@ templates/               ← instantiated into the project by /sdlc-setup; ten a
                            classifier, all three both CLIs, and
                            the product-contract seed →
                            spec/PRODUCT_CONTRACT.md, every adoption; none takes values)
-reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed
+reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed,
+                           and /sdlc-update reads UPDATE_NOTES.md from its kit clone
 LICENSE                  ← MIT
 THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-pro's
                            redistribution status unverified — the notices say so)

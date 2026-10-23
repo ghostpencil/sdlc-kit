@@ -83,7 +83,11 @@ Three rules make it safe to run automatically:
   to step 4, because a reviewer reads a refactor as behavior-preserving by definition.
 - **One move at a time, gate between.** Not a batch then the gate. A batch that goes red
   says only that the batch broke something; one at a time makes every failure
-  self-locating.
+  self-locating. **The gate between moves may be trimmed; the gate at the end may
+  not:** between moves, lint, the typecheck, and the tests covering the axis the move
+  touched are enough to locate a break; after the last move the gate runs in full,
+  once, and the `quality:` line below records which form ran between moves — an
+  unstated trim is a gap.
 - **Read-only about the tree's shape**, exactly as the review is: no `git checkout`,
   `git restore`, or `git stash`. The code being improved is uncommitted, so there is no
   restore point behind it.
@@ -95,8 +99,9 @@ Either way the one-line outcome also goes into the slice commit body (step 7) �
 record outlives the session:
 
 ```
-quality: <N moves applied | nothing to do | skipped — reason>; reuse: <what was
-         searched, and against what | not searched — reason>
+quality: <N moves applied (between moves: full | trimmed) | nothing to do |
+         skipped — reason>; reuse: <what was searched, and against what | not
+         searched — reason>
 ```
 
 **The `reuse:` half is not decoration, and it is here because the record line without it
@@ -237,9 +242,9 @@ delete-and-run. A check is only trustworthy once it has been made to disagree; a
 whose deletion leaves the suite green is untested code wearing a test's name, and this
 practice caught exactly that on a real project — twice — in guards whose tests could
 not have failed. The runs happen in this session's shell — the same scope, and the
-same local-vs-CI caveat, as the gate (step 2). The step is done when every new guard has been seen to fail on
-exactly its own test; a guard not yet seen to fail is not yet closed. The one-line
-outcome goes into the slice commit body (step 7) —
+same local-vs-CI caveat, as the gate (step 2). The step is done when every new guard
+has been seen to fail on exactly its own test; a guard not yet seen to fail is not yet
+closed. The one-line outcome goes into the slice commit body (step 7) —
 `mutation: <N guards, each seen to fail | none — no new guards>`.
 
 **A characterization slice has no new guard, and is not exempt — its trigger reads the
@@ -344,11 +349,12 @@ mutations make a red suite unattributable, and the second mutation's evidence is
 worthless; a scripted runner restores and hash-checks after each mutation, never once
 at the end. And where a file offers more targets than are worth exhausting, take **a
 sample of three to eight** rather than every branch, and say in the record how many of
-how many — a runner's list is a sample like any other, and is recorded the same way. All of this is stated here rather than left to the skill: `mutation-testing`
-carries the same rules at more length and is worth reading when a mutation pass gets
-difficult, but two arcs of ledger measured **zero** activations against roughly a
-hundred mutations actually run, and a rule that arrives only when a skill happens to
-be dispatched is a rule that arrives never.
+how many — a runner's list is a sample like any other, and is recorded the same way.
+All of this is stated here rather than left to the skill: `mutation-testing` carries the
+same rules at more length and is worth reading when a mutation pass gets difficult, but
+two arcs of ledger measured **zero** activations against roughly a hundred mutations
+actually run, and a rule that arrives only when a skill happens to be dispatched is a
+rule that arrives never.
 
 ### 6. Slice verification — optional, and never silent
 
@@ -372,8 +378,8 @@ quoted as the skill's report contract requires: the documented command that does
 work is a docs slice's characteristic defect, and this is the one moment it is cheap. A
 command that would reach anything not disposable — a deploy, a data reset, an outbound
 call — is not run; name it under `not exercised:` with that reason. A diff adding
-neither writes `verify: skipped — no command or path added`. Either way the one-line outcome goes into the
-slice commit body (step 7), so the record outlives the session:
+neither writes `verify: skipped — no command or path added`. Either way the one-line
+outcome goes into the slice commit body (step 7), so the record outlives the session:
 
 ```
 verify: ran — <verdict per behavior, naming the shell it ran in>;
@@ -422,8 +428,9 @@ git commit -m "$(cat <<'EOF'
 <what and why, briefly>
 
 RED: <test command> — <the failing line> — exit <code>   (one per behavior batch)
-quality: <N moves applied | nothing to do | skipped — reason>; reuse: <what was
-         searched, and against what | not searched — reason>
+quality: <N moves applied (between moves: full | trimmed) | nothing to do |
+         skipped — reason>; reuse: <what was searched, and against what | not
+         searched — reason>
 lenses: <lens: finding | lens: clean, …  | no lens triggered>
 mutation: <N guards, each seen to fail | none — no new guards>
 verify: <ran — verdict per behavior, naming the shell; not exercised: <what, why |
@@ -509,9 +516,9 @@ Update `spec/PROJECT_INDEX.md`:
   the numbers — resolving by content to one entry and by number to two, the other a
   legitimately open finding a scoping pass could have discarded on sight.
 - If this slice added a tool, runtime, or service the gate now requires, record it
-  (*Records* → *The gate* in `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and add it to CI in
-  the same commit — a gate dependency discovered by a contributor's red run is a
-  documentation bug.
+  (*Records* → *The gate* in `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and
+  add it to CI in the same commit — a gate dependency discovered by a contributor's red
+  run is a documentation bug.
 - **Escalate a recurring gotcha instead of re-describing it.** Before appending to
   Environment gotchas, read what is already there: if this slice is the **third
   consecutive** one to record the same hazard, it stops being a note and becomes a

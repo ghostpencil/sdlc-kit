@@ -54,7 +54,8 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
   skills/<name>/SKILL.md                     .claude/skills/<name>/SKILL.md
                                              (project-scoped; both CLIs read it)
   reference/*.md                             (stays put — consulted by setup, not installed,
-                                              EXCEPT REVIEW_LENSES.md → .claude/commands/)
+                                              EXCEPT REVIEW_LENSES.md → .claude/commands/;
+                                              UPDATE_NOTES.md is read by /sdlc-update)
 ```
 
 `commands/sdlc-setup.md` is the entry point and the only file that reads the others. It
@@ -73,7 +74,10 @@ grant the TDD guards' comment/format exemption) — those four are the kit-owned
 in that directory; every other file there is project-owned.
 `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
-*Updating an adopted project* section state the same procedure and must agree.
+*Updating an adopted project* section state the same procedure and must agree. The
+per-release version notes are the exception: one home, never restated — the command's
+step 5 for 0.32.0 onward, `reference/UPDATE_NOTES.md` for 0.14.0–0.31.3 (moved there in
+0.37.0, read from the kit clone at update time) — and the README points at them.
 
 The process the kit installs is **phases → slices → TDD cycles**, gated by lint +
 typecheck + tests, with exactly five owner halt points. `templates/SDLC.template.md` is
@@ -85,8 +89,8 @@ load-bearing piece that lets a fresh session orient in seconds.
 **The install split is by how a file is invoked, not by what it contains.** The seven
 commands are user-typed entry points and go to `.claude/commands/` (on Copilot CLI,
 packaged as `.github/skills/<name>/SKILL.md` — the flow diagram above shows both); the
-eight skills —
-five vendored, three kit-written since 0.14.0 — are model-invocable and go to
+seven skills —
+four vendored, three kit-written since 0.14.0 — are model-invocable and go to
 `.claude/skills/<name>/SKILL.md`. Both are
 project-scoped, so both travel with a `git clone` — that was always the point, and until
 0.14.0 it was served by putting everything in `.claude/commands/`. The move happened
@@ -119,13 +123,13 @@ them. The six below are the working summary; on disagreement the ledger wins.
 2. **`SDLC.template.md` wins.** It says so itself: if a command and the SDLC file
    disagree, the file is right and the command is the bug. A process change therefore
    usually touches the template *and* one or more commands — check both.
-3. **`skills/` has two provenance regimes.** Five files came from upstream MIT repos;
-   three (`diff-review`, `change-simplify`, `change-verify`) are kit-written with no
-   upstream. `reference/SKILLS.md` records per-file provenance and verification dates,
-   and `THIRD_PARTY_NOTICES.md` carries the attributions *and* says which files it does
-   not cover. Editing a vendored skill diverges it from upstream — note that in
-   `reference/SKILLS.md` rather than silently drifting. Describing a kit-written skill
-   as vendored is the same defect pointed the other way.
+3. **`skills/` has two provenance regimes.** Six files (four directories) came from
+   upstream MIT repos; three (`diff-review`, `change-simplify`, `change-verify`) are
+   kit-written with no upstream. `reference/SKILLS.md` records per-file provenance and
+   verification dates, and `THIRD_PARTY_NOTICES.md` carries the attributions *and* says
+   which files it does not cover. Editing a vendored skill diverges it from upstream —
+   note that in `reference/SKILLS.md` rather than silently drifting. Describing a
+   kit-written skill as vendored is the same defect pointed the other way.
 4. **Gate recipes must match reality, not defaults.** `reference/GATE_RECIPES.md`
    repeatedly instructs setup to prefer the commands a project already runs in CI over the
    kit's suggested ones — "the gate must match CI, or the gate lies."

@@ -7149,3 +7149,125 @@ Order: 86.1 in one sitting (four rulings, each one sentence), then 86.3(1) ruled
 86.3(1)–(2) built together, then 86.3(3)–(4) and 86.1's four edits in one commit, all
 nine suites, `/kit-check`. No release of its own unless 86.1(2) drops an offer — that
 changes setup's install list, which is 0.37.0's note.
+
+### 86.4 Rulings — taken 2026-10-23
+
+Each option was checked against the tree before it was put. The citations held, with
+small line drift. All six went the recommended way:
+
+1. **Coverage floor:** (a). The index's phase block is a pointer, and `/end-phase`
+   asserts `spec/SDLC.md` against the enforced threshold.
+2. **Offered skills:** drop `tdd-guide/`, keep `python-pro/` with the
+   kit-rules-win sentence. Evidence put with the question: all three adopters installed
+   `tdd-guide`, and their skill ledgers (68 + 138 + 42 lines) record **zero**
+   activations of either skill. (`mutation-testing` also shows zero, matching its
+   `SKILLS.md` row.)
+3. **`mutation-testing` pre-flight:** the sentence goes in the `SKILLS.md` row. The
+   vendored file is unedited.
+4. Not a ruling: the clause was added to the command, as §86.1(4) said.
+5. **Stated skip:** bookkeeping. No edit; the general three-gotchas rule stays its mirror.
+6. **New-mode stamp:** a second commit after the initial one. A commit cannot carry its
+   own sha, so amending was never possible. A declined commit leaves a visible marker
+   that the first `/end-phase` stamps.
+7. **86.3(1):** (a), the command is the notes' home.
+
+### 86.5 Measurements (86.2)
+
+- **`2>&1` as compound: leave it.** Every `NOT counted (compound` line in the three
+  adopters' `guard.log` files was classified: 365 in all (TFit 225, ai-news 61,
+  chainmail 79). **Zero** were a bare redirect and nothing else. 29 were a leading
+  `cd <repo> &&` before one test command (TFit 24, ai-news 3, chainmail 2). Only three
+  of those date from October; most predate 0.36.0's launcher anchor, which Claude Code's
+  persistent `cd` makes cheap to avoid. Not a defect; recorded so it is not
+  re-measured. The classifier script was session scratch and was not kept.
+- **Byte/character mismatch: leave it.** The Copilot suite does have non-ASCII paths,
+  in E1 and E2 (`src/café.py`, `src/日本.py`, deny-message bytes, 84.8). Both are
+  relative, so neither reaches the `cut -c` line, which runs only for an absolute path
+  reported in a different case than the root. No case drives that branch with a
+  non-ASCII path, so the trigger in 86.2 has not fired.
+
+### 86.6 Build — 2026-10-23
+
+- 86.1(1): `PROJECT_INDEX.template.md` phase block, `SDLC.template.md` *Coverage
+  floor*, `end-phase.md` floor bullet. Marker row added to `/sdlc-update` step 4
+  (`the index points here`, unique in the template).
+- 86.1(2): `skills/tdd-guide/` deleted; setup offer, both `SKILLS.md` rows, the
+  `THIRD_PARTY_NOTICES.md` row ("three repositories" became "two"), and every count
+  (eight skills became seven, five vendored became four) in setup, `SKILLS.md`,
+  `COPILOT.md`, the bundle README, the root README, `CLAUDE.md`, `KIT_INVARIANTS.md`
+  inv 11, `/kit-check` inv 11 and `sdlc-kit-process-flow.md`. The "five vendored"
+  mentions in the 0.14.0 transition text are historical and stay. 0.37.0 note: the
+  third instance of the removal clause.
+- 86.1(3), (4), (6) as ruled. (6) in Existing mode was first built as "stamp HEAD";
+  the release `/kit-check` refuted that (86.7), and both modes now stamp at close-out.
+- 86.3(1)+(2): the README's notes (516 lines, 0.16.0–0.36.0) are replaced by one
+  paragraph. **Re-aimed from the plan text:** the command's 0.14.0–0.31.3 notes (585
+  lines) went to `sdlc-kit/reference/UPDATE_NOTES.md`, not the README's historical
+  section. An adopter needs them at update time, which by CLAUDE.md's placement rule
+  puts them under `sdlc-kit/`, and the update reads them from the target clone it
+  already has. The ai-news update still owes rules from 0.26.0 and 0.27.0, so the
+  notes must stay reachable. Pointers repointed: the ownership table, step 5's
+  owner-decisions bullet, step 6 (0.23.0) and step 4's marker preamble. **The release
+  `/kit-check` caught a mis-move (inv 8):** the 0.16.0, 0.18.0, 0.21.0 and 0.22.0 notes
+  each carried a *standing* check, the optional hook's `spec/SDLC.md` record read against
+  its artifact on every update ("every update from here on checks..."). I had judged
+  them version-scoped. Moved, they would have stopped running for every project on 0.32.0
+  or later. Lifted back into step 5 as one bullet covering the guards, ledger and
+  backstop, with UPDATE_NOTES' header saying so. The README regained that check and the
+  fold-marker sweep, which the cut had dropped with the 0.36.0 note it lived in. Invariant 8 (ledger and `/kit-check`) and `CLAUDE.md` now name the one
+  home, and inv 8 has its specimen (`405a3aa`). `sdlc-update.md` went from 1,425 to
+  about 870 lines and the README from 1,235 to about 730.
+- 86.3(3): **re-aimed.** The duplicate pair was setup and the comment under
+  `{{TDD_GUARD_NOTE}}` in `SDLC.template.md`, which is a superset of setup's list.
+  `GATE_RECIPES.md` does not carry the list. Setup now points at that comment and keeps
+  only what setup alone records: the classifier consultation, the proof's catch and
+  `NOT counted` line, the reach note, and whose machine. That removed 65 lines and added
+  14. Each placeholder setup stopped naming there is still taught elsewhere in setup.
+- 86.3(4): **mostly did not stand.** The "both CLIs" clauses each give a different
+  skill's install path, one per file, so they are not within-file repeats. The two
+  sample rules have different denominators: characterization pins at §5, per-file
+  mutation targets in the hand-rolled-loop rules. The real defect was wrapping: four
+  `end-slice.md` lines past 100 characters were rewrapped. One stale claim was fixed in
+  passing: the README tree said `/end-slice` invokes `mutation-testing`.
+- Not ruled, left as found: `TESTING.template.md:39` as a second home for the test
+  command (§86.1(6)'s "related" note).
+
+### 86.7 The `/kit-check` — 2026-10-23
+
+All nine suites green on the batch: tdd-guard 59 mutations caught, tdd-guard-claude
+53, impact 48 cases / 58, close-out 56 cases / 35, cosmetic 343 unit + 20 (two `--ts`:
+chainmail's 6.0.3, a scratch 5.9.3), skill-ledger 17, shipped-lint 3 / 5, rederive
+8 / 7, gate-hook OK. Mechanical checks: manifest 45/45 from committed content, `{{`
+only in setup, the tree complete. Four reading agents covered invariants 1–3, 5–8 and
+11–16, plus the lens map. Findings, all fixed in this batch:
+
+- **Five stale skill counts the removal missed**: `SKILLS.md:57`, `COPILOT.md:21`,
+  setup's install table ("the 8 skill directories"), README's ownership table, and
+  `CLAUDE.md`'s invariant-3 summary.
+- **Inv 8: the standing optional-hook check was mis-moved** (86.6). The fold-marker
+  sweep was also missing from the README's procedure.
+- **Inv 2: the trimmed-gate clause was in the command but not the template.** Added to
+  slice step 6, with a marker row and a fold line in the 0.37.0 note.
+- **Inv 14: the Existing-mode HEAD stamp was false.** Step 3 has already written the
+  isolation harness, hooks and lint config into the measured tree, uncommitted. Both
+  modes now write `@ <stamped at close-out>`, and close-out step 2 stamps the setup
+  commit in a commit of its own.
+- **Inv 14: nothing stamped a green baseline.** The template has required a stamp on
+  every baseline since 0.29.0, but only the red-baseline decision wrote one. `/end-phase`
+  and the template's *Phase end* *Records* reconcile now stamp any unstamped baseline,
+  setup's marker included. Marker row added.
+- **Inv 14: the trim's record had no home.** The `quality:` line now carries `(between
+  moves: full | trimmed)`. The close-out checker tests only presence, so it is
+  unaffected.
+- **Inv 16: the guard note's comment never asked for the catch by name or a reach
+  note.** This predates the batch, but the batch made the comment the one list. Fixed.
+- Minor: UPDATE_NOTES' header now covers "above" meaning the opening table. The
+  template's "two homes agreeing" became "the record and the threshold agreeing".
+
+**Open, for a later ruling (not built):**
+- **Is the coverage floor a control record in invariant 16's sense?** It has a
+  catch-proof ("prove it fires — once"), but neither its *Records* row nor setup's
+  Existing-mode proof asks for the catch or a reach note.
+- `PROJECT_INDEX.template.md`'s BUILD (mid-feature) status variant carries no floor
+  line at all. This predates the batch, and the pointer comment now reads as covering
+  every mode.

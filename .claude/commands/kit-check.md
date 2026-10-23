@@ -109,9 +109,11 @@ For each, read the named files in full — do not sample — and cite evidence p
   applies to it, and treat a statement that names one CLI's path as universal as a
   finding.
 - **8 — update procedure agrees:** `sdlc-update.md` beside the root README's *Updating
-  an adopted project*: same classification rules, same ownership table, same traps.
-- **11 — provenance, two regimes, not conflated:** the seven *vendored* `skills/` files
-  (five directories; `tdd-references/` counts per file)
+  an adopted project*: same classification rules, same ownership table, same traps —
+  and the README carries no per-release version note of its own (their one home is the
+  command's step 5, plus `reference/UPDATE_NOTES.md` for 0.14.0–0.31.3).
+- **11 — provenance, two regimes, not conflated:** the six *vendored* `skills/` files
+  (four directories; `tdd-references/` counts per file)
   match `reference/SKILLS.md`'s verification claims or have their divergence documented
   there; the three *kit-written* ones (`diff-review`, `change-simplify`,
   `change-verify`) have no upstream to verify against, and the check is the opposite —
