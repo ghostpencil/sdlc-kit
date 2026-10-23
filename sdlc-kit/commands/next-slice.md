@@ -149,8 +149,9 @@ behavior-preserving production write made in this loop under the refactor licenc
 where the TDD guards are installed (`spec/SDLC.md`). A doc comment (Javadoc, JSDoc, C#
 `///`) is a comment, except a TypeScript `@deprecated` tag, which reads real. It needs no guard
 of its own — a "docs-only" slice that writes source meets the guard and the gate
-exactly as any production write does — and `/end-slice` step 1 confirms it against the
-working tree before writing any skip.
+exactly as any production write does — and `/end-slice` step 1 confirms it against
+everything the slice will commit, commits it already made included, before writing any
+skip.
 
 1. Read `spec/TESTING.md` — fresh, every time; do not rely on memory.
 2. Invoke the TDD skill.

@@ -133,8 +133,8 @@ Setup auto-detects the mode and confirms it with you:
 Either way, setup **installs the required skills**. Neither the TDD skill nor the
 reviewer is built into either CLI — the kit ships both in `skills/` and setup copies
 them into the target project's `.claude/skills/`, so the whole team inherits them via
-`git clone` with no per-machine step. Claude Code built-ins (`verify`, `simplify`, …)
-are verified where they exist; on Copilot CLI setup shows you what is missing instead.
+`git clone` with no per-machine step. Setup verifies the kit skills' source files and
+installed copies; on Copilot CLI it also shows you what the kit loses there.
 `pr-review-toolkit` is optional as of 0.14.0 — a deeper Claude-Code-only pass at phase
 end, required by nothing. See `reference/SKILLS.md` and `reference/COPILOT.md`.
 
@@ -1050,7 +1050,7 @@ name each one.
 
    **0.36.0 adds *Records* → *Architecture graph*** to `spec/SDLC.md`: the update hands
    you the subsection and the line to write, from what is true now (the plugin installed
-   or not, auto-update, its directory tracked or ignored). **The impact adapter's output
+   or not, its version, auto-update, its directory tracked or ignored). **The impact adapter's output
    gains lines** (`untracked-files` at phase scope, `graph-coverage:`, `gone-files`, and
    a files-behind count in `refresh-check`); it is kit-owned and replaced, so tests of
    your own on its lines are named before the replace. And **step 4 now looks for every

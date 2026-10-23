@@ -63,7 +63,9 @@ positives out of 32 — a plausible-looking check that was uniformly wrong.
 
 Setup's close-out check is `grep -r '{{' CLAUDE.md spec/ .claude/settings.json` — plus
 `README.md` when setup instantiated it (the 0.25.0 human entry point; a pre-existing
-README is not setup's to scan) — the files setup instantiates, no more. The installed `sdlc-setup.md` is the **only**
+README is not setup's to scan), plus the instantiated gate-hook script and guard
+dialect(s) for the target CLI, which carry hook placeholders — the files setup
+instantiates, no more. The installed `sdlc-setup.md` is the **only**
 installed file permitted to carry literal `{{` (it must name placeholders to teach their
 resolution); every other installed file stays `{{`-free.
 

@@ -649,11 +649,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    **Resolve `{{GRAPH_TOOL_NOTE}}`** (*Records* → *Architecture graph*) on every
    adoption, from what is true now, not from what was planned. If the owner declined
    the offer, record `none — Understand Anything declined <date>; the impact view reads
-   UNAVAILABLE`. If the owner installed it, or step 1 found a UA directory present,
-   record: installed or found present, the plugin version, auto-update on or off (read
-   from its `config.json`), and the directory tracked or git-ignored (from `git
-   check-ignore`). If the owner said yes but the install has not happened yet, record
-   it as pending with the date, never as installed.
+   UNAVAILABLE`. If the owner installed it, or Existing mode's step 1 survey found a UA
+   directory present, record: installed or found present, the plugin version,
+   auto-update on or off (read from its `config.json`), and the directory tracked or
+   git-ignored (from `git check-ignore`). If the owner said yes but the install has not
+   happened yet, record it as pending with the date, never as installed.
 
    One thing to tell the owner in the setup summary, once, where a `.ua/` or
    `.understand-anything/` directory **is** already present: the adapter writes its
@@ -794,7 +794,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    rules* (`reference/GATE_RECIPES.md`) the linter config already enables; any existing
    test-isolation enforcement (network blockers, sanitized env vars) and the seams it
    misses; whether the repo holds more than the app (docs site, infra, data pipelines
-   — anything the process might not govern); and whether any file named
+   — anything the process might not govern); whether a `.ua/` or
+   `.understand-anything/` directory is present (step 2's graph offer and step 3's
+   notes turn on it); and whether any file named
    `PROJECT_INDEX.md`, `INDEX.md`, or `STATUS.md` already exists anywhere in the tree —
    the kit is about to make `spec/PROJECT_INDEX.md` the single source of truth, and a
    same-named neighbor is how a session ends up reading the wrong file. Same class of
@@ -846,7 +848,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `{{DEFAULT_MODEL}}` in `.claude/settings.json` or the line deleted; never into a
    command file) — and the **architecture-graph offer**, as in New mode Round 3, asked
    only where step 1 found no `.ua/` or `.understand-anything/` directory (one that is
-   present gets step 5's notes instead). If CI already enforces a coverage floor,
+   present gets New mode step 6's notes instead). If CI already enforces a coverage
+   floor,
    resolve `{{COVERAGE_FLOOR}}` (*Records* in `spec/SDLC.md`) with the existing
    number as-is — **after proving the claim**: confirm the enforcing step actually
    runs in the commands CI executes (a threshold bound to a build phase CI never

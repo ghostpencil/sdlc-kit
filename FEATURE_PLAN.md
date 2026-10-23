@@ -6985,6 +6985,32 @@ is why.
 **Left in the batch:** step 9 — VERSION, MANIFEST, `/kit-check`, the release (the
 owner's call).
 
+### 85.8 Released 2026-10-23 — 0.36.0 (tag `v0.36.0`)
+
+Step 9. The release `/kit-check` ran the mechanical checks and the suites, and four
+reading agents covered invariants 1–3, 5–8 and 11–16 plus the lens↔rule map over the
+whole kit. **Eight suites completed green on the release tree; `tdd-guard-check` did
+not complete on it** — Claude Code's memory reaper stopped the run at 50 of 59
+mutations (both unit passes green, 50 caught, none survived). It is reported as
+incomplete, not passed: the full suite was green on `b3eb117`, the shell guard's only
+change since is `c835fc3`'s four header-comment lines, and no mutation anchor in the
+suite names that text — so the nine uncaught-in-this-run mutations were decided by a
+run of identical code, and the release went ahead on that evidence. Nothing release-blocking; fixed in the release commit:
+invariant 4 — the 0.36.0 update note named `{{GRAPH_TOOL_NOTE}}` literally, the first `{{`
+in an installed file other than `sdlc-setup.md`; invariant 6 — two step references in
+setup's new graph-offer text (both from `60b8b38`) named step 5 and an unqualified step 1
+for New mode step 6 and Existing mode step 1, and that survey never listed the UA
+directory the sentences lean on; invariant 13 — `kit-check.md`'s derived denominator
+omitted three of the six 0.36.0 controls the ledger names; invariant 7/8 cosmetics —
+`sdlc-update.md` step 3's lead sentence named only the Claude Code directories, its 0.16.0
+note lacked the "until 0.21.0" qualifier the README carries, the root README claimed setup
+verifies Claude Code built-ins, and the ledger's invariant 4 omitted the hook scripts
+setup's exit grep includes. Two findings went to §86 as rulings (86.1(5) the stated-skip
+rule, 86.1(6) setup's unstamped baseline). Manifest 45/45 regenerated from committed
+content. #11, #12, #13 and #17 closed by hand with the deviations §85 records (the `;`
+anchor; #17 f1's fix 1 built inverted, fix 3 not built by 84.2; #11's agent runs `--full`
+itself where it can). §86 holds what the pre-release pass deferred.
+
 ## 86. Post-0.36.0 — the pre-release sanity pass's remainder — opened 2026-10-23
 
 The owner asked for a sanity pass before 0.36.0: every hook body read against its
@@ -7037,6 +7063,30 @@ the rulings first because the backlog's largest item needs one.
    the command's copy load-bearing, so the omission is a half-restated contract — the
    same defect §76.3 found in this skill. Add the clause to the command (one bullet);
    do not cut the command's copy.
+5. **Is the stated-skip rule a check?** (Found by the release `/kit-check`, invariant
+   13.) `end-slice.md:546-555` (0.36.0, #17 f5 fix 3) says a step skipped for the same
+   reason in three consecutive slices is friction, and that the graph refresh's skips
+   can be counted mechanically. It is in neither invariant-13 list and states no
+   negative case, and its only template mirror is the general "three consecutive
+   gotchas become a check" rule (`SDLC.template.md:1166-1170`). Rule either way: a
+   friction-log bookkeeping rule (then it stays as written and the mirror is the
+   general rule), or a check (then the ledger sentence names it, with what a third
+   skip not written as friction looks like, and the template carries the sentence).
+   Recommend bookkeeping — it writes a line, it blocks nothing.
+6. **Setup writes a gate baseline without the commit stamp the template requires.**
+   (Found by the release `/kit-check`, invariants 2 and 14; shipped unchanged since
+   0.29.0.) `SDLC.template.md:152-154` and `:425-426` say every baseline carries
+   `N @ <short-sha>`; `sdlc-setup.md:238-239` (New mode step 3) and `:900-904`
+   (Existing mode step 4) write the form without it, so a fresh adoption's
+   `spec/SDLC.md` carries an unstamped value directly under the sentence that says it
+   is stamped, and the first `/end-phase` reconcile has no stamp to read. 0.29.0's
+   change touched the template and `/end-phase` only (`CHANGELOG.md:855-857`);
+   `sdlc-update.md:807-810` excuses the missing stamp for *updates* alone. Existing
+   mode can stamp HEAD directly (preflight step 4 requires a clean tree). New mode has
+   no commit at step 3: rule whether the stamp is written at close-out step 2's initial
+   commit (the amend changes the sha) or as a second commit. Related, not a number:
+   `TESTING.template.md:39` is a second home for the gate's test command beside
+   `SDLC.template.md:149`, and the Records reconcile searches for numbers only.
 
 ### 86.2 Hook observations — measure before touching
 

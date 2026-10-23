@@ -59,7 +59,7 @@ templates/               ← instantiated into the project by /sdlc-setup; ten a
                            guards' hook JSON, the gate hook's launcher JSON, the
                            skill-ledger hook JSON, and the close-out backstop's hook
                            JSON — all Copilot-side — plus the skill-ledger script (both
-                           CLIs since 0.31.1), the close-out evidence checker
+                           CLIs since 0.31.1), the close-out evidence checker,
                            the architecture-impact adapter and the cosmetic
                            classifier, all three both CLIs, and
                            the product-contract seed →

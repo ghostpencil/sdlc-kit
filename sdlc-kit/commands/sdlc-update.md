@@ -78,8 +78,9 @@ git -C /tmp/kit worktree add /tmp/kit-old vX.Y.Z                # the version yo
 
 ### 3. Classify every installed file
 
-Compare everything under `.claude/commands/`, `.claude/skills/`, and `.claude/agents/`
-against the **old** version's manifest. Hash committed content (`git cat-file -p :path`), never the working
+Compare every installed file — `.claude/commands/`, `.claude/skills/`, `.claude/agents/`,
+`.github/skills/`, `.github/agents/` and the four kit-owned `.github/hooks/` files, as the
+script below enumerates them — against the **old** version's manifest. Hash committed content (`git cat-file -p :path`), never the working
 tree — an unpinned checkout on Windows holds CRLF and would report every file as
 drifted, uniformly and plausibly wrong.
 
@@ -411,8 +412,8 @@ their release's note, which is how they were missed. A release that changes a ru
   carries, and let them re-instantiate. State the consequence plainly at the halt: until
   they do, the hook stays broken, and this is one of the few defects an update cannot
   fix for them. Claude Code projects are unaffected.
-- **0.16.0 adds the optional TDD-ordering guards, Copilot CLI only — and every update
-  from here on checks whether this project was ever offered them.** Two hook files
+- **0.16.0 adds the optional TDD-ordering guards, Copilot CLI only until 0.21.0 — and
+  every update from here on checks whether this project was ever offered them.** Two hook files
   (`.github/hooks/sdlc-tdd-guard.sh` and `.json`) that deny a production write outside
   TDD's two licenses (an observed fresh red since the last test edit, or a declared
   behavior-preserving refactor edit behind a counted green) and refuse a stop from a
@@ -424,7 +425,8 @@ their release's note, which is how they were missed. A release that changes a ru
   1. **Does this project run Copilot CLI?** The *Agent CLI:* line in
      `spec/PROJECT_INDEX.md` says so (`Copilot CLI` or `both`) — the same line step 1
      already reads. A Claude-Code-only project gets
-     no offer and no mention — the guards do not exist for it, and saying otherwise
+     no offer and no mention at this version — the guards do not exist for it until
+     0.21.0's dialect (that note, below, makes the offer), and saying otherwise
      describes a backstop it cannot have.
   2. **Is `.github/hooks/sdlc-tdd-guard.sh` present?** If yes, nothing to do: it is
      project-owned and this update leaves it alone. If no, read the TDD-guard line in
@@ -1086,9 +1088,9 @@ their release's note, which is how they were missed. A release that changes a ru
   run them after the re-derive (as for 0.35.0).
 - **0.36.0 adds *Records* → *Architecture graph*** (`spec/SDLC.md`, project-owned): hand
   the owner the template's subsection to fold and the line to write, resolved the way
-  setup resolves `{{GRAPH_TOOL_NOTE}}`, from what is true now (the plugin installed or
-  not, its version, auto-update, the directory tracked or ignored). The markers check
-  in step 4 asks for it too.
+  setup resolves the graph-tool note's placeholder, from what is true now (the plugin
+  installed or not, its version, auto-update, the directory tracked or ignored). The
+  markers check in step 4 asks for it too.
 - **0.36.0 changes the impact adapter's output** (kit-owned, replaced as usual): phase
   views gain `untracked-files`, every view gains `graph-coverage:`, `coverage` gains
   `gone-files`, and `refresh-check`'s needed line names how many files the graph is

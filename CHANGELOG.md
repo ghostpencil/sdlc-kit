@@ -5,12 +5,16 @@ This file is repo documentation and is not shipped inside `sdlc-kit/`; the bundl
 its version in `sdlc-kit/VERSION`.
 
 An entry marked **[installable]** changes a file an adopted project holds
-(`commands/**`, `skills/**`, `agents/**`, `reference/REVIEW_LENSES.md`) and therefore
-matters at update time. Entries marked **[adoption-only]** change `templates/**` or the
+(`commands/**`, `skills/**`, `reference/REVIEW_LENSES.md`, and the templates copied
+verbatim — `close-out.template.sh`, `sdlc-impact.template.py`,
+`sdlc-cosmetic.template.py` on both CLIs; `explore.agent.template.md` on Copilot;
+`close-out-hook.template.json` where the backstop was accepted) and therefore matters
+at update time. Entries marked **[adoption-only]** change the other templates or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
-to an already-adopted project.
+to an already-adopted project; where one changes a project-owned file's template, the
+update command's version note says what to carry over by hand.
 
-## 0.36.0 — unreleased
+## 0.36.0 — 2026-10-23
 
 The rest of §84's ruled work, and four items from the 0.35.1 adopter updates
 (`FEATURE_PLAN.md` §85, ruled 2026-10-22). The guards now report code written past them
@@ -76,6 +80,27 @@ Setup offers the architecture-graph tool.
   was wrong both ways.
 - **[installable]** `/sdlc-update`'s 0.35.0 guard note: run your own guard tests after
   the re-derive; a fixture faking a red must carry the runner's real report.
+
+### Fixed
+- **[installable]** A pre-release reading pass over every command, skill and hook
+  (`FEATURE_PLAN.md` §86 holds what it deferred). `/end-slice` §1 no longer reads a
+  clean tree as "no slice to close" when the slice already committed; §4 and the
+  `diff-review` and `change-verify` skills review `git diff <base>` — never
+  `<main>...HEAD`, which is the whole phase — so staged and committed slice work are in
+  the range; §10 pushes the branch before the close-out report. `/next-slice`: a
+  changed halt-2 cause goes back to the owner like a changed number. `/sdlc-setup`:
+  four "step 5" pointers now name step 6, and the new graph-offer text names the step
+  it means in each mode (Existing mode's survey now looks for the graph directory it
+  turns on). `/sdlc-update`'s re-derive helper reads its target tag from the clone
+  instead of a hard-coded release number; step 3's lead sentence names every installed
+  path the script walks, not only Claude Code's; the 0.16.0 note says the guards were
+  Copilot-only until 0.21.0; the 0.36.0 note no longer carries a literal placeholder.
+- **[adoption-only]** `SDLC.template.md`'s three guard-note comments no longer carry a
+  literal placeholder past setup's exit grep; `COPILOT.md` names setup's install list
+  as the mapping's definition and says the model pin differs per CLI; `SKILLS.md` no
+  longer claims the two upstream reference files were localized; both guard templates'
+  header comments describe 0.36.0's behavior (the launcher anchor, shell writes reported
+  at the stop).
 
 ### Proofs
 - New `tools/rederive-check.py`: the re-derive helper's text, extracted from the
