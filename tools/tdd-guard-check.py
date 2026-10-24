@@ -11,12 +11,32 @@ Two passes, and the second is the point:
      one. A suite that survives its own mutations is not testing the thing it claims
      to (invariant 13).
 
+The mutation pass is TARGETED. unit() is one linear scenario - the readable shape for a
+proof - and every mutation used to pay the whole prefix of guard calls up to its first
+failing check (mean 79 s solo, measured 2026-10-24). The scenario is marked into
+segments at the points where it already starts over (a reset_state or a fresh Bench);
+the ordinary unit pass traces, per segment, which guard lines its calls executed; and
+a mutation first runs only the segments that execute the lines it changed. A segment
+that is not selected still has its Python run, but no guard call and no check - the
+`seg()` marker flips the benches into no-ops - so the full suite's order and text are
+untouched. If no targeted segment fails, the whole suite runs exactly as before:
+targeting can only find a failing check sooner, never miss one.
+
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/ (invariant 12).
 Run from anywhere:  python tools/tdd-guard-check.py
 """
-import concurrent.futures, io, json, os, shutil, stat, subprocess, sys, tempfile, time, traceback
+import bisect, concurrent.futures, difflib, io, json, os, re, shutil, stat, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+START = time.perf_counter()
+
+
+def stamp():
+    """Wall clock plus time since the run began, on every progress line: a log that
+    carries no times cannot say how long a pass took or when it will finish."""
+    return "[%s +%6.1fs]" % (time.strftime("%H:%M:%S"), time.perf_counter() - START)
+
+
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.sh")
 JTPL = os.path.join(REPO, "sdlc-kit", "templates", "tdd-guard.template.json")
 COSMETIC = os.path.join(REPO, "sdlc-kit", "templates", "sdlc-cosmetic.template.py")
@@ -122,8 +142,134 @@ SID = "session-one"
 REPORT = "=================================== FAILURES ===================================\n"
 
 
+# Every traced line names its line number and its script's $0. A Bench call runs the
+# guard directly, so every line is the guard's; a launcher call adds the launcher's own
+# lines, whose $0 is the bare `sh` it runs as - the guard's is its path, in whichever
+# flavour and separator the caller used, which is why the test is only "not `sh`".
+PS4 = "+L${LINENO}@${0##*/} "
+TRACE_RE = re.compile(rb"^\++L(\d+)@(?!sh )", re.M)
+
+
+class Coverage:
+    """What one unit() run executed: segment names in visit order (with whether the
+    segment always runs) and, per segment, the guard lines its calls reached."""
+
+    def __init__(self):
+        self.order = []
+        self.lines = {}
+
+
+class Control:
+    """One unit() run's segment switch and coverage sink, shared by its benches.
+    `segments` is the set of segment names to run (None: all); `cov` a Coverage to
+    fill, or None. A segment that is not selected leaves `active` False: Bench.run and
+    run_sh return without calling the guard, check() records nothing."""
+
+    def __init__(self, segments=None, cov=None):
+        self.want = segments
+        self.cov = cov
+        self.cur = None
+        self.active = True
+
+    def enter(self, name, always=False):
+        self.cur = name
+        self.active = always or self.want is None or name in self.want
+        if self.cov is not None and name not in dict(self.cov.order):
+            self.cov.order.append((name, always))
+
+    def any_of(self, prefix):
+        """Whether any selected segment's name starts with `prefix` - a fixture shared
+        by a family of segments (the detector's git repository) is built if one of
+        them runs, and its git calls are skipped when none does."""
+        return self.want is None or any(n.startswith(prefix) for n in self.want)
+
+    def feed(self, err):
+        if self.cov is None:
+            return
+        got = self.cov.lines.setdefault(self.cur, set())
+        for m in TRACE_RE.finditer(err or b""):
+            got.add(int(m.group(1)))
+
+
+def owners(lines):
+    """For each line of a POSIX sh script, the line of the command that owns it. A
+    line inside a multi-line quoted string, a heredoc body, or after a backslash
+    continuation belongs to the line where that construct began - which is the line
+    the trace reports for it. So a mutation to the parser source, held in a
+    single-quoted shell string, is a change to the assignment that opens it."""
+    own = list(range(1, len(lines) + 1))
+    state = None          # None, "'" or '"': the quote open at the end of a line
+    start = None          # where the open construct began
+    heredoc = None        # the terminator word while inside a heredoc body
+    pending = []
+    cont = False          # the previous line ended with a backslash
+    for i, line in enumerate(lines, 1):
+        if heredoc is not None:
+            own[i - 1] = start
+            if line.strip() == heredoc:
+                heredoc = None
+                start = None
+            continue
+        if state is not None or cont:
+            own[i - 1] = start
+        else:
+            start = i
+        cont = False
+        j = 0
+        while j < len(line):
+            ch = line[j]
+            if state is None:
+                if ch == "#" and (j == 0 or line[j - 1] in " \t;("):
+                    break
+                if ch == "'":
+                    state = "'"
+                elif ch == '"':
+                    state = '"'
+                elif ch == "\\":
+                    j += 1
+                elif line.startswith("<<", j):
+                    m = re.match(r"<<-?\s*'?([A-Za-z_][A-Za-z0-9_]*)'?", line[j:])
+                    if m:
+                        pending.append(m.group(1))
+                        j += m.end() - 1
+            elif state == "'":
+                if ch == "'":
+                    state = None
+            else:
+                if ch == "\\":
+                    j += 1
+                elif ch == '"':
+                    state = None
+            j += 1
+        body = line.rstrip("\r\n")
+        if state is None and body.endswith("\\") and not body.endswith("\\\\"):
+            cont = True
+        if state is None and not cont and pending:
+            heredoc = pending[0]
+            pending = []
+        if state is None and not cont and heredoc is None:
+            start = None
+    return own
+
+
+def changed_lines(src, mutated, own):
+    """The lines of the unmutated guard a mutation touches, each mapped to the command
+    that owns it. An insertion touches both of its neighbours."""
+    a, m = src.splitlines(), mutated.splitlines()
+    out = set()
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, m, autojunk=False).get_opcodes():
+        if tag == "equal":
+            continue
+        touched = range(i1 + 1, i2 + 1) if i2 > i1 else (i1, i1 + 1)
+        for l in touched:
+            l = min(max(l, 1), len(own))
+            out.add(own[l - 1])
+    return out
+
+
 class Bench:
     path = None  # when set, the PATH every guard invocation runs under
+    ctl = None   # the unit() run's Control: segment switch and coverage sink
 
     def __init__(self, base, guard_src):
         self.root = os.path.join(base, "proj")
@@ -142,14 +288,24 @@ class Bench:
                 encoding="utf-8", newline="\n").write("slice\n")
 
     def run(self, mode, payload, env=None):
+        ctl = self.ctl
+        if ctl is not None and not ctl.active:
+            self.rc = 0
+            return ""
         e = dict(os.environ)
         e["SDLC_REPO_ROOT"] = self.root
         if self.path:
             e["PATH"] = self.path
         if env:
             e.update(env)
-        p = subprocess.run(["sh", self.guard, mode], input=json.dumps(payload).encode(),
+        argv = ["sh", self.guard, mode]
+        if ctl is not None and ctl.cov is not None:
+            argv = ["sh", "-x", self.guard, mode]
+            e["PS4"] = PS4
+        p = subprocess.run(argv, input=json.dumps(payload).encode(),
                            capture_output=True, env=e)
+        if ctl is not None and ctl.cov is not None:
+            ctl.feed(p.stderr)
         self.rc = p.returncode
         return p.stdout.decode("utf-8", "replace").strip()
 
@@ -212,7 +368,7 @@ class _FirstFailure(BaseException):
 
 
 def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
-         emit=print):
+         emit=print, segments=None, cov=None):
     """Returns the list of failed case names; counts every case into `counter`.
     first_only ends the run at the first failing check - the mutation pass needs
     one, and the checks share one bench, so stopping only drops later checks.
@@ -220,16 +376,26 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
     `parser` restricts PATH to one JSON dialect ("python" or "node"); None takes
     whatever the ambient PATH offers. `emit` receives each verbose line, so a run on
     a worker thread can buffer its output instead of interleaving it.
+
+    `segments` names the segments to run (None: all of them); the rest are visited
+    with no guard call and no check. `cov` is a Coverage that collects, per segment,
+    the guard lines its calls executed. Segments begin at `seg(...)` markers, placed
+    only where the scenario already starts over.
     """
     base = tempfile.mkdtemp(prefix="tddguard-")
+    ctl = Control(segments, cov)
+    seg = ctl.enter
     try:
         b = Bench(base, guard_src)
+        b.ctl = ctl
         if parser:
             b.path = parser_path(parser)
         R = b.root
         failed = []
 
         def check(name, cond, detail=""):
+            if not ctl.active:
+                return
             if counter is not None:
                 counter.append(name)
             if not cond:
@@ -240,6 +406,36 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                 emit(("PASS  " if cond else "FAIL  ") + name +
                       (("\n        " + detail) if not cond else ""))
 
+        def pause():
+            """The mtime step the next guard write must clear. Instead of sleeping past
+            the 1 s granularity some filesystems have, every state file is backdated
+            2 s - the same ordering, no wait."""
+            if not ctl.active:
+                return
+            t = time.time() - 2
+            for f in os.listdir(b.state):
+                try:
+                    os.utime(os.path.join(b.state, f), (t, t))
+                except OSError:
+                    pass
+
+        def run_sh(argv, **kw):
+            """subprocess.run for a direct guard or launcher invocation: a no-op in a
+            segment that is not selected, traced like Bench.run when coverage is on
+            (SHELLOPTS carries xtrace through a launcher into the guard it starts)."""
+            if not ctl.active:
+                return subprocess.CompletedProcess(argv, 0, b"", b"")
+            if ctl.cov is not None:
+                env = dict(kw.get("env") or os.environ)
+                env["SHELLOPTS"] = "xtrace"
+                env["PS4"] = PS4
+                kw["env"] = env
+            p = subprocess.run(argv, **kw)
+            if ctl.cov is not None:
+                ctl.feed(p.stderr)
+            return p
+
+        seg("1-11 write guard, stop guard, logging mode")
         # G1: the write guard
         out = b.run("pre-write", write(R, [("Update", "payments.py")]))
         check("1  prod write, no red -> VIOLATION", "VIOLATION" in b.tail(), b.tail())
@@ -319,7 +515,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("4f no false GREEN from a single-'&' compound",
               not os.path.exists(os.path.join(b.state, "green-observed")))
 
-        time.sleep(1.1)  # mtime ordering is 1s-granular on some filesystems
+        pause()
         out = b.run("observe-test", shell(R, "python -m pytest", 1))
         check("5  red observed", "RED observed (exit 1)" in b.tail(), b.tail())
         # FBK.2 (FEATURE_PLAN.md 44): counted observations are spoken as state facts.
@@ -363,13 +559,13 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("8  stop clean after green", "stop: clean" in b.tail(), b.tail())
         check("8b stop clean blocks nothing", out == "", repr(out))
 
-        time.sleep(1.1)
+        pause()
         b.run("pre-write", write(R, [("Update", "tests/test_payments.py")]))
         b.run("pre-write", write(R, [("Update", "payments.py")]))
         check("9  a test edit makes the red stale -> VIOLATION",
               "VIOLATION" in b.tail(), b.tail())
 
-        time.sleep(1.1)
+        pause()
         b.run("observe-test", shell(R, "python -m pytest", 2))
         b.run("stop-check", stop(R))
         check("10 stop would-block while latest run is red",
@@ -378,11 +574,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         b.run("stop-check", stop(R, active=True))
         check("11 stands down on stop_hook_active", "standing down" in b.tail(), b.tail())
 
+        seg("12 dot-backslash test path")
+
         # The `.\`-prefixed form the deny ramp found invisible to the bench pattern.
         b.reset_state()
         b.run("observe-test", shell(R, r"python -m pytest .\tests\test_x.py", 1))
         check("12 `.\\`-prefixed test path still counted", "RED observed" in b.tail(), b.tail())
 
+        seg("13-15 deny and block schemas")
         # Deny mode: the schemas measured on the bench, not the ones in the docs.
         b.reset_state(); b.arm_deny()
         out = b.run("pre-write", write(R, [("Update", "payments.py")]))
@@ -403,18 +602,20 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         out = b.run("stop-check", stop(R, active=True))
         check("15 deny mode still stands down on stop_hook_active", out == "", repr(out))
 
+        seg("16 a new session clears the red")
         # Observations are session-scoped. The first session's state must be FULLY
         # licensing (test edit, then a newer red) or this case cannot tell the reset
         # from G1's own test-edit requirement - the fixed G1 refuses a bare leaked red
         # anyway, which is how the reset mutation went invisible on the first re-run.
         b.reset_state()
         b.run("pre-write", write(R, [("Add", "tests/test_payments.py")]))
-        time.sleep(1.1)
+        pause()
         b.run("observe-test", shell(R, "python -m pytest", 1))
         b.run("pre-write", write(R, [("Update", "payments.py")], sid="session-two"))
         check("16 a new session clears the earlier red -> VIOLATION",
               "VIOLATION" in b.tail(), b.tail())
 
+        seg("17 no parser never denies")
         # Criterion D5: the guard's own failure must never become a denial.
         b.reset_state(); b.arm_deny()
         out = b.run("pre-write", write(R, [("Update", "payments.py")]),
@@ -424,12 +625,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("17c and names the missing dependency, not just 'error'",
               "python or node" in b.tail(), b.tail())
 
+        seg("18 delete-only patch")
         b.reset_state()
         b.run("pre-write", {"sessionId": SID, "cwd": R, "toolName": "apply_patch",
                             "toolArgs": "*** Begin Patch\n*** Delete File: payments.py\n"
                                         "*** End Patch\n"})
         check("18 delete-only patch -> nothing to guard", "VIOLATION" not in b.tail(), b.tail())
 
+        seg("19 spaced paths")
         # A path with a space is one path, not two.
         b.reset_state()
         b.run("pre-write", write(R, [("Update", "src/my module.py")]))
@@ -442,6 +645,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("19b spaced test path classifies as a test edit",
               "test edit recorded" in b.tail(), b.tail())
 
+        seg("20 a manufactured red licenses nothing")
         # The field circumvention (FEATURE_PLAN.md 31.18): a red manufactured with no
         # test edit this session - a test-shaped command that exits non-zero because
         # nothing matched - must license nothing. "You changed a test, then watched it
@@ -460,6 +664,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and "write is now licensed" not in (j.get("additionalContext") or ""),
               repr(out))
 
+        seg("21 hook-config bodies", always=True)
         # The hook-config prelude (FEATURE_PLAN.md 38.3): the WSL launcher route
         # re-parses the hook command line, corrupting backslashes and returning empty
         # for $(cat), so the JSON bodies must contain nothing that boundary can eat -
@@ -476,13 +681,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               bool(bodies) and all(not any(ch in bd for ch in "\\$") for bd in bodies),
               " | ".join(bodies))
 
+        seg("22-23 launcher at the root and elsewhere")
         pre_body = jtpl["hooks"]["preToolUse"][0]["bash"]
         e = dict(os.environ)
         e.pop("SDLC_REPO_ROOT", None)
         if b.path:
             e["PATH"] = b.path
         b.reset_state()
-        subprocess.run(["sh", "-c", pre_body],
+        run_sh(["sh", "-c", pre_body],
                        input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
                        capture_output=True, env=e, cwd=R)
         check("22 prelude at repo root pipes the payload into the guard",
@@ -491,7 +697,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         elsewhere = tempfile.mkdtemp(prefix="tddguard-elsewhere-")
         try:
             before = len(b.loglines())
-            p = subprocess.run(["sh", "-c", pre_body],
+            p = run_sh(["sh", "-c", pre_body],
                                input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=elsewhere)
             check("23 prelude away from a repo root: silent, no deny, no state",
@@ -499,9 +705,10 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                   and not os.path.exists(os.path.join(elsewhere, ".git")),
                   repr(p.stdout.decode()))
 
+            seg("24 root from cwd, absolute paths in both flavours")
             # The script's own half of the same contract, without the prelude.
             b.reset_state()
-            subprocess.run(["sh", b.guard, "pre-write"],
+            run_sh(["sh", b.guard, "pre-write"],
                            input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
                            capture_output=True, env=e, cwd=R)
             check("24 script with no SDLC_REPO_ROOT trusts a repo-root cwd",
@@ -520,7 +727,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             # shipped that way in 0.25.0-0.28.0 (FEATURE_PLAN.md §72). A proof whose
             # only in-repo absolute case runs with the root pinned cannot see it.
             b.reset_state()
-            subprocess.run(["sh", b.guard, "pre-write"],
+            run_sh(["sh", b.guard, "pre-write"],
                            input=json.dumps(write(R, [("Update", os.path.join(R, "payments.py"))])).encode(),
                            capture_output=True, env=e, cwd=R)
             check("24b absolute in-repo path is production with SDLC_REPO_ROOT unset",
@@ -534,13 +741,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                                  capture_output=True, text=True).stdout.strip()
             if alt:
                 b.reset_state()
-                subprocess.run(["sh", b.guard, "pre-write"],
+                run_sh(["sh", b.guard, "pre-write"],
                                input=json.dumps(write(R, [("Update", alt + "/payments.py")])).encode(),
                                capture_output=True, env=e, cwd=R)
                 check("24c the same path in the shell's other flavour is also production",
                       "VIOLATION" in b.tail() and "outside the repository" not in b.tail(),
                       b.tail())
 
+            seg("24d-24e WSL mount root")
             # 24d: the WSL route (FEATURE_PLAN.md 78.7). Under WSL bash the root reads
             # /mnt/d/..., `pwd -W` is MSYS-only and prints nothing, and the CLI still
             # reports D:\... - so 0.28.1's two candidates matched neither and every
@@ -556,7 +764,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                 we = dict(e)
                 we["SDLC_REPO_ROOT"] = posix(wroot)
                 we["SDLC_WSL_MOUNT"] = posix(os.path.join(wsl_base, "mnt"))
-                subprocess.run(["sh", b.guard, "pre-write"],
+                run_sh(["sh", b.guard, "pre-write"],
                                input=json.dumps(write("Q:\\proj", [("Update", "Q:\\proj\\payments.py")])).encode(),
                                capture_output=True, env=we, cwd=wroot)
                 wlog = os.path.join(wroot, ".git", "sdlc-tdd", "guard.log")
@@ -577,7 +785,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                     "gitdir: %s\n" % posix(gd2))
                 we2 = dict(we)
                 we2["SDLC_REPO_ROOT"] = posix(wt2)
-                p = subprocess.run(["sh", b.guard, "pre-write"],
+                p = run_sh(["sh", b.guard, "pre-write"],
                                    input=json.dumps(write("Q:\\wtproj", [("Update", "Q:\\wtproj\\payments.py")])).encode(),
                                    capture_output=True, env=we2, cwd=wt2)
                 out = p.stdout.decode("utf-8", "replace")
@@ -587,7 +795,8 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             finally:
                 rmtree(wsl_base)
 
-            p = subprocess.run(["sh", b.guard, "pre-write"],
+            seg("25 no root and no .git")
+            p = run_sh(["sh", b.guard, "pre-write"],
                                input=json.dumps(write(R, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=elsewhere)
             check("25 script with no root and no .git at cwd is a no-op",
@@ -598,11 +807,12 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             # blocks at stop ("did not run"), so the early no-.git exit is what keeps a
             # stop OUTSIDE any repository silent - without it the guard would block
             # every stop of a session that merely started somewhere else.
-            p = subprocess.run(["sh", b.guard, "stop-check"],
+            p = run_sh(["sh", b.guard, "stop-check"],
                                input=json.dumps(stop(elsewhere)).encode(),
                                capture_output=True, env=e, cwd=elsewhere)
             check("25b ...and stop-check there is silent too - no block outside a repo",
                   p.stdout.decode().strip() == "", repr(p.stdout.decode()))
+            seg("25c pinned root without .git")
             # 25c: the harness contract. A PINNED SDLC_REPO_ROOT with no .git at all
             # still guards, state created under it - an adopter's own guard tests pin a
             # bare temp directory, and 0.31.1 made that guard nothing, silently. Every
@@ -612,7 +822,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                 be = dict(e)
                 be["SDLC_REPO_ROOT"] = subprocess.run(["sh", "-c", 'cd "$1" && pwd', "_", bare],
                                                       capture_output=True, text=True).stdout.strip()
-                subprocess.run(["sh", b.guard, "pre-write"],
+                run_sh(["sh", b.guard, "pre-write"],
                                input=json.dumps(write(bare, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=be, cwd=bare)
                 bl = os.path.join(bare, ".git", "sdlc-tdd", "guard.log")
@@ -632,26 +842,33 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         # script resolves the git directory through that file. These cases build a
         # REAL worktree with git, because a hand-made .git directory - which is what
         # the Bench above is - is exactly the configuration that cannot see the defect.
+        seg("21b hook-config cwd", always=True)
         check("21b every hook-config entry pins cwd to the repository root and none "
               "tests for a .git DIRECTORY",
               all(h.get("cwd") == "." and "-d .git" not in h["bash"]
                   for hs in jtpl["hooks"].values() for h in hs),
               json.dumps(jtpl["hooks"]))
 
+        seg("36 linked worktree")
         wt_base = tempfile.mkdtemp(prefix="tddguard-wt-")
         try:
             main_r = os.path.join(wt_base, "main")
             wt_r = os.path.join(wt_base, "wt")
             os.makedirs(main_r)
-            g = lambda *a, **k: subprocess.run(["git"] + list(a), capture_output=True,
-                                               text=True, **k)
+            # Real git only when this segment runs; otherwise every call is a no-op
+            # and the "git dir" is a path inside the temp base, so nothing below can
+            # touch the working directory.
+            g = (lambda *a, **k: subprocess.run(["git"] + list(a), capture_output=True,
+                                                text=True, **k)) if ctl.active else (
+                lambda *a, **k: subprocess.CompletedProcess(a, 0, "", ""))
             g("init", "-q", main_r)
             io.open(os.path.join(main_r, "README"), "w").write("x\n")
             g("-C", main_r, "add", "README")
             g("-C", main_r, "-c", "user.email=t@t", "-c", "user.name=t",
               "commit", "-q", "-m", "init")
             g("-C", main_r, "worktree", "add", "-q", wt_r, "-b", "wt")
-            gd = g("-C", wt_r, "rev-parse", "--absolute-git-dir").stdout.strip()
+            gd = (g("-C", wt_r, "rev-parse", "--absolute-git-dir").stdout.strip()
+                  or os.path.join(wt_base, "inactive"))
             wt_state = os.path.join(gd, "sdlc-tdd")
             wt_guard = os.path.join(wt_r, ".github", "hooks", "sdlc-tdd-guard.sh")
             os.makedirs(os.path.dirname(wt_guard))
@@ -666,7 +883,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
 
             def wt_pre():
                 rmtree(wt_state)
-                subprocess.run(["sh", "-c", pre_body],
+                run_sh(["sh", "-c", pre_body],
                                input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=wt_r)
                 return wt_log()
@@ -691,7 +908,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             pe = dict(e)
             pe["SDLC_REPO_ROOT"] = subprocess.run(["sh", "-c", 'cd "$1" && pwd', "_", wt_r],
                                                   capture_output=True, text=True).stdout.strip()
-            subprocess.run(["sh", wt_guard, "pre-write"],
+            run_sh(["sh", wt_guard, "pre-write"],
                            input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
                            capture_output=True, env=pe, cwd=wt_base)
             check("36f a relative gitdir resolves against the root, not the cwd",
@@ -704,14 +921,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             reopen_git(wt_r, "w", newline="\n").write(
                 "gitdir: %s\n" % os.path.join(wt_base, "nowhere").replace(os.sep, "/"))
             rmtree(wt_state)
-            p = subprocess.run(["sh", wt_guard, "pre-write"],
+            p = run_sh(["sh", wt_guard, "pre-write"],
                                input=json.dumps(write(wt_r, [("Update", "payments.py")])).encode(),
                                capture_output=True, env=e, cwd=wt_r)
             check("36d a .git file naming no git dir: pre-write is a silent no-op",
                   p.returncode == 0 and p.stdout.decode().strip() == ""
                   and not os.path.exists(os.path.join(wt_r, ".git", "sdlc-tdd")),
                   repr(p.stdout.decode()))
-            p = subprocess.run(["sh", wt_guard, "stop-check"],
+            p = run_sh(["sh", wt_guard, "stop-check"],
                                input=json.dumps(stop(wt_r)).encode(),
                                capture_output=True, env=e, cwd=wt_r)
             out = p.stdout.decode().strip()
@@ -723,6 +940,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         finally:
             rmtree(wt_base)
 
+        seg("37 broken install launcher")
         # D4: a broken install - the JSON present, the script not - must reach someone.
         # Exit codes do not (measured: a non-zero exit lands in the session log only);
         # an agentStop block does. Pre and post stay silent: a deny there would stop
@@ -731,14 +949,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         try:
             os.makedirs(os.path.join(broken, ".git"))
             stop_body = jtpl["hooks"]["agentStop"][0]["bash"]
-            p = subprocess.run(["sh", "-c", stop_body], input=json.dumps(stop(broken)).encode(),
+            p = run_sh(["sh", "-c", stop_body], input=json.dumps(stop(broken)).encode(),
                                capture_output=True, env=e, cwd=broken)
             out = p.stdout.decode().strip()
             j = json.loads(out) if out.startswith("{") else {}
             check("37 stop launcher with the guard script missing blocks, naming the fault",
                   j.get("decision") == "block" and "did not run" in (j.get("reason") or ""),
                   repr(out))
-            p = subprocess.run(["sh", "-c", stop_body],
+            p = run_sh(["sh", "-c", stop_body],
                                input=json.dumps(stop(broken, active=True)).encode(),
                                capture_output=True, env=e, cwd=broken)
             check("37b ...and stands down on stop_hook_active (one block, not eight)",
@@ -747,14 +965,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             # the script, the stop launcher must take the script branch. A typo in the
             # launcher's -f path would otherwise block every stop of every session, and
             # only the static shape check above would be looking - it cannot see that.
-            p = subprocess.run(["sh", "-c", stop_body], input=json.dumps(stop(R)).encode(),
+            p = run_sh(["sh", "-c", stop_body], input=json.dumps(stop(R)).encode(),
                                capture_output=True, env=e, cwd=R)
             check("37d stop launcher with the script present runs the guard, no block",
                   "did not run" not in p.stdout.decode("utf-8", "replace")
                   and "stop:" in b.tail(), repr(p.stdout.decode()) + " | " + b.tail())
             for ev in ("preToolUse", "postToolUse"):
                 body = jtpl["hooks"][ev][0]["bash"]
-                p = subprocess.run(["sh", "-c", body],
+                p = run_sh(["sh", "-c", body],
                                    input=json.dumps(write(broken, [("Update", "x.py")])).encode(),
                                    capture_output=True, env=e, cwd=broken)
                 check("37c %s launcher with the script missing is silent and exits 0" % ev,
@@ -763,6 +981,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         finally:
             rmtree(broken)
 
+        seg("26 missing exit-code trailer")
         # The other refusal shape: a test-pattern command whose payload carries no
         # exit-code trailer. Same rule as the compound case - spoken, never silent -
         # because a format drift in the trailer would otherwise mute the guard on
@@ -779,6 +998,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and "could not be counted" in (j.get("additionalContext") or ""),
               b.tail() + " | " + repr(out))
 
+        seg("27-30 refactor license")
         # The refactor license (2026-08-08 field): G1's second license - a declared
         # behavior-preserving edit behind an observed green. Armed close-out passes
         # (change-simplify, mutation testing) forced synthetic test-edit/red cycles or
@@ -814,6 +1034,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("30b and the revocation is logged",
               any("refactor license revoked" in l for l in b.loglines()))
 
+        seg("30c-30g close-out license")
         # The close-out license (FIELD_REPORT_2026-09-01 finding 1): the same license
         # scoped to /end-slice, differing in exactly one way - a test edit does NOT
         # revoke it. Close-out's mandated order is review (fixes tests) -> mutation
@@ -850,6 +1071,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("30g the license still licenses a write after the test edits",
               "OK production write (close-out license" in b.tail(), b.tail())
 
+        seg("30h stale close-out license")
         b.reset_state()
         io.open(os.path.join(b.state, "close-out-license"), "w").write("left over\n")
         io.open(os.path.join(b.state, "close-out-survivals"), "w").write("4")
@@ -860,6 +1082,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and not os.path.exists(os.path.join(b.state, "close-out-survivals")),
               b.tail())
 
+        seg("31 stale refactor license")
         b.reset_state()
         io.open(os.path.join(b.state, "refactor-license"), "w").write("left over\n")
         b.run("observe-test", shell(R, "python -m pytest", 0, sid="session-lic"))
@@ -867,6 +1090,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("31 a license left by an earlier session licenses nothing",
               "VIOLATION" in b.tail(), b.tail())
 
+        seg("32 deny message names both routes")
         b.reset_state(); b.arm_deny()
         out = b.run("pre-write", write(R, [("Update", "payments.py")]))
         j = json.loads(out) if out.startswith("{") else {}
@@ -883,6 +1107,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and _r.index("at any point in the cycle") < _r.index("close-out"),
               repr(out))
 
+        seg("33-35 stop guard session scoping")
         # G2 session scoping (owner-decided 2026-08-08): the stop guard binds only a
         # session that wrote production code or edited a test. A planning, docs, or
         # bookkeeping session runs no tests by design and must stop clean - deny mode
@@ -909,12 +1134,14 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               "never-ran stop)",
               j.get("decision") == "block" and bool(j.get("reason")), repr(out))
 
+        seg("C1-C8 cosmetic production edits")
         # COSMETIC (FEATURE_PLAN.md 82): a comment or format edit needs no red. Real
         # edit/create payloads against a real file, deny armed, the shipped classifier
         # beside the guard (tools/cosmetic-check.py proves it alone). It needs python:
         # under the node-only PATH the stated limit is today's rule, and is asserted.
         has_py = parser != "node"
         c = Bench(os.path.join(base, "cos"), guard_src)
+        c.ctl = ctl
         c.path = b.path
         hooks = os.path.dirname(c.guard)
         shutil.copy(COSMETIC, os.path.join(hooks, "sdlc-cosmetic.py"))
@@ -977,6 +1204,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("C8 no classifier installed: today's rule", c.rc == 0 and denied(out),
               repr(out))
         shutil.copy(COSMETIC, os.path.join(hooks, "sdlc-cosmetic.py"))
+        seg("C9-C10 cosmetic in logging mode and when licensed")
         if has_py:
             c.reset_state()
             out = c.run("pre-write", cedit("# sum them", "# add them"))
@@ -991,6 +1219,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                   "red observed since last test edit" in c.tail()
                   and not any("cosmetic" in l for l in c.loglines()[n:]), c.tail())
 
+            seg("C11-C15 cosmetic test edits")
             # 0.36.0: a cosmetic TEST edit is not a new cycle (field report 11, f4).
             tbody = "def test_pay():\n    # the sum\n    assert pay(1, 2) == 3\n"
             os.makedirs(os.path.join(CR, "tests"), exist_ok=True)
@@ -1039,10 +1268,15 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         # compares content against the session's start, so a bench without git would
         # prove only that it fails open.
         d = Bench(os.path.join(base, "det"), guard_src)
+        d.ctl = ctl
         d.path = os.pathsep.join([b.path, _dir_of("git")]) if b.path else None
         DR = d.root
 
+        d_on = ctl.any_of("D")
+
         def g(*a, **env):
+            if not d_on:
+                return
             subprocess.run(("git", "-C", DR) + a, capture_output=True, check=True,
                            env=dict(os.environ, **env))
 
@@ -1077,6 +1311,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             except ValueError:
                 return ""
 
+        seg("D1-D2 a shell write blocks the stop, once")
         sid = begin()
         put("pay.py", "shell wrote this\n")
         out = d.run("stop-check", stop(DR, sid=sid))
@@ -1087,6 +1322,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("D2 ...once: the next stop does not repeat it", out == "", repr(out))
         g("checkout", "--", "pay.py")
 
+        seg("D3 logging mode names only the unseen file")
         sid = begin(armed=False)
         d.run("pre-write", write(DR, [("Update", "pay.py")], sid=sid))
         put("pay.py", "the editor tool wrote this\n")
@@ -1098,6 +1334,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and "pay.py" not in lg[0], repr(lg))
         g("checkout", "--", "pay.py", "fee.py")
 
+        seg("D4 the same bytes put back")
         sid = begin()
         put("pay.py", "a mutation\n")
         put("pay.py", "original pay.py\n")
@@ -1105,6 +1342,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("D4 the same bytes put back (the mutation runner) report nothing",
               out == "", repr(out))
 
+        seg("D5-D6 dirty before the session")
         put("fee.py", "dirty before the session began\n")
         sid = begin()
         out = d.run("stop-check", stop(DR, sid=sid))
@@ -1116,6 +1354,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               repr(out))
         g("checkout", "--", "fee.py")
 
+        seg("D7 a shell write committed in session")
         sid = begin()
         put("pay.py", "shell write, then committed\n")
         g("commit", "-q", "-am", "in-session commit")
@@ -1123,6 +1362,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("D7 a shell write the session committed still reports",
               "pay.py" in reason(out), repr(out))
 
+        seg("D8 exempt and non-code paths")
         sid = begin()
         put("tools/gen.py", "exempt script\n")
         put("README.md", "docs\n")
@@ -1130,6 +1370,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("D8 exempt paths and non-code files report nothing", out == "", repr(out))
         g("checkout", "--", "tools/gen.py", "README.md")
 
+        seg("D9 a denied write retried through the shell")
         sid = begin()
         out = d.run("pre-write", write(DR, [("Update", "fee.py")], sid=sid))
         put("fee.py", "denied above, so written through the shell\n")
@@ -1139,6 +1380,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               repr(out) + " | " + repr(out2))
         g("checkout", "--", "fee.py")
 
+        seg("D10 a merge of older commits")
         g("checkout", "-q", "-b", "elsewhere")
         put("fee.py", "someone else's older commit\n")
         g("commit", "-q", "-am", "old work", GIT_COMMITTER_DATE="2020-01-01T00:00:00")
@@ -1161,9 +1403,10 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         def has(name):
             return os.path.exists(os.path.join(b.state, name))
 
+        seg("R1 a failing run without a report")
         b.reset_state()
         b.run("pre-write", write(R, [("Update", "tests/test_payments.py")]))
-        time.sleep(1.1)
+        pause()
         out = b.run("observe-test", shell(
             R, "python -m pytest tests/test_payments.py", 1,
             text="[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: esbuild\n"
@@ -1176,6 +1419,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("R1b ...so the write after it is still a violation",
               "VIOLATION" in b.tail(), b.tail())
 
+        seg("R2-R4 report shapes")
         b.reset_state()
         b.run("observe-test", shell(
             R, "python -m pytest", 2,
@@ -1199,8 +1443,10 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("R4 the report is matched with ANSI codes and CRLF removed",
               has("red-observed"), b.tail())
 
+        seg("R5 invalid report pattern")
         bad = Bench(os.path.join(base, "badpattern"),
                     guard_src.replace("{{TEST_REPORT_PATTERN}}", "([unclosed"))
+        bad.ctl = ctl
         if b.path:
             bad.path = b.path
         bad.run("observe-test", shell(bad.root, "python -m pytest", 1))
@@ -1209,6 +1455,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and any("TEST_REPORT_PATTERN is not a valid" in l for l in bad.loglines()),
               repr(bad.loglines()[-2:]))
 
+        seg("N1 commands that only name the runner")
         # N: commands that name the runner without running it (84.4(1)). Their
         # SUCCESS was the worse defect: a GREEN with no test run at all.
         for c in ("cat pytest.ini", "grep pytest pyproject.toml",
@@ -1229,6 +1476,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
                   and not [l for l in b.loglines() if "new session" not in l],
                   repr(b.loglines()))
 
+        seg("N2 real runs through wrappers")
         for c in ("uv run pytest -q", "python -m pytest -q", "env CI=1 pytest -q",
                   r"C:\proj\.venv\Scripts\pytest.exe -q"):
             b.reset_state()
@@ -1236,6 +1484,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             check("N2 a real run through %r still counts" % c, has("green-observed"),
                   b.tail())
 
+        seg("X exempt pattern")
         # X: the exempt pattern (84.7 ruling 6).
         b.reset_state()
         b.arm_deny()
@@ -1263,6 +1512,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("X7 an absolute in-repo path is reduced before the exempt test",
               out == "" and "exempt from the guard" in b.tail() and b.tail().endswith(": tools/x.py"), b.tail())
 
+        seg("E non-ASCII deny message")
         # E: the deny message's bytes survive (a text-mode read made mojibake, 84.8).
         b.reset_state()
         b.arm_deny()
@@ -1294,6 +1544,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
             if os.path.exists(sfile):
                 os.remove(sfile)
 
+        seg("37a absent state file")
         b.reset_state()
         drop_state()
         b.arm_deny()
@@ -1306,6 +1557,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and "no SDLC state file" not in b.run("observe-test", shell(R, "pytest -q", 0, sid="s37a")),
               repr((out, out2)))
 
+        seg("37b off stands down")
         put_state("off\n")
         b.reset_state()
         b.arm_deny()
@@ -1321,6 +1573,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and [l for l in b.loglines() if "new session" not in l] == [],
               repr((o1, o2, o3, o4, b.loglines())))
 
+        seg("37c paused")
         put_state("paused\nstage: slice\nsince: 2026-10-24T14:02Z\nreason: bump\n")
         b.reset_state()
         b.arm_deny()
@@ -1337,6 +1590,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and not os.path.exists(os.path.join(b.state, "green-observed")),
               repr((o1, o2, o3, b.loglines())))
 
+        seg("37d an unrecognized state word")
         put_state("pausd\n")
         b.reset_state()
         b.arm_deny()
@@ -1345,6 +1599,7 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               "permissionDecision" in out and "DENY production write" in b.tail(), repr(out))
         drop_state()
 
+        seg("P pattern rows parse", always=True)
         # P: pattern values are pasted into `case` arms unquoted, so a space is a syntax
         # error that Copilot reads as deny-everything (bench, 2026-10-19). Every row the
         # recipe offers setup must parse; the spaced control proves the probe bites.
@@ -1373,8 +1628,8 @@ MUTATIONS = [
      "in-repo path stops matching whenever the shell's pwd flavour differs from the "
      "CLI's, so the guard skips every write reported that way)",
      lambda s: s.replace(
-         '    slash "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; c2=${r%/}',
-         '    c2=""')),
+         '  slash "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; SDLC_C2=${r%/}',
+         '  SDLC_C2=""')),
     ("name a worktree's licence in WSL mount form (the agent's tools cannot write "
      "/mnt/d/... - they take drive paths)",
      lambda s: s.replace(
@@ -1383,8 +1638,8 @@ MUTATIONS = [
     ("drop the WSL mount candidate (the 0.28.1 fix's blind route: under WSL bash "
      "every absolute write is 'outside the repository' - FEATURE_PLAN.md 78.7)",
      lambda s: s.replace(
-         '    slash "$wroot"; c3=${r%/}',
-         '    c3=""')),
+         '  slash "$wroot"; SDLC_C3=${r%/}',
+         '  SDLC_C3=""')),
     ("drop the compound-command check (reintroduces the D3 false-GREEN defect)",
      lambda s: s.replace('*";"*|*"&"*|*"|"*)', '*"@@never@@"*)')),
     ("regress the separator list to the doubled-only 0.18.0 forms (a single '&' "
@@ -1430,13 +1685,17 @@ MUTATIONS = [
      "charged as a production write - this dialect's live misclassification)",
      lambda s: s.replace(
          '              "$c"/*) rel=${n#"$c"/} ;;\n'
-         '              *) rel=$(printf \'%s\' "$n" | cut -c $((${#c} + 2))-) ;;\n',
+         '              *) k=$(( ${#c} + 1 )); pat=""\n'
+         '                 while [ "$k" -gt 0 ]; do pat="$pat?"; k=$((k - 1)); done\n'
+         '                 rel=${n#$pat} ;;\n',
          '')),
     ("drop the reduction's other-case fallback (Windows reports the root in either "
      "case; a path whose root differs in case from the hook's falls outside the "
      "repository and is guarded as nothing)",
      lambda s: s.replace(
-         '              *) rel=$(printf \'%s\' "$n" | cut -c $((${#c} + 2))-) ;;\n',
+         '              *) k=$(( ${#c} + 1 )); pat=""\n'
+         '                 while [ "$k" -gt 0 ]; do pat="$pat?"; k=$((k - 1)); done\n'
+         '                 rel=${n#$pat} ;;\n',
          '')),
     ("match the runner against the raw command text (a commit message quoting the "
      "RED command counts as a test run)",
@@ -1472,9 +1731,9 @@ MUTATIONS = [
     ("revoke the CLOSE-OUT license on a test edit too (close-out's own mandated "
      "order becomes unexecutable again - FIELD_REPORT_2026-09-01 finding 1)",
      lambda s: s.replace(
-         '      if [ -f "$S/close-out-license" ]; then\n        k=$(',
+         '      if [ -f "$S/close-out-license" ]; then\n        k=0\n',
          '      if [ -f "$S/close-out-license" ]; then\n'
-         '        rm -f "$S/close-out-license" 2>/dev/null\n        k=$(')),
+         '        rm -f "$S/close-out-license" 2>/dev/null\n        k=0\n')),
     ("stop counting the test edits a close-out license survives (a license held "
      "open past its step goes silent)",
      lambda s: s.replace(
@@ -1575,7 +1834,7 @@ MUTATIONS = [
     ("count `python -m pip` (an install records a GREEN)",
      lambda s: s.replace('[ "$3" = "pip" ] && exit 0', '[ "$3" = "never" ] && exit 0')),
     ("judge a NAME=value prefix as the executable",
-     lambda s: s.replace('$i ~ /^[a-z_][a-z0-9_]*=/', '$i == "never"')),
+     lambda s: s.replace('(w[i]=="env" or re.match(r"[a-z_][a-z0-9_]*=",w[i]))', 'w[i]=="env"')),
     ("keep the .exe on the executable (a Windows path to cat counts)",
      lambda s: s.replace('exe=${exe%.exe}; ', '')),
     ("drop the always-on graph-directory exemption",
@@ -1588,9 +1847,15 @@ MUTATIONS = [
      "the parser and the write goes unguarded)",
      lambda s: s.replace('sys.stdout.buffer.write(("\\n".join(o)+"\\n").encode("utf-8"))',
                          'sys.stdout.write("\\n".join(o)+"\\n")')),
-    ("read the deny message as text (a non-ASCII path arrives as mojibake)",
-     lambda s: s.replace('"permissionDecisionReason":sys.stdin.buffer.read().decode("utf-8","replace")',
-                         '"permissionDecisionReason":sys.stdin.read()')),
+    ("pass the deny message through an 8-bit encoding (a path outside latin-1 arrives "
+     "as question marks - the successor of the text-mode read that made mojibake)",
+     lambda s: s.replace('"permissionDecisionReason":os.environ.get("SDLC_MSG","")',
+                         '"permissionDecisionReason":os.environ.get("SDLC_MSG","")'
+                         '.encode("latin-1","replace").decode("latin-1")')),
+    ("end the parser's lines with CRLF (what a text-mode write does on Windows python; "
+     "jr no longer strips the CR, so the cases must see it)",
+     lambda s: s.replace('sys.stdout.buffer.write(("\\n".join(o)+"\\n").encode("utf-8"))',
+                         'sys.stdout.buffer.write(("\\r\\n".join(o)+"\\r\\n").encode("utf-8"))')),
     ("remove the SDLC-state stand-down (every `off` and `paused` case must fail)",
      lambda s: s.replace('case "$STATE" in off) exit 0 ;; paused) [ "$MODE" = "pre-write" ] || exit 0 ;; esac',
                          ':')),
@@ -1611,12 +1876,16 @@ def main():
     #
     # The two passes are independent - each is its own temp bench under its own PATH -
     # so they run concurrently, each buffering its lines, printed in dialect order.
+    # Each pass also traces, per segment, the guard lines its calls executed: that is
+    # what the mutation pass below aims with.
     def dialect_pass(name):
-        lines, ran = [], []
+        lines, ran, cov = [], [], Coverage()
         failed = guarded("unit pass [%s]" % name, [], unit, src, counter=ran,
-                         parser=name, emit=lines.append)
-        return lines, ran, failed
+                         parser=name, emit=lines.append, cov=cov)
+        return lines, ran, failed, cov
 
+    covs = []
+    print("%s unit passes started" % stamp(), flush=True)
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         dialects = [(name, pool.submit(dialect_pass, name) if PARSER_DIRS.get(name)
                      else None) for name in ("python", "node")]
@@ -1626,26 +1895,64 @@ def main():
                       "this dialect is UNPROVEN here\n" % name)
                 rc = 1
                 continue
-            lines, ran, failed = fut.result()
+            lines, ran, failed, cov = fut.result()
+            covs.append(cov)
             print("=== unit pass [%s] ===" % name)
             print("\n".join(lines))
-            print("\n%d cases, %s\n" % (
-                len(ran), "all passed" if not failed else "FAILED: " + "; ".join(failed)),
+            print("\n%s %d cases, %s\n" % (
+                stamp(), len(ran),
+                "all passed" if not failed else "FAILED: " + "; ".join(failed)),
                 flush=True)
             if failed:
                 rc = 1
+
+    # The coverage the unit passes traced, merged across dialects: segment order, which
+    # segments always run, and the guard lines each one reached.
+    # Traced lines are mapped to their owning command too, so both sides of the
+    # comparison below speak in the same line numbers.
+    own = owners(src.splitlines())
+    order, always, reached = [], {}, {}
+    for cov in covs:
+        for name, alw in cov.order:
+            if name not in always:
+                order.append(name)
+                always[name] = alw
+            reached.setdefault(name, set()).update(
+                own[l - 1] for l in cov.lines.get(name, ()) if l <= len(own))
+    traced = sorted(set().union(*reached.values())) if reached else []
+
+    def neighbours(changed):
+        """A changed line the trace never names - a `case` pattern, a keyword - is
+        charged to its nearest traced neighbours on either side: the arm's body is
+        what runs when the pattern matches, the command before the construct is what
+        runs when it is reached at all (measured 2026-10-24: both compound-command
+        mutations edit a pattern line and fell to the full suite without this)."""
+        out = set(changed)
+        for l in changed:
+            if l in traced:
+                continue
+            i = bisect.bisect_left(traced, l)
+            if i > 0:
+                out.add(traced[i - 1])
+            if i < len(traced):
+                out.add(traced[i])
+        return out
+    print("%s coverage: %d segments, %d distinct guard lines reached by some case"
+          % (stamp(), len(order), len(set().union(*reached.values()) if reached else ())),
+          flush=True)
 
     # Mutations exercise the guard's shell logic, which sits above the parser choice, so
     # they run once under the ambient PATH rather than once per dialect.
     #
     # Each mutation needs ONE failing check, and the mutations are independent - each
-    # unit() run is its own temp bench. They used to run one at a time and every check
-    # to the end, so each paid the whole scenario and its 1.1 s mtime sleeps after the
-    # verdict was settled. Now each stops at its first failing check and they run
-    # concurrently; nothing here is timed. TDDGUARD_JOBS=1 runs them serially.
+    # unit() run is its own temp bench. Each stops at its first failing check, runs the
+    # segments that reach its changed lines first and the whole suite only if none of
+    # them fails, and they run concurrently; nothing here is timed. TDDGUARD_JOBS=1
+    # runs them serially.
     jobs = max(1, int(os.environ.get("TDDGUARD_JOBS", "8")))
-    print("=== mutation pass (%d mutations; the unit suite must catch each; %d at a time,"
-          " first failing check named) ===" % (len(MUTATIONS), jobs))
+    print("%s === mutation pass (%d mutations; the unit suite must catch each; %d at a "
+          "time, covering segments first, first failing check named) ==="
+          % (stamp(), len(MUTATIONS), jobs), flush=True)
     live = []
     for name, fn in MUTATIONS:
         mutated = guarded("mutation build: %s" % name, None, fn, src)
@@ -1657,23 +1964,58 @@ def main():
             rc = 1
             continue
         live.append((name, mutated))
+    def prove(name, mutated):
+        """Targeted first, then - only if nothing targeted failed - the whole suite."""
+        began = time.perf_counter()
+        changed = neighbours(changed_lines(src, mutated, own))
+        targets = [t for t in order if always[t] or reached.get(t, set()) & changed]
+        aimed = [t for t in targets if not always[t]]
+        caught, how = [], ""
+        if aimed:
+            caught = guarded("mutation (targeted): %s" % name, [], unit, mutated,
+                             verbose=False, first_only=True, segments=set(targets))
+            how = "targeted %d of %d segments" % (len(targets), len(order))
+        if not caught:
+            caught = guarded("mutation: %s" % name, [], unit, mutated,
+                             verbose=False, first_only=True)
+            how = ("NO case reaches its lines - full suite" if not aimed
+                   else how + ", none failed - full suite")
+        return caught, how, time.perf_counter() - began
+
+    # Results print as they finish, not in list order, so each line's stamp is when its
+    # verdict landed and a slow early mutation cannot hold the log silent. Each line
+    # carries the mutation's own duration and how it was aimed, which is what sizes the
+    # next run and shows the coverage map drifting.
+    fell_back = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
-        futures = [pool.submit(guarded, "mutation: %s" % name, [], unit, mutated,
-                               verbose=False, first_only=True)
-                   for name, mutated in live]
-        for (name, _), fut in zip(live, futures):
-            caught = fut.result()
+        futures = {pool.submit(prove, name, mutated): name for name, mutated in live}
+        spent = 0.0
+        for done, fut in enumerate(concurrent.futures.as_completed(futures), 1):
+            name = futures[fut]
+            caught, how, took = fut.result()
+            spent += took
+            if "full suite" in how:
+                fell_back.append(name)
+            where = "%s [%d/%d] %5.0fs" % (stamp(), done, len(live), took)
             if caught:
-                print("caught   %s\n           (by: %s)" % (name, "; ".join(caught)),
-                      flush=True)
+                print("caught   %s %s\n           (by: %s; %s)" % (
+                    where, name, "; ".join(caught), how), flush=True)
             else:
-                print("SURVIVED %s  <-- the suite is blind to this" % name, flush=True)
+                print("SURVIVED %s %s  <-- the suite is blind to this (%s)"
+                      % (where, name, how), flush=True)
                 rc = 1
+    if live:
+        print("%s mutation pass: %d mutations, %.0fs of work, mean %.0fs each; "
+              "%d needed the full suite" % (stamp(), len(live), spent,
+                                             spent / len(live), len(fell_back)),
+              flush=True)
+        for name in fell_back:
+            print("           full suite: " + name)
 
     if guarded.crashed:
         print("CRASHED passes: %s" % ", ".join(guarded.crashed))
         rc = 1
-    print("\n%s" % ("OK" if rc == 0 else "PROBLEMS ABOVE"))
+    print("\n%s %s" % (stamp(), "OK" if rc == 0 else "PROBLEMS ABOVE"))
     return rc
 
 

@@ -54,12 +54,15 @@ Run these as commands; each states its negative case in the ledger.
   reads like: `skill-ledger-check.py` read as a model proof through five passes while
   crashing on its first Claude case, and three cases were unexercised for six releases
   (`FEATURE_PLAN.md` §75). Two costs to plan for rather than discover: the mutation
-  passes dominate — measured after 0.35.0, `tdd-guard-check` ~29 minutes at
-  `TDDGUARD_JOBS=4` (its cost is Windows `sh` forks inside the guard, ~1 s a call after
-  the fork cut; parallel workers queue on fork, so more than 4 buys little and costs
-  memory), `impact-check` ~8, `close-out-check` ~8
+  passes dominate — measured 2026-10-24 on 0.40.0, `tdd-guard-check` under 5 minutes
+  end to end at the default `TDDGUARD_JOBS=8` (279 s; 407 s at 4, 288 s at 16 — more
+  workers queue on the Windows `sh` forks inside the guard, ~0.2 s a call since the
+  0.40.0 fork cut; it was ~29 minutes at 4 before that, plan §90), `impact-check`
+  ~8, `close-out-check` ~8
   and `tdd-guard-claude-check` under 2 (all four stop each mutation at its first failing
-  case and run 8 at a time; `IMPACT_JOBS` / `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs
+  case and run 8 at a time — `tdd-guard-check` runs the segments that reach the mutated
+  lines first and the whole suite only if none fails, and every line it prints carries
+  the time; `IMPACT_JOBS` / `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs
   serially), `cosmetic-check` ~6, `gate-hook-check` under 2 (its six suite × parser
   runs go concurrently), `rederive-check` under 1, `sdlc-state-check` under 1 — and all
   ten buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a

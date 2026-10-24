@@ -8291,3 +8291,151 @@ round-trip locally; the tag was re-pointed before any release object existed, ru
 40128665224 passed, and the archive was verified from the download (both checksums,
 VERSION, 45/45, the new files). The trap's memory note gains the check that catches it.
 Owed: the three adopter updates to 0.39.0, and 0.40.0's release behind them (§90).
+
+## 90. SPEED — the proof suite told the time and shed its forks: owner-directed
+## 2026-10-24, built and measured the same day, for 0.40.0
+
+### 90.1 What the owner asked, in their words
+
+Watching `tools/tdd-guard-check.py` run its last seven mutations for 0.39.0 with
+nothing on the screen: *"make a note to improve this testing suite. We need logs with
+timestamps and an evaluation of how to improve performance without sacrificing coverage
+and accuracy"*, then *"These tests are extremely costly. Let's look at best practices for
+test optimization"*, and on the options: *"let's address 1, 2 and 3. We can consider all
+the in progress work as part of a 0.40.0 branch"*, with the suite edits as a separate
+commit after 0.39.0's. Accuracy is the constraint the owner named first; every change
+below is argued against it before it is argued for speed.
+
+### 90.2 Measured before anything changed
+
+- A full unit pass: 183 s, of which 168 s is 171 guard calls at 0.7–1.0 s each. The five
+  1.1 s mtime sleeps total 5.5 s and are not the cost.
+- One guard call: ~18 fork events — 10 execs (`tr` ×5, `cat`, `python`, `mkdir`,
+  `touch`, `date`) and ~8 `$(...)` subshells — at ~30 ms each on Windows `sh` (a bare
+  subshell 66 ms against 37 ms for `sh -c true`; a `printf | tr` 84 ms).
+- A mutation, solo, pays the whole prefix of guard calls up to its first failing check:
+  33–161 s on an 8-mutation sample, mean 79 s; 61 of them is ~80 min of work. Eight
+  workers run 3.3× faster than one (four: 2.8×), each ~30 % slower under contention —
+  so the ~29 min at `TDDGUARD_JOBS=4` that /kit-check recorded after 0.35.0.
+- The run printed no times: the last-seven run could not say how long one mutation took.
+
+### 90.3 The three items ruled, and the one held
+
+1. **Mutant targeting** — run first the tests that execute the mutated lines (what PIT,
+   Stryker and mutmut do). 2. **The guard's fork cut** — the per-call string work moves
+   into the parser invocation that already happens. 3. **The worker count**, measured
+   rather than asserted. Held, by recommendation: result caching or impact skipping,
+   which turns a run into a derived statement — exactly what invariant 13 forbids.
+
+### 90.4 Targeting, and why it cannot cost accuracy
+
+`unit()` stays one linear scenario — the readable shape for a proof. It is marked into
+47 segments at the points where it already starts over (a `reset_state()` or a fresh
+Bench); a `seg()` marker that is not selected flips the benches into no-ops (no guard
+call, no check), so the full-suite order and text are untouched and the unit pass runs
+exactly as before. During that unit pass every guard call is traced (`sh -x`, `PS4`
+naming the line and `$0`; `SHELLOPTS=xtrace` carries it through a launcher into the
+guard it starts), giving per-segment line coverage. A mutation's changed lines (a
+line diff, each line mapped to the command that owns it, since a change inside the
+parser's quoted source or a heredoc body is a change to the line that opens it) select
+the covering segments, which run first in suite order; if none fails, the whole suite
+runs, as before. So a mutation is caught only by a real failing check and reported
+survived only after the whole suite — targeting can find the failing check sooner,
+never miss one. The trace never names a `case` pattern or a keyword; a changed line
+nobody traced is charged to its nearest traced neighbours on either side (the arm's
+body, the command before the construct). Without that rule the two compound-command
+mutations fell to the full suite; with it, none of the 62 does.
+
+Alone, targeting bought little: 790.9 s end to end against the ~29 min on record
+(61/61 caught, 4053 s of work, mean 66 s), because the guard is one script whose
+pre-write and observe arms are executed by nearly every segment — a mutation selects
+20–46 of 47 and walks them in order until the one whose assertion depends on it. The
+sample, solo: 480 s against 629 s, −24 %. The lever that remained was the cost per
+segment.
+
+### 90.5 The fork cut
+
+What the guard did per call with a pipeline each, the JSON parser now does in the one
+invocation that runs anyway: the UTC timestamp (field 6), the command with its quoted
+arguments blanked (7), its first three words lowercased after any `env`/`NAME=value`
+prefix (8), the three candidate roots lowercased (9–11; built before the parser and
+handed to it through the environment) and, per path, the reported form, the slashed
+form and that lowercased (12+, three lines each). The parser reads the payload from the
+shell's own stdin — no `$(cat)`, no `printf | jr` — and in pre-write keeps a copy for
+the cosmetic classifier (`$S/.payload`, emptied by the exit trap). The emitters hand
+their message to the parser through the environment instead of a pipe. `mkdir` runs
+only when the directory is missing, markers are written by `: >`, the state word forks
+`tr` only for a form the file is not written in, the survival count is `read`, and the
+other-case root fallback strips by a `?` pattern instead of `printf | cut`. `jr`'s
+`tr -d '\r'` goes: both parsers write LF bytes, and a new mutation ends the parser's
+lines with CRLF to prove the cases see a CR. Left forked on purpose: the stop-check
+detector's git calls (0.55 s a stop, by design since 0.36.0), the cosmetic classifier's
+call and the licence file's first line (rare paths).
+
+Measured, both dialects: pre-write 0.75 s → 0.21 s, a shell command that is not a test
+run 0.18–0.21 s, a RED 0.27 s. `sh -n` clean; seven mutations re-anchored to the moved
+text and none stale.
+
+### 90.6 What the proof found
+
+- **A survivor that was the environment's, not the guard's.** Under the fork cut the
+  mutation dropping the second root candidate (`pwd -W`'s flavour) was no longer caught.
+  Git Bash's MSYS layer rewrites a POSIX-looking environment value (`/c/Users/...`)
+  into `C:/Users/...` on the way into a native python or node, so the first candidate
+  reached the parser already in the Windows flavour and covered for the second. The
+  guard behaved correctly on every route; the proof of the second candidate had become
+  vacuous on this host — invariant 15's shape, the process silent about the environment
+  it runs in. The template now excludes the three roots from that rewriting
+  (`MSYS2_ENV_CONV_EXCL=SDLC_C`, the roots only: the payload path must keep being
+  rewritten, since the parser that opens it is native), and the mutation is caught by
+  24b again.
+- **Two defects of mine, both caught by running, neither by reading:** a patch that
+  misplaced the segment-registration lines, so one full run had no coverage and
+  targeted nothing (the run's own `coverage: 0 segments` line said so); and the trace
+  regex that keyed on `${0##*/}`, which strips forward slashes only — the Bench hands
+  the guard a backslashed path — so coverage was empty until the test became "any script
+  that is not the bare `sh` a launcher runs as".
+- **Both heredoc traps from 0.39.0 recurred** (backslash escapes halved in a heredoc'd
+  python script; a raw-string regex double-escaped): the patch scripts went through the
+  Write tool instead.
+
+### 90.7 Results — 2026-10-24, the combined suite
+
+| | before | targeting alone | targeting + fork cut |
+|---|---|---|---|
+| unit passes (both dialects, concurrent) | 182 s | 182 s | 74 s |
+| mutation work (sum over mutations) | ~80 min solo | 4053 s | 1324 s |
+| mean per mutation, 8 workers | — | 66 s | 21 s |
+| needed the full suite | — | 2 | 0 |
+| end to end, `TDDGUARD_JOBS=8` | ~29 min at 4 | 790.9 s | **278.6 s** |
+
+Sixteen workers: 288.2 s (mean 39 s a mutation — they queue on forks); four: 407.2 s
+(mean 18 s). Eight is the knee and stays the default. Lazy fixtures
+(the worktree and detector repositories built only for segments that run) took a
+targeted run's floor from ~4.5 s to ~1.7 s. Every progress line now carries the wall
+clock and elapsed time, each mutation its own duration and how it was aimed, and the
+pass ends with a work/mean line; the mtime sleeps are `os.utime` backdating. 148 + 138
+unit cases, 62 mutations, OK, exit 0, on every run above — and on the run from the
+branch tree after the port, the on-record one: 290.2 s, 62/62, none needing the full suite.
+
+### 90.8 Held, named so they are not rediscovered
+
+- **Killer-first ordering.** Coverage says which segments *execute* a changed line, not
+  which assertion *depends* on it; a hints file recording which check caught each
+  mutation last time would put that segment first and take the mutation pass from
+  ~3.4 min to about one. It cannot change a verdict — order only — but it is persisted
+  state the suite reads, and whether that belongs in `tools/` is the owner's call.
+- **A segment-parallel unit pass** falls out of the same markers (segments are
+  independent by construction) and would take the 74 s to ~20 s.
+- **Stop-check's 0.55 s** is the outside-writes detector's git calls, not forks.
+- **Antivirus scanning of process creation** is the usual reason a Windows fork costs
+  30 ms; an exclusion for the temp bench directory and Git's `usr/bin` is a machine
+  setting, measurable, not a kit change.
+
+### 90.9 What ships and what is owed
+
+Ships in 0.40.0: `templates/tdd-guard.template.sh` (adoption-only; reaches adopters
+through `/sdlc-update`'s walk-through, whose 0.40.0 note says what they may notice)
+and `tools/tdd-guard-check.py`, with `/kit-check`'s cost paragraph and the CHANGELOG
+entry. The Claude dialect is untouched. 0.39.0 released 2026-10-24 (§89.17); owed: its
+three adopter updates, then 0.40.0's release.

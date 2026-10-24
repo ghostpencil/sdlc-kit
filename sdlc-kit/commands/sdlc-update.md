@@ -656,6 +656,24 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
     fire exactly as today, beside a state file nothing reads, so `/sdlc pause` would
     change nothing. Where the project has its own guard tests, run them after the
     re-derive (as for 0.35.0), and run one `paused` write to see the stand-down.
+- **0.40.0 rewrites the Copilot TDD guard's hot paths for speed, and that arrives only
+  through the walk-through below.** `sdlc-tdd-guard.sh` (project-owned, from
+  `tdd-guard.template.sh`) does what it did with a fraction of the processes: the string
+  work every call paid a `printf | tr` or `| sed` pipeline for — the timestamp, the
+  quote-blanked probe and its leading words, the lowercased roots and paths — is done by
+  the JSON parser it runs anyway; the parser reads the payload from stdin itself;
+  markers are written by redirection; the deny, block and context messages reach the
+  parser through the environment. Measured on the kit's bench: a pre-write 0.75 s →
+  0.21 s, a shell command that is not a test run ~0.2 s. Behavior is unchanged (the
+  kit's suite, both dialects: 148 + 138 cases, 62 mutations caught), with three things
+  an adopter may notice: `.git/sdlc-tdd/.payload` exists during a pre-write (the
+  parser's copy for the cosmetic classifier, emptied at exit); log timestamps come from
+  the parser, so a line written before it has run — a session's first, a parser failure
+  — is dated by `date` as before; and on Git Bash the three root candidates are excluded
+  from MSYS's environment path rewriting (`MSYS2_ENV_CONV_EXCL=SDLC_C`), which the proof
+  found rewriting them behind the shell's back. Nothing to fold into project documents.
+  Re-derive with the helper, run `sh -n` on the result, and where the project has its
+  own guard tests, run them. The Claude guard (`sdlc-tdd-guard.py`) is untouched.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from

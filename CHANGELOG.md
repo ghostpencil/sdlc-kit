@@ -14,6 +14,39 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.40.0 — unreleased
+
+The proof-suite speed batch (`FEATURE_PLAN.md` §90), owner-directed 2026-10-24: the
+kit's slowest proof took ~29 minutes and said nothing about its progress while it ran.
+
+### Changed
+- **[adoption-only]** **`tdd-guard.template.sh` — the Copilot TDD guard's hot paths
+  fork a fraction of the processes they did.** The per-call string work (timestamp,
+  quote-blanked probe and its leading words, lowercased roots and paths) moves into the
+  JSON parser the guard runs anyway; the parser reads stdin itself and keeps a payload
+  copy for the cosmetic classifier (`.git/sdlc-tdd/.payload`, emptied at exit); markers
+  are written by redirection; messages reach the parser through the environment; the
+  state word forks `tr` only for a form the file is not written in; `jr`'s `tr -d '\r'`
+  goes, both parsers writing LF bytes, and a mutation proves the cases see a CR.
+  Pre-write 0.75 s → 0.21 s, a non-test shell command ~0.2 s, a RED 0.27 s (kit bench,
+  both dialects). On Git Bash the roots are excluded from MSYS's environment path
+  rewriting (`MSYS2_ENV_CONV_EXCL=SDLC_C`): the suite found that rewriting making the
+  second root candidate's proof vacuous. Arrives through `/sdlc-update`'s walk-through
+  (a project-owned script); its 0.40.0 note says what an adopter may notice.
+- **`tools/tdd-guard-check.py` runs in under 5 minutes and tells the time.** The
+  scenario is marked into 47 segments at its existing restart points; the unit passes
+  trace which guard lines each segment executes; each mutation runs the covering
+  segments first and the whole suite only if none fails (a `case` pattern the trace
+  never names is charged to its traced neighbours), so no mutation is reported caught or
+  survived on less evidence than before. Git fixtures are built only for segments that
+  run; the mtime sleeps are `os.utime` backdating. Every progress line carries the wall
+  clock and elapsed time, each mutation its own duration and how it was aimed, and the
+  pass ends with a work/mean line. Measured 2026-10-24: 279 s end to end at
+  `TDDGUARD_JOBS=8` (unit passes 74 s; 62 mutations, mean 21 s), from ~29 minutes; 407 s
+  at 4, 288 s at 16. Seven mutations re-anchored to the new template text, one replaced
+  (the text-mode read it mutated is gone; an 8-bit round trip of the message takes its
+  place) and the CRLF one added.
+- `/kit-check`'s cost paragraph states the new timings.
 ## 0.39.0 — 2026-10-24
 
 An SDLC state the hooks read before they act (`FEATURE_PLAN.md` §89, owner-raised

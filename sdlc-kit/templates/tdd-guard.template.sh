@@ -134,16 +134,23 @@ if [ "$GD" = "$SDLC_REPO_ROOT/.git" ]; then LIC=.git/sdlc-tdd; else
   LIC=$S
   case "$LIC" in "$wm"/?/*) LIC=$(printf '%s' "${LIC#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;; esac
 fi
-mkdir -p "$S" 2>/dev/null
+[ -d "$S" ] || mkdir -p "$S" 2>/dev/null
 LOG="$S/guard.log"
-IN=$(cat)
 
-log() { printf '%s [%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$MODE" "$1" >> "$LOG" 2>/dev/null; }
+# The timestamp is the parser's (field 6, below): a `date` of its own was a fork per
+# log line. Before the parser has run - its own failure, a session's first call - date
+# is asked once.
+TS=""
+log() { printf '%s [%s] %s\n' "${TS:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}" "$MODE" "$1" >> "$LOG" 2>/dev/null; }
 
 # FORK: the string work below is done with parameter expansion, not `printf | sed` or
 # `tr`, because every pipeline in a $(...) is two or three processes and Windows sh
 # pays tens of milliseconds for each. Measured 2026-10-21 on the dev machine: a
-# pre-write call cost ~2 s, ~40 forks with no single slow step.
+# pre-write call cost ~2 s, ~40 forks with no single slow step. What parameter
+# expansion cannot do - lowercase, blank quoted arguments, tell the time - the JSON
+# parser does, because it runs once per call whatever else happens (fields 6-12,
+# below); each of those used to be a `printf | tr` or `| sed` pipeline of its own, two
+# or three forks each, measured 2026-10-24 at ~30 ms a fork.
 NL='
 '
 # take: the first line of $rest into $v, and $rest loses it.
@@ -174,19 +181,22 @@ done
 if [ -z "$JP" ] && command -v node >/dev/null 2>&1; then JN=node; fi
 
 # jr <python-source> <node-source> - reads stdin, writes the same lines either way.
-# `tr -d '\r'` is not optional: Windows python writes CRLF, and a stray CR turns every
-# downstream string comparison false. Git Bash hides this (MSYS sed strips CR); WSL
-# bash does not.
+# Both sources write BYTES with LF line ends (python through sys.stdout.buffer, node
+# through process.stdout). A text-mode write on Windows python is CRLF, and a stray CR
+# turns every downstream string comparison false - Git Bash hides that (MSYS sed
+# strips CR), WSL bash does not. The `| tr -d '\r'` that used to guard it here was a
+# fork per parser call; the suite now proves the cases see a CR instead.
 jr() {
-  if   [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null | tr -d '\r'
-  elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null | tr -d '\r'
+  if   [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null
+  elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null
   else return 127
   fi
 }
 
 PY_PARSE='
-import sys,json,re
-d=json.loads(sys.stdin.buffer.read().decode("utf-8","replace"))
+import sys,json,re,os,time
+raw=sys.stdin.buffer.read()
+d=json.loads(raw.decode("utf-8","replace"))
 o=[d.get("sessionId") or ""]
 o.append(str(d.get("stop_hook_active") or d.get("stopHookActive") or "false").lower())
 a=d.get("toolArgs") or d.get("tool_input") or {}
@@ -199,7 +209,8 @@ else:
     cmd=a.get("command") or ""
     p=a.get("path") or a.get("file_path") or a.get("filePath") or ""
     if p: paths=[p]
-o.append(cmd.replace(chr(10)," "))
+cmd=cmd.replace(chr(10)," ")
+o.append(cmd)
 r=d.get("toolResult") or {}
 t=(r.get("textResultForLlm") or "") if isinstance(r,dict) else ""
 m=re.findall(r"completed with exit code (\d+)>",t)
@@ -209,12 +220,30 @@ try:
     o.append("1" if re.search(r"{{TEST_REPORT_PATTERN}}",u,re.M) else "0")
 except re.error:
     o.append("E")
-o.extend(paths)
+o.append(time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()))
+q=chr(39)
+probe=re.sub("\"[^\"]*\"|"+q+"[^"+q+"]*"+q," ",cmd)
+o.append(probe)
+w=probe.replace(chr(92),"/").lower().split()
+i=0
+while i<len(w) and (w[i]=="env" or re.match(r"[a-z_][a-z0-9_]*=",w[i])): i+=1
+o.append(" ".join(w[i:i+3]))
+for k in ("SDLC_C1","SDLC_C2","SDLC_C3"): o.append((os.environ.get(k) or "").lower())
+for p in paths:
+    n=p.replace(chr(92),"/")
+    o.extend([p,n,n.lower()])
+if os.environ.get("SDLC_PAYLOAD"):
+    try:
+        open(os.environ["SDLC_PAYLOAD"],"wb").write(raw)
+    except OSError:
+        pass
 sys.stdout.buffer.write(("\n".join(o)+"\n").encode("utf-8"))
 '
 
 JS_PARSE='
-const d=JSON.parse(require("fs").readFileSync(0,"utf8"));
+const fs=require("fs");
+const raw=fs.readFileSync(0);
+const d=JSON.parse(raw.toString("utf8"));
 const o=[d.sessionId||""];
 o.push(String(d.stop_hook_active||d.stopHookActive||"false").toLowerCase());
 let a=d.toolArgs||d.tool_input||{},cmd="",paths=[];
@@ -226,25 +255,66 @@ if(typeof a==="string" && !"{[".includes(a.trimStart()[0]||"")){
   const p=a.path||a.file_path||a.filePath||"";
   if(p) paths=[p];
 }
-o.push(cmd.replace(/\n/g," "));
+cmd=cmd.replace(/\n/g," ");
+o.push(cmd);
 const r=d.toolResult||{};
 const t=(r&&typeof r==="object")?(r.textResultForLlm||""):"";
 const mm=[...t.matchAll(/completed with exit code (\d+)>/g)];
 o.push(mm.length?mm[mm.length-1][1]:"");
 const u=t.replace(/\x1b\[[0-9;]*[A-Za-z]/g,"").replace(/\r\n/g,"\n");
 try{ o.push(new RegExp(String.raw`{{TEST_REPORT_PATTERN}}`,"m").test(u)?"1":"0"); }catch(e){ o.push("E"); }
-o.push(...paths);
+o.push(new Date().toISOString().replace(/\.\d+Z$/,"Z"));
+const q=String.fromCharCode(39);
+const probe=cmd.replace(new RegExp("\"[^\"]*\"|"+q+"[^"+q+"]*"+q,"g")," ");
+o.push(probe);
+const w=probe.replace(/\\/g,"/").toLowerCase().split(/\s+/).filter(Boolean);
+let i=0;
+while(i<w.length && (w[i]==="env" || /^[a-z_][a-z0-9_]*=/.test(w[i]))) i++;
+o.push(w.slice(i,i+3).join(" "));
+for(const k of ["SDLC_C1","SDLC_C2","SDLC_C3"]) o.push((process.env[k]||"").toLowerCase());
+for(const p of paths){ const n=p.replace(/\\/g,"/"); o.push(p,n,n.toLowerCase()); }
+if(process.env.SDLC_PAYLOAD){ try{ fs.writeFileSync(process.env.SDLC_PAYLOAD,raw); }catch(e){} }
 process.stdout.write(o.join("\n")+"\n");
 '
 
 # Every field this guard reads, one per line:
 #   1 sessionId  2 stop_hook_active  3 shell command  4 exit-code trailer
 #   5 the runner's own report found in the output: 1, 0, or E (the pattern is invalid)
-#   6+ patch paths (Add/Update only - a Delete has nothing to write-guard)
+#   6 the time, UTC  7 the command with its quoted arguments blanked (the probe)
+#   8 the probe's first three words, lowercased, after any env / NAME=value prefix
+#   9-11 the three candidate repository roots (SDLC_C1-3, pre-write only), lowercased
+#   12+ patch paths (Add/Update only - a Delete has nothing to write-guard), THREE
+#        lines each: as reported, with forward slashes, and that lowercased
 # The report is matched in the parser, where a regular expression lives naturally, on
 # the output with ANSI codes and CRLF removed: Copilot strips colour itself, but a
-# project that forces it would wrap the marker (measured 2026-10-20).
-F=$(printf '%s' "$IN" | jr "$PY_PARSE" "$JS_PARSE")
+# project that forces it would wrap the marker (measured 2026-10-20). Fields 6-12 are
+# string work that lives here for the reason FORK gives: the parser runs once per
+# call whatever else happens, and each of them used to be a pipeline of its own.
+# The parser reads the payload from this shell's own stdin - no $(cat), no printf |
+# pipe - and in pre-write keeps a copy for the cosmetic classifier, emptied again at
+# exit (below, beside the state-note trap).
+if [ "$MODE" = pre-write ]; then
+  # The candidate repository roots, built before the parser so it can lowercase them
+  # (why there are three: the pre-write arm, below).
+  wroot=""
+  case "$SDLC_REPO_ROOT" in
+    "$wm"/?/*) wroot=$(printf '%s' "${SDLC_REPO_ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;;
+  esac
+  slash "$SDLC_REPO_ROOT"; SDLC_C1=${r%/}
+  slash "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; SDLC_C2=${r%/}
+  slash "$wroot"; SDLC_C3=${r%/}
+  SDLC_PAYLOAD="$S/.payload"
+  # Git Bash rewrites a POSIX-looking value (/c/Users/...) into a Windows path on the
+  # way into a native python or node. The roots must reach the parser exactly as this
+  # shell sees them - the second candidate exists for the flavour the CLI reports, and
+  # a first candidate rewritten behind the shell's back would cover for it in silence
+  # (the suite saw exactly that: the mutation dropping it survived, 2026-10-24). The
+  # exclusion names the roots only; the payload path should be rewritten, since the
+  # parser that opens it is native.
+  MSYS2_ENV_CONV_EXCL=SDLC_C
+  export SDLC_C1 SDLC_C2 SDLC_C3 SDLC_PAYLOAD MSYS2_ENV_CONV_EXCL
+fi
+F=$(jr "$PY_PARSE" "$JS_PARSE")
 
 if [ -z "$F" ]; then
   # No parser, or an unparseable payload. Say so; never deny on the guard's own failure
@@ -263,6 +333,12 @@ take; ACTIVE=$v
 take; CMD=$v
 take; CODE=$v
 take; REPORT=$v
+take; TS=$v
+take; PROBE=$v
+take; W=$v
+take; l1=$v
+take; l2=$v
+take; l3=$v
 PATHS=$rest
 
 # Code that changed OUTSIDE the editor tools (0.36.0). This guard sees only the editor
@@ -374,7 +450,12 @@ fi
 # output when there is one and is emitted alone at exit otherwise.
 STATE=""; SNOTE=""; EMITTED=""
 [ -f "$GD/sdlc-state" ] && IFS= read -r STATE < "$GD/sdlc-state"
-STATE=$(printf '%s' "$STATE" | tr -d '\r' | tr '[:upper:]' '[:lower:]')
+# The words this file is written with pass as they are; any other form - a CR from a
+# Windows editor, upper case, a typo - is normalized through tr, a fork taken only then.
+case "$STATE" in
+  off|paused|phase|slice|close-out|phase-end|"") ;;
+  *) STATE=$(printf '%s' "$STATE" | tr -d '\r' | tr '[:upper:]' '[:lower:]') ;;
+esac
 if [ "$MODE" = "observe-test" ] && [ "$STATE" != "off" ] && [ ! -f "$S/state-spoken" ]; then
   case "$STATE" in
     paused)
@@ -395,39 +476,43 @@ flush_state_note() {
     emit_context "$sn"
   fi
 }
-trap flush_state_note EXIT
+trap 'flush_state_note; [ -z "$SDLC_PAYLOAD" ] || : > "$SDLC_PAYLOAD" 2>/dev/null' EXIT
 
 # The output schemas below were measured against the CLI, not taken from documentation.
-# The message is read as bytes and decoded as UTF-8: a text-mode read on Windows python
-# is cp1252 with surrogateescape, which turned a non-ASCII path in the message into
-# mojibake (measured 2026-10-20).
+# The message reaches the parser through the environment, as text: a `printf | jr` pipe
+# was a fork more per message, and a text-mode READ of it on Windows python was cp1252
+# with surrogateescape, which turned a non-ASCII path into mojibake (measured
+# 2026-10-20). The environment arrives decoded on every python and node (cases E1-E2).
 emit_deny() {
   EMITTED=1
-  printf '%s' "$1" | jr '
-import sys,json
-sys.stdout.write(json.dumps({"permissionDecision":"deny","permissionDecisionReason":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
+  SDLC_MSG=$1; export SDLC_MSG
+  jr '
+import sys,json,os
+sys.stdout.write(json.dumps({"permissionDecision":"deny","permissionDecisionReason":os.environ.get("SDLC_MSG","")},separators=(",",":")))
 ' '
-process.stdout.write(JSON.stringify({permissionDecision:"deny",permissionDecisionReason:require("fs").readFileSync(0,"utf8")}));
+process.stdout.write(JSON.stringify({permissionDecision:"deny",permissionDecisionReason:process.env.SDLC_MSG||""}));
 '
 }
 emit_block() {
   EMITTED=1
-  printf '%s' "$1" | jr '
-import sys,json
-sys.stdout.write(json.dumps({"decision":"block","reason":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
+  SDLC_MSG=$1; export SDLC_MSG
+  jr '
+import sys,json,os
+sys.stdout.write(json.dumps({"decision":"block","reason":os.environ.get("SDLC_MSG","")},separators=(",",":")))
 ' '
-process.stdout.write(JSON.stringify({decision:"block",reason:require("fs").readFileSync(0,"utf8")}));
+process.stdout.write(JSON.stringify({decision:"block",reason:process.env.SDLC_MSG||""}));
 '
 }
 # postToolUse context injection - the same measured schema the edit-time gate hook uses.
 emit_context() {
   EMITTED=1
   if [ -n "$SNOTE" ]; then : > "$S/state-spoken" 2>/dev/null; set -- "$SNOTE $1"; SNOTE=""; fi
-  printf '%s' "$1" | jr '
-import sys,json
-sys.stdout.write(json.dumps({"additionalContext":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
+  SDLC_MSG=$1; export SDLC_MSG
+  jr '
+import sys,json,os
+sys.stdout.write(json.dumps({"additionalContext":os.environ.get("SDLC_MSG","")},separators=(",",":")))
 ' '
-process.stdout.write(JSON.stringify({additionalContext:require("fs").readFileSync(0,"utf8")}));
+process.stdout.write(JSON.stringify({additionalContext:process.env.SDLC_MSG||""}));
 '
 }
 
@@ -439,29 +524,19 @@ case "$MODE" in
   pre-write)
     [ -n "$PATHS" ] || { log "no paths parsed from the write payload"; exit 0; }
     prod=""; test_touched=""; nprod=0; pfile=""; ntest=0; tfile=""; prel=""
-    # The candidate repository roots (why there are three: inside the loop, below).
-    # They depend only on the root, so they are built once per call, not per path:
-    # separators normalized and the trailing slash dropped, plus each one lowercased,
-    # all three in one `tr`.
-    wroot=""
-    case "$SDLC_REPO_ROOT" in
-      "$wm"/?/*) wroot=$(printf '%s' "${SDLC_REPO_ROOT#"$wm"/}" | sed 's|^\(.\)/|\1:/|') ;;
-    esac
-    slash "$SDLC_REPO_ROOT"; c1=${r%/}
-    slash "$(cd "$SDLC_REPO_ROOT" 2>/dev/null && pwd -W 2>/dev/null)"; c2=${r%/}
-    slash "$wroot"; c3=${r%/}
-    rest=$(printf '%s\n%s\n%s' "$c1" "$c2" "$c3" | tr '[:upper:]' '[:lower:]')
-    take; l1=$v; take; l2=$v; take; l3=$v
-    # One path per line, read with IFS cleared: a path containing a space is one path,
-    # not two. The heredoc (rather than a pipe) keeps the loop in this shell, so what it
-    # accumulates survives it.
-    while IFS= read -r p; do
+    # The candidate repository roots (why there are three: inside the loop, below) were
+    # built before the parser ran, which lowercased them: c1-c3 here, l1-l3 from it.
+    c1=$SDLC_C1; c2=$SDLC_C2; c3=$SDLC_C3
+    # THREE lines per path - as reported, with forward slashes, and that lowercased -
+    # read with IFS cleared: a path containing a space is one path, not two. The
+    # heredoc (rather than a pipe) keeps the loop in this shell, so what it accumulates
+    # survives it.
+    while IFS= read -r p && IFS= read -r n && IFS= read -r nl; do
       [ -n "$p" ] || continue
       # Paths arrive absolute-Windows AND repo-relative. Classify on the normalized
       # relative path and on the basename, so both `tests/*` and `test_*.py` shaped
       # patterns work. Test check runs FIRST: SOURCE_GLOB is extension-only, so it
       # matches test files just as readily as production ones.
-      slash "$p"; n=$r
       # Reduce to a repo-relative path first, and drop anything that is not in the
       # repository at all. This dialect never attempted the reduction: it classified
       # on the full path and the basename, so an absolute path outside the root
@@ -474,7 +549,6 @@ case "$MODE" in
       # adopter's SOURCE_GLOB does not match its scratch files. Owner ruling: a file
       # outside the repository cannot be production source. Compared case-insensitively
       # because Windows hands back either case for the same directory.
-      nl=$(printf '%s' "$n" | tr '[:upper:]' '[:lower:]')
       # TWO candidate roots, tried in turn, because the hook shell's own path flavour
       # and the flavour the CLI reports paths in NEED NOT AGREE. On Windows an MSYS
       # shell answers `pwd` with `/d/foo` while the CLI reports `D:\foo`; normalizing
@@ -502,11 +576,15 @@ case "$MODE" in
         [ -n "$c" ] || continue
         case "$nl" in
           "$cl"/*)
-            # The exact-case prefix strips without a fork; only a path the CLI
-            # reported in a different case than the root falls to `cut`.
+            # The exact-case prefix strips directly; a path the CLI reported in a
+            # different case than the root is stripped by length instead - a pattern
+            # of as many `?` as the root has characters, plus its slash - which is a
+            # loop of builtins where it used to be a `printf | cut`.
             case "$n" in
               "$c"/*) rel=${n#"$c"/} ;;
-              *) rel=$(printf '%s' "$n" | cut -c $((${#c} + 2))-) ;;
+              *) k=$(( ${#c} + 1 )); pat=""
+                 while [ "$k" -gt 0 ]; do pat="$pat?"; k=$((k - 1)); done
+                 rel=${n#$pat} ;;
             esac
             break ;;
         esac
@@ -573,7 +651,7 @@ PAUSEDLIST
       # not node: a node-only shell gets no exemption (stated in COPILOT.md).
       cos=""
       if [ -z "$ok" ] && [ "$nprod" = 1 ] && [ -n "$JP" ] && [ -f "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" ]; then
-        cout=$(printf '%s' "$IN" | "$JP" "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" write "$pfile" 2>/dev/null; printf '\n%s' "$?")
+        cout=$("$JP" "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" write "$pfile" < "$S/.payload" 2>/dev/null; printf '\n%s' "$?")
         crc=$(printf '%s\n' "$cout" | tail -n 1 | tr -d '\r')
         cdetail=$(printf '%s\n' "$cout" | sed '$d' | head -n 1 | tr -d '\r')
         if [ "$crc" = 0 ]; then cos=${cdetail:-cosmetic}; ok=cosmetic
@@ -591,10 +669,10 @@ PAUSEDLIST
         printf '%s' "$prel" >> "$S/seen-writes"
       fi
       if [ "$ok" = "red" ]; then
-        touch "$S/prod-write-observed" 2>/dev/null
+        : > "$S/prod-write-observed" 2>/dev/null
         log "OK production write (red observed since last test edit): $prod"
       elif [ "$ok" = "lic" ]; then
-        touch "$S/prod-write-observed" 2>/dev/null
+        : > "$S/prod-write-observed" 2>/dev/null
         if [ -f "$S/close-out-license" ]; then which=close-out; else which=refactor; fi
         log "OK production write ($which license: $(head -n 1 "$S/$which-license" 2>/dev/null | tr -d '\r')): $prod"
       elif [ "$ok" = "cosmetic" ]; then
@@ -605,7 +683,7 @@ PAUSEDLIST
         log "DENY production write without observed red: $prod"
         emit_deny "TDD ordering: the write to $prod was denied because this session has not edited a test file and then observed a failing test run. For new behavior: write or edit one test, run it, watch it fail, then implement. Run the tests as a single bare command (no ';', '&' or '|' separators - the guard reads that run's own exit code, and a compound command's exit code is not the test's), then retry this edit. For a BEHAVIOR-PRESERVING edit at any point in the cycle (refactor, simplification, mutation testing - including a temporary mutation to prove a test of existing behavior bites): declare it instead - write one line naming the step and move to $LIC/refactor-license, then retry. That license requires a counted green run this session, is revoked by the next test edit, ends with the session, and every write made under it is logged for review. If you are running /end-slice, declare $LIC/close-out-license instead - same rules, except a test edit does NOT revoke it, because close-out's own step order edits tests between its production writes; each test edit it survives is counted in the log."
       else
-        touch "$S/prod-write-observed" 2>/dev/null
+        : > "$S/prod-write-observed" 2>/dev/null
         log "VIOLATION production write without observed red: $prod"
       fi
     fi
@@ -618,7 +696,7 @@ PAUSEDLIST
     if [ -n "$test_touched" ] && [ "$ntest" = 1 ] && [ "$nprod" = 0 ] && [ -n "$JP" ] \
        && [ -f "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" ] \
        && { { [ -f "$S/red-observed" ] && [ -f "$S/last-test-edit" ] && [ "$S/red-observed" -nt "$S/last-test-edit" ]; } || [ -f "$S/refactor-license" ]; }; then
-      cout=$(printf '%s' "$IN" | "$JP" "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" write "$tfile" 2>/dev/null; printf '\n%s' "$?")
+      cout=$("$JP" "$SDLC_REPO_ROOT/.github/hooks/sdlc-cosmetic.py" write "$tfile" < "$S/.payload" 2>/dev/null; printf '\n%s' "$?")
       crc=$(printf '%s\n' "$cout" | tail -n 1 | tr -d '\r')
       cdetail=$(printf '%s\n' "$cout" | sed '$d' | head -n 1 | tr -d '\r')
       if [ "$crc" = 0 ]; then
@@ -631,7 +709,7 @@ PAUSEDLIST
     # It also revokes any refactor license - a new test is a new cycle, and a window
     # declared for the last slice's close-out must not license this one's behavior.
     if [ -n "$test_touched" ]; then
-      touch "$S/last-test-edit" 2>/dev/null
+      : > "$S/last-test-edit" 2>/dev/null
       log "test edit recorded (any earlier red is now stale)"
       if [ -f "$S/refactor-license" ]; then
         rm -f "$S/refactor-license" 2>/dev/null
@@ -641,8 +719,9 @@ PAUSEDLIST
       # test edits between its production writes. It is counted, not silent: a
       # license still open after many test edits is one held past its step.
       if [ -f "$S/close-out-license" ]; then
-        k=$(head -n 1 "$S/close-out-survivals" 2>/dev/null | tr -dc '0-9')
-        [ -n "$k" ] || k=0
+        k=0
+        [ -f "$S/close-out-survivals" ] && IFS= read -r k < "$S/close-out-survivals"
+        case "$k" in ""|*[!0-9]*) k=0 ;; esac
         k=$((k + 1))
         printf '%s' "$k" > "$S/close-out-survivals" 2>/dev/null
         log "close-out license SURVIVED a test edit ($k this session) - close-out edits tests between its production writes by design"
@@ -664,7 +743,7 @@ PAUSEDLIST
     # The compound check deliberately keeps reading the RAW command: a stripping bug
     # there would admit a genuine compound and record a false GREEN, so that check
     # stays conservative and this one does not feed it.
-    PROBE=$(printf '%s' "$CMD" | sed -e 's/"[^"]*"/ /g' -e "s/'[^']*'/ /g")
+    # $PROBE is the parser's field 7 (the command with its quoted arguments blanked).
     case "$PROBE" in
       {{TEST_CMD_PATTERN}}) ;;
       *) exit 0 ;;
@@ -676,10 +755,10 @@ PAUSEDLIST
     # RED, and - worse - a success counted as a GREEN that satisfied the stop guard
     # with no test run at all (found at 0.35.0's triage). The heredoc operator is never
     # quoted, so the stripped probe keeps it. The rest is judged on the leading
-    # executable, after any `env` and NAME=value prefix: a fixed list on purpose,
-    # because every mistake it makes lands on the not-counted side.
+    # executable, after any `env` and NAME=value prefix - the probe's first three
+    # words, lowercased, the parser's field 8 ($W): a fixed list on purpose, because
+    # every mistake it makes lands on the not-counted side.
     case "$PROBE" in *"<<"*) exit 0 ;; esac
-    W=$(printf '%s' "$PROBE" | awk '{ gsub(/\\/, "/"); $0 = tolower($0); n = 0; for (i = 1; i <= NF; i++) { if (n == 0 && ($i == "env" || $i ~ /^[a-z_][a-z0-9_]*=/)) continue; w[n++] = $i; if (n == 3) break } for (j = 0; j < n; j++) printf "%s ", w[j] }')
     set -f; set -- $W; set +f
     exe=${1##*/}; exe=${exe%.exe}; exe=${exe%.cmd}; exe=${exe%.bat}; exe=${exe%.ps1}
     case "$exe" in
@@ -717,7 +796,7 @@ PAUSEDLIST
     # session is counted yet licenses nothing, and a message that says otherwise is
     # confidently wrong at the exact moment it is trusted.
     elif [ "$CODE" = "0" ]; then
-      touch "$S/green-observed" 2>/dev/null; log "GREEN observed: $CMD"
+      : > "$S/green-observed" 2>/dev/null; log "GREEN observed: $CMD"
       emit_context "TDD ordering: GREEN counted. The stop guard is satisfied; full-suite assurance remains the end-slice gate's job."
     # A failing exit is the COMMAND's verdict; a RED is the test's. A wrapper that
     # fails before the runner starts - pnpm's install check, a bad flag, a missing
@@ -731,7 +810,7 @@ PAUSEDLIST
       log "test run NOT counted (exit $CODE, but no test-runner report in the output - the failure is the command's, not a test's): $CMD"
       emit_context "TDD ordering: that failing run was NOT counted as a RED - it exited $CODE, but its output carries no test-runner failure report, so the failure is the command's, not a test's: an install or environment check, a bad flag, a missing binary, or a filter matching no tests. Fix that and re-run. If a test really did fail, its report was cut off by a long output - re-run it quieter (the runner's quiet flag or a single-test selector) to register the RED."
     else
-      touch "$S/red-observed" 2>/dev/null; log "RED observed (exit $CODE): $CMD"
+      : > "$S/red-observed" 2>/dev/null; log "RED observed (exit $CODE): $CMD"
       if [ -f "$S/last-test-edit" ] || { { [ -f "$S/refactor-license" ] || [ -f "$S/close-out-license" ]; } && [ -f "$S/green-observed" ]; }; then
         emit_context "TDD ordering: RED counted (exit $CODE). A production write is now licensed for this cycle."
       else
