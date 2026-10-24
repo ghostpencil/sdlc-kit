@@ -328,20 +328,18 @@ copies update.
 re-applied to an already-adopted project — with five exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
-gone); on Copilot projects `templates/explore.agent.template.md`, which is
-copied verbatim rather than instantiated because it carries no placeholders;
-from 0.20.0, on both CLIs, `templates/close-out.template.sh`, copied verbatim to
-`.github/hooks/sdlc-close-out.sh` for the same reason; and — from 0.28.0, on both CLIs —
+gone); on Copilot projects `templates/explore.agent.template.md`, which is copied verbatim
+rather than instantiated because it carries no placeholders; from 0.20.0, on both CLIs,
+`templates/close-out.template.sh`, copied verbatim to `.github/hooks/sdlc-close-out.sh`
+for the same reason; and — from 0.28.0, on both CLIs —
 `templates/sdlc-impact.template.py`, copied verbatim to `.github/hooks/sdlc-impact.py`;
 and — from 0.34.0, on both CLIs — `templates/sdlc-cosmetic.template.py`, copied verbatim
-to `.github/hooks/sdlc-cosmetic.py`.
-A kit release that changes only
-the non-installed templates and reference docs is an adoption-only change — it affects new
-adoptions, not yours, **with one standing exception**: a template change to a
-project-owned file you instantiated reaches you only with your review — a hook script
-through the update's walk-through, which offers to apply it and shows the full diff; a
-spec file as a diff handed to you to fold in — and the per-version transition notes
-name each one.
+to `.github/hooks/sdlc-cosmetic.py`. A kit release that changes only the non-installed
+templates and reference docs is an adoption-only change — it affects new adoptions, not
+yours, **with one standing exception**: a template change to a project-owned file you
+instantiated reaches you only with your review — a hook script through the update's
+walk-through, which offers to apply it and shows the full diff; a spec file as a diff
+handed to you to fold in — and the per-version transition notes name each one.
 `CHANGELOG.md` marks each entry accordingly.
 
 ### The procedure

@@ -1,8 +1,8 @@
 # End Slice
 
-Close out the current slice: gate → close-out licence → review → fix → mutation check
-→ verification → commit → record check → record. Runs without asking except for
-owner-facing design questions. Process reference: `spec/SDLC.md`.
+Close out the current slice: gate → close-out licence → review → fix → mutation check →
+verification → commit → record check → record. Runs without asking except for owner-facing
+design questions. Process reference: `spec/SDLC.md`.
 
 ## How to use
 
@@ -538,15 +538,15 @@ Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open wi
 plain-English executive summary in bullets: what the slice now does, gate green (test
 count), and what is next — with any decision the owner still owes **numbered and
 explicitly marked** (usually there is none; an open design question is the exception).
-Then the detail, after the summary and never mixed into it: review outcome (N fixed / N deferred / N discarded as unverified, naming those),
-mutation-check outcome (N guards checked, each seen to fail), **RED evidence per
-behavior batch** (the command, the failing line, the exit code — with `not observed`
-stated, never omitted), **verification outcome**
-(the verdicts, or skipped with the reason), **the record check's quoted output**
-(step 8 — COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line**
-(step 9 — quoted, and an `OVER` answered rather than merely reported), **the final
-architecture footprint** (below, where the project has one), any tool substituted for
-one this file names, and commit hashes. End with: **safe to `/clear`**.
+Then the detail, after the summary and never mixed into it: review outcome (N fixed / N
+deferred / N discarded as unverified, naming those), mutation-check outcome (N guards
+checked, each seen to fail), **RED evidence per behavior batch** (the command, the failing
+line, the exit code — with `not observed` stated, never omitted), **verification outcome**
+(the verdicts, or skipped with the reason), **the record check's quoted output** (step 8 —
+COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line** (step 9 — quoted,
+and an `OVER` answered rather than merely reported), **the final architecture footprint**
+(below, where the project has one), any tool substituted for one this file names, and
+commit hashes. End with: **safe to `/clear`**.
 
 **Regenerate the architecture impact view before handing back**, where the project
 carries one — after the record check and the docs commit, so it describes the slice as

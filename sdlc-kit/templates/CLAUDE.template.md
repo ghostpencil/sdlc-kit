@@ -93,9 +93,9 @@ How this project's code logs and fails. Recorded at setup — owner-answered (Ne
 Project) or discovered from the code and confirmed (Existing). Enforcement: the linter
 rules named below run in the gate and the edit-time hook; the *logging and swallowed
 errors* and *untrusted input* lenses in `.claude/commands/REVIEW_LENSES.md` cover what
-no rule can state. Secrets have rules only: the secret-scanning rules below, and no
-lens. A convention changed here without its linter rule is a claim, not a control —
-change both together.
+no rule can state. Secrets have no lens since kit 0.38.0: a secret-scanning rule this
+project adopts is named below, and where none is, secrets are unreviewed. A convention
+changed here without its linter rule is a claim, not a control — change both together.
 
 - **Logging:** {{LOGGING_CONVENTIONS}}
 - **Error handling:** {{ERROR_CONVENTIONS}}

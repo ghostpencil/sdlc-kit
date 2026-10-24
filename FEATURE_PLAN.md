@@ -7735,3 +7735,31 @@ adopter message was posted on sdlc-kit#17 (owner's choice of channel,
 issuecomment-6377439099). It names both adopters, which #17's and #10's own bodies
 already do. Next: the three adopter updates, 0.37.1 → 0.38.0 (§88.4 lists what each
 holds).
+
+### 88.7 The adopter updates to 0.38.0, and what they found in the kit
+
+Three forked agents, one per adopter, each with its own kit clones. All three PRs are open
+and unmerged:
+- TFit: tfit-qa-app#38. 20 UNCHANGED / 0 DRIFTED / 1 project-owned; gate 1262 passed and
+  1 skipped.
+- chainmail: chainmail-webfactory#5. 18/18 UNCHANGED; `pnpm gate` 216 tests, CI pass.
+- ai-news: ai-news-dashboard#25. 20/20 UNCHANGED; Maven gate 104 tests, CI pass.
+
+I re-verified every branch tip independently. Each has stamps and bundles at 0.38.0, the
+bundle verifies 43/43, there are 0 `{{`, no `change-simplify`, no backstop JSON and no
+backstop Stop block, the TDD guard's own Stop block is kept, and the 0.38.0 marker is
+present. The `quality:` mentions that remain are all history paragraphs.
+
+**Kit defects the updates found:**
+- **Inv 1, in a template: `CLAUDE.template.md`'s new secrets sentence** said "the
+  secret-scanning rules below". chainmail and ai-news name no such rule, so the sentence
+  was false in two of three projects. chainmail's agent caught it and declined to copy it;
+  ai-news's copied it, and I corrected that on its PR (`8ec31dd`). The kit fix is 0.38.1
+  (unreleased).
+- **Wrap:** 0.38.0 added prose lines past 90 columns. They are rewrapped in 0.38.1 except in
+  `SDLC.template.md`, which the adopters folded verbatim. A first reflow pass ran inside the
+  shipped README's code-fenced file tree and flattened it. The diff caught it, the file was
+  restored, and every other reflowed hunk was read.
+- **For the owner, on TFit:** three `RULING OPEN` friction entries naming `change-simplify`
+  (2026-08-16, 2026-08-19, 2026-09-01) and backlog #138 (backstop window scoping) are made
+  moot by 0.38.0. Closing them needs the owner's word.

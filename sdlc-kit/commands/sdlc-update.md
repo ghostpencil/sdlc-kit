@@ -80,9 +80,10 @@ git -C /tmp/kit worktree add /tmp/kit-old vX.Y.Z                # the version yo
 
 Compare every installed file — `.claude/commands/`, `.claude/skills/`, `.claude/agents/`,
 `.github/skills/`, `.github/agents/` and the kit-owned `.github/hooks/` files (three, plus
-the retired `sdlc-close-out.json` where present), as the script below enumerates them — against the **old** version's manifest. Hash committed content (`git cat-file -p :path`), never the working
-tree — an unpinned checkout on Windows holds CRLF and would report every file as
-drifted, uniformly and plausibly wrong.
+the retired `sdlc-close-out.json` where present), as the script below enumerates them —
+against the **old** version's manifest. Hash committed content (`git cat-file -p :path`),
+never the working tree — an unpinned checkout on Windows holds CRLF and would report every
+file as drifted, uniformly and plausibly wrong.
 
 ```bash
 cd <project root>
@@ -330,14 +331,14 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   `/tmp/kit/sdlc-kit/reference/UPDATE_NOTES.md`), and they carry what no classification
   can infer. A project already on 0.32.0 or later skips the file.
 - **Every update: each optional hook's record against its artifact.** Two offers are
-  recorded in `spec/SDLC.md` whether taken or declined, and every update reads each
-  record beside its artifact, for each CLI the *Agent CLI:* line names. The TDD guards:
-  `.github/hooks/sdlc-tdd-guard.sh` + `.json` on Copilot, `.github/hooks/sdlc-tdd-guard.py`
-  plus its four `.claude/settings.json` blocks on Claude Code. The skill ledger:
-  `.github/hooks/sdlc-skill-ledger.json` on Copilot, the `"Skill"` block on Claude Code.
-  (The close-out backstop was a third until 0.38.0 retired it; its record is that
-  release's note, not this bullet.) Read both directions, because the branch that skips reading the
-  record is the branch that can never notice:
+  recorded in `spec/SDLC.md` whether taken or declined, and every update reads each record
+  beside its artifact, for each CLI the *Agent CLI:* line names. The TDD guards:
+  `.github/hooks/sdlc-tdd-guard.sh` + `.json` on Copilot,
+  `.github/hooks/sdlc-tdd-guard.py` plus its four `.claude/settings.json` blocks on Claude
+  Code. The skill ledger: `.github/hooks/sdlc-skill-ledger.json` on Copilot, the `"Skill"`
+  block on Claude Code. (The close-out backstop was a third until 0.38.0 retired it; its
+  record is that release's note, not this bullet.) Read both directions, because the
+  branch that skips reading the record is the branch that can never notice:
   - **A recorded decline, no artifact** → settled. One sentence in the report; never
     re-open it.
   - **No record line at all** → the project never had the choice. Offer it now, as a
@@ -573,16 +574,16 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   *Records* is a finding for the owner, not a value to drop silently. The canonical rule
   moved in `templates/SDLC.template.md` (*Coverage floor*); step 4's marker table
   carries it.
-- **0.37.0 adds two rules to `spec/SDLC.md`'s template**, so this update puts each to
-  the owner as a fold. The quality pass may trim the gate between moves but runs it in
-  full once after the last, and the `quality:` line says which form ran (slice loop
-  step 6). Skip that fold when the update also crosses 0.38.0, which retires the pass;
-  its marker row went with it. The phase close stamps any baseline that carries no `@ <short-sha>`, green or red
-  (*Phase end*, the *Records* reconcile), which also covers a green baseline recorded
-  before 0.29.0. The guard note's comment now asks for the proof's catch by name and a
-  reach note; a project whose guard note lacks them adds them when folding. Setup's
-  baseline stamp, the guard note's one list and `python-pro`'s caveat reach only a
-  fresh adoption, and the 0.14.0–0.31.3 notes now live in `reference/UPDATE_NOTES.md`.
+- **0.37.0 adds two rules to `spec/SDLC.md`'s template**, so this update puts each to the
+  owner as a fold. The quality pass may trim the gate between moves but runs it in full
+  once after the last, and the `quality:` line says which form ran (slice loop step 6).
+  Skip that fold when the update also crosses 0.38.0, which retires the pass; its marker
+  row went with it. The phase close stamps any baseline that carries no `@ <short-sha>`,
+  green or red (*Phase end*, the *Records* reconcile), which also covers a green baseline
+  recorded before 0.29.0. The guard note's comment now asks for the proof's catch by name
+  and a reach note; a project whose guard note lacks them adds them when folding. Setup's
+  baseline stamp, the guard note's one list and `python-pro`'s caveat reach only a fresh
+  adoption, and the 0.14.0–0.31.3 notes now live in `reference/UPDATE_NOTES.md`.
 - **0.37.1 makes the coverage floor a recorded control.** Its *Records* row in
   `spec/SDLC.md` now carries the prove-it-fires catch, named (the failing line and the
   command or CI job it failed in), and a reach note, like every other control row. The
@@ -600,22 +601,26 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
     removal clause above: `UNCHANGED` is deleted, `DRIFTED` goes to the owner. The record
     loses its `quality:` line, and the checker now ignores one, so older commits still
     read COMPLETE. `/end-slice` step 3 is now the close-out licence alone. Fold
-    `spec/SDLC.md` **in this update**, from `templates/SDLC.template.md`: slice-loop step 6
-    becomes the close-out-licence step, slice-loop step 4's docs-only skip drops its
+    `spec/SDLC.md` **in this update**, from `templates/SDLC.template.md`: slice-loop step
+    6 becomes the close-out-licence step, slice-loop step 4's docs-only skip drops its
     `quality:` form, and steps 10 and 11 drop `quality:` from the record (this command's
-    step 4 marker table carries the row). Unfolded, step 6 names a pass whose skill this update just removed.
-  - **The close-out backstop** (`stop-check`). On Copilot, `.github/hooks/sdlc-close-out.json`
-    goes by the same removal clause. On Claude Code, hand the owner the removal of the
-    `Stop` block that runs `sdlc-close-out.sh stop-check` from `.claude/settings.json`;
-    this command never edits that file. Until it goes, the mode exits 0 before reading
-    anything, so the leftover costs a few processes per stop and blocks nothing. Hand the
-    owner the fold for the close-out checker note in `spec/SDLC.md` *Records*: its
-    backstop state becomes `backstop: retired in 0.38.0`. `.git/sdlc-close-out/deny-enabled` and `seen` may be deleted. Keep the
-    `log`: `docs-check` still writes it.
+    step 4 marker table carries the row). Unfolded, step 6 names a pass whose skill this
+    update just removed.
+  - **The close-out backstop** (`stop-check`). On Copilot,
+    `.github/hooks/sdlc-close-out.json` goes by the same removal clause. On Claude Code,
+    hand the owner the removal of the `Stop` block that runs `sdlc-close-out.sh
+    stop-check` from `.claude/settings.json`; this command never edits that file. Until it
+    goes, the mode exits 0 before reading anything, so the leftover costs a few processes
+    per stop and blocks nothing. Hand the owner the fold for the close-out checker note in
+    `spec/SDLC.md` *Records*: its backstop state becomes `backstop: retired in 0.38.0`.
+    `.git/sdlc-close-out/deny-enabled` and `seen` may be deleted. Keep the `log`:
+    `docs-check` still writes it.
   - **The `secrets and exposure` lens.** `REVIEW_LENSES.md` arrives with the update.
     `CLAUDE.md`'s *Runtime Conventions* enforcement line names the lens: hand the owner
     the re-pointed sentence from `templates/CLAUDE.template.md`. The secret-scanning
-    linter rules stay.
+    linter rules stay. The sentence as 0.38.0 first shipped it ("the secret-scanning
+    rules below") asserted rules a project may not name; 0.38.1 corrected it to say
+    secrets are unreviewed where none is named. Check which is true here before folding.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from

@@ -14,6 +14,21 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.38.1 — unreleased
+
+Two defects the adopter updates to 0.38.0 found (`FEATURE_PLAN.md` §88.7).
+
+### Fixed
+- **[adoption-only]** **`CLAUDE.template.md`'s secrets sentence asserted a project fact.**
+  As 0.38.0 shipped it, it said "the secret-scanning rules below", which is false
+  wherever the conventions name none: two of three adopters, measured. It now says a rule
+  the project adopts is named below, and that secrets are unreviewed where none is.
+  `/sdlc-update`'s 0.38.0 note says to check which is true before folding.
+- Prose lines that 0.38.0 added past the 90-column wrap were rewrapped in the commands,
+  `diff-review` and the root README. Wording is unchanged (`git diff --word-diff` is
+  empty). `SDLC.template.md` is deliberately left as shipped: the adopters folded it
+  verbatim, and a whitespace hunk would churn their next update.
+
 ## 0.38.0 — 2026-10-23
 
 Three controls retired on their own pre-registered clocks (`FEATURE_PLAN.md` §87, the

@@ -99,9 +99,10 @@ Find the standards, in this order:
 2. Any other convention file the repo carries (`CONTRIBUTING.md`, a style guide).
 3. The baseline below, **always** — beneath the first two, never instead of them.
 
-**A documented project standard always wins over the baseline where the two meet.** If the repo says to do
-something the baseline calls a smell, the repo is right and the baseline is silent —
-say so explicitly in the report rather than filing a finding you already know is wrong.
+**A documented project standard always wins over the baseline where the two meet.** If the
+repo says to do something the baseline calls a smell, the repo is right and the baseline
+is silent — say so explicitly in the report rather than filing a finding you already know
+is wrong.
 
 **The baseline** — structural smells, applied only where the diff introduced or worsened
 one. Never file a smell that the change set merely stood next to.

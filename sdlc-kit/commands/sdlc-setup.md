@@ -279,17 +279,16 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    list:
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
      `sdlc-retro.md`, `sdlc-update.md` (and this file);
-   - the skill directories from `sdlc-kit/skills/`, each already a skill directory that
-     is copied whole: `tdd/` (with its `tdd-references/` subfolder, which `SKILL.md`
-     links into relatively), `mutation-testing/` (always — `/end-slice`'s mutation-check
-     step invokes it, so it is not optional), `diff-review/` (always — `/end-slice`
-     step 4 and `/end-phase` step 5 both name it, and it is the only reviewer that
-     exists on both CLIs), and `change-verify/` (always — `/end-slice` step 6 and
-     `/end-phase` step 2 name it; the slice step is optional, the skill is not, because
-     a step that may run needs the skill present to decide against); then
-     `python-pro/` + `hypothesis-tests/` (Python projects only — offer). Copy
-     directories, not files: the six `SKILL.md` files share a basename and only their parent directory tells
-     them apart.
+   - the skill directories from `sdlc-kit/skills/`, each already a skill directory that is
+     copied whole: `tdd/` (with its `tdd-references/` subfolder, which `SKILL.md` links
+     into relatively), `mutation-testing/` (always — `/end-slice`'s mutation-check step
+     invokes it, so it is not optional), `diff-review/` (always — `/end-slice` step 4 and
+     `/end-phase` step 5 both name it, and it is the only reviewer that exists on both
+     CLIs), and `change-verify/` (always — `/end-slice` step 6 and `/end-phase` step 2
+     name it; the slice step is optional, the skill is not, because a step that may run
+     needs the skill present to decide against); then `python-pro/` + `hypothesis-tests/`
+     (Python projects only — offer). Copy directories, not files: the six `SKILL.md` files
+     share a basename and only their parent directory tells them apart.
    - `reference/REVIEW_LENSES.md` → `.claude/commands/REVIEW_LENSES.md` (always) —
      `end-slice.md` §4 points at that installed path, so skipping this breaks the
      pointer. The rest of `reference/` stays uninstalled.
