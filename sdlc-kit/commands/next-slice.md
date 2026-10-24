@@ -123,8 +123,11 @@ PR opened only so CI runs on the arc is not that PR — `spec/SDLC.md` *Shape*.)
   it for the **arc's theme**, not for this first slice, because later slices accumulate
   onto it and a branch named for its first slice misdescribes everything after).
 - Never implement a slice directly on the main branch.
-- **Record the slice base for the architecture impact view**, once the branch is
-  settled and before any implementation begins:
+- **Record the slice's state and its base for the architecture impact view**, once the
+  branch is settled and before any implementation begins: first
+  `python .github/hooks/sdlc-state.py set slice --phase NN --slice Sn --by next-slice`
+  (`spec/SDLC.md` *Shape*; a project without that helper predates it — skip and say so;
+  a `paused` state is named in one line and replaced), then
   `python .github/hooks/sdlc-impact.py record-base`. It prints one line and does
   nothing at all on a project without an Understand Anything graph, which is most
   projects — `spec/SDLC.md` (*Architecture impact view*) is the canonical statement.

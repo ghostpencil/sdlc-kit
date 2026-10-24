@@ -310,7 +310,15 @@ anchor** (`tools/skill-ledger-check.py` since 0.38.0, `tools/close-out-check.py`
 it: from a subdirectory of a linked worktree the ledger launcher must be seen to reach its
 script; the case was seen to fail with the anchor removed, exit 127 — once by hand,
 2026-10-23, Git Bash on Windows; the suite's exact-launcher case pins it thereafter;
-`tools/gate-hook-check.py` pins the anchor on every launcher) — the
+`tools/gate-hook-check.py` pins the anchor on every launcher), the **SDLC state**
+(0.39.0: each of the four hook bodies' stand-down, proven in `tools/tdd-guard-claude-check.py`,
+`tools/tdd-guard-check.py` and both suites of `tools/gate-hook-check.py` by four cases —
+an absent state file guards, `off` stands down silently, `paused` stands down and logs
+the unguarded production write, an unknown word guards — and two mutations each, the
+stand-down removed and the stand-down widened to an absent file; the helper's own
+transitions, `status`, worktree resolution and `off`-while-in-flight refusal in
+`tools/sdlc-state-check.py`, with a `set` that does not log and a `resume` that ignores
+`stage:` as its mutations) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
@@ -403,3 +411,12 @@ real catches across the control's entire life, recorded the whole time as instal
 proven (`FIELD_REPORT_2026-08-21.md` finding 5; plan §73.2, fixed in 0.29.0). Recording
 its reach made it readable, and the reading retired it: five more field arcs with no catch
 and five false candidates (plan §87.3 (iv), retired in 0.38.0).
+
+**The SDLC state stand-down inverts the question (0.39.0, plan §89.9).** Its trigger is
+not a rare state the workflow might never produce — it is ordinary operation: every
+between-phase session reads `off`, so the stand-down fires constantly and "does the
+flagged state arise on its own" is answered yes by construction. What the reach note
+must carry instead is whether a stand-down ever **replaced a denial or a licence** — a
+`paused:` or `off` window in `guard.log` covering a write the previous release would
+have denied or charged, read mechanically from the logs. Until one is seen, the row says
+so: *constructed for the proof; value measured against the §89.11 baseline only*.

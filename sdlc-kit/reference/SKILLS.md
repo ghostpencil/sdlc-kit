@@ -193,7 +193,7 @@ anything a teammate needs must be in the repo, not on your machine.
 4. Install the project toolchain so **the gate runs locally** (right language version —
    a wrong local runtime makes the local gate lie; CI is authoritative when they differ).
 5. Open the CLI in the repo, type `/` and confirm `tdd`, `diff-review`,
-   `change-verify`, and the seven SDLC commands appear, then run `/next-slice` and
+   `change-verify`, and the eight SDLC commands appear, then run `/next-slice` and
    confirm it orients correctly. The two kit-written skills are the
    ones worth catching early — the commands name them, so a session otherwise finds out
    at slice or phase close rather than at setup. Nothing appearing

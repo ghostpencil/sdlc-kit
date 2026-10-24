@@ -22,6 +22,11 @@ This command is analysis-heavy; check the model policy recorded in `spec/SDLC.md
 
 ### 1. Orient
 
+Record that planning has begun: `python .github/hooks/sdlc-state.py set phase --by
+plan-phase` (state `phase`, `stage: planning`; `spec/SDLC.md` *Shape* is the canonical
+statement). A project without that helper predates it — skip this and say so. If the
+state reads `paused`, say so in one line; this write replaces it.
+
 Read `spec/PROJECT_INDEX.md` (Notes + deferred backlog). Then, only
 as needed: any roadmap file, any design doc named for the candidate, and the project's
 scope/feature spec if one exists. Context-minimization rule applies.
@@ -209,7 +214,8 @@ each number tagged **estimated** (the owner is ratifying those against no measur
 and `/next-slice` re-derives each one before the slice that implements it). The full
 decision list and slice breakdown follow as detail — the owner approves from the
 summary; the spec file is where the detail lives. On approval: create
-`feat/phase-NN-<slug>` off the up-to-date main branch,
+`feat/phase-NN-<slug>` off the up-to-date main branch, then
+`python .github/hooks/sdlc-state.py set phase --phase NN --by plan-phase`,
 flip `spec/PROJECT_INDEX.md` to BUILD with the spec pointer and OWNER-DECIDED note,
 add each library the spec ratified to `spec/SDLC.md` *Approved libraries*, commit the
 spec + index + that list (docs commit), and hand off: **`/clear`, then `/next-slice`.**

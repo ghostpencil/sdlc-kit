@@ -35,7 +35,15 @@ NL='
 '
 take() { case $_tk in *"$NL"*) TK=${_tk%%"$NL"*}; _tk=${_tk#*"$NL"} ;; *) TK=$_tk; _tk="" ;; esac; }
 slash() { SL=""; _sl=$1; while :; do case $_sl in *\\*) SL="$SL${_sl%%\\*}/"; _sl=${_sl#*\\} ;; *) SL="$SL$_sl"; return 0 ;; esac; done; }
-i=$(cat); JP=""; JN=""; for c in python python3; do if command -v "$c" >/dev/null 2>&1; then JP=$c; break; fi; done; if [ -z "$JP" ] && command -v node >/dev/null 2>&1; then JN=node; fi; jr(){ if [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null | tr -d "\r"; elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null | tr -d "\r"; else return 127; fi; }; if [ -z "$JP" ] && [ -z "$JN" ]; then echo "SDLC gate hook did NOT run: no JSON parser (python or node) on the PATH of the shell Claude Code runs hooks in. The gate did not check this file." >&2; exit 2; fi; o=$(printf '%s' "$i" | jr '
+i=$(cat)
+# SDLC state (89.4): `off` or `paused` in <git-dir>/sdlc-state -> stand down at once, before
+# the parser is spawned (where the per-edit cost lives): no output, exit 0. Anything else -
+# absent, empty, or a word this hook does not know - checks as always. The launcher has
+# already cd'd to the repository root, so .git is in the cwd; a worktree pays one sed.
+[ -d .git ] && f=.git/sdlc-state || f=$(sed -n 's/^gitdir:[[:space:]]*//p' .git 2>/dev/null | tr -d '\r')/sdlc-state
+IFS= read -r st 2>/dev/null < "$f"
+case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac
+JP=""; JN=""; for c in python python3; do if command -v "$c" >/dev/null 2>&1; then JP=$c; break; fi; done; if [ -z "$JP" ] && command -v node >/dev/null 2>&1; then JN=node; fi; jr(){ if [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null | tr -d "\r"; elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null | tr -d "\r"; else return 127; fi; }; if [ -z "$JP" ] && [ -z "$JN" ]; then echo "SDLC gate hook did NOT run: no JSON parser (python or node) on the PATH of the shell Claude Code runs hooks in. The gate did not check this file." >&2; exit 2; fi; o=$(printf '%s' "$i" | jr '
 import sys,json
 d=json.loads(sys.stdin.buffer.read().decode("utf-8","replace"))
 if "hook_event_name" in d and "timestamp" in d and "permission_mode" not in d: sys.stdout.write("copilot\n"); sys.exit(0)

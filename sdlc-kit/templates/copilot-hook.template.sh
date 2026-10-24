@@ -29,6 +29,13 @@
 
 IN=$(cat)
 
+# SDLC state (89.4): `off` or `paused` in <git-dir>/sdlc-state -> stand down at once, before
+# any work: no output, exit 0. Anything else - absent, empty, or an unknown word - checks
+# as always. "cwd": "." puts .git in the working directory; a worktree pays one sed.
+[ -d .git ] && f=.git/sdlc-state || f=$(sed -n 's/^gitdir:[[:space:]]*//p' .git 2>/dev/null | tr -d '\r')/sdlc-state
+IFS= read -r st 2>/dev/null < "$f"
+case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac
+
 # The string work below uses parameter expansion, not `printf | sed` or `tr`: every
 # pipeline in a $(...) is two or three processes, and Windows sh pays tens of
 # milliseconds for each, on every edit (measured 2026-10-21: ~1.5 s of a call was

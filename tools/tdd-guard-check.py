@@ -136,6 +136,10 @@ class Bench:
             body = body.replace(k, v)
         assert "{{" not in body, "unresolved placeholder in instantiated guard"
         io.open(self.guard, "w", encoding="utf-8", newline="\n").write(body)
+        # An arc in flight: the state every case below was written against. An absent
+        # state file speaks once per session (89.4), which is its own cases' business.
+        io.open(os.path.join(self.root, ".git", "sdlc-state"), "w",
+                encoding="utf-8", newline="\n").write("slice\n")
 
     def run(self, mode, payload, env=None):
         e = dict(os.environ)
@@ -1279,6 +1283,68 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("E2 a path outside cp1252 is still denied, named intact",
               "日本.py" in reason, repr(out[:200]) + " | " + b.tail())
 
+        # --- SDLC state (FEATURE_PLAN.md 89.4): off / paused stand down; absent and
+        # an unknown word guard as before -------------------------------------------
+        sfile = os.path.join(R, ".git", "sdlc-state")
+
+        def put_state(text):
+            io.open(sfile, "w", encoding="utf-8", newline="\n").write(text)
+
+        def drop_state():
+            if os.path.exists(sfile):
+                os.remove(sfile)
+
+        b.reset_state()
+        drop_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(R, [("Update", "pay.py")], sid="s37a"))
+        out2 = b.run("observe-test", shell(R, "pytest -q", 0, sid="s37a"))
+        check("37a an absent state file guards as before; the notice rides the first "
+              "observe-test output, once",
+              "permissionDecision" in out and "no SDLC state file" in out2
+              and "GREEN counted" in out2
+              and "no SDLC state file" not in b.run("observe-test", shell(R, "pytest -q", 0, sid="s37a")),
+              repr((out, out2)))
+
+        put_state("off\n")
+        b.reset_state()
+        b.arm_deny()
+        o1 = b.run("pre-write", write(R, [("Update", "pay.py")]))
+        o2 = b.run("pre-write", write(R, [("Update", "tests/test_pay.py")]))
+        o3 = b.run("observe-test", shell(R, "pytest -q", 0))
+        o4 = b.run("stop-check", stop(R))
+        check("37b off stands down: no deny, no notice, nothing recorded, a clean stop",
+              o1 == o2 == o3 == o4 == "" and b.rc == 0
+              and not os.path.exists(os.path.join(b.state, "prod-write-observed"))
+              and not os.path.exists(os.path.join(b.state, "last-test-edit"))
+              and not os.path.exists(os.path.join(b.state, "green-observed"))
+              and [l for l in b.loglines() if "new session" not in l] == [],
+              repr((o1, o2, o3, o4, b.loglines())))
+
+        put_state("paused\nstage: slice\nsince: 2026-10-24T14:02Z\nreason: bump\n")
+        b.reset_state()
+        b.arm_deny()
+        o1 = b.run("pre-write", write(R, [("Update", "pay.py"), ("Update", "tests/test_pay.py")]))
+        o2 = b.run("observe-test", shell(R, "pytest -q", 0))
+        o3 = b.run("observe-test", shell(R, "pytest -q", 0))
+        check("37c paused stands down, logs the unguarded production write, speaks once",
+              "permissionDecision" not in o1 and o1 == ""
+              and any("paused: unguarded production write: pay.py" in l for l in b.loglines())
+              and "SDLC paused since 2026-10-24T14:02Z (bump)" in o2
+              and "re-enters slice" in o2 and o3 == ""
+              and not os.path.exists(os.path.join(b.state, "prod-write-observed"))
+              and not os.path.exists(os.path.join(b.state, "last-test-edit"))
+              and not os.path.exists(os.path.join(b.state, "green-observed")),
+              repr((o1, o2, o3, b.loglines())))
+
+        put_state("pausd\n")
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(R, [("Update", "pay.py")]))
+        check("37d an unrecognized state word guards (a typo never disarms)",
+              "permissionDecision" in out and "DENY production write" in b.tail(), repr(out))
+        drop_state()
+
         # P: pattern values are pasted into `case` arms unquoted, so a space is a syntax
         # error that Copilot reads as deny-everything (bench, 2026-10-19). Every row the
         # recipe offers setup must parse; the spaced control proves the probe bites.
@@ -1423,7 +1489,7 @@ MUTATIONS = [
      lambda s: s.replace(
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
          '"$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" '
-         '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" 2>/dev/null',
+         '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" "$S/state-spoken" 2>/dev/null',
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
          '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" 2>/dev/null')),
     ("drop G2's session scoping (the stop guard binds planning and docs sessions "
@@ -1525,6 +1591,12 @@ MUTATIONS = [
     ("read the deny message as text (a non-ASCII path arrives as mojibake)",
      lambda s: s.replace('"permissionDecisionReason":sys.stdin.buffer.read().decode("utf-8","replace")',
                          '"permissionDecisionReason":sys.stdin.read()')),
+    ("remove the SDLC-state stand-down (every `off` and `paused` case must fail)",
+     lambda s: s.replace('case "$STATE" in off) exit 0 ;; paused) [ "$MODE" = "pre-write" ] || exit 0 ;; esac',
+                         ':')),
+    ("widen the stand-down to an absent state file (a fresh clone silently disarms)",
+     lambda s: s.replace('case "$STATE" in off) exit 0 ;;',
+                         'case "$STATE" in off|"") exit 0 ;;')),
 ]
 
 

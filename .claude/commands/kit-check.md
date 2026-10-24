@@ -44,7 +44,7 @@ Run these as commands; each states its negative case in the ledger.
   each referenced step and confirm it is the one the sentence means.
 - **13 — the `tools/` proof suites are RUN, not read:** invariant 13's population names
   them, and reading one establishes only that it *states* its negative cases. Run all
-  nine — `python -u tools/{gate-hook,tdd-guard,tdd-guard-claude,skill-ledger,impact,close-out,shipped-lint,rederive}-check.py`,
+  ten — `python -u tools/{gate-hook,tdd-guard,tdd-guard-claude,skill-ledger,impact,close-out,shipped-lint,rederive,sdlc-state}-check.py`,
   and `python -u tools/cosmetic-check.py --ts <dir> --ts <dir>` with one directory per
   supported `typescript` major (each holding `node_modules/typescript`; or `COSMETIC_TS`,
   separated by `os.pathsep`) — and quote each exit code beside its case and mutation
@@ -61,8 +61,8 @@ Run these as commands; each states its negative case in the ledger.
   and `tdd-guard-claude-check` under 2 (all four stop each mutation at its first failing
   case and run 8 at a time; `IMPACT_JOBS` / `CLOSEOUT_JOBS` / `TDDGUARD_JOBS=1` runs
   serially), `cosmetic-check` ~6, `gate-hook-check` under 2 (its six suite × parser
-  runs go concurrently), `rederive-check` under 1 — and all
-  nine buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a
+  runs go concurrently), `rederive-check` under 1, `sdlc-state-check` under 1 — and all
+  ten buffer stdout — hence `-u`. Run them one at a time: two concurrent copies of a
   suite share its output file and slow each other several-fold. A scoped
   run that skips them says so, in those words, because "13: pass" over unrun suites is
   exactly the all-clear this command's prime directive forbids.

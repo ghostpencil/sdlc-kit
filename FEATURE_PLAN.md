@@ -8234,3 +8234,45 @@ from `observe-test` and `stop-check` only, and §89.4 is annotated.
 **10. Hand back** with: the suites' last lines, the `/kit-check` findings and their
 fixes, the P1 result, `git status --short`, and anything in this brief that turned out
 to be wrong against the tree — reported, not silently adapted.
+
+### 89.16 Build record — 2026-10-24, built uncommitted for 0.39.0, not released
+
+**Probe P1 — answered: yes.** Claude Code 2.1.310, scratch repo with the instantiated
+Claude guard and `paused` written to `.git/sdlc-state`: one `Write` through `claude -p`
+(`--permission-mode acceptEdits`, haiku). The model quoted the notice back —
+`SDLC paused since 2026-10-24T15:00Z (probe P1 marker ZEBRA-7741) - the kit's hooks are
+standing down; /sdlc resume re-enters slice.` — from the PreToolUse hook, the write went
+through, and `guard.log` held `paused: unguarded production write: hello.py`. So
+`PRETOOL_SPEAKS = True` in `tdd-guard-claude.template.py` and §89.4 needs no annotation
+for the Claude dialect.
+
+**Where the build departs from §89.15, each reported rather than adapted silently:**
+- **Speaking is once per session by marker, not by `SID != prev`.** A `state-spoken` file
+  in `sdlc-tdd/`, cleared with the rest of a new session's state. The new-session test
+  could not carry it: a first call that is not a speaking seat consumed the session
+  change, and a deny on the same call dropped the notice for good. The Claude guard
+  merges the notice into the call's own `hookSpecificOutput` (a deny carries it as
+  `additionalContext`) and emits it alone at exit otherwise; the shell guard does the same
+  through `emit_context` and an EXIT trap.
+- **The Copilot dialect speaks from `observe-test` only.** Its PreToolUse
+  `additionalContext` is unmeasured, and the brief's "emit_context" is the one measured
+  seat. `stop-check` is not a speaking seat in either dialect: its output form is a
+  block, and a notice there would be a refusal.
+- **The proof benches default to a `slice` state file.** Without one every pre-existing
+  case would hear the absent notice. The four new cases per suite remove or replace it.
+- **`tools/gate-hook-check.py` had no mutation pass;** it gained `state_proof()`, the
+  stand-down cases on both bodies plus the two mutations each, run outside the six
+  suite × parser jobs.
+- **A defect found by the proof, fixed in the template:** `IFS= read -r st < "$f"
+  2>/dev/null` leaked a "No such file" line on stderr when `.git` was absent; the
+  redirection order is now `2>/dev/null < "$f"`. Eleven pre-existing gate cases caught it.
+- **The helper prints UTF-8.** A Windows console's code page crashed `status` on an index
+  line holding a character outside it; found by the helper's own suite.
+- **The template's reconcile is *Phase end* step 6, the command's is step 7;** the fifth
+  subject is added to both. `/kit-check` and invariant 13 list ten suites, not nine.
+- **`/kit-check` found two defects of mine in the update mirrors:** a line continuation
+  eaten in both copies of the classification loop's pathspec (`sdlc-update.md`,
+  `README.md`), and the denominator sentence and the 0.34.0 verbatim list in
+  `sdlc-update.md` that did not name `sdlc-state.py`. Fixed; manifest regenerated.
+- **Bare plan numbers (`89.4`, `89.6`) sit in four shipped hook comments,** following
+  the existing `84.8` precedent; an adopter cannot resolve them. Left as is.

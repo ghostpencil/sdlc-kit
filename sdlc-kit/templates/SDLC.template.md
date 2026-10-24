@@ -48,6 +48,27 @@ is not a slice of the arc. After it merges, the arc branch merges `{{MAIN_BRANCH
 and re-runs the gate before its next slice, so the arc never drifts silently from what
 production runs.
 
+**The SDLC state — whether the process is in force right now.** One plain-text file,
+`<git-dir>/sdlc-state` (per clone and per linked worktree, never committed), whose first
+line is a state word and whose later lines are optional `key: value` for people.
+`off` — no arc in flight, the kit's hooks stand down; written by setup, by `/end-phase`
+after its docs commit, and by `/sdlc off`. `phase` — a phase is planned or between
+slices; written by `/plan-phase` (`stage: planning` at its first step, `phase: NN` once
+the branch exists) and by `/end-slice` after the push. `slice` — a slice is open; written
+by `/next-slice`. `close-out` — `/end-slice` is running; written at its licence step.
+`phase-end` — `/end-phase` is running; written at its first step. `paused` — an arc is in
+flight and suspended, `stage:` holding what resume restores; written only by `/sdlc
+pause <reason>`. The TDD legs (RED, GREEN, REFACTOR, CLOSE-OUT) are never restated here:
+`/sdlc status` reads them from the guard's own state, so each fact has one home.
+**The hooks obey one rule:** `off` or `paused` → stand down (no output, no state
+written; a paused production write is only logged, and `/end-slice` reports the count);
+anything else — an absent or unreadable file and any word they do not know included —
+guard exactly as before, so a typo costs a spoken line and never silently disarms a
+guard. Editing the file by hand is sanctioned; `/sdlc` is the convenience and the log
+(`<git-dir>/sdlc-state.log`). **Pausing and turning off are owner acts:** a session never
+runs `/sdlc pause` or `/sdlc off` to get past a denied write — that takes the TDD path or
+declares a licence.
+
 **Parallelism is read-only fan-out only.** Slices are strictly sequential — their order
 is set at planning time and inter-slice dependencies are the norm. Subagents may run in
 parallel only for read-only work *within* a step (analysis sweeps, repo surveys, review
@@ -1049,7 +1070,7 @@ Run `/end-phase` when the last slice is done:
    each reported as `recorded X / measured Y` — divergences first, agreements collapsed
    to one line. A decision taken against a stale number is taken twice. No new gate run
    is needed: step 1's evidence **is** the measurement, the merge having come from a
-   clean tree. Four subjects, in order:
+   clean tree. Five subjects, in order:
    - **The backlog, reconciled before it is counted.** Walk this arc's slice commits
      and the phase spec; mark `— done (<commit>)` on every entry they closed; only
      then report the open count, stating how many the pass itself just closed. The
@@ -1083,6 +1104,11 @@ Run `/end-phase` when the last slice is done:
      none of the three is reported. No other walk reads that section, so without this
      one an obligation the spec attached to the arc lapses by silence while the arc
      closes green.
+   - **The SDLC state.** `recorded <the index's Phase line> / measured <the state
+     file's word>` — the state file is the artifact the hooks enforce on, the index is
+     its record, and the two are read together. A state still saying `slice` or
+     `paused` at this close, or a Phase line that disagrees with it, is reported and
+     settled here before `off` is written.
 
    Then the decisions and the records themselves: the deploy question (does this phase
    need a deploy to reach users, and has it happened — merging is not shipping;

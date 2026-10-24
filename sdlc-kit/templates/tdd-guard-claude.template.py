@@ -66,6 +66,7 @@
 # the default hook timeout is 10 minutes and this script does no I/O beyond
 # .git/sdlc-tdd/, so it should never approach it. Stated per invariant 15.
 
+import atexit
 import json
 import os
 import re
@@ -257,7 +258,19 @@ def newer(a, b):
         return False
 
 
+EMITTED = False
+STATE_NOTE = ""     # the SDLC-state notice, set below; rides the next hookSpecificOutput
+
+
 def emit(obj):
+    global EMITTED, STATE_NOTE
+    hso = obj.get("hookSpecificOutput") if isinstance(obj, dict) else None
+    if STATE_NOTE and isinstance(hso, dict):
+        hso["additionalContext"] = STATE_NOTE + (
+            " " + hso["additionalContext"] if hso.get("additionalContext") else "")
+        STATE_NOTE = ""
+        mark("state-spoken")
+    EMITTED = True
     sys.stdout.write(json.dumps(obj, separators=(",", ":")))
 
 
@@ -442,7 +455,7 @@ if SID:
         for n in ("red-observed", "green-observed", "last-test-edit",
                   "refactor-license", "close-out-license",
                   "close-out-survivals", "prod-write-observed",
-                  "seen-writes", "reported-writes"):
+                  "seen-writes", "reported-writes", "state-spoken"):
             clear(n)
         try:
             with open(sf("session"), "w") as f:
@@ -451,6 +464,73 @@ if SID:
             pass
         record_start()
         log("new session %s - previous observations cleared" % SID)
+
+# SDLC state (89.4): the first line of <git-dir>/sdlc-state says whether the process is
+# in force. `off` or `paused` -> this guard stands down: no state written, no output,
+# exit 0 (a paused production write is logged, never charged). Anything else - `absent`
+# and any word this file does not know included - guards exactly as before; a typo in
+# a hand edit costs a spoken line, never a silent disarm. The state is read AFTER the
+# session bookkeeping above, so a session that begins paused still records its start.
+# The notice is spoken once per session from one seat: PreToolUse, where Claude Code
+# delivers additionalContext (probe P1, 2026-10-24); a build that does not would move
+# it to observe-test by flipping PRETOOL_SPEAKS.
+PRETOOL_SPEAKS = True
+
+
+def sdlc_state():
+    try:
+        with open(os.path.join(GD, "sdlc-state"), encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        return "absent", {}
+    if not lines or not lines[0].strip():
+        return "absent", {}
+    keys = {}
+    for ln in lines[1:]:
+        m = re.match(r"^([A-Za-z_-]+):\s*(.*)$", ln)
+        if m:
+            keys[m.group(1).lower()] = m.group(2).strip()
+    return lines[0].strip().lower(), keys
+
+
+STATE, STATE_KEYS = sdlc_state()
+# Spoken once per session, from whichever speaking call comes first (the marker is
+# cleared with the rest of the session's state). `off` is silent: it is the rest state.
+if (MODE == ("pre-write" if PRETOOL_SPEAKS else "observe-test") and STATE != "off"
+        and not present("state-spoken")):
+    if STATE == "paused":
+        STATE_NOTE = ("SDLC paused since %s (%s) - the kit's hooks are standing down; "
+                      "/sdlc resume re-enters %s." % (
+                          STATE_KEYS.get("since", "?"), STATE_KEYS.get("reason", "no reason"),
+                          STATE_KEYS.get("stage", "the saved stage")))
+    elif STATE == "absent":
+        STATE_NOTE = "no SDLC state file - guards active by default; /sdlc status"
+    elif STATE not in ("phase", "slice", "close-out", "phase-end"):
+        STATE_NOTE = "unrecognized SDLC state %r - guards active; /sdlc status" % STATE
+
+
+def flush_state_note():
+    # Rides the call's own output when there is one (emit merges it); otherwise it is
+    # emitted alone here, at exit.
+    if STATE_NOTE and not EMITTED:
+        emit({"hookSpecificOutput": {
+            "hookEventName": D.get("hook_event_name") or ("PreToolUse" if MODE == "pre-write" else "PostToolUse")}})
+        sys.stdout.flush()
+
+
+atexit.register(flush_state_note)
+
+if STATE in ("off", "paused"):
+    if STATE == "paused" and MODE == "pre-write":
+        # Logged, never charged: a pause left open through real slice work is visible
+        # at /end-slice (89.6). Same repo-relative classification as the write guard.
+        _p = ((D.get("tool_input") or {}).get("file_path") or "").replace("\\", "/")
+        _root = ROOT.replace("\\", "/").rstrip("/")
+        _rel = _p[len(_root) + 1:] if _p.lower().startswith(_root.lower() + "/") else ""
+        if _rel and is_code(_rel) and not (match_any(_rel, TEST_PATH_PATTERN) or
+                                           match_any(_rel.rsplit("/", 1)[-1], TEST_PATH_PATTERN)):
+            log("paused: unguarded production write: %s" % _rel)
+    sys.exit(0)
 
 TOOL_INPUT = D.get("tool_input") or {}
 if not isinstance(TOOL_INPUT, dict):

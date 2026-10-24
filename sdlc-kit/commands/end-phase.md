@@ -20,6 +20,10 @@ policy names the moment to set it).
 - Read `spec/PROJECT_INDEX.md`; confirm every slice of the phase is marked done. If not,
   say which is open and stop — finish it via `/next-slice` + `/end-slice` first.
 - On the phase branch, working tree clean, branch pushed.
+- Record that the phase is closing: `python .github/hooks/sdlc-state.py set phase-end
+  --by end-phase` (`spec/SDLC.md` *Shape*; a project without that helper predates it —
+  skip this and step 7's `off`, and say so). A `paused` state is named in one line and
+  replaced.
 
 ### 2. Run the gate
 
@@ -271,7 +275,7 @@ read before it is reconciled is a decision taken twice.
   with the file that holds it, then the agreements collapsed to one line (`N rows
   reconciled, no divergence`). **No new gate run** — step 2's run is the measurement,
   the merge having come from a clean tree; re-running here measures a different tree
-  than the one these records describe. Four subjects, in order:
+  than the one these records describe. Five subjects, in order:
   1. **The backlog, reconciled before it is counted.** Walk this arc's slice commits
      and the phase spec, and mark `— done (<fix commit>)` on every backlog entry they
      closed. **Only then** report the open count — and say how many entries this pass
@@ -332,6 +336,12 @@ read before it is reconciled is a decision taken twice.
      ratified decisions — so without this leg a risk lapses by silence while the arc
      that raised it closes green. Report the three counts, and list every entry that
      ends the pass in none of the three states: that list is the finding.
+  5. **The SDLC state.** Run `python .github/hooks/sdlc-state.py status` and report
+     `recorded <the index's Phase line> / measured <the state word>`. The state file is
+     the artifact the hooks enforce on and the index is its record, so the two are read
+     together: a state that is still `slice` or `paused` for a reason this close does
+     not explain, or a Phase line that disagrees with it, is reported here — settled
+     with the owner before the `off` below is written, never overwritten past.
 - **Ask the deploy question, then record the verified outcome:** does this phase need
   a deploy for its changes to reach users, and has it happened? Merging is not
   shipping — a production fix sat unshipped behind exactly this missing question once.
@@ -522,6 +532,8 @@ read before it is reconciled is a decision taken twice.
   `current` while the view leaves those files out, which is what one real adoption
   measured: ten files absent at a phase close.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
+- Then end the arc's state: `python .github/hooks/sdlc-state.py set off --by end-phase`
+  — the kit's hooks stand down until `/plan-phase` begins the next one.
 - Suggest any durable lessons worth saving to auto-memory.
 - Offer `/sdlc-retro` — it extracts lessons from the phase just closed, while the
   evidence is fresh: project facts into PROJECT_INDEX, process findings into a report.

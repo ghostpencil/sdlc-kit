@@ -75,6 +75,10 @@ class Bench:
             body = body.replace(k, v)
         assert "{{" not in body, "unresolved placeholder in instantiated guard"
         io.open(self.guard, "w", encoding="utf-8", newline="\n").write(body)
+        # An arc in flight: the state every case below was written against. An absent
+        # state file speaks once per session (89.4), which is its own cases' business.
+        io.open(os.path.join(self.root, ".git", "sdlc-state"), "w",
+                encoding="utf-8", newline="\n").write("slice\n")
 
     def run(self, mode, payload, env=None, root_env=True, cwd=None):
         e = dict(os.environ)
@@ -983,6 +987,68 @@ def unit(guard_src, verbose=True, counter=None, first_only=False):
         out = d.run("stop-check", stop(D, sid=sid))
         case("36j a pull or merge of commits dated before the session reports nothing",
              out == "")
+
+        # --- SDLC state (FEATURE_PLAN.md 89.4): off / paused stand down, anything
+        # else - absent and an unknown word included - guards exactly as before ------
+        sfile = os.path.join(b.root, ".git", "sdlc-state")
+
+        def put_state(text):
+            io.open(sfile, "w", encoding="utf-8", newline="\n").write(text)
+
+        def drop_state():
+            if os.path.exists(sfile):
+                os.remove(sfile)
+
+        b.reset_state()
+        drop_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(b.root, "pay.py", sid="s37a"))
+        out2 = b.run("pre-write", write(b.root, "fee.py", sid="s37a"))
+        case("37a an absent state file guards as before; the notice rides the deny, once",
+             '"permissionDecision":"deny"' in out and "no SDLC state file" in out
+             and "DENY production write" in b.tail() and "no SDLC state file" not in out2)
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(b.root, "notes.md", sid="s37a2"))
+        case("37a2 the absent notice is emitted alone when the call prints nothing else",
+             "no SDLC state file" in out and "deny" not in out)
+
+        put_state("off\n")
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(b.root, "pay.py"))
+        out2 = b.run("pre-write", write(b.root, "tests/test_pay.py"))
+        out3 = b.run("observe-test", green(b.root, "pytest -q"))
+        out4 = b.run("stop-check", stop(b.root))
+        case("37b off stands down: no deny, no notice, no state, a clean stop",
+             out == "" and out2 == "" and out3 == "" and out4 == "" and b.rc == 0
+             and not b.state_has("prod-write-observed")
+             and not b.state_has("last-test-edit")
+             and not b.state_has("green-observed") and b.loglines() == [])
+
+        put_state("paused\nstage: slice\nsince: 2026-10-24T14:02Z\nreason: bump\n")
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(b.root, "pay.py"))
+        first = b.loglines()
+        out2 = b.run("pre-write", write(b.root, "pay.py"))
+        out3 = b.run("pre-write", write(b.root, "tests/test_pay.py"))
+        case("37c paused stands down, logs the unguarded production write, speaks once",
+             "deny" not in out and "SDLC paused since 2026-10-24T14:02Z (bump)" in out
+             and "re-enters slice" in out
+             and any("paused: unguarded production write: pay.py" in l for l in first)
+             and out2 == "" and out3 == ""
+             and not any("test.py" in l for l in b.loglines() if "paused:" in l)
+             and not b.state_has("prod-write-observed")
+             and not b.state_has("last-test-edit"))
+
+        put_state("pausd\n")
+        b.reset_state()
+        b.arm_deny()
+        out = b.run("pre-write", write(b.root, "pay.py"))
+        case("37d an unrecognized state word guards (a typo never disarms)",
+             '"permissionDecision":"deny"' in out and "DENY production write" in b.tail())
+        drop_state()
     except _FirstFailure:
         pass
     finally:
@@ -1185,6 +1251,12 @@ MUTATIONS = [
     ("guard nothing in silence when the git dir cannot be resolved at stop",
      """if not re.search(r'"stop_hook_active"\\s*:\\s*true', raw):""",
      'if False:'),
+    ("remove the SDLC-state stand-down (every `off` and `paused` case must fail)",
+     'if STATE in ("off", "paused"):',
+     'if False:'),
+    ("widen the stand-down to an absent state file (a fresh clone silently disarms)",
+     'if STATE in ("off", "paused"):',
+     'if STATE in ("off", "paused", "absent"):'),
 ]
 
 

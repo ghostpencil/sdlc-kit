@@ -257,13 +257,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the definition, and `reference/COPILOT.md` carries the evidence and the reasoning
    behind the Copilot column.
 
-   The seven kit commands are user-typed workflow entry points; the six kit skills
+   The eight kit commands are user-typed workflow entry points; the six kit skills
    (four vendored, two kit-written) are model-invocable capabilities. They install
    to different places for that reason:
 
    | | Claude Code | Copilot CLI |
    |---|---|---|
-   | the 7 commands | `.claude/commands/<name>.md` | `.github/skills/<name>/SKILL.md` |
+   | the 8 commands | `.claude/commands/<name>.md` | `.github/skills/<name>/SKILL.md` |
    | the 6 skill directories | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
    | `REVIEW_LENSES.md` | `.claude/commands/REVIEW_LENSES.md` | the same path — it is a document, not an executable |
 
@@ -274,11 +274,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the body is reworded — `/sdlc-update` classifies these files by stripping that block
    and comparing the remainder against the manifest, so a tidy-up at the top of the body
    makes an untouched command read as drifted. A project answering "both" gets both
-   columns, and the seven commands are the only files that exist twice — deliberately
+   columns, and the eight commands are the only files that exist twice — deliberately
    not in a directory where Claude Code would list them as model-invocable skills. The
    list:
    - the kit's `plan-phase.md`, `next-slice.md`, `end-slice.md`, `end-phase.md`,
-     `sdlc-retro.md`, `sdlc-update.md` (and this file);
+     `sdlc-retro.md`, `sdlc-update.md`, `sdlc.md` (and this file);
    - the skill directories from `sdlc-kit/skills/`, each already a skill directory that is
      copied whole: `tdd/` (with its `tdd-references/` subfolder, which `SKILL.md` links
      into relatively), `mutation-testing/` (always — `/end-slice`'s mutation-check step
@@ -660,6 +660,19 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    guards run it in the hook shell, which can differ, and the guard log's `not cosmetic
    (…)` lines are where a missing toolchain shows. Do not install a toolchain for it.
 
+   **Install the SDLC state helper — both CLIs, always, never offered.**
+   `sdlc-state.template.py` → `.github/hooks/sdlc-state.py`, copied verbatim; it takes no
+   values and is never edited. It owns the one file the hooks read to learn whether the
+   process is in force (`spec/SDLC.md` *Shape*) and is what `/sdlc` and the daily
+   commands call. Then write the initial state with it: **New mode —**
+   `python .github/hooks/sdlc-state.py set off --by sdlc-setup`; **Existing mode —**
+   `off` when the index status says between phases or STABILIZATION is not yet begun,
+   `phase` when it says BUILD mid-feature (and `slice` only if the owner says a slice is
+   open), the word confirmed with the owner in the round that confirms the index status.
+   Nothing goes in *Records*: the state is a per-clone fact and carries no project
+   value. The hooks guard whenever the file is absent, so a clone made later guards
+   until someone writes it — and says so once.
+
 7. Offer to scaffold CI (a workflow running the same gate), triggered on pushes to the
    arc branches (`feat/**`, `chore/cleanup-**`, `fix/**`) as well as on pull requests,
    so an arc's CI runs without a draft PR opened to start it. Report coverage; do not
@@ -836,8 +849,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    and the guard's `.json` launchers take no values, and neither do the
    skill-ledger's — `sdlc-skill-ledger.json` and `sdlc-skill-ledger.sh` alike —
    `.github/hooks/sdlc-close-out.sh`, `.github/hooks/sdlc-impact.py`, or
-   `.github/hooks/sdlc-cosmetic.py` — all copied verbatim — so none of the seven is
-   in scope). The scope is
+   `.github/hooks/sdlc-cosmetic.py`, or `.github/hooks/sdlc-state.py` — all copied
+   verbatim — so none of the eight is in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,
    and on Copilot the same is true of `.github/skills/sdlc-setup/SKILL.md`. Name the

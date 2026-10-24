@@ -32,6 +32,8 @@ in `spec/SDLC.md`. Session commands that drive it:
   merge, deploy question + recorded outcome)
 - `/sdlc-retro` — extract lessons from a finished phase (project facts to this project's
   files; process findings to a report you decide whether to send upstream)
+- `/sdlc` — see or change the SDLC state the hooks obey (`status`; the owner's
+  `pause`, `resume`, `off`)
 
 An edit-time hook ({{HOOK_CONFIG_PATH}}) runs {{HOOK_TOOLS}} on every edited
 {{SOURCE_EXT}} file. {{HOOK_FEEDBACK_NOTE}}
@@ -77,6 +79,9 @@ If unsure → ask
   (a formatter's `--write`, codegen), and the hash-verified mutation runner
   `/end-slice` step 5 describes. Out of scope, writable either way: docs, configs, and
   the paths the TDD guards' exempt pattern names (`spec/SDLC.md`, guard note).
+- **The SDLC state is the owner's switch.** `/sdlc pause` and `/sdlc off` are typed by
+  the owner, never by a session: a denied write takes the TDD path or declares a licence
+  (the deny message names it), it never goes round the guard by changing the state
 - {{LANGUAGE_AND_VERSION}}
 {{PROJECT_SPECIFIC_RULES}}
 <!-- Examples of project-specific rules worth adding here:

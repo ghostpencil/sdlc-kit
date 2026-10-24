@@ -146,6 +146,7 @@ end, required by nothing. See `reference/SKILLS.md` and `reference/COPILOT.md`.
 | `/next-slice` | First command of every fresh session — orient, confirm scope, TDD |
 | `/end-slice` | Slice done — gate, code review, commit, record, then `/clear` |
 | `/end-phase` | Last slice done — gate, acceptance review, PR, review, merge |
+| `/sdlc` | Any time — `status`, or `pause`/`resume`/`off` the kit's hooks for non-SDLC work (the owner's call) |
 
 One slice per session. `/clear` after every `/end-slice`. That's the rhythm.
 
@@ -169,6 +170,7 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── end-slice.md
 │   ├── end-phase.md
 │   ├── sdlc-retro.md                ← lessons-learned extraction at a phase boundary
+│   ├── sdlc.md                      ← /sdlc: read or change the SDLC state the hooks obey
 │   └── sdlc-update.md               ← brings an adopted project to a newer kit release
 ├── skills/                          ← skills → <project>/.claude/skills/ (both CLIs read it)
 │   ├── tdd/                         ← THE TDD skill (not built into either CLI)
@@ -215,6 +217,9 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── sdlc-cosmetic.template.py    → .github/hooks/sdlc-cosmetic.py (both CLIs, always: the
 │   │                                   comment/format-only classifier the TDD guards and
 │   │                                   /end-slice ask — Python, TS/JS, Java, C#; no values)
+│   ├── sdlc-state.template.py       → .github/hooks/sdlc-state.py (both CLIs, always: the
+│   │                                   helper behind /sdlc and the daily commands' state
+│   │                                   writes; a command step, never a hook; no values)
 │   └── explore.agent.template.md    → .github/agents/explore.agent.md (Copilot only: read-only sweeps)
 ├── reference/                       ← consulted by /sdlc-setup
 │   ├── GATE_RECIPES.md              ← gate + hook commands per language, both hook dialects
@@ -236,6 +241,7 @@ tools/tdd-guard-check.py             ← proves the TDD guards, then mutates the
 tools/tdd-guard-claude-check.py      ← proves the Claude Code guard dialect the same two-pass way
 tools/close-out-check.py             ← proves the close-out evidence checker, corpus + mutations
 tools/impact-check.py                ← proves the architecture-impact adapter, cases + mutations
+tools/sdlc-state-check.py            ← proves the SDLC state helper, every verb + mutations
 tools/cosmetic-check.py              ← proves the cosmetic-edit classifier, corpus + mutations
                                        (TypeScript installs passed in with --ts; not vendored)
 tools/shipped-lint-check.py          ← lints every shipped .py with stock ruff, + mutations
@@ -311,21 +317,22 @@ The whole procedure rests on this split:
 | `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the six `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
-| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the three kit-owned files in that directory (with `sdlc-impact.py` and `sdlc-cosmetic.py`; a fourth, `sdlc-close-out.json`, is retired) — every other file there is project-owned. |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the four kit-owned files in that directory (with `sdlc-impact.py`, `sdlc-cosmetic.py` and `sdlc-state.py`; a fifth, `sdlc-close-out.json`, is retired) — every other file there is project-owned. |
 | `.github/hooks/sdlc-close-out.json` (Copilot, 0.22.0–0.37.1: the retired stop-time backstop's wiring — present only where accepted) | **kit** | Classified for the transition — compared against `templates/close-out-hook.template.json` in your old manifest and removed when provably unmodified; you decide when drifted. |
 | `.github/hooks/sdlc-impact.py` (both CLIs, from 0.28.0: the architecture-impact adapter) | **kit** | Same rule — compared against `templates/sdlc-impact.template.py`, which it copies verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined. |
 | `.github/hooks/sdlc-cosmetic.py` (both CLIs, from 0.34.0: the cosmetic-edit classifier) | **kit** | Same rule — compared against `templates/sdlc-cosmetic.template.py`, which it copies verbatim. Installed unconditionally — it can only grant an exemption — so it is never offered or declined. |
+| `.github/hooks/sdlc-state.py` (both CLIs, from 0.39.0: the SDLC state helper) | **kit** | Same rule — compared against `templates/sdlc-state.template.py`, which it copies verbatim. Installed unconditionally — it is a command step the hooks never run — so it is never offered or declined. |
 | `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A fix to a hook script's template therefore reaches you only through `/sdlc-update`'s hook-script walk-through, which shows you the full diff and writes only on your yes — it cannot arrive silently; a spec-file change is handed to you as a diff to fold in. |
 | `.github/copilot-instructions.md`, `AGENTS.md` | **project** | Never written, never overwritten, never removed. `/sdlc-setup` creates neither — if one is in your repo, you put it there. |
 
 Which rows apply to your project is recorded, not guessed: `spec/PROJECT_INDEX.md` names
-your agent CLI. A project set up for both holds the seven commands twice — once
+your agent CLI. A project set up for both holds the eight commands twice — once
 user-typed under `.claude/commands/`, once packaged under `.github/skills/` — and both
 copies update.
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time (and
 `reference/UPDATE_NOTES.md` at `/sdlc-update` time, from the kit clone) and are never
-re-applied to an already-adopted project — with five exceptions, all of which track
+re-applied to an already-adopted project — with six exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
 gone); on Copilot projects `templates/explore.agent.template.md`, which is copied verbatim
@@ -334,7 +341,9 @@ rather than instantiated because it carries no placeholders; from 0.20.0, on bot
 for the same reason; and — from 0.28.0, on both CLIs —
 `templates/sdlc-impact.template.py`, copied verbatim to `.github/hooks/sdlc-impact.py`;
 and — from 0.34.0, on both CLIs — `templates/sdlc-cosmetic.template.py`, copied verbatim
-to `.github/hooks/sdlc-cosmetic.py`. A kit release that changes only the non-installed
+to `.github/hooks/sdlc-cosmetic.py`; and — from 0.39.0, on both CLIs —
+`templates/sdlc-state.template.py`, copied verbatim to `.github/hooks/sdlc-state.py`.
+A kit release that changes only the non-installed
 templates and reference docs is an adoption-only change — it affects new adoptions, not
 yours, **with one standing exception**: a template change to a project-owned file you
 instantiated reaches you only with your review — a hook script through the update's
@@ -385,11 +394,12 @@ handed to you to fold in — and the per-version transition notes name each one.
                            .github/hooks/sdlc-close-out.sh \
                            .github/hooks/sdlc-close-out.json \
                            .github/hooks/sdlc-impact.py \
-                           .github/hooks/sdlc-cosmetic.py); do
+                           .github/hooks/sdlc-cosmetic.py \
+                           .github/hooks/sdlc-state.py); do
      have=""
      case "$f" in
        .github/hooks/sdlc-close-out.sh)
-         # one of the THREE kit-owned files in .github/hooks/ — copied verbatim, no
+         # one of the FOUR kit-owned files in .github/hooks/ — copied verbatim, no
          # project values. Their neighbors are project-owned and deliberately NOT in
          # the pathspec above: this loop must never classify the gate, guard, or ledger scripts.
          base=sdlc-close-out.sh
@@ -410,6 +420,11 @@ handed to you to fold in — and the per-version transition notes name each one.
          # absent before 0.34.0, so it arrives as a new install the first time.
          base=sdlc-cosmetic.py
          want=$(awk '$2 == "templates/sdlc-cosmetic.template.py" {print $1}' "$MAN") ;;
+       .github/hooks/sdlc-state.py)
+         # the fourth: the SDLC state helper (0.39.0), verbatim on both CLIs;
+         # absent before 0.39.0, so it arrives as a new install the first time.
+         base=sdlc-state.py
+         want=$(awk '$2 == "templates/sdlc-state.template.py" {print $1}' "$MAN") ;;
        .claude/skills/*)
          base=${f#.claude/skills/}
          # skills/ installs one directory per skill here from 0.14.0 on.
@@ -461,11 +476,12 @@ handed to you to fold in — and the per-version transition notes name each one.
    - **Check the denominator.** The loop should report exactly as many files as
      `git ls-files` over the same pathspec list the loop walks (the five directories
      plus `.github/hooks/sdlc-close-out.sh`, `.github/hooks/sdlc-close-out.json`,
-     `.github/hooks/sdlc-impact.py` and `.github/hooks/sdlc-cosmetic.py`).
+     `.github/hooks/sdlc-impact.py`, `.github/hooks/sdlc-cosmetic.py` and
+     `.github/hooks/sdlc-state.py`).
      If it reports fewer,
      your prefix matching is dropping files — `tdd-references/` lives two directories
      down and is the usual casualty. A Copilot project counts files under `.github/`
-     too, and a project set up for both counts the seven commands twice, once per copy.
+     too, and a project set up for both counts the eight commands twice, once per copy.
    - **The frontmatter strip fails safe.** If it breaks it hashes nothing, which matches
      no manifest entry, so the file lands in `DRIFTED` in front of you rather than in
      `UNCHANGED` behind your back. Seven packaged skills all going `DRIFTED` at once
@@ -510,8 +526,9 @@ handed to you to fold in — and the per-version transition notes name each one.
    kit-owned artifacts, `templates/close-out.template.sh` →
    `.github/hooks/sdlc-close-out.sh`, both CLIs; and, both CLIs, verbatim,
    `templates/sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py` (from 0.28.0)
-   and `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py` (from
-   0.34.0); they live outside the step-5 table because they install beside the hooks).
+   `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py` (from
+   0.34.0) and `templates/sdlc-state.template.py` → `.github/hooks/sdlc-state.py` (from
+   0.39.0); they live outside the step-5 table because they install beside the hooks).
 
    The symmetric case: files **removed from the target's install set** — listed in your
    old version's manifest under an install mapping but absent from the target's. An

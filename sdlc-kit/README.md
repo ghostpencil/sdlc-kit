@@ -54,13 +54,13 @@ skills/                  ← TDD skill set + the two kit-written passes
                            (diff-review, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup; nine are
+templates/               ← instantiated into the project by /sdlc-setup; ten are
                            copied verbatim instead (the explore agent profile, the TDD
                            guards' hook JSON, the gate hook's launcher JSON and the
                            skill-ledger hook JSON — all Copilot-side — plus the skill-ledger script (both
                            CLIs since 0.31.1), the close-out evidence checker,
-                           the architecture-impact adapter and the cosmetic
-                           classifier, all three both CLIs, and
+                           the architecture-impact adapter, the cosmetic
+                           classifier and the SDLC state helper, all four both CLIs, and
                            the product-contract seed →
                            spec/PRODUCT_CONTRACT.md, every adoption; none takes values)
 reference/               ← consulted by /sdlc-setup; REVIEW_LENSES.md is also installed,
@@ -75,8 +75,9 @@ read-only sweep profile (`.github/agents/explore.agent.md`, a verbatim template
 copy), and the
 close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, both CLIs, a verbatim
 copy holding no project values), the architecture-impact adapter (`.github/hooks/sdlc-impact.py`,
-both CLIs, verbatim), and the cosmetic classifier (`.github/hooks/sdlc-cosmetic.py`,
-both CLIs, verbatim) are **kit-owned**:
+both CLIs, verbatim), the cosmetic classifier (`.github/hooks/sdlc-cosmetic.py`,
+both CLIs, verbatim) and the SDLC state helper (`.github/hooks/sdlc-state.py`, both
+CLIs, verbatim) are **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything else `/sdlc-setup` writes into your project
 (`CLAUDE.md`, `spec/*.md`, the gate hook — `.github/hooks/sdlc-gate-claude.sh` +
 its launcher block in `.claude/settings.json` on Claude Code,
@@ -105,7 +106,8 @@ README — both state the same procedure. The short version: compare your instal
 `.github/agents/` on a Copilot CLI project, `.github/hooks/sdlc-close-out.sh` on
 kits ≥ 0.20.0, `.github/hooks/sdlc-close-out.json` where the backstop offer of kits
 0.22.0–0.37.1 was accepted (0.38.0 removes it), `.github/hooks/sdlc-impact.py` on kits ≥ 0.28.0,
-`.github/hooks/sdlc-cosmetic.py` on kits ≥ 0.34.0, and `.claude/agents/*.md` on kits
+`.github/hooks/sdlc-cosmetic.py` on kits ≥ 0.34.0, `.github/hooks/sdlc-state.py` on
+kits ≥ 0.39.0, and `.claude/agents/*.md` on kits
 0.6.0–0.9.0) against the
 `MANIFEST.sha256` of the version you are currently
 on (recorded in your `spec/SDLC.md`). Files that match are provably unmodified and safe

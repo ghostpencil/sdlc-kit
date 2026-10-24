@@ -18,16 +18,17 @@ the project owns.**
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
-| `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — one of the three kit-owned files in that directory (four on a project holding the retired backstop wiring); its other neighbors are project-owned |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs: the close-out evidence checker, from 0.20.0) | kit | same rule; compared against `templates/close-out.template.sh`, which it copies verbatim — one of the four kit-owned files in that directory (five on a project holding the retired backstop wiring); its other neighbors are project-owned |
 | `.github/hooks/sdlc-impact.py` (both CLIs: the architecture-impact adapter, from 0.28.0) | kit | same rule; compared against `templates/sdlc-impact.template.py`, copied verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined |
 | `.github/hooks/sdlc-cosmetic.py` (both CLIs: the cosmetic-edit classifier, from 0.34.0) | kit | same rule; compared against `templates/sdlc-cosmetic.template.py`, copied verbatim. Installed unconditionally — it can only grant an exemption, so it is never offered or declined |
+| `.github/hooks/sdlc-state.py` (both CLIs: the SDLC state helper, from 0.39.0) | kit | same rule; compared against `templates/sdlc-state.template.py`, copied verbatim. Installed unconditionally — it is a command step the hooks never run, so it is never offered or declined |
 | `.github/hooks/sdlc-close-out.json` (Copilot: the stop-time backstop's wiring, 0.22.0–0.37.1, present only where accepted; retired in 0.38.0) | kit | classified for the transition — compared against `templates/close-out-hook.template.json` in the old manifest, and removed by step 5's removal clause when provably unmodified; owner decides when drifted |
 | `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | project | never overwritten — they hold the gate baseline, the project's own gate commands, the TDD-guard patterns, owner decisions, backlog, gotchas |
 | `.github/copilot-instructions.md`, `AGENTS.md` | project | never written, never overwritten, never removed. Setup does not create either (`reference/COPILOT.md`); if one is present, a project put it there |
 
 **Which of those rows apply here is recorded, not guessed:** `spec/PROJECT_INDEX.md`
 names the project's agent CLI (`Claude Code` / `Copilot CLI` / `both`). A project on
-both holds the seven commands twice — once user-typed under `.claude/commands/`, once
+both holds the eight commands twice — once user-typed under `.claude/commands/`, once
 packaged under `.github/skills/` — and both copies update.
 
 ## How to use
@@ -79,7 +80,7 @@ git -C /tmp/kit worktree add /tmp/kit-old vX.Y.Z                # the version yo
 ### 3. Classify every installed file
 
 Compare every installed file — `.claude/commands/`, `.claude/skills/`, `.claude/agents/`,
-`.github/skills/`, `.github/agents/` and the kit-owned `.github/hooks/` files (three, plus
+`.github/skills/`, `.github/agents/` and the kit-owned `.github/hooks/` files (four, plus
 the retired `sdlc-close-out.json` where present), as the script below enumerates them —
 against the **old** version's manifest. Hash committed content (`git cat-file -p :path`),
 never the working tree — an unpinned checkout on Windows holds CRLF and would report every
@@ -94,12 +95,13 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
                         .github/hooks/sdlc-close-out.sh \
                         .github/hooks/sdlc-close-out.json \
                         .github/hooks/sdlc-impact.py \
-                        .github/hooks/sdlc-cosmetic.py); do
+                        .github/hooks/sdlc-cosmetic.py \
+                        .github/hooks/sdlc-state.py); do
   have=""
   case "$f" in
     .github/hooks/sdlc-close-out.sh)
       base=sdlc-close-out.sh
-      # one of the THREE kit-owned files in .github/hooks/ — copied verbatim, no
+      # one of the FOUR kit-owned files in .github/hooks/ — copied verbatim, no
       # project values. Their neighbors are project-owned and deliberately NOT in
       # the pathspec above: this loop must never classify the gate, guard, or
       # ledger scripts.
@@ -122,6 +124,11 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
       # the third: the cosmetic-edit classifier (0.34.0), verbatim on both CLIs;
       # absent before 0.34.0, so it is added at step 5 the first time, like the third.
       want=$(awk '$2 == "templates/sdlc-cosmetic.template.py" {print $1}' "$MAN") ;;
+    .github/hooks/sdlc-state.py)
+      base=sdlc-state.py
+      # the fourth: the SDLC state helper (0.39.0), verbatim on both CLIs; absent
+      # before 0.39.0, so it is added at step 5 the first time.
+      want=$(awk '$2 == "templates/sdlc-state.template.py" {print $1}' "$MAN") ;;
     .claude/commands/*)
       base=${f#.claude/commands/}
       # commands/ and reference/REVIEW_LENSES.md install here. So did skills/ on kits
@@ -172,13 +179,14 @@ result rather than an error:
 - **Denominator.** The loop must print exactly as many lines as
   `git ls-files .claude/commands .claude/skills .claude/agents .github/skills
   .github/agents .github/hooks/sdlc-close-out.sh .github/hooks/sdlc-close-out.json
-  .github/hooks/sdlc-impact.py .github/hooks/sdlc-cosmetic.py | wc -l` — the same
+  .github/hooks/sdlc-impact.py .github/hooks/sdlc-cosmetic.py
+  .github/hooks/sdlc-state.py | wc -l` — the same
   pathspec list
   the loop walks, so the two cannot
   drift apart. Fewer means the matching dropped files (`tdd-references/` lives two
   directories down and is the usual casualty). On a Copilot project the count includes
   files under `.github/` that a Claude-only project does not have, and on a "both"
-  project the seven commands are counted twice, once per copy; a count that looks too
+  project the eight commands are counted twice, once per copy; a count that looks too
   high is the recorded CLI telling the truth, not an error.
 - **Never probe for a path with `git cat-file … | sha256sum`.** A pipeline reports the
   *last* command's status, so a missing path hashes empty input and silently matches
@@ -187,7 +195,7 @@ result rather than an error:
   the hash of nothing, which matches no manifest entry, so the file classifies
   `DRIFTED` and reaches the owner. A strip that silently *succeeded* on the wrong bytes
   would report a modified command as untouched — so if every packaged skill classifies
-  `DRIFTED` at once, suspect the strip before suspecting seven simultaneous edits.
+  `DRIFTED` at once, suspect the strip before suspecting eight simultaneous edits.
 
 ### 4. Present the plan — the main owner halt
 
@@ -289,6 +297,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.37.0 | the phase close stamps an unstamped baseline | `An unstamped gate baseline is stamped here` |
 | 0.37.1 | the coverage floor records its catch and reach | `The proof's catch is recorded on` |
 | 0.38.0 | slice step 6 is the close-out licence, not the quality pass | `Close-out licence, where the TDD guards are installed` |
+| 0.39.0 | the SDLC state | `whether the process is in force right now` |
 
 ### 5. Apply
 
@@ -300,7 +309,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   `.github/hooks/sdlc-close-out.sh` (both CLIs, verbatim), and
   `templates/sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py` (from 0.28.0)
   and `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py` (from
-  0.34.0), both CLIs, verbatim — all of which live outside the step-5 table because
+  0.34.0) and `templates/sdlc-state.template.py` → `.github/hooks/sdlc-state.py` (from
+  0.39.0), both CLIs, verbatim — all of which live outside the step-5 table because
   they install beside the hooks** — the
   *Agent CLI:* line says which column applies, and "both" gets both columns. Claude
   Code column: `sdlc-kit/commands/` into `.claude/commands/`. Copilot column: each
@@ -621,6 +631,31 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
     linter rules stay. The sentence as 0.38.0 first shipped it ("the secret-scanning
     rules below") asserted rules a project may not name; 0.38.1 corrected it to say
     secrets are unreviewed where none is named. Check which is true here before folding.
+- **0.39.0 adds the SDLC state: one file the hooks read to learn whether the process is
+  in force.** `.git/sdlc-state` (per clone, never committed) says `off`, `phase`,
+  `slice`, `close-out`, `phase-end` or `paused`; both TDD guards and both edit-time gate
+  hooks stand down on `off` and `paused` and guard on anything else, an absent file
+  included. Three things arrive by copy, and one only by walk-through:
+  - **Arrives by copy:** `.github/hooks/sdlc-state.py` (kit-owned, verbatim, both CLIs;
+    step 5 adds it as a new install) and the eighth command, `/sdlc` (`sdlc.md`, packaged
+    as `.github/skills/sdlc/SKILL.md` on Copilot). The five daily commands now write the
+    state at the steps `spec/SDLC.md` *Shape* names.
+  - **The initial state is written here, from the index, with the owner's
+    confirmation:** `python .github/hooks/sdlc-state.py set off --by sdlc-update` when the
+    index's Phase line says between phases, `phase` when it says BUILD with a phase in
+    flight, `slice` only if the owner says a slice is open. Without a file every hook
+    guards, as today, and speaks once that none exists.
+  - **Fold into the project-owned documents, as the marker table's 0.39.0 row puts it to
+    the owner:** `spec/SDLC.md` gains *Shape* → *The SDLC state* and *Phase end*'s fifth
+    reconcile subject, and `CLAUDE.md` *Always-Active Rules* gains the bullet that
+    `/sdlc pause` and `/sdlc off` are the owner's, never a session's.
+  - **The four hook bodies are project-owned, so the stand-down arrives only through the
+    walk-through below** — the 0.36.0 shape: `sdlc-tdd-guard.py`, `sdlc-tdd-guard.sh`,
+    `sdlc-gate-claude.sh` and `sdlc-gate.sh` each change, by about ten to forty lines read
+    at the top of the call. Say what an adopter who declines keeps: guards and gates that
+    fire exactly as today, beside a state file nothing reads, so `/sdlc pause` would
+    change nothing. Where the project has its own guard tests, run them after the
+    re-derive (as for 0.35.0), and run one `paused` write to see the stand-down.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from
@@ -932,7 +967,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   project that accepted the backstop, so was `templates/close-out-hook.template.json`,
   copied verbatim to `.github/hooks/sdlc-close-out.json`; from 0.28.0
   `templates/sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py`, and from 0.34.0
-  `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py`, both CLIs,
+  `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py`, and from
+  0.39.0 `templates/sdlc-state.template.py` → `.github/hooks/sdlc-state.py`, both CLIs,
   verbatim). If one fixes
   something the project cares about, raise it with the owner as a manual follow-up —
   never apply it automatically.

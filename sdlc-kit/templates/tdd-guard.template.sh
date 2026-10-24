@@ -357,17 +357,52 @@ CANDIDATES
 prev=""
 [ -f "$S/session" ] && IFS= read -r prev < "$S/session"
 if [ -n "$SID" ] && [ "$SID" != "$prev" ]; then
-  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" "$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" 2>/dev/null
+  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" "$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" "$S/state-spoken" 2>/dev/null
   printf '%s' "$SID" > "$S/session" 2>/dev/null
   log "new session $SID - previous observations cleared"
   record_start
 fi
+
+# SDLC state (89.4): the first line of <git-dir>/sdlc-state says whether the process is
+# in force. `off` or `paused` -> this guard stands down: no state written, no output,
+# exit 0; a paused production write is logged, never charged (the flag is read inside
+# pre-write). Anything else - `absent` and any word this file does not know included -
+# guards exactly as before, so a typo in a hand edit costs a spoken line, never a
+# silent disarm. Read AFTER the session bookkeeping above, so a session that begins
+# paused still records its start. Spoken once per session from observe-test, the one
+# seat of this dialect whose context output is measured; it rides that call's own
+# output when there is one and is emitted alone at exit otherwise.
+STATE=""; SNOTE=""; EMITTED=""
+[ -f "$GD/sdlc-state" ] && IFS= read -r STATE < "$GD/sdlc-state"
+STATE=$(printf '%s' "$STATE" | tr -d '\r' | tr '[:upper:]' '[:lower:]')
+if [ "$MODE" = "observe-test" ] && [ "$STATE" != "off" ] && [ ! -f "$S/state-spoken" ]; then
+  case "$STATE" in
+    paused)
+      sk=""; ss=""; sr=""
+      while IFS= read -r sl; do
+        case "$sl" in stage:*) sk=${sl#stage:} ;; since:*) ss=${sl#since:} ;; reason:*) sr=${sl#reason:} ;; esac
+      done < "$GD/sdlc-state"
+      SNOTE="SDLC paused since${ss} (${sr# }) - the kit's hooks are standing down; /sdlc resume re-enters${sk:- the saved stage}." ;;
+    "") SNOTE="no SDLC state file - guards active by default; /sdlc status" ;;
+    phase|slice|close-out|phase-end) ;;
+    *) SNOTE="unrecognized SDLC state '$STATE' - guards active; /sdlc status" ;;
+  esac
+fi
+flush_state_note() {
+  if [ -n "$SNOTE" ] && [ -z "$EMITTED" ]; then
+    sn=$SNOTE; SNOTE=""
+    : > "$S/state-spoken" 2>/dev/null
+    emit_context "$sn"
+  fi
+}
+trap flush_state_note EXIT
 
 # The output schemas below were measured against the CLI, not taken from documentation.
 # The message is read as bytes and decoded as UTF-8: a text-mode read on Windows python
 # is cp1252 with surrogateescape, which turned a non-ASCII path in the message into
 # mojibake (measured 2026-10-20).
 emit_deny() {
+  EMITTED=1
   printf '%s' "$1" | jr '
 import sys,json
 sys.stdout.write(json.dumps({"permissionDecision":"deny","permissionDecisionReason":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
@@ -376,6 +411,7 @@ process.stdout.write(JSON.stringify({permissionDecision:"deny",permissionDecisio
 '
 }
 emit_block() {
+  EMITTED=1
   printf '%s' "$1" | jr '
 import sys,json
 sys.stdout.write(json.dumps({"decision":"block","reason":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
@@ -385,6 +421,8 @@ process.stdout.write(JSON.stringify({decision:"block",reason:require("fs").readF
 }
 # postToolUse context injection - the same measured schema the edit-time gate hook uses.
 emit_context() {
+  EMITTED=1
+  if [ -n "$SNOTE" ]; then : > "$S/state-spoken" 2>/dev/null; set -- "$SNOTE $1"; SNOTE=""; fi
   printf '%s' "$1" | jr '
 import sys,json
 sys.stdout.write(json.dumps({"additionalContext":sys.stdin.buffer.read().decode("utf-8","replace")},separators=(",",":")))
@@ -392,6 +430,9 @@ sys.stdout.write(json.dumps({"additionalContext":sys.stdin.buffer.read().decode(
 process.stdout.write(JSON.stringify({additionalContext:require("fs").readFileSync(0,"utf8")}));
 '
 }
+
+# The stand-down sits below the emitters so the exit trap can still speak the notice.
+case "$STATE" in off) exit 0 ;; paused) [ "$MODE" = "pre-write" ] || exit 0 ;; esac
 
 case "$MODE" in
 
@@ -503,6 +544,12 @@ case "$MODE" in
     done <<PATHLIST
 $PATHS
 PATHLIST
+    if [ "$STATE" = paused ]; then
+      [ -z "$prel" ] || while IFS= read -r pr; do [ -n "$pr" ] && log "paused: unguarded production write: $pr"; done <<PAUSEDLIST
+$prel
+PAUSEDLIST
+      exit 0
+    fi
     if [ -n "$prod" ]; then
       ok=""
       # "You changed a test this session, then watched it fail" - the red must have a

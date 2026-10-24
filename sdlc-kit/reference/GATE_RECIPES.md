@@ -739,6 +739,25 @@ disposal-intent test*) rather than guard territory.
 
 ---
 
+### The SDLC state stand-down (0.39.0) — all four hook bodies
+
+Both guards and both gate hooks read the first line of `<git-dir>/sdlc-state` (the
+canonical statement is `spec/SDLC.md` *Shape*) before they act: **`off` or `paused` →
+stand down** — no output, no state written, exit 0; a paused production write is logged
+as `paused: unguarded production write: <path>` and never charged. **Everything else
+guards as before**, and the negative cases are the contract: an absent file, an empty
+one, and any word the hook does not know (`pausd`) all guard, so a hand-edit typo costs
+a spoken line and never a silent disarm. The gate hooks read it before the JSON parser
+is spawned — one shell builtin in an ordinary checkout, one `sed` in a worktree. The
+guards speak once per session: `paused` always (`SDLC paused since … /sdlc resume
+re-enters <stage>`), absent or unrecognized only on the call that opens the session;
+`off` is silent, being the deliberate rest state. The Claude dialect speaks from
+PreToolUse, the Copilot dialect from observe-test (the one seat of that dialect whose
+context output is measured). The skill ledger, the impact adapter, the cosmetic
+classifier and the close-out checker are not hooks that guard and need no rule. Hook
+bodies are project-owned, so an adopted project takes this only through the
+`/sdlc-update` walk-through.
+
 ## The close-out stop-time backstop — retired in 0.38.0
 
 The close-out checker's `stop-check` mode, wired as a stop hook, ran from 0.22.0 to

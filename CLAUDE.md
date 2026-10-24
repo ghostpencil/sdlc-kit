@@ -46,7 +46,8 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
                                               sdlc-gate-claude.sh, sdlc-tdd-guard.py)
                                              (Copilot: .github/hooks/, .github/agents/)
                                              (both CLIs: .github/hooks/sdlc-close-out.sh,
-                                              sdlc-impact.py and sdlc-cosmetic.py, plus
+                                              sdlc-impact.py, sdlc-cosmetic.py and
+                                              sdlc-state.py, plus
                                               sdlc-skill-ledger.sh where accepted —
                                               one body for both since 0.31.1)
   commands/*.md                              .claude/commands/*.md
@@ -62,15 +63,17 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
 runs in two modes — **New Project** (interview → scaffold → establish a green gate) and
 **Existing Project** (analyze → propose → confirm → generate, merging never overwriting) —
 and it instantiates every template, installs the four daily commands, `sdlc-retro.md`,
-`sdlc-update.md`, the vendored TDD skill set, and the two kit-written change passes
+`sdlc-update.md`, `sdlc.md`, the vendored TDD skill set, and the two kit-written change passes
 (`diff-review`, `change-verify`), writes the edit-time hook, and installs the close-out
 evidence checker (`.github/hooks/sdlc-close-out.sh`, verbatim, both CLIs; its stop-time
 backstop was retired in 0.38.0), the architecture-impact adapter
 (`.github/hooks/sdlc-impact.py`, verbatim, both CLIs, never offered — it is inert
 without an Understand Anything graph) and the cosmetic classifier
 (`.github/hooks/sdlc-cosmetic.py`, verbatim, both CLIs, never offered — it can only
-grant the TDD guards' comment/format exemption) — those three are the kit-owned files
-in that directory; every other file there is project-owned.
+grant the TDD guards' comment/format exemption) and the SDLC state helper
+(`.github/hooks/sdlc-state.py`, verbatim, both CLIs, never offered — a command step the
+hooks never run) — those four are the kit-owned files in that directory; every other
+file there is project-owned.
 `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
 *Updating an adopted project* section state the same procedure and must agree. The
@@ -85,7 +88,7 @@ the canonical statement of that process; the four daily commands (`plan-phase`,
 `PROJECT_INDEX.template.md`) is the single source of truth in an adopted project — the
 load-bearing piece that lets a fresh session orient in seconds.
 
-**The install split is by how a file is invoked, not by what it contains.** The seven
+**The install split is by how a file is invoked, not by what it contains.** The eight
 commands are user-typed entry points and go to `.claude/commands/` (on Copilot CLI,
 packaged as `.github/skills/<name>/SKILL.md` — the flow diagram above shows both); the
 six skills —

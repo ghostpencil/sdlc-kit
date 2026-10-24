@@ -74,6 +74,9 @@ TC_BLOCK = ('t=$(stubtc "$f" 2>&1); trc=$?; '
             'if grep -q SHOWREL "$f"; then t="rel=$r"; trc=1; fi;')
 
 
+NL = "\n"
+
+
 def rmtree(path):
     """shutil.rmtree that also removes a bench's git objects. Windows git writes them
     read-only, and rmtree(ignore_errors=True) skipped them without a word: by
@@ -613,6 +616,118 @@ def ts_recipe_suite(parser, check):
             rmtree(base)
 
 
+def state_cases(dialect, body, parser, check):
+    """The SDLC state's stand-down (FEATURE_PLAN.md 89.4) against one gate-hook body,
+    always on a DIRTY file so that any run which did not stand down is seen reporting:
+    absent guards, `off` and `paused` stand down silently, an unknown word guards, and
+    the worktree form of .git is followed. Both dialects, one meaning."""
+    base = tempfile.mkdtemp(prefix="gatehook-state-")
+    try:
+        pj = Project(base, body)
+        gitdir = os.path.join(pj.root, ".git")
+        os.makedirs(gitdir)
+        pj.put("src/a.py", True)
+
+        def reports():
+            if dialect == "copilot":
+                p = pj.run({"cwd": pj.root, "toolName": "apply_patch",
+                            "toolArgs": patch(("Update", "src/a.py"))}, parser)
+                return b"E001" in p.stdout, p
+            p = pj.run({"tool_name": "Edit", "tool_input": {"file_path": "src/a.py"}},
+                       parser, extra_env={"CLAUDE_PROJECT_DIR": pj.root})
+            return p.returncode == 2 and b"E001" in p.stderr, p
+
+        def silent(p):
+            return p.returncode == 0 and not p.stdout.strip() and not p.stderr.strip()
+
+        def state(text):
+            f = os.path.join(gitdir, "sdlc-state")
+            if text is None:
+                if os.path.exists(f):
+                    os.remove(f)
+                return
+            io.open(f, "w", encoding="utf-8", newline="\n").write(text)
+
+        state(None)
+        ok, _ = reports()
+        check("%s: an absent state file gates as before" % dialect, ok)
+        state("slice" + NL)
+        ok, _ = reports()
+        check("%s: `slice` gates" % dialect, ok)
+        state("off" + NL)
+        ok, p = reports()
+        check("%s: `off` stands down - silent, exit 0, the dirty file unreported" % dialect,
+              not ok and silent(p), "rc=%s out=%r err=%r" % (p.returncode, p.stdout[:60], p.stderr[:60]))
+        state("paused" + NL + "stage: slice" + NL + "reason: bump" + NL)
+        ok, p = reports()
+        check("%s: `paused` stands down the same way" % dialect, not ok and silent(p))
+        state("Off" + NL)
+        ok, p = reports()
+        check("%s: the word is read case-insensitively" % dialect, not ok and silent(p))
+        state("pausd" + NL)
+        ok, _ = reports()
+        check("%s: an unrecognized word gates (a typo never disarms)" % dialect, ok)
+        state("")
+        ok, _ = reports()
+        check("%s: an empty file gates" % dialect, ok)
+        # a linked worktree: .git is a FILE naming the real git directory
+        shutil.rmtree(gitdir)
+        real = os.path.join(base, "wt-git")
+        os.makedirs(real)
+        io.open(os.path.join(pj.root, ".git"), "w", encoding="utf-8", newline="\n").write(
+            "gitdir: %s" % real.replace(os.sep, "/") + NL)
+        io.open(os.path.join(real, "sdlc-state"), "w", encoding="utf-8", newline="\n").write(
+            "paused" + NL)
+        ok, p = reports()
+        check("%s: a worktree's .git FILE is followed to its state" % dialect,
+              not ok and silent(p))
+    finally:
+        rmtree(base)
+
+
+STATE_MUTATIONS = [
+    ("remove the stand-down (every `off` and `paused` case must fail)",
+     "case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac", ":"),
+    ("widen the stand-down to an absent state file (a fresh clone silently disarms)",
+     "case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac",
+     'case $st in ""|[Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac'),
+]
+
+
+def state_proof(parser):
+    """The stand-down cases on both bodies, then each STATE_MUTATIONS entry on each body:
+    a mutation that no case notices means the cases prove nothing (invariant 13)."""
+    problems, lines = [], []
+    for dialect, tpl in (("copilot", COPILOT_SH_TPL), ("claude", CLAUDE_SH_TPL)):
+        src = io.open(tpl, encoding="utf-8", newline="").read()
+
+        def run(text, collect):
+            def check(name, cond, detail=""):
+                collect.append((name, cond))
+                lines.append(("  PASS  " if cond else "  FAIL  ") + name +
+                             (("\n          " + str(detail)) if not cond and detail else ""))
+            guarded("state cases [%s]" % dialect, None, state_cases, dialect,
+                    instantiate(text), parser, check)
+        results = []
+        run(src, results)
+        problems += [n for n, ok in results if not ok]
+        for label, old, new in STATE_MUTATIONS:
+            if old not in src:
+                problems.append("STALE state mutation (%s): %s" % (dialect, label))
+                lines.append("  STALE    %s: %s" % (dialect, label))
+                continue
+            saved, lines[:] = list(lines), []
+            got = []
+            run(src.replace(old, new, 1), got)
+            lines[:] = saved
+            if any(not ok for _, ok in got):
+                lines.append("  caught   %s: %s" % (dialect, label))
+            else:
+                problems.append("SURVIVED %s: %s" % (dialect, label))
+                lines.append("  SURVIVED %s: %s" % (dialect, label))
+    return lines, problems
+
+
 def run_suite(label, suite, parser):
     """One suite under one parser; returns (lines, failed). Each run is its own temp
     project, so the six run concurrently and buffer their lines for in-order output."""
@@ -652,6 +767,13 @@ def main():
             if failed:
                 rc = 1
             print(flush=True)
+    sp = "python" if PARSER_DIRS.get("python") else "node"
+    print("=== SDLC state stand-down, both gate bodies, then mutated [parser: %s] ===" % sp)
+    lines, problems = state_proof(sp)
+    print("\n".join(lines))
+    print(flush=True)
+    if problems:
+        rc = 1
     if guarded.crashed:
         print("CRASHED passes: %s" % ", ".join(guarded.crashed))
         rc = 1

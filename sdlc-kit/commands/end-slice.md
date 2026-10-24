@@ -20,6 +20,14 @@ operator-performed, the policy names the moment to set it).
 
 ### 1. Sanity check
 
+- **Read the SDLC state before anything writes it:** `python .github/hooks/sdlc-state.py
+  status`, quoted (`spec/SDLC.md` *Shape*; a project without that helper predates it —
+  skip and say so). If it reads `paused` or `off` during a slice, say so in one line —
+  reported, never a reason to refuse: the close-out proceeds. Then count the
+  `paused: unguarded production write` lines in `.git/sdlc-tdd/guard.log` (the
+  directory `$(git rev-parse --git-dir)/sdlc-tdd/` in a linked worktree) dated since
+  the slice's base commit, and carry that count to step 10. Zero is the expected
+  answer; a nonzero count is a forgotten pause and is stated beside the RED evidence.
 - `git status` + `git diff --stat`. If the working tree is clean and the slice has
   made no commit on the branch — nothing since `<base>`, defined below — report that
   there is no slice to close and stop. A slice that already committed everything is
@@ -82,6 +90,9 @@ test edit the close-out licence survives is counted in the guard log, so a licen
 open past step 6 is visible in review; it ends with the session either way, so a session
 restarted mid-close-out re-declares it before its first production write in steps 4–6.
 A docs-only slice (step 1) and a project without the guards skip this step.
+Licence or not, record the state: `python .github/hooks/sdlc-state.py set
+close-out --by end-slice` (it replaces a `paused` state — the close-out is the owner's
+own command).
 
 Until 0.38.0 this step was also the quality pass (`change-simplify`). That pass was
 retired when its final clock failed: on two field arcs, reuse misses it had passed over
@@ -532,7 +543,9 @@ so in the hand-back rather than guessing an invocation.
 ### 10. Hand back
 
 Push the branch first (`git push`) — the slice commit and its docs commit together, so
-the work is not stranded locally. Never a PR here; that is `/end-phase` (Notes).
+the work is not stranded locally. Never a PR here; that is `/end-phase` (Notes). Then
+return the state to between-slices: `python .github/hooks/sdlc-state.py set phase --by
+end-slice`.
 
 Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open with a
 plain-English executive summary in bullets: what the slice now does, gate green (test
@@ -544,7 +557,8 @@ checked, each seen to fail), **RED evidence per behavior batch** (the command, t
 line, the exit code — with `not observed` stated, never omitted), **verification outcome**
 (the verdicts, or skipped with the reason), **the record check's quoted output** (step 8 —
 COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line** (step 9 — quoted,
-and an `OVER` answered rather than merely reported), **the final architecture footprint**
+and an `OVER` answered rather than merely reported), **`unguarded while paused: N`**
+(step 1's count; `0` is the expected line), **the final architecture footprint**
 (below, where the project has one), any tool substituted for one this file names, and
 commit hashes. End with: **safe to `/clear`**.
 
