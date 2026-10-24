@@ -8464,8 +8464,11 @@ the same speed bump, `--force` plus a reason; and the retro reads the log now.
 has been measured eroding or evaded, and every confirmed catch has come from a log read
 afterwards (§15, §87, invariant 16). So: `pause` and `off` require a reason from every
 caller, the owner included; `--by` names the caller — `owner`, `agent`, `harness`, or a
-command name — and the state log's line already carries it; an in-flight `off` appends
-`(in flight: <stage>)` to its reason, since the file no longer holds the stage;
+command name — and the state log's line already carries it; an in-flight `off` keeps
+the stage, phase and slice in the file as a pause does and appends `(in flight:
+<stage>)` to its log line, and `on` — `resume` under the name that reads right after an
+`off`, the owner's second ask the same day — restores it, or with no stage kept reads
+the index's Phase line, so whoever paused or turned the state off can bring it back;
 `/sdlc-retro` gains a reading of `sdlc-state.log` — pauses by caller, reasons verbatim,
 durations, and the `paused: unguarded production write` lines under each — with the
 finding named: a pause whose reason is a denied write, or slice work logged under a

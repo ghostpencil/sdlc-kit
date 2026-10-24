@@ -33,7 +33,7 @@ in `spec/SDLC.md`. Session commands that drive it:
 - `/sdlc-retro` — extract lessons from a finished phase (project facts to this project's
   files; process findings to a report you decide whether to send upstream)
 - `/sdlc` — see or change the SDLC state the hooks obey (`status`, `pause <reason>`,
-  `resume`, `off <reason>` — any caller, logged with who asked and why)
+  `resume`, `off <reason>`, `on` — any caller, logged with who asked and why)
 
 An edit-time hook ({{HOOK_CONFIG_PATH}}) runs {{HOOK_TOOLS}} on every edited
 {{SOURCE_EXT}} file. {{HOOK_FEEDBACK_NOTE}}
@@ -81,7 +81,8 @@ If unsure → ask
   the paths the TDD guards' exempt pattern names (`spec/SDLC.md`, guard note).
 - **This session may change the SDLC state, with a reason.** For work that is not the
   slice's, `/sdlc pause <reason>` stands the hooks down and `/sdlc resume` brings them
-  back; pass `--by agent`, and the log keeps who and why for the retro. A denied write
+  back (`/sdlc on` after an `off`); pass `--by agent`, and the log keeps who and why
+  for the retro. A denied write
   of the slice's own work takes the TDD path or declares a licence (the deny message
   names them); a pause with a denial as its reason is a finding, not a route
 - {{LANGUAGE_AND_VERSION}}

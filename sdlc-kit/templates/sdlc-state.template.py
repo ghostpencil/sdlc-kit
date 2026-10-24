@@ -27,7 +27,8 @@ Usage:
   python .github/hooks/sdlc-state.py set <state> [--phase NN] [--slice Sn]
                                        [--by <name>] [--reason <text>]
   python .github/hooks/sdlc-state.py pause "<reason>" [--by <who>]
-  python .github/hooks/sdlc-state.py resume [--by <who>]
+  python .github/hooks/sdlc-state.py resume [--by <who>]     (after a pause)
+  python .github/hooks/sdlc-state.py on [--by <who>]         (after an off; the same act)
   python .github/hooks/sdlc-state.py off "<reason>" [--force] [--by <who>]
 States: off phase slice close-out phase-end paused
 Who (--by): owner | agent | harness | <command name>; defaults to the verb's command.
@@ -231,16 +232,18 @@ def cmd_pause(gd, args):
     print("state: paused (stage: %s)" % new["stage"])
 
 
-def cmd_resume(root, gd, args):
+def cmd_resume(root, gd, args, verb="resume"):
+    """`resume` after a pause, `on` after an off: one act. The hooks come back to the
+    stage the file saved, or, with none saved, to what the index's Phase line says."""
     opts, _ = parse_opts(args)
     word, keys = read_state(gd)
     stage = keys.get("stage")
-    if word == "paused" and stage in WORDS and stage != "paused":
+    if word in ("paused", "off") and stage in WORDS and stage not in ("paused", "off"):
         new = {k: keys[k] for k in ("phase", "slice") if keys.get(k)}
-        write_state(gd, stage, new, opts.get("by", "/sdlc resume"), "resumed")
+        write_state(gd, stage, new, opts.get("by", "/sdlc " + verb), "resumed")
         print("state: %s (restored from stage:)" % stage)
         return
-    if word not in ("paused", "absent"):
+    if word not in ("paused", "off", "absent"):
         print("state: %s (nothing to resume)" % word)
         return
     line = index_phase(root)
@@ -252,7 +255,7 @@ def cmd_resume(root, gd, args):
     else:
         raise Fail("no saved stage and the index Phase line is unreadable (%r); "
                    "use `set <state>`" % line)
-    write_state(gd, pick, {}, opts.get("by", "/sdlc resume"),
+    write_state(gd, pick, {}, opts.get("by", "/sdlc " + verb),
                 "resumed from the index Phase line")
     print("state: %s (no saved stage; chosen from the index: %s)" % (pick, line))
 
@@ -267,16 +270,20 @@ def cmd_off(gd, args):
     if over not in (None, "off", "absent") and not opts.get("force"):
         raise Fail("an arc is in flight (%s, phase %s): pass --force to turn the state "
                    "off, or /sdlc pause <reason>" % (over, keys.get("phase", "?")))
+    new = {}
     if over not in (None, "off", "absent"):
-        # The log line keeps what was abandoned, since the file no longer will.
+        # The file keeps what was abandoned, as a pause does, so `on` can restore it;
+        # the log line says it too, since the file is overwritten by the next write.
+        new = {k: keys[k] for k in ("phase", "slice") if keys.get(k)}
+        new["stage"] = over
         reason = "%s (in flight: %s)" % (reason, over)
-    write_state(gd, "off", {}, opts.get("by", "/sdlc off"), reason)
+    write_state(gd, "off", new, opts.get("by", "/sdlc off"), reason)
     print("state: off")
 
 
 def main(argv):
     if not argv:
-        raise Fail("usage: sdlc-state.py status|set|pause|resume|off")
+        raise Fail("usage: sdlc-state.py status|set|pause|resume|on|off")
     verb, rest = argv[0], argv[1:]
     root = repo_root()
     gd = git_dir(root)
@@ -286,8 +293,8 @@ def main(argv):
         cmd_set(gd, rest)
     elif verb == "pause":
         cmd_pause(gd, rest)
-    elif verb == "resume":
-        cmd_resume(root, gd, rest)
+    elif verb in ("resume", "on"):
+        cmd_resume(root, gd, rest, verb)
     elif verb == "off":
         cmd_off(gd, rest)
     else:

@@ -21,9 +21,12 @@ whose reason is a denial is exactly what the retro looks for.
   middle of a phase or slice; the reason is required, logged, and spoken back once per
   session.
 - `/sdlc resume` — restore the state that was paused.
+- `/sdlc on` — the same act after an `off`: the hooks come back to the stage the file
+  kept (an in-flight `off` keeps it, as a pause does) or, with none kept, to what the
+  index's Phase line says. Whoever paused or turned the state off can bring it back.
 - `/sdlc off <reason>` — no arc in flight; the reason is required. While an arc is in
   flight the helper refuses once and names `pause` as the usual verb; repeating with
-  `--force` goes through, and the log line records the stage that was abandoned.
+  `--force` goes through, and the file and the log keep the stage that was abandoned.
 - **Who asked travels with every change.** Pass `--by owner` when the owner typed this
   command, `--by agent` when this session invokes it on its own judgement; a hook or
   launcher script passes `--by harness`. The daily commands pass their own names.

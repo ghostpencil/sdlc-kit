@@ -68,9 +68,10 @@ guard. Editing the file by hand is sanctioned; `/sdlc` is the convenience and th
 (`<git-dir>/sdlc-state.log`). **Any caller may pause or turn the state off — the owner,
 the session on its own judgement, a harness — for work that is not the slice's, and
 every change is logged with who asked and why** (`pause` and `off` require a reason;
-`--by` names the caller). A denied write of the slice's own work takes the TDD path or
-declares a licence; a pause whose reason is a denial is a retro finding, read from the
-log, never something the hooks prevent.
+`--by` names the caller), and bring them back — `resume` after a pause, `on` after an
+`off` — to the stage the file kept. A denied write of the slice's own work takes the
+TDD path or declares a licence; a pause whose reason is a denial is a retro finding,
+read from the log, never something the hooks prevent.
 
 **Parallelism is read-only fan-out only.** Slices are strictly sequential — their order
 is set at planning time and inter-slice dependencies are the norm. Subagents may run in

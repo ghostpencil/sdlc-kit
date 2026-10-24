@@ -51,7 +51,9 @@ kit's slowest proof took ~29 minutes and said nothing about its progress while i
   reversing 0.39.0's owner-act rule on the owner's field reading): the session's agent
   or a harness may `pause`, `resume` and `off` the state with a reason — `off` now
   requires one, like `pause` — and `--by owner|agent|harness|<command>` is logged beside
-  it; an in-flight `off` logs the stage it abandoned. The helper, `/sdlc` and
+  it; an in-flight `off` keeps and logs the stage it abandoned, and `on` (or `resume`)
+  brings the hooks back to it — whoever paused or turned the state off can bring it
+  back. The helper, `/sdlc` and
   `/sdlc-retro` (a new reading of `sdlc-state.log`: pauses by caller, reasons,
   durations, unguarded writes under each) arrive by copy; **[adoption-only]**
   `SDLC.template.md` *Shape* and `CLAUDE.template.md`'s Always-Active bullet state the

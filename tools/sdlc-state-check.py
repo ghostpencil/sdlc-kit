@@ -264,10 +264,22 @@ def unit(src, verbose=True, counter=None, first_only=False):
         case("5b off while PAUSED over a slice refuses too",
              b.rc == 2 and b.first() == "paused", out)
         b.run("off", "done for today", "--force", "--by", "agent")
-        case("5c off --force writes off, and the log keeps the abandoned stage and the caller",
-             b.first() == "off" and b.rc == 0
+        s = b.state() or ""
+        case("5c off --force writes off; the file and the log keep the abandoned stage and the caller",
+             b.first() == "off" and b.rc == 0 and "stage: slice" in s and "phase: 12" in s
              and "paused -> off agent — done for today (in flight: slice)" in b.log()[-1],
-             b.log()[-1])
+             s + " | " + b.log()[-1])
+        out = b.run("on", "--by", "agent")
+        s = b.state() or ""
+        case("5c2 on after an in-flight off restores the stage with phase and slice, logged",
+             b.rc == 0 and b.first() == "slice" and "phase: 12" in s and "slice: S4" in s
+             and "stage:" not in s and "off -> slice agent" in b.log()[-1], s)
+        b.clear()
+        b.index("BUILD — Phase 3 Bar (spec/PHASE_03_bar.md)")
+        b.run("off", "between sessions")
+        out = b.run("on")
+        case("5c3 on after a plain off (no stage kept) reads the index",
+             b.rc == 0 and b.first() == "phase" and "chosen from the index" in out, out)
         b.clear()
         b.run("off", "fresh clone, nothing running")
         case("5d off from an absent state writes without asking",
@@ -355,8 +367,11 @@ MUTATIONS = [
      'with open(os.path.join(gd, LOG_FILE), "a", encoding="utf-8", newline="\\n") as f:',
      'with open(os.devnull, "a", encoding="utf-8", newline="\\n") as f:'),
     ("a resume that ignores stage: (it restores nothing and falls through to the index)",
-     'if word == "paused" and stage in WORDS and stage != "paused":',
+     'if word in ("paused", "off") and stage in WORDS and stage not in ("paused", "off"):',
      "if False:"),
+    ("an off that forgets the stage it abandoned (on cannot bring the hooks back to it)",
+     '        new["stage"] = over',
+     "        pass"),
     ("an off that never asks while an arc is in flight",
      'if over not in (None, "off", "absent") and not opts.get("force"):',
      "if False:"),
