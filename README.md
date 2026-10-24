@@ -6,7 +6,14 @@ Dungeon Daddy project (50+ phases shipped with it).
 
 It works for any programming language and any type of application — CLI tools, web
 services, GUI apps, libraries. The process is the constant; the tooling (linter, type
-checker, test runner) is configured per project during setup.
+checker, test runner) is configured per project during setup. It runs on **Claude Code**
+and **GitHub Copilot CLI**, and a project may use both.
+
+Since that first extraction the kit has shipped 51 releases, nearly all shaped by real use:
+three adopting projects (Python, Java/Spring Boot, TypeScript) have run it across both
+CLIs, and eleven field reports from them sit at the root of this repo. The theme of that
+work is in the next sections: the process no longer only *describes* the steps, it
+*checks* them, and every check ships with proof that it can fail.
 
 ---
 
@@ -30,7 +37,8 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
 - **Fresh session per slice.** Long conversations degrade. Each slice starts clean and
   ends with everything recorded on disk, so nothing lives only in chat history.
 - **TDD keeps the agent honest.** A failing test written first is a contract the agent
-  can't quietly reinterpret. The kit's vendored TDD skill enforces the loop.
+  can't quietly reinterpret. The vendored TDD skill teaches the loop, and the TDD guards
+  watch it at edit time (below).
 - **The gate is non-negotiable.** Lint + typecheck + tests green before every commit.
   A file-edit hook surfaces most failures at edit time, not at slice end.
 - **You stay in charge at exactly five points.** Everything else runs without asking, so
@@ -38,6 +46,43 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
   never decides scope, design, or merges for you.
 - **Specs are interrogated, not assumed.** `/plan-phase` interviews you and then
   adversarially attacks its own understanding before writing a build-ready spec.
+
+## What the kit checks for you
+
+Prose rules erode; the field reports showed it again and again. So the kit turns its
+load-bearing steps into hooks and scripts that leave evidence, and keeps the prose for
+judgement calls.
+
+- **The gate at edit time.** A hook runs your lint, typecheck, or tests on the file just
+  edited, so most failures surface while the agent is still in context.
+- **TDD guards.** Hooks watch the editor tools: a production write with no failing test
+  observed first is logged, or denied once you arm deny mode. A RED counts only when the
+  test runner's own report shows the failure. Comment- and layout-only edits are exempt,
+  decided by a parser rather than by a guess. The guards are a cooperative backstop, not
+  a security boundary.
+- **A close-out evidence record.** Every slice commit carries four lines: its RED
+  evidence, the review's lens verdicts, the mutation check, and the verification result.
+  A checker script fails loudly when one is missing or empty. It checks that the record
+  exists, not that it is true, and that alone catches the steps that silently vanish.
+- **Review lenses.** The kit's own reviewer applies focused lenses such as concurrency,
+  untrusted input, and disposal. Each lens maps to the linter rules that cover its
+  mechanical half in every language with a gate recipe.
+- **A product contract.** `spec/PRODUCT_CONTRACT.md` states what the product currently
+  does, as the owner ratified it. Each phase end checks that those behaviors still exist,
+  so a later cleanup cannot delete one with every test green.
+- **An SDLC state switch.** `/sdlc` shows whether the process is in force, and lets the
+  owner or the agent pause the hooks for work that isn't the slice's. Every pause needs a
+  reason and is logged with who asked, and `/sdlc-retro` reads that log.
+- **Architecture impact, optional.** Where a project keeps an Understand Anything
+  knowledge graph, each slice and each phase gets a picture of what its changes touched,
+  and the graph refreshes itself at slice end.
+- **A retro that feeds the kit.** `/sdlc-retro` turns a finished phase into lessons for
+  the project and a field report for the kit. `/sdlc-update` brings an adopted project
+  forward to a new release without overwriting what the project owns.
+
+The kit holds itself to the same rule. Every control states how it is proven to fail,
+and the scripts under `tools/` prove it: each one breaks the hooks on purpose and must
+see its tests catch every mutation before a release ships.
 
 ---
 
