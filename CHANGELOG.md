@@ -14,7 +14,7 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
-## 0.38.1 — unreleased
+## 0.38.1 — 2026-10-23
 
 Two defects the adopter updates to 0.38.0 found (`FEATURE_PLAN.md` §88.7).
 
