@@ -47,6 +47,18 @@ kit's slowest proof took ~29 minutes and said nothing about its progress while i
   (the text-mode read it mutated is gone; an 8-bit round trip of the message takes its
   place) and the CRLF one added.
 - `/kit-check`'s cost paragraph states the new timings.
+- **[installable]** **The SDLC state is any caller's switch** (`FEATURE_PLAN.md` §91,
+  reversing 0.39.0's owner-act rule on the owner's field reading): the session's agent
+  or a harness may `pause`, `resume` and `off` the state with a reason — `off` now
+  requires one, like `pause` — and `--by owner|agent|harness|<command>` is logged beside
+  it; an in-flight `off` logs the stage it abandoned. The helper, `/sdlc` and
+  `/sdlc-retro` (a new reading of `sdlc-state.log`: pauses by caller, reasons,
+  durations, unguarded writes under each) arrive by copy; **[adoption-only]**
+  `SDLC.template.md` *Shape* and `CLAUDE.template.md`'s Always-Active bullet state the
+  new rule, and the update note says to fold 0.40.0's wording. The deny message still
+  names only the TDD path and the licence.
+- `tools/sdlc-state-check.py` gains the reason-required `off`, the recorded caller for
+  pause and resume, and the in-flight log line; one mutation added.
 ## 0.39.0 — 2026-10-24
 
 An SDLC state the hooks read before they act (`FEATURE_PLAN.md` §89, owner-raised

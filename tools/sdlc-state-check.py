@@ -220,6 +220,17 @@ def unit(src, verbose=True, counter=None, first_only=False):
         out = b.run("pause", "fresh clone")
         case("3f pausing an absent state saves stage: phase",
              b.rc == 0 and "stage: phase" in (b.state() or ""), out)
+        # §91: any caller, with a reason - and the caller travels with the change.
+        b.clear()
+        b.run("set", "slice", "--phase", "12", "--slice", "S4")
+        b.run("pause", "docs sweep, not the slice", "--by", "agent")
+        s = b.state() or ""
+        case("3g pause --by agent records the caller in the file and the log",
+             b.first() == "paused" and "by: agent" in s
+             and "-> paused agent — docs sweep, not the slice" in b.log()[-1], s)
+        b.run("resume", "--by", "agent")
+        case("3h resume --by agent is logged as the agent's",
+             b.first() == "slice" and "paused -> slice agent" in b.log()[-1], b.log()[-1])
 
         # --- resume from the index --------------------------------------------
         for line, want in (("BUILD — Phase 12 Foo (spec/PHASE_12_foo.md)", "phase"),
@@ -245,23 +256,35 @@ def unit(src, verbose=True, counter=None, first_only=False):
         # --- off -------------------------------------------------------------
         b.clear()
         b.run("set", "slice", "--phase", "12", "--slice", "S4")
-        out = b.run("off")
+        out = b.run("off", "done for today")
         case("5 off while an arc is in flight is exit 2 with the way out, and writes nothing",
              b.rc == 2 and b.first() == "slice" and "--force" in out and "phase 12" in out, out)
         b.run("pause", "tidy")
-        out = b.run("off")
+        out = b.run("off", "done for today")
         case("5b off while PAUSED over a slice refuses too",
              b.rc == 2 and b.first() == "paused", out)
-        b.run("off", "--force")
-        case("5c off --force writes off", b.first() == "off" and b.rc == 0)
+        b.run("off", "done for today", "--force", "--by", "agent")
+        case("5c off --force writes off, and the log keeps the abandoned stage and the caller",
+             b.first() == "off" and b.rc == 0
+             and "paused -> off agent — done for today (in flight: slice)" in b.log()[-1],
+             b.log()[-1])
         b.clear()
-        b.run("off")
+        b.run("off", "fresh clone, nothing running")
         case("5d off from an absent state writes without asking",
              b.first() == "off" and b.rc == 0)
         b.run("set", "phase", "--phase", "3")
-        out = b.run("off")
+        out = b.run("off", "done")
         case("5e off from `phase` also refuses - an arc is in flight",
              b.rc == 2 and b.first() == "phase", out)
+        # §91: a reason is required from every caller, the owner included.
+        b.clear()
+        out = b.run("off")
+        case("5f off without a reason is exit 2 and writes nothing (who and why are logged)",
+             b.rc == 2 and b.state() is None and "needs a reason" in out, out)
+        b.run("set", "slice", "--phase", "1", "--slice", "S1")
+        out = b.run("off", "--force")
+        case("5g ...and --force does not excuse the reason",
+             b.rc == 2 and b.first() == "slice" and "needs a reason" in out, out)
 
         # --- file hygiene -------------------------------------------------------
         b.clear()
@@ -337,6 +360,9 @@ MUTATIONS = [
     ("an off that never asks while an arc is in flight",
      'if over not in (None, "off", "absent") and not opts.get("force"):',
      "if False:"),
+    ("an off that needs no reason (who asked, and why, are lost to the retro)",
+     '''raise Fail('off needs a reason: off "<reason>" (who and why are logged)')''',
+     "pass"),
     ("a pause that is allowed on an off state (nothing is in flight to suspend)",
      'if word == "off":\n        raise Fail("nothing is in flight',
      'if False:\n        raise Fail("nothing is in flight'),

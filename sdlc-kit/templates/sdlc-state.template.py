@@ -7,9 +7,11 @@ canonical statement of the states; this file only implements it.
 
 THIS IS A COMMAND STEP, NOT A HOOK. The hooks never run it - they read the first line of
 the state file themselves (`off` or `paused` -> stand down; anything else, an absent or
-unreadable file included -> guard), so a defect here can never disarm a guard. Pausing
-and turning off are owner acts; the commands that call this file never do either on
-their own.
+unreadable file included -> guard), so a defect here can never disarm a guard. Any
+caller may pause or turn the state off - the owner, the session's agent on its own
+judgement, a harness script - and every change says who and why: `pause` and `off`
+require a reason, `--by` names the caller (owner, agent, harness, or the command), and
+the log keeps both for the retro to read.
 
 FAIL DIRECTION: closed. A bad verb, an unknown state word or an unwritable file prints
 one error line and exits 2 - never swallowed, never a silent success. (The hooks fail
@@ -24,10 +26,11 @@ Usage:
   python .github/hooks/sdlc-state.py status
   python .github/hooks/sdlc-state.py set <state> [--phase NN] [--slice Sn]
                                        [--by <name>] [--reason <text>]
-  python .github/hooks/sdlc-state.py pause "<reason>"
-  python .github/hooks/sdlc-state.py resume
-  python .github/hooks/sdlc-state.py off [--force]
+  python .github/hooks/sdlc-state.py pause "<reason>" [--by <who>]
+  python .github/hooks/sdlc-state.py resume [--by <who>]
+  python .github/hooks/sdlc-state.py off "<reason>" [--force] [--by <who>]
 States: off phase slice close-out phase-end paused
+Who (--by): owner | agent | harness | <command name>; defaults to the verb's command.
 """
 
 import os
@@ -255,13 +258,19 @@ def cmd_resume(root, gd, args):
 
 
 def cmd_off(gd, args):
-    opts, _ = parse_opts(args)
+    opts, rest = parse_opts(args)
+    reason = " ".join(rest).strip() or opts.get("reason", "")
+    if not reason:
+        raise Fail('off needs a reason: off "<reason>" (who and why are logged)')
     word, keys = read_state(gd)
     over = keys.get("stage") if word == "paused" else word
     if over not in (None, "off", "absent") and not opts.get("force"):
         raise Fail("an arc is in flight (%s, phase %s): pass --force to turn the state "
                    "off, or /sdlc pause <reason>" % (over, keys.get("phase", "?")))
-    write_state(gd, "off", {}, opts.get("by", "/sdlc off"), opts.get("reason", ""))
+    if over not in (None, "off", "absent"):
+        # The log line keeps what was abandoned, since the file no longer will.
+        reason = "%s (in flight: %s)" % (reason, over)
+    write_state(gd, "off", {}, opts.get("by", "/sdlc off"), reason)
     print("state: off")
 
 

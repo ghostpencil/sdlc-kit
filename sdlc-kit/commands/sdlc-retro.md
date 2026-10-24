@@ -76,6 +76,14 @@ none of them writes anything.
   gate run (a red gate that got through), repeated gate runs on one slice, commits after
   a review that undo review changes, reverts, and slices whose commit span is much wider
   than their siblings'.
+- **State changes, and what ran under them.** Read `<git-dir>/sdlc-state.log` over the
+  window: every `pause` and `off`, who asked (`by:` — owner, agent, harness, or a
+  command) and the reason, how long each lasted (to its resume or the next command's
+  write), and beside each pause the `paused: unguarded production write` lines
+  `guard.log` holds inside its interval. Report the count by caller and the reasons
+  verbatim. A pause whose reason is a denied write, or with slice work logged under it,
+  is a finding; an agent that paused for work the slice contract does not name, with a
+  plain reason, is the design working (`spec/SDLC.md`, *Shape*, the SDLC state).
 - **Step-evidence enumeration.** Read the named steps out of `spec/SDLC.md` — every
   skill, lens, and check the slice loop and phase end name (the reviewer and its
   lenses, the mutation check, the verification pass, observed-RED) —

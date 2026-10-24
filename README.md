@@ -146,7 +146,7 @@ end, required by nothing. See `reference/SKILLS.md` and `reference/COPILOT.md`.
 | `/next-slice` | First command of every fresh session — orient, confirm scope, TDD |
 | `/end-slice` | Slice done — gate, code review, commit, record, then `/clear` |
 | `/end-phase` | Last slice done — gate, acceptance review, PR, review, merge |
-| `/sdlc` | Any time — `status`, or `pause`/`resume`/`off` the kit's hooks for non-SDLC work (the owner's call) |
+| `/sdlc` | Any time — `status`, or `pause`/`resume`/`off` the kit's hooks for non-SDLC work (any caller, with a reason; who asked is logged) |
 
 One slice per session. `/clear` after every `/end-slice`. That's the rhythm.
 

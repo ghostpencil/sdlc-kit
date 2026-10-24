@@ -65,9 +65,12 @@ written; a paused production write is only logged, and `/end-slice` reports the 
 anything else — an absent or unreadable file and any word they do not know included —
 guard exactly as before, so a typo costs a spoken line and never silently disarms a
 guard. Editing the file by hand is sanctioned; `/sdlc` is the convenience and the log
-(`<git-dir>/sdlc-state.log`). **Pausing and turning off are owner acts:** a session never
-runs `/sdlc pause` or `/sdlc off` to get past a denied write — that takes the TDD path or
-declares a licence.
+(`<git-dir>/sdlc-state.log`). **Any caller may pause or turn the state off — the owner,
+the session on its own judgement, a harness — for work that is not the slice's, and
+every change is logged with who asked and why** (`pause` and `off` require a reason;
+`--by` names the caller). A denied write of the slice's own work takes the TDD path or
+declares a licence; a pause whose reason is a denial is a retro finding, read from the
+log, never something the hooks prevent.
 
 **Parallelism is read-only fan-out only.** Slices are strictly sequential — their order
 is set at planning time and inter-slice dependencies are the norm. Subagents may run in

@@ -7940,6 +7940,7 @@ point, one screen long, a thin wrapper that runs the helper and reports its bloc
 the hand-back standard. Writing the file by hand is sanctioned and documented — it is
 plain text in a known place — the command is the convenience and the logger.
 
+*(Superseded 2026-10-24 by §91: any caller may, with a reason, logged with who asked.)*
 **Pausing is an owner act.** The guards are a cooperative backstop a session can already
 edit around, and the deny message itself names the licence path; a pause is no wider a
 door than that, but it must not become the model's answer to a denial. One bullet in
@@ -8439,3 +8440,48 @@ through `/sdlc-update`'s walk-through, whose 0.40.0 note says what they may noti
 and `tools/tdd-guard-check.py`, with `/kit-check`'s cost paragraph and the CHANGELOG
 entry. The Claude dialect is untouched. 0.39.0 released 2026-10-24 (§89.17); owed: its
 three adopter updates, then 0.40.0's release.
+
+## 91. The state is any caller's switch — §89.5's "owner act" reversed on the owner's
+## field reading, 2026-10-24, built for 0.40.0
+
+### 91.1 The ruling, in the owner's words
+
+*"I want to make a change to the decision: 'pause and off are owner acts — never a
+session's answer to a denial'. I want agents/harnesses to be able to call to invoke
+these states. I have witnessed dozens of runs of my kit and sadly it is very challenging
+to predict the type of work that needs to be done when working on a project. The
+Agent/Harness is often in the best position to determine when it should be done. When
+called by an agent/harness they should provide a reason for invoking the state so our
+kit can log the state change and the reason for potential analysis."* Three
+sub-rulings the same day, each as recommended: the deny message stays silent about pause
+(the session learns the route from the Always-Active Rules and `/sdlc`, framed as work
+that is not the slice's); `off` while an arc is in flight is open to every caller behind
+the same speed bump, `--force` plus a reason; and the retro reads the log now.
+
+### 91.2 What changes, and why it is the lineage rather than a retreat
+
+§89.5 forbade; this attributes. Every prevention rule the kit has shipped since 0.5.0
+has been measured eroding or evaded, and every confirmed catch has come from a log read
+afterwards (§15, §87, invariant 16). So: `pause` and `off` require a reason from every
+caller, the owner included; `--by` names the caller — `owner`, `agent`, `harness`, or a
+command name — and the state log's line already carries it; an in-flight `off` appends
+`(in flight: <stage>)` to its reason, since the file no longer holds the stage;
+`/sdlc-retro` gains a reading of `sdlc-state.log` — pauses by caller, reasons verbatim,
+durations, and the `paused: unguarded production write` lines under each — with the
+finding named: a pause whose reason is a denied write, or slice work logged under a
+pause. `/end-slice`'s unguarded-while-paused count (§89.6) is unchanged and stays the
+per-slice check. The texts that stated the old rule — `/sdlc`'s directive,
+`SDLC.template.md` *Shape*, `CLAUDE.template.md` *Always-Active Rules*, the helper's
+docstring, the root README's command table — now state this one; the 0.40.0 update note
+says to fold 0.40.0's bullet, not 0.39.0's (no adopter took 0.39.0, by the owner's
+ruling the same day).
+
+### 91.3 Proof and clock
+
+`tools/sdlc-state-check.py`: `off` without a reason is exit 2 and writes nothing,
+`--force` included; `--by agent` is recorded in the file and the log for pause and
+resume; an in-flight `--force off` logs the stage it abandoned and the caller; one
+mutation added, an `off` that needs no reason. §89.11's criterion stands with one
+reading added: pauses `by: agent` per arc, and how many the retro finds against. Two
+arcs in which agent pauses cover slice work the previous release would have denied
+reopen the rule for that caller, not for all.

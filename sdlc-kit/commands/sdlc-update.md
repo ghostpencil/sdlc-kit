@@ -674,6 +674,15 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   found rewriting them behind the shell's back. Nothing to fold into project documents.
   Re-derive with the helper, run `sh -n` on the result, and where the project has its
   own guard tests, run them. The Claude guard (`sdlc-tdd-guard.py`) is untouched.
+  **The same release reverses 0.39.0's "owner act" rule for the SDLC state (plan §91):**
+  any caller — the session's agent, a harness, the owner — may pause or turn the state
+  off with a reason, logged with who asked, and `/sdlc-retro` reads that log. The helper
+  arrives by copy (`off` now requires a reason, like `pause`; `--by owner|agent|harness`
+  names the caller), as do `/sdlc` and the retro. **Fold 0.40.0's wording, not
+  0.39.0's,** into the project-owned documents: `CLAUDE.md` *Always-Active Rules*' bullet
+  (the session may pause with a reason; a denied write of slice work still takes the TDD
+  path or a licence) and `spec/SDLC.md` *Shape*'s sentence on who may change the state.
+  A project that folded 0.39.0's bullet replaces it.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from

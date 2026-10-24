@@ -32,8 +32,8 @@ in `spec/SDLC.md`. Session commands that drive it:
   merge, deploy question + recorded outcome)
 - `/sdlc-retro` — extract lessons from a finished phase (project facts to this project's
   files; process findings to a report you decide whether to send upstream)
-- `/sdlc` — see or change the SDLC state the hooks obey (`status`; the owner's
-  `pause`, `resume`, `off`)
+- `/sdlc` — see or change the SDLC state the hooks obey (`status`, `pause <reason>`,
+  `resume`, `off <reason>` — any caller, logged with who asked and why)
 
 An edit-time hook ({{HOOK_CONFIG_PATH}}) runs {{HOOK_TOOLS}} on every edited
 {{SOURCE_EXT}} file. {{HOOK_FEEDBACK_NOTE}}
@@ -79,9 +79,11 @@ If unsure → ask
   (a formatter's `--write`, codegen), and the hash-verified mutation runner
   `/end-slice` step 5 describes. Out of scope, writable either way: docs, configs, and
   the paths the TDD guards' exempt pattern names (`spec/SDLC.md`, guard note).
-- **The SDLC state is the owner's switch.** `/sdlc pause` and `/sdlc off` are typed by
-  the owner, never by a session: a denied write takes the TDD path or declares a licence
-  (the deny message names it), it never goes round the guard by changing the state
+- **This session may change the SDLC state, with a reason.** For work that is not the
+  slice's, `/sdlc pause <reason>` stands the hooks down and `/sdlc resume` brings them
+  back; pass `--by agent`, and the log keeps who and why for the retro. A denied write
+  of the slice's own work takes the TDD path or declares a licence (the deny message
+  names them); a pause with a denial as its reason is a finding, not a route
 - {{LANGUAGE_AND_VERSION}}
 {{PROJECT_SPECIFIC_RULES}}
 <!-- Examples of project-specific rules worth adding here:
