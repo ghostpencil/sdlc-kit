@@ -151,27 +151,11 @@ such data onward to an interpreter.
    dialect: if the slice feeds one from outside the process, the fix is a different
    format, not a sanitizer in front of this one.
 
-## Lens: secrets and exposure
-
-**Trigger:** the slice touched credentials, tokens, or their configuration; added or
-changed an externally reachable surface (endpoint, port, webhook, a CLI that runs
-remote input); or added logging or error output near either.
-
-1. **A secret has exactly one home** — the project's configured secret source — and
-   appears in no code, no committed config, no default value, and no log line. The
-   indirect paths are the ones that ship: an exception message embedding a connection
-   string, a debug line dumping a config object whose repr includes the key.
-2. **A new surface names who may call it and what enforces that.** "Internal-only"
-   names the control that makes it internal — a network rule, auth middleware — as it
-   is configured where the code will actually run, not the intention. A surface
-   nobody restricted is public, whatever the docstring says.
-3. **Error output to a caller is a disclosure decision.** Stack traces, raw queries,
-   internal paths, and dependency versions go to the log; the caller gets the honest
-   claim (*error propagation* point 3) plus an opaque reference to correlate with it.
-
-Provenance note: the three lenses above (logging and swallowed errors, untrusted
-input, secrets and exposure) shipped as standards in kit 0.13.0 rather than from a
-measured field catch. The caveat on *error propagation* applies to them doubly:
+Provenance note: the two lenses above (logging and swallowed errors, untrusted input)
+shipped as standards in kit 0.13.0 rather than from a measured field catch, and both
+have since earned one. A third, *secrets and exposure*, shipped with them and was
+retired in 0.38.0 after two field arcs with no catch. Its linter rules remain in the
+kit's `reference/GATE_RECIPES.md` (the lens↔rule map). The caveat on *error propagation* still applies:
 lenses to look through, not defect-rate claims.
 
 ## Lens: the disposal-intent test

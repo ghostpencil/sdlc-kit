@@ -486,7 +486,7 @@ result. A consequence worth stating wherever a mode is recorded: state is theref
 session's own log (`~/.copilot/session-state/<id>/events.jsonl`) and nowhere the agent
 or the operator reads (measured 2026-09-27). The one channel measured to reach the
 agent without blocking work is a stop hook's block, so each stop-bearing launcher —
-the guard's and the backstop's, in both dialects — carries an `else` branch that
+the guard's, in both dialects — carries an `else` branch that
 blocks once, naming the missing script, and stands down on `stop_hook_active`. That
 branch prints JSON, so it carries quotes; quotes were banned from launchers as a
 precaution, and a quoted branch was measured surviving both launcher routes.
@@ -534,8 +534,8 @@ non-default path: a session launched from **Git Bash** logged, for the `sh -c` c
 `python …` guard commands ran. Launched from **PowerShell** on the same machine, the
 same hook ran. (Plausibly Claude Code derives Git Bash from the `git.exe` on `PATH`,
 which is `…\cmd\git.exe` from PowerShell and `…\mingw64\bin\git.exe` inside Git Bash;
-that is an inference, the behaviour is measured.) The kit's gate, ledger, and backstop
-launchers on Claude Code are all `sh` commands. Where Git is not at its default path, set
+that is an inference, the behaviour is measured.) The kit's gate and ledger launchers
+on Claude Code are both `sh` commands. Where Git is not at its default path, set
 `CLAUDE_CODE_GIT_BASH_PATH` to its `bin\bash.exe`, and prove the gate hook from the
 launch route the operator actually uses — the standing rule of *the hook environment*. The guard reads its payload with the same dual python-or-node parser the gate
 hooks use, detected the same way — so accepting the guards adds no dependency the gate
@@ -738,84 +738,15 @@ disposal-intent test*) rather than guard territory.
 
 ---
 
-## The close-out stop-time backstop — optional, both CLIs, one wiring each
+## The close-out stop-time backstop — retired in 0.38.0
 
-The close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, installed on
-every adoption) carries a second mode, `stop-check`, wired as a stop hook where the
-owner accepts the offer. At session end it classifies the **unpushed** commits
-(`@{u}..HEAD`, capped at 20; `HEAD` only when no upstream is configured — the log
-line states which) by the same record grammar `/end-slice`'s command step runs:
-
-- a **defective** record — some evidence keys present, but one missing, empty, or
-  duplicated — logs a would-block naming the commit and its problems. This is the
-  escape the command step cannot catch: a session that committed a slice and ended
-  without verifying, or past an unresolved INCOMPLETE. The verdict is stateless —
-  a defective body is defective whichever session looks at it, and the remedy
-  (amend before pushing) is legal exactly while the commit is unpushed.
-- a **bare** commit — no record keys at all — is ambiguous (a silent slice commit,
-  or a legitimate docs commit), so it flags only when the TDD guards are installed
-  and their session state (`.git/sdlc-tdd/`) shows this session wrote production
-  code or edited a test. **This class never blocks, armed or not** — log-only by
-  design on every install — and on a guard-less adoption the
-  generated `spec/SDLC.md` must say plainly: the backstop catches defective
-  records, not silently absent ones.
-
-**Wiring, measured per dialect.** Copilot CLI: `.github/hooks/sdlc-close-out.json`
-(verbatim from `templates/close-out-hook.template.json`), `agentStop`, the same
-`cat | sh …` wrapper shape as the guard JSON; the block schema
-(`{"decision":"block","reason":…}`) was measured on the bench 2026-08-05. Claude
-Code: a `Stop` block in `.claude/settings.json` carrying the **launcher-neutral**
-form — `sh -c "if [ -e .git ] && [ -f .github/hooks/sdlc-close-out.sh ]; then sh
-.github/hooks/sdlc-close-out.sh stop-check; elif …; else …; fi"`, no `"shell"` key
-(the `-e` and the `else` branch that blocks once when the script is missing are
-0.31.1's — *Where the launchers start*, above; the Copilot JSON carries the same
-branch and `"cwd": "."`). Three dated
-measurements sit behind that shape, routes and versions named: 2026-08-13
-(interactive-route bench, CLI version unrecorded) the pinned `"shell": "bash"`
-block fired and delivered the payload on stdin; 2026-08-15 (headless, Claude Code
-2.1.231, an adopter update's bench) the same pinned block **never fired** while
-the launcher-neutral form did, on a real session stop with the classification
-line read back; 2026-08-15 again (interactive, 2.1.233 — the CLI auto-updated
-between the same-day benches) the pin dead on that route too — version drift,
-not a route artifact; see *The hook environment*, which is why no shipped hook
-depends on the pin. The block schema (`{"decision":"block","reason":…}`) was measured
-honored 2026-08-14 (the pre-registered deny ramp; CLI version unrecorded — the
-record-the-version rule postdates it): the blocked session received
-the reason, amended the commit with the stated-skip form rather than fabricating
-evidence, and the next stop stood down on `stop_hook_active` — the same sequence
-the Copilot dialect produced on the same bench.
-
-**Fail direction — the inverse of the command step, on purpose.** `check` fails
-closed because a command step's failure is seen and quoted; `stop-check` fails
-open — its own errors log to `.git/sdlc-close-out/log` and exit 0 — because a
-hook that errors must not block real work. It also stands down unconditionally
-under `stop_hook_active` (the documented consecutive-block cap, measured at 8 on
-both dialects — versions unrecorded; those benches predate the
-record-the-version rule — is never fought).
-
-**Logging first, always.** It installs logging-only: verdicts appear as
-`stop: WOULD-BLOCK` lines in `.git/sdlc-close-out/log`, and nothing is blocked.
-A flag is logged **once per commit per session** (a repeat stop logs `stop: repeat`),
-so counting `WOULD-BLOCK` lines counts events: before 0.29.0 one session logged the
-same commit fifteen times. Commits that touch only `spec/` and the root kit documents
-are skipped before classification — bookkeeping, never a slice, and they were 100% of
-this backstop's measured firing history.
-Blocking the defective class is armed by creating `.git/sdlc-close-out/deny-enabled`
-and disarmed by deleting it — the owner's call, after reading a few real sessions
-of the log, and the `{{CLOSE_OUT_CHECK_NOTE}}` line in `spec/SDLC.md` is updated
-in the same breath. Prove it by firing it — in a scratch session of each installed
-CLI, **launched the way this project's operator actually launches it**, since the
-Copilot hook shell is per-launcher and the Claude dispatch layer has been measured
-moving under an auto-updating CLI (*The hook environment*: the pinned form worked
-on one version and silently never fired on the next): end the session on an unpushed
-commit missing one record key and read the would-block line back; no line means
-the hook is not firing.
-
-**What it is not.** A cooperative backstop with the guards' own honest limits: it
-reads commit bodies, not truth — a fabricated record line passes it, which is why
-the steps that produce the lines remain the evidence — and a session can read its
-source and state. Scope is deliberately narrow: unpushed commits on the current
-branch, this clone only (`.git/` is per-clone, like the guard state beside it).
+The close-out checker's `stop-check` mode, wired as a stop hook, ran from 0.22.0 to
+0.37.1 and was retired on its pre-registered clock: across five field arcs it flagged no
+slice commit missing its record, logged five false candidates, and found its window
+empty at almost every stop, because adopters push each slice as soon as it is committed.
+The mode now exits 0 without reading anything, so a launcher an older install left
+behind cannot block. `/sdlc-update` removes the launchers. `/end-slice` step 8's check
+is the close-out control.
 
 ---
 
@@ -1052,9 +983,9 @@ rule proposed and never seen to fire is configuration that reads as enforcement.
 
 ### The lens↔rule map: what a rule decides, and the residue it cannot
 
-`reference/REVIEW_LENSES.md` carries eight review lenses. Three of them
-(*logging and swallowed errors*, *untrusted input*, *secrets and exposure*) have
-subject matter the rules above already cover mechanically, and a rule is strictly
+`reference/REVIEW_LENSES.md` carries seven review lenses. Two of them (*logging and
+swallowed errors*, *untrusted input*) have subject matter the rules above already
+cover mechanically, and so does the retired *secrets and exposure*. A rule is strictly
 better than a lens where it applies: it is deterministic, it runs on every file rather
 than on the ones a reviewer opened, and the gate already enforces it. This map says,
 per lens, **which half a rule can decide** — adopt those rules for the project's
@@ -1122,17 +1053,18 @@ mechanism at each hop, and the canonicalize-then-prefix-check sequence. A rule s
 `realpath` call; it does not see whether the *result* was checked against the intended
 root, which is the near-miss the lens was written for.
 
-**Lens: secrets and exposure.** *Mechanized:* the hardcoded credential, and committed
-config. Python `S105`–`S107`; JS/TS eslint-plugin-no-secrets (`no-secrets/no-secrets`);
+**Secrets and exposure — rules only since 0.38.0.** The lens was retired after two
+field arcs with no catch. Its rules stand on their own, and adopting them is all the
+kit now asks here. *Mechanized:* the hardcoded credential, and committed config. Python `S105`–`S107`; JS/TS eslint-plugin-no-secrets (`no-secrets/no-secrets`);
 C# `CA5390`, plus `CA5350`/`CA5351` for the weak-crypto neighbours; Go gosec `G101`;
 Java find-sec-bugs `HARD_CODE_PASSWORD`, `HARD_CODE_KEY`; Rust has no clippy rule here.
 Across all six, repository-level secret scanning (the forge's push protection, or a
 scanner in CI) is the rule that catches what a language linter never sees, because a
 secret's usual home is a config file no linter reads.
-*Residue:* the two halves that are about the deployment, not the file — who may call a
-new surface and what enforces that **where the code will actually run**, and whether an
-error path discloses internals to its caller. No rule running in the test environment
-can answer either.
+*Residue, now without a lens:* who may call a new surface and what enforces that
+**where the code will actually run**, and whether an error path discloses internals to
+its caller. *Error propagation*'s point 3 still asks the second. The first belongs to
+the phase spec's *trust boundaries*, which `SDLC.md`'s phase start already requires.
 
 **Lens: the disposal-intent test.** *Mechanized:* nothing, in any language, and not for
 want of a rule — the lens's subject is a property of the **diff** (a test added and then

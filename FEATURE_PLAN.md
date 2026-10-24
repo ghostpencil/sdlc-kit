@@ -73,9 +73,9 @@ two field arcs" — by owner ruling 2026-08-14**, closing the flag that stood he
 2026-08-05 (put at two halts before being ruled; the digest above carries the
 re-denominated form, and every clock in this section was already counted in arcs).
 
-**Refreshed 2026-10-23, against the tree at 0.37.1.** Shipped machinery is listed by its
-clock, not by its build state; the history of each entry lives in the section it cites.
-The previous refresh (2026-09-27, at 0.31.0) said no adopter had run a phase since
+**Refreshed 2026-10-23, against the tree at 0.38.0 as built (§88; not yet released).**
+Shipped machinery is listed by its clock, not by its build state; the history of each
+entry lives in the section it cites. The previous refresh (2026-09-27, at 0.31.0) said no adopter had run a phase since
 0.31.0. That had been false for two weeks, and a session orienting from it said the same
 thing to the owner. A refresh is owed at every release that adds a rule, and at every
 arc an adopter closes.
@@ -84,112 +84,79 @@ arc an adopter closes.
 (tfit-qa-app#36, ai-news-dashboard#24, chainmail-webfactory#4), and all three are
 between phases.
 
-**Four arcs have run since the §76.5 reading, and §87 reads them (2026-10-23).** Its
-findings: two clocks failed on their own pre-registered terms (`change-simplify`'s
-negative half, and `stop-check` with zero catches and five false
-candidates), `secrets and exposure` reached zero, CONTRACT has its confirmed catch, and
-IMPACT can start at TFit P12. The rulings owed are in §87.5. The denominator ruling
-(§87.2) is taken: (B), every eligible arc since the last reading. The bullets below
-stay as they were until the remaining rulings are taken.
+**Four arcs have run since the §76.5 reading, and §87 read them (2026-10-23, ruled the
+same day — §87.6, §87.7; built as §88, shipping as 0.38.0).** Three controls are retired
+on their own pre-registered terms: `change-simplify`, `stop-check` and the `secrets and
+exposure` lens. CONTRACT and two lenses are kept on a confirmed catch, and IMPACT's clock
+has started. **The denominator ruling (§87.2 (B)) now governs every multi-arc clock:**
+every eligible arc since the last reading is the reading, whichever adopter ran it.
 
 | Arc | Merged | Kit it ran under | Retro |
 |---|---|---|---|
 | TFit Phase 10 (tunnel token leak) | 2026-10-10 | 0.32.0 | skipped by owner ruling |
-| TFit Phase 11 (retrieval scale) | 2026-10-13 | 0.32.0 | none |
-| TFit Phase 12 (structured retrieval) | 2026-10-19 | 0.32.0 | none |
+| TFit Phase 11 (retrieval scale) | 2026-10-13 | 0.32.0 | skipped |
+| TFit Phase 12 (structured retrieval) | 2026-10-19 | 0.32.0 | skipped |
 | chainmail Phase 01 (blueprint renderer) | 2026-10-19 | 0.33.0 | #17, the eleventh report |
 
-ai-news has run no arc since Phase 05 (2026-08-17). Issues #11–#17 came out of these
-arcs and were triaged in §84 as findings, **not as clock readings**. The evidence each
-clock needs is mostly mechanical: the `lenses:`, `quality:`, `mutation:` and `verify:`
-lines in slice commit bodies, the friction logs, and the guard and backstop logs in each
-clone's git directory. **§87 reads them. Taking the §87.5 rulings is the next owed
-act.** An arc counts toward a clock only when it ran
-under the release the clock starts from, so the per-clock eligible arcs are given below.
+ai-news has run no arc since Phase 05 (2026-08-17). The evidence each clock needs is
+mostly mechanical: the `lenses:`, `mutation:` and `verify:` lines in slice commit bodies
+(`quality:` until 0.38.0), the friction logs, and the guard logs in each clone's git
+directory. An arc counts toward a clock only when it ran under the release the clock
+starts from. **The next reading is owed at the next arc any adopter closes.**
 
-**Clocks the next reading decides:**
+**Clocks still running:**
 
-- **The three STD lenses — one final ATTRIBUTED clock, two arcs, no further extension**
-  (§54 (b), ruled 2026-08-14; restarted §70.7 (i) once the denominator became
-  enumerable via the `lenses:` commit-body line). A lens with no lens-named catch is
-  deleted, with the conventions' enforcement lines re-pointed in the same batch.
-  **Arc one read (§76.5 (i)):** `secrets and exposure` (3 applications) and
-  `untrusted input` (2) are at **zero catches** with a real denominator;
-  `logging and swallowed errors` recorded **no application** and stays unreadable —
-  not a reason to restart again. Arc two decides the two readable lenses. **Eligible:**
-  all four unread arcs.
-- **`change-simplify` — final two-sided clock, two arcs** (§70.7 (ii); the
-  no-extension commitment is spent and cannot be spent again). Positive: one arc records
-  a **Reuse-axis move that names its search**. Negative, disqualifying: a reuse or
-  duplication finding first raised by `diff-review` or the whole-arc review on a diff
-  this pass already passed over. **Arc one counted as satisfying the positive half**
-  (§76.7 ruling 3 — not an extension); negative half checked and not triggered. Arc two is
-  read against 0.31.0's corrected `/end-slice` §3 record line. **Eligible:** all four.
-- **CONTRACT — §16 clock, arc one spent** (§57.5; started under 0.26.0 per §70.7 (iii)).
-  §56.2's second criterion — a phase touching a contract surface demonstrably encounters
-  its entries — was **met on arc one** (§76.5 (iii): 9 pins, 4 surfaces). Arc two decides
-  the first criterion; no confirmed catch after two arcs → deletion candidate.
-  **Eligible:** all four. TFit's Phase 10 close sent its contract walk to backlog #161,
-  which is itself evidence to read.
-- **`stop-check` — two-arc clock from the release carrying the filter (0.29.0)** (§73.8).
-  Catch: flags a genuine slice commit lacking its close-out record. A false candidate
-  fails §52.2's arming bar, and the clock restarts once; a second false candidate is
-  deletion. **Both arcs at a zero non-empty-window denominator is deletion, not
-  extension.** The tenth report's arc (0.30.0) is still unread against this clock as
-  well. **Eligible:** that arc plus all four, five in all.
-- **Bare-flagging arming bar (§52.2) — log-only.** Unmet at 4 false candidates
-  (§70.7 (iv)). It re-opens at the first arc whose false count is zero under the 0.29.0
-  filter, and not before (§73.8). **Eligible:** the same five.
-- **§76.9(d) — the two 0.31.0 record-line halves have no observer.** Ruled (α) then (β):
-  read arc two's records first; build a log-only observer only if the restatement was not
-  enough. **Eligible:** all four.
 - **The docs-only verification form — §16 clock, two arcs, from 0.32.0** (§80.3). Catch:
-  a documented command or path a docs slice added, run or opened and found broken. No
-  confirmed catch in two arcs → deletion candidate. **Eligible:** all four, where a docs
-  slice occurred.
-- **IMPACT — shipped 0.28.0; clock NOT started** (§66.6). Arc one did not count: the
-  graph was stale for the whole window (§76.7 ruling 4). 0.31.0 shipped the kit's own
-  phase-boundary regeneration trigger and the `autoUpdate` offer with its measured limits
-  (auto-remind, not auto-update); the clock starts at the first arc run with a graph
-  regenerated under that trigger, and counts only arcs with a usable graph. **To check:**
-  whether TFit's Phases 10–12 had one. TFit's graph is behind as of the 0.37.1 update,
-  so its next arc starts the clock only if the graph is regenerated first.
-
-**Clocks no arc has reached yet:**
-
+  a documented command or path a docs slice added, run or opened and found broken. **Arc
+  one read (§87.3 (vii)):** chainmail S11, the only docs slice in four arcs, found
+  nothing broken. The TFit arcs had no docs slice and do not count. The next docs slice
+  anywhere decides; no catch → deletion candidate.
+- **IMPACT — §66.6 clock STARTED at TFit P12** (§87.7 ruling 6), as arc one with zero
+  comprehension events. S3–S10 ran on a usable graph. chainmail P01 did not count: its
+  graph was stale for the whole arc. **Open question carried to the next reading:**
+  comprehension events are collected in the retro, and TFit skipped all three retros.
+  A second arc with no event → deletion candidate.
 - **The slice-end graph refresh — §16 clock, two arcs, from 0.33.0** (§81). Catch: a
   slice preview that reads `current at the base` because the previous slice refreshed,
-  where it would otherwise have read `may be stale`. No such reading in two arcs (the
-  post-commit tooling alone keeping it current, or the refresh never run) → deletion
-  candidate. **Eligible so far:** chainmail Phase 01 only, where the owner later ruled
-  the slice-end refresh off.
+  where it would otherwise have read `may be stale`. **Arc one (chainmail P01):** no such
+  reading. The refresh was skipped at all 11 closes, then ruled off. TFit and ai-news now
+  record `slice-end incremental on`, so either can supply arc two. No reading → deletion
+  candidate.
 - **COSMETIC — §16 clock from the release that armed it, 0.34.0** (§82). Catch: a
   comment- or formatting-only write that would otherwise have needed a licence or been
-  denied, exempted with no behavioral change (§82's value criterion, item 1 of its
-  ramp proposal). **Eligible so far:** none.
+  denied, exempted with no behavioral change. **Eligible so far:** none. Pre-release
+  evidence: TFit P11's 7 comment-only refactor licences, each after a DENY (§87.3 (x)).
 - **The phase-end coverage trigger — §16 clock, two arcs, from 0.35.0** (§83). Catch: a
   phase close where `coverage` named code or script files missing from a graph whose
-  freshness read current, and the full rebuild added them. No such close in two arcs
-  across the adopters running it → deletion candidate (TFit's ten-file gap is the
-  pre-release instance and does not count). **Eligible so far:** none.
+  freshness read current, and the full rebuild added them. **Eligible so far:** none.
 - **Rules shipped in 0.36.0–0.37.1 fall under the §16 regime with no catch criterion
-  written yet.** The guards' outside-the-editor report (§85), `/sdlc-update`'s fold
-  markers (§84.18) and its standing optional-hook record check, the setup and phase-close
-  baseline stamps, and the coverage floor's recorded catch (§86.9). Each needs its catch
-  stated at its first reading, before an arc is counted against it. The launcher anchor
-  is a fix, not a rule, and carries no clock.
+  written yet.** These are the guards' outside-the-editor report (§85), `/sdlc-update`'s
+  fold markers (§84.18) and its standing optional-hook record check, the setup and
+  phase-close baseline stamps, and the coverage floor's recorded catch (§86.9). Each needs
+  its catch stated at its first reading. The launcher anchor is a fix and carries no
+  clock. 0.38.0 adds no rule; it removes three.
 
 **Settled clocks and contingent keeps:**
 
 - **`change-verify` — clock satisfied** (§30.4): confirmed field catch at slice level,
   arc one, 2026-08-06 (§32.3).
+- **CONTRACT — clock satisfied** (§87.3 (iii), §87.7 ruling 5): the #161 contract walk
+  found two owner-ratified clauses never built, one dropped and one restored and
+  delivered.
+- **`untrusted input` and `logging and swallowed errors` — kept on lens-named catches**
+  (§87.3 (i)). `untrusted input` has 3 catches, all chainmail. `logging and swallowed
+  errors` has 2, TFit P12 S7 and chainmail S6.
 - **`mutation-testing` — kept as depth; the inlined rules are the operative path**
-  (§70.7 ruling 4). Three consecutive arcs at zero dispatches, as that ruling predicted;
-  §76.5 (v) records a **confirmed catch for the inlining** itself. The three adopters'
-  skill ledgers still show zero dispatches (checked 2026-10-23, §86.4).
-- **R3.8's aging rule — contingent keep, still unexercised** (§16): the retro sweep
-  consumes friction entries in their own arc, so the older-than-one-phase carry has never
-  had one to carry. That is the healthy state; the rule is its backstop.
+  (§70.7 ruling 4). Zero dispatches in all four ledgers again, and the inlined restore
+  rules are followed (§87.3 (xi)).
+- **R3.8's aging rule — contingent keep, premise changed** (§87.3 (xii), §87.7 ruling 7).
+  It lives inside `/sdlc-retro`, and TFit skipped three retros, so its friction entries
+  now carry across phases with nothing to age them. No rule change, by ruling.
+
+**Retired by §87 (0.38.0):** `change-simplify` (the clock's failure condition fired in
+two arcs), `stop-check` and with it the bare-flag arming question (zero catches, five
+false candidates), the `secrets and exposure` lens (zero catches in 15 applications), and
+§76.9(d)'s observer question (the restatement was enough, so nothing is built).
 
 **Held work — owed, not scheduled:**
 
@@ -7599,3 +7566,115 @@ is the rule the Standing clocks section's **Eligible:** lines already stated, an
 holds as a ruling for every multi-arc clock, not only the ones read here. The §87.3
 verdicts stand as written under (B). §87.5 (2)–(8) are still owed. Under (B), (2)
 and (3) are no longer contingent on anything.
+
+### 87.7 Ruled 2026-10-23 — §87.5 (2)–(8), all as recommended
+
+2. **`secrets and exposure` — DELETE**, with the conventions' enforcement lines that name
+   it re-pointed in the same batch (§54 (b)).
+3. **`change-simplify` — DELETE, as pre-registered** (§70.7 (ii)). `diff-review`'s
+   duplication axis and the whole-arc review are the remaining reuse controls, and they
+   are the controls that caught all three misses.
+4. **`stop-check` — DELETE (option D).** `/end-slice` step 8's fail-closed `check` stays.
+   The bare-flag arming question closes with the mode.
+5. **CONTRACT — KEEP.** The #161 walk is the confirmed catch, and the §16 clock is
+   satisfied.
+6. **IMPACT — the clock STARTS at TFit P12, as arc one with zero comprehension events.**
+   Whether comprehension events need a channel other than the retro is still open, and
+   it is taken up at the next reading.
+7. **Skipped retros — no rule change.** The R3.8 entry in the Standing clocks section
+   records that its premise has changed.
+8. **Tell the adopters** what their arcs decided, as §76.7 ruling 5 did. The message goes
+   out with the release that carries the three deletions, so they read the verdict and
+   the update together.
+
+The three deletions are one batch. §88 scopes it.
+
+---
+
+## 88. The §87.7 retirements built — three controls out, one step kept by number,
+## and one proof moved rather than lost — 2026-10-23
+
+Scope: §87.7 rulings 2, 3 and 4, in one batch for 0.38.0. Two design questions were put
+to the owner before the build, and both went as recommended:
+
+- **(a) `quality:` is dropped from the record grammar,** not kept as optional. The record
+  has four keys. The checker no longer counts a `quality:` line, so a pre-0.38.0 commit
+  reads exactly as its other four keys say.
+- **(b) `/end-slice` keeps its step numbers.** Steps 4–10, and the SDLC template's slice
+  steps 7–12, are cited across the kit, both READMEs and three adopters' own specs.
+
+### 88.1 What the build decided that the rulings did not
+
+1. **Step 3 is not a stub. It is the close-out licence declaration.** The licence was
+   declared at the start of the quality pass, the first close-out step that wrote
+   production code. With the pass gone, the first such write is a step 4 review fix, so
+   the declaration stays where it was and covers steps 4–6. Every "the licence step 3
+   declares" reference stays true. The SDLC template's step 6 is the same. Step 5's
+   fallback, "declare here if none is in force", now names the cases that can still
+   reach it: a slice first judged docs-only, or a restarted session.
+2. **`stop-check` stays as a silent `exit 0`.** An adopter who updates the script before
+   removing the Claude `Stop` block would otherwise hit "unknown mode", which exits 2,
+   and on Claude Code a Stop hook exiting 2 blocks every stop. The stub is pinned in both
+   directions: the case `stop_check_retired_is_silent` and the mutation
+   `stop_stub_removed`.
+3. **`/sdlc-update`'s marker table loses two rows** (0.31.0's `reuse:` search and 0.37.0's
+   trimmed gate). Both rules left the template, and a marker for an absent rule would ask
+   adopters to fold a retired rule. The 0.37.0 note says to skip that fold when the update
+   also crosses 0.38.0. The new 0.38.0 row (`Close-out licence, where the TDD guards are
+   installed`) occurs once in the template, as `rederive-check` asserts.
+4. **The Copilot `sdlc-close-out.json` stays classified for the transition,** like
+   `.claude/agents/` after 0.10.0: kit-owned, so the removal clause deletes it when it is
+   unmodified. The Claude `Stop` block is project-owned settings, so it is handed to the
+   owner. Until it goes, the stub makes it harmless.
+5. **The secrets lens's residue gets a named home rather than a silent drop.** Who may
+   call a new surface belongs to the phase spec's *trust boundaries*. Whether an error
+   path discloses internals to its caller is already *error propagation*'s point 3. The
+   rules half stays in the lens↔rule map, under a heading that is no longer a `Lens:`
+   entry, so `/kit-check`'s heading-to-entry count still matches at 7 = 7.
+
+### 88.2 One proof had to move, or invariant 13 would have lost it
+
+The behavioral test of the 0.36.0 root anchor ran a Claude launcher from a subdirectory
+whose name holds a space and a `$`. It lived in `tools/close-out-check.py`, on the
+backstop's launcher, the one launcher being deleted. `gate-hook-check` pins the anchor's
+*text* on every launcher, but nothing else *ran* one from a moved cwd. The case now
+lives in `tools/skill-ledger-check.py` on the ledger launcher. It passes with the anchor,
+and with the anchor removed from the template it fails with `rc=127 … No such file or
+directory`, which was seen before the template was restored. Invariant 13's denominator
+names the new home.
+
+### 88.3 The suites
+
+- `close-out-check`: the stop pass and its launcher cases are gone. New cases cover a
+  pre-0.38.0 `quality:` line ignored when single, doubled and empty (the two forms a
+  counted key would fail on), and the silent stub. Result: 28 unit + 7 docs cases + the
+  worktree pass, **17 mutations, all caught**. A mutation I added, `crlf_not_stripped`,
+  **survived and was removed rather than kept**. `[[:space:]]` already matches a CR, so
+  the awk strip is defensive and no corpus can pin it. The script's comment claims a stray
+  CR "turns the end-anchored empty-payload match false". That is not true of this awk,
+  and the comment is left for a later pass, since the line is not this batch's.
+- `skill-ledger-check` 18/18 (one new). `gate-hook-check`: OK, with the template's
+  launcher count 7 → 6 and the backstop check inverted to "no launcher calls the retired
+  stop-check". `rederive-check`: 8 cases, 7 mutations. `shipped-lint-check`: 3 files,
+  5 mutations.
+- `tdd-guard-check` (42 min, run alone), `tdd-guard-claude-check`, `impact-check` (48
+  cases, 58 mutations) and `cosmetic-check` (two TypeScript installs: chainmail's 6.0.3
+  and a scratch 5.9.3): **all exit 0**. None of their templates changed, but every
+  template change runs every suite.
+
+**Manifest:** regenerated from the index with the two-space `printf` form. 45 → 43
+entries, which equals `git ls-files sdlc-kit` minus the manifest. Exactly the 15 edited
+shipped files changed hash, and the two deleted files dropped out. `VERSION` is untouched
+until the release commit.
+
+### 88.4 Not done in this batch
+
+- The pre-release `/kit-check` over the combined scope, the release itself (VERSION, the
+  CHANGELOG date, the tag) and the tarball verification. These are the owner's call, as
+  for every release.
+- §87.7 ruling 8, the adopter message, goes out with the release.
+- Adopter updates to 0.38.0. Each removes `change-simplify` and folds `spec/SDLC.md` in
+  the same update; all three hold `.claude/skills/change-simplify/` (checked
+  2026-10-23). TFit and chainmail each carry the Claude `Stop` block, one line apiece, and
+  remove it by hand. ai-news, on Copilot, holds `.github/hooks/sdlc-close-out.json`,
+  which the removal clause deletes. All three re-point `CLAUDE.md`'s enforcement line.

@@ -177,8 +177,6 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   ├── mutation-testing/            ← always installed — reference depth for /end-slice's mutation check
 │   ├── diff-review/                 ← always installed — kit-written; the reviewer /end-slice
 │   │                                   and /end-phase name (Spec + Standards axes, both CLIs)
-│   ├── change-simplify/             ← always installed — kit-written; the post-green quality
-│   │                                   pass /end-slice step 3 names (optional step, required skill)
 │   ├── change-verify/               ← always installed — kit-written; the verification
 │   │                                   /end-slice step 6 and /end-phase step 2 name
 │   ├── python-pro/                  ← Python projects only
@@ -211,8 +209,6 @@ sdlc-kit/                            ← THE KIT — copy this folder into your 
 │   │                                   no values)
 │   ├── close-out.template.sh        → .github/hooks/sdlc-close-out.sh (both CLIs, always: the
 │   │                                   close-out evidence checker /end-slice runs; no values)
-│   ├── close-out-hook.template.json → .github/hooks/sdlc-close-out.json (optional: the checker's
-│   │                                   stop-time backstop wiring, Copilot dialect; no values)
 │   ├── sdlc-impact.template.py      → .github/hooks/sdlc-impact.py (both CLIs, always: the
 │   │                                   architecture-impact adapter; inert without an
 │   │                                   Understand Anything graph; no values)
@@ -315,8 +311,8 @@ The whole procedure rests on this split:
 | `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the seven `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
-| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the four kit-owned files in that directory (with `sdlc-close-out.json`, `sdlc-impact.py` and `sdlc-cosmetic.py`) — every other file there is project-owned. |
-| `.github/hooks/sdlc-close-out.json` (Copilot, offered from 0.22.0: the checker's stop-time backstop wiring — present only where accepted) | **kit** | Same rule — compared against `templates/close-out-hook.template.json`, verbatim like its `.sh` sibling. Presence encodes your accept; the update never adds or removes it. |
+| `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the three kit-owned files in that directory (with `sdlc-impact.py` and `sdlc-cosmetic.py`; a fourth, `sdlc-close-out.json`, is retired) — every other file there is project-owned. |
+| `.github/hooks/sdlc-close-out.json` (Copilot, 0.22.0–0.37.1: the retired stop-time backstop's wiring — present only where accepted) | **kit** | Classified for the transition — compared against `templates/close-out-hook.template.json` in your old manifest and removed when provably unmodified; you decide when drifted. |
 | `.github/hooks/sdlc-impact.py` (both CLIs, from 0.28.0: the architecture-impact adapter) | **kit** | Same rule — compared against `templates/sdlc-impact.template.py`, which it copies verbatim. Installed unconditionally and inert without an Understand Anything graph, so it is never offered or declined. |
 | `.github/hooks/sdlc-cosmetic.py` (both CLIs, from 0.34.0: the cosmetic-edit classifier) | **kit** | Same rule — compared against `templates/sdlc-cosmetic.template.py`, which it copies verbatim. Installed unconditionally — it can only grant an exemption — so it is never offered or declined. |
 | `CLAUDE.md`, `README.md` (where setup instantiated it — from 0.25.0), `spec/*.md`, `.claude/settings.json`, `.github/hooks/*.json` other than `sdlc-close-out.json`, `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`, `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, `.github/hooks/sdlc-skill-ledger.sh` | **project** | **Never overwritten.** These hold your gate baseline, your own gate commands, your TDD-guard patterns, owner decisions, backlog, and gotchas. A fix to a hook script's template therefore reaches you only through `/sdlc-update`'s hook-script walk-through, which shows you the full diff and writes only on your yes — it cannot arrive silently; a spec-file change is handed to you as a diff to fold in. |
@@ -329,15 +325,13 @@ copies update.
 
 `templates/` and `reference/` are read only at `/sdlc-setup` time (and
 `reference/UPDATE_NOTES.md` at `/sdlc-update` time, from the kit clone) and are never
-re-applied to an already-adopted project — with six exceptions, all of which track
+re-applied to an already-adopted project — with five exceptions, all of which track
 upstream like the commands: `reference/REVIEW_LENSES.md`, installed into
 `.claude/commands/` (so `/end-slice`'s pointer to it resolves after the kit folder is
 gone); on Copilot projects `templates/explore.agent.template.md`, which is
 copied verbatim rather than instantiated because it carries no placeholders;
 from 0.20.0, on both CLIs, `templates/close-out.template.sh`, copied verbatim to
-`.github/hooks/sdlc-close-out.sh` for the same reason; and — from 0.22.0, on a
-Copilot project that accepted the backstop offer — `templates/close-out-hook.template.json`,
-copied verbatim to `.github/hooks/sdlc-close-out.json`; and — from 0.28.0, on both CLIs —
+`.github/hooks/sdlc-close-out.sh` for the same reason; and — from 0.28.0, on both CLIs —
 `templates/sdlc-impact.template.py`, copied verbatim to `.github/hooks/sdlc-impact.py`;
 and — from 0.34.0, on both CLIs — `templates/sdlc-cosmetic.template.py`, copied verbatim
 to `.github/hooks/sdlc-cosmetic.py`.
@@ -397,14 +391,14 @@ name each one.
      have=""
      case "$f" in
        .github/hooks/sdlc-close-out.sh)
-         # one of the FOUR kit-owned files in .github/hooks/ — copied verbatim, no
+         # one of the THREE kit-owned files in .github/hooks/ — copied verbatim, no
          # project values. Their neighbors are project-owned and deliberately NOT in
          # the pathspec above: this loop must never classify the gate, guard, or ledger scripts.
          base=sdlc-close-out.sh
          want=$(awk '$2 == "templates/close-out.template.sh" {print $1}' "$MAN") ;;
        .github/hooks/sdlc-close-out.json)
-         # the second: the stop-time backstop's Copilot wiring, present only where
-         # the 0.22.0 offer was accepted (git ls-files skips it otherwise).
+         # the retired stop-time backstop's Copilot wiring (0.22.0-0.37.1), present
+         # only where the offer was accepted; classified so it can be removed.
          base=sdlc-close-out.json
          want=$(awk '$2 == "templates/close-out-hook.template.json" {print $1}' "$MAN") ;;
        .github/hooks/sdlc-impact.py)
@@ -503,8 +497,8 @@ name each one.
    the rule now, or record it as reworded on purpose (`Fold marker answered:` in
    *Records*), so it is not asked again.
 
-   Then read each optional hook's record against its artifact — the TDD guards, the
-   skill ledger and the close-out backstop, for each CLI you run — on every update, not
+   Then read each optional hook's record against its artifact — the TDD guards and the
+   skill ledger, for each CLI you run — on every update, not
    only the one that introduced it. A recorded decline is settled. No record line at all
    means you never had the choice, so the offer is made now, as setup would make it, with
    its proof. A record that disagrees with the files, either way round, is reported to
@@ -516,9 +510,7 @@ name each one.
    update a purely classification-driven pass silently skips. Take the install set from
    the new version's `sdlc-kit/commands/sdlc-setup.md` (New mode step 5 — plus step 6's
    kit-owned artifacts, `templates/close-out.template.sh` →
-   `.github/hooks/sdlc-close-out.sh`, both CLIs, and — where the ≥ 0.22.0 backstop
-   offer was accepted — `templates/close-out-hook.template.json` →
-   `.github/hooks/sdlc-close-out.json`, Copilot; and, both CLIs, verbatim,
+   `.github/hooks/sdlc-close-out.sh`, both CLIs; and, both CLIs, verbatim,
    `templates/sdlc-impact.template.py` → `.github/hooks/sdlc-impact.py` (from 0.28.0)
    and `templates/sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py` (from
    0.34.0); they live outside the step-5 table because they install beside the hooks).
@@ -539,6 +531,11 @@ name each one.
    The third is 0.37.0's removal of the optional `tdd-guide/` skill. An unchanged copy
    is deleted; to keep one, move it out of `.claude/skills/` to a path your project
    owns.
+
+   The fourth is 0.38.0's: the `change-simplify/` skill and, on a Copilot project that
+   accepted the backstop, `.github/hooks/sdlc-close-out.json`. On Claude Code the
+   backstop's `Stop` block in `.claude/settings.json` is yours to remove by hand; until
+   you do, the retired mode exits 0 and blocks nothing.
 
    Before copying anything, read the per-version *[installable]* transition notes in
    the update command itself (`commands/sdlc-update.md`, step 5 — and, for a version
@@ -604,7 +601,8 @@ name each one.
    `spec/PROJECT_INDEX.md`, `spec/PROJECT_INDEX_HISTORY.md`, `spec/TESTING.md`,
    `spec/PRODUCT_CONTRACT.md`,
    `CLAUDE.md`, `.claude/settings.json`,
-   `.github/hooks/*.json` (other than `sdlc-close-out.json`, which is kit-owned),
+   `.github/hooks/*.json` (other than the retired `sdlc-close-out.json`, which is
+   kit-owned and removed),
    `.github/hooks/sdlc-gate.sh`, `.github/hooks/sdlc-gate-claude.sh`,
    `.github/hooks/sdlc-tdd-guard.sh`, `.github/hooks/sdlc-tdd-guard.py`, or
    `.github/hooks/sdlc-skill-ledger.sh`. They hold
@@ -732,9 +730,9 @@ plugin. Six `skills/` files in four directories are **vendored** (third-party,
 MIT-attributed — the TDD skill set, `tdd` with its two references,
 mutation-testing, hypothesis-tests, and python-pro, whose license is
 self-declared with no identified upstream, as `THIRD_PARTY_NOTICES.md` states rather
-than settles; NOT part of either CLI); three are
-**kit-written** (`diff-review`, `change-simplify`, `change-verify` — the review,
-quality, and verification passes the close-out commands name). All seven install
+than settles; NOT part of either CLI); two are
+**kit-written** (`diff-review`, `change-verify` — the review and verification passes
+the close-out commands name). All six install
 project-scoped so they travel with the repo. `pr-review-toolkit`
 is an official plugin installed once per machine with one command, optional and
 Claude Code only. Details in

@@ -275,6 +275,22 @@ def claude_suite(cla_body, base):
     case("claude: a worktree's CLAUDE_PROJECT_DIR records into the worktree's git dir",
          rc == 0 and os.path.exists(wl) and not os.path.exists(ledger_of(main_r)),
          "rc=%s err=%s" % (rc, err))
+    # A moved cwd is not a missing script. Claude Code starts hooks in the session's
+    # cwd, which a shell `cd` moves and keeps moved (sdlc-kit#13); since 0.36.0 every
+    # launcher anchors itself at `git rev-parse --show-toplevel` first (85.7). Run the
+    # REAL launcher from a subdirectory of this linked worktree - its name carrying a
+    # space and a `$`, so a word-split or re-expanded path shows - and it must reach
+    # the script. This case lived on the close-out backstop's launcher until that
+    # launcher was retired in 0.38.0 (FEATURE_PLAN.md 88).
+    install(wt_r, cla_body)
+    sub = os.path.join(wt_r, "apps", "store $front")
+    os.makedirs(sub)
+    n0 = io.open(wl, encoding="utf-8").read().count("\n") if os.path.exists(wl) else 0
+    rc, err = run(claude_launcher_command(), claude_payload(wt_r),
+                  env_extra={"CLAUDE_PROJECT_DIR": wt_r}, cwd=sub)
+    n1 = io.open(wl, encoding="utf-8").read().count("\n") if os.path.exists(wl) else 0
+    case("claude: the launcher, run from a moved cwd below the root, still records",
+         rc == 0 and n1 == n0 + 1, "rc=%s err=%s n0=%s n1=%s" % (rc, err, n0, n1))
 
 
 def main():

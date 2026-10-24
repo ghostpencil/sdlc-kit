@@ -33,7 +33,7 @@ Arguments, all optional:
   only); a session cannot launch it, and no kit command means it by "review".
 - **Not the review lenses.** `.claude/commands/REVIEW_LENSES.md` covers runtime failure
   modes — error propagation, swallowed errors, denominators, shared state, untrusted
-  input, secrets — each behind its own trigger. This skill does not restate them, and
+  input — each behind its own trigger. This skill does not restate them, and
   the calling command decides whether a lens applies. If a finding here is really a
   lens finding, name the lens and stop; do not re-derive it.
 - **Not a fixer.** The review is **read-only in the shared tree.** No `git checkout`,

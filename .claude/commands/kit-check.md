@@ -115,8 +115,8 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **11 — provenance, two regimes, not conflated:** the six *vendored* `skills/` files
   (four directories; `tdd-references/` counts per file)
   match `reference/SKILLS.md`'s verification claims or have their divergence documented
-  there; the three *kit-written* ones (`diff-review`, `change-simplify`,
-  `change-verify`) have no upstream to verify against, and the check is the opposite —
+  there; the two *kit-written* ones (`diff-review`, `change-verify`) have no upstream
+  to verify against, and the check is the opposite —
   they must not be described as vendored, and `THIRD_PARTY_NOTICES.md` must say the
   notices do not cover them.
 - **12 — bundle purity:** scan `git ls-files sdlc-kit` for anything an adopter should
@@ -128,13 +128,10 @@ For each, read the named files in full — do not sample — and cite evidence p
   harness spec, the edit-time hook verification, the hook-environment probe and its
   dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
-  close-out evidence checker and its setup proof step (five keys as of 0.27.0 —
-  `lenses:` joined them fail-closed, its negative case being the review verdict that
-  previously had no durable home at all), the checker's stop-time
-  backstop with its catch-proof, its reach note (invariant 16) and its
-  logging-to-deny ramp - whose negative cases as of 0.29.0 also include a bookkeeping
-  commit seen NOT to be flagged, a repeated stop seen not to re-log a flag it already
-  logged, and an empty window seen to log `n/a` rather than `clean`, the checker's
+  close-out evidence checker and its setup proof step (four keys as of 0.38.0 —
+  `lenses:` joined them fail-closed in 0.27.0, its negative case being the review
+  verdict that previously had no durable home at all; a pre-0.38.0 `quality:` line is
+  seen to be ignored, and the retired `stop-check` stub to stay silent), the checker's
   docs-budget observer (log-only; its negative case lives in the proof suite, not in
   an arming ramp), the retro's
   ledger-alive precheck and its spec-claims-against-the-tree sweep, the

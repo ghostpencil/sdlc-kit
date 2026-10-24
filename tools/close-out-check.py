@@ -1,42 +1,39 @@
 # -*- coding: utf-8 -*-
-"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46, §52, §67).
+"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46, §67, §88).
 
 Four passes, and the last is the point:
 
   1. a unit pass driving check mode over a fixture corpus of real commit bodies -
      every stated-skip form, the RED zero-form, each key missing / empty /
-     duplicated, a mid-line key lookalike, a CRLF body, and two verbatim record
-     bodies from the first adopter's armed arcs (ai-news-dashboard S6/S7) in BOTH
-     directions - as filed, where they now fail on the 0.27.0 lenses: key alone
-     (the update transition, pinned rather than asserted in prose), and with that
-     line added, where they pass - each case committed into a bench git repo and
-     checked through the script's real interface;
-  2. a stop pass driving stop-check mode (the §52 backstop) over per-case bench
-     repos - defective / complete / bare crossed with guard-state present /
-     absent / stale-session, the no-upstream narrowing, pushed-commits-out-of-
-     scope, the candidate cap, stand-down on stop_hook_active, both session-id
-     casings, the armed block JSON, and fail-open on an empty payload - each
-     through the script's real interface with the payload on stdin;
-  3. a docs pass driving docs-check mode (the §67.3 observer) over per-case
+     duplicated, a mid-line key lookalike, a CRLF body, a pre-0.38.0 quality: line
+     (ignored, single or doubled), the retired stop-check mode (silent, exit 0), and
+     two verbatim record bodies from the first adopter's armed arcs (ai-news-dashboard
+     S6/S7) in BOTH directions - as filed, where they fail on the 0.27.0 lenses: key
+     alone, and with that line added, where they pass - each case committed into a
+     bench git repo and checked through the script's real interface;
+  2. a docs pass driving docs-check mode (the §67.3 observer) over per-case
      bench repos with real file writes, since the observer counts lines a commit
      actually added - under budget, exactly at it, over it, an index the commit
      never touched, a retirement commit that only deletes, an explicit ref, and
      a bad ref (which must still exit 0: log-only never fails a step);
+  3. a worktree pass: docs-check from a REAL linked worktree, whose .git is a file;
   4. a mutation pass that breaks the checker - the count derived from the
-     MUTATIONS list at run time, never stated here - and requires pass 1 or 2
-     to notice each one - pass 1, 2 or 3. A suite that survives its own
-     mutations is not testing the thing it claims to (invariant 13).
+     MUTATIONS list at run time, never stated here - and requires pass 1, 2 or 3
+     to notice each one. A suite that survives its own mutations is not testing the
+     thing it claims to (invariant 13).
+
+The stop pass (stop-check, the §52 backstop) and its launcher cases went with the mode
+in 0.38.0 (FEATURE_PLAN.md §87.7). Only the stub's silence is pinned now.
 
 Kit-development artifact: lives at the root, never ships inside sdlc-kit/.
 Run from anywhere:  python tools/close-out-check.py
 """
-import concurrent.futures, io, json, os, shutil, stat, subprocess, sys, tempfile, time, traceback
+import concurrent.futures, io, os, shutil, stat, subprocess, sys, tempfile, time, traceback
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(REPO, "sdlc-kit", "templates", "close-out.template.sh")
 
 FULL_TAIL = (
-    "quality: nothing to do\n"
     "lenses: no lens triggered\n"
     "mutation: 1 guard, seen to fail\n"
     "verify: ran — behavior exercised through the CLI, verdict green (Git Bash)\n")
@@ -121,12 +118,11 @@ CASES = [
      body("feat(x): two behaviors",
           "RED: pytest -q tests/test_a.py::test_one — test_a.py:12 — exit 1",
           "RED: pytest -q tests/test_a.py::test_two — test_a.py:31 — exit 1",
-          "quality: 2 moves applied",
           "lenses: shared state under concurrency: clean",
           "mutation: 2 guards, each seen to fail",
           "verify: ran — CLI path green (Git Bash)"),
      ["check"], 0,
-     "close-out record: COMPLETE - RED(2) quality lenses mutation verify - structural presence only; this does not verify the evidence is true.",
+     "close-out record: COMPLETE - RED(2) lenses mutation verify - structural presence only; this does not verify the evidence is true.",
      []),
     ("red_not_observed_form",
      body("fix(y): hotfix", "RED: not observed — regression pinned by existing test",
@@ -134,78 +130,87 @@ CASES = [
      ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("red_zero_form",
      body("docs(z): config-only slice", "RED: none — no behavior batches this slice",
-          "quality: nothing to do", "lenses: no lens triggered",
+          "lenses: no lens triggered",
           "mutation: none — no new guards",
           "verify: skipped — docs only, the gate fully pins it"),
      ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("all_skip_forms",
      body("chore(w): mechanical sweep", "RED: none — no behavior batches this slice",
-          "quality: skipped — mechanical rename, nothing to weigh",
           "lenses: no lens triggered",
           "mutation: none — no new guards", "verify: skipped — covered by the gate"),
      ["check"], 0, None, ["COMPLETE"]),
+    # A record written before 0.38.0 carries a quality: line. The checker no longer
+    # counts it - present, doubled or empty - so a pre-0.38.0 commit reads exactly as
+    # its other four keys say. Doubled and empty are the two forms a counted key
+    # would fail on, which is what makes these cases discriminate.
+    ("legacy_quality_line_ignored",
+     body("feat(x): pre-0.38.0 slice", "RED: not observed — reason",
+          "quality: 2 moves applied; reuse: searched helpers",
+          *FULL_TAIL.splitlines()),
+     ["check"], 0,
+     "close-out record: COMPLETE - RED(1) lenses mutation verify - structural presence only; this does not verify the evidence is true.",
+     []),
+    ("legacy_quality_doubled_and_empty_ignored",
+     body("feat(x): pre-0.38.0 slice", "RED: not observed — reason",
+          "quality: 1 move applied", "quality:", *FULL_TAIL.splitlines()),
+     ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("missing_red",
-     body("feat(x): s", "quality: nothing to do", "lenses: no lens triggered",
+     body("feat(x): s", "lenses: no lens triggered",
           "mutation: none — no new guards", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: RED",
      ["MISSING -", "Never invent", "git commit --amend"]),
-    ("missing_quality",
-     body("feat(x): s", "RED: not observed — reason", "lenses: no lens triggered",
-          "mutation: none — no new guards", "verify: skipped — small"),
-     ["check"], 1, "close-out record: INCOMPLETE - problems: quality", ["MISSING -"]),
     ("missing_lenses",
-     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+     body("feat(x): s", "RED: not observed — reason",
           "mutation: none — no new guards", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: lenses", ["MISSING -"]),
     ("missing_mutation",
-     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+     body("feat(x): s", "RED: not observed — reason",
           "lenses: no lens triggered", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: mutation", ["MISSING -"]),
     ("missing_verify",
-     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+     body("feat(x): s", "RED: not observed — reason",
           "lenses: no lens triggered", "mutation: none — no new guards"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: verify", ["MISSING -"]),
     ("empty_red_payload",
-     body("feat(x): s", "RED:", "quality: nothing to do",
+     body("feat(x): s", "RED:",
           "lenses: no lens triggered", "mutation: none — no new guards",
           "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: RED", ["EMPTY -"]),
     ("empty_lenses_payload",
-     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+     body("feat(x): s", "RED: not observed — reason",
           "lenses:  ", "mutation: none — no new guards", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: lenses", ["EMPTY -"]),
     ("empty_verify_payload",
-     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+     body("feat(x): s", "RED: not observed — reason",
           "lenses: no lens triggered", "mutation: none — no new guards",
           "verify:   "),
      ["check"], 1, "close-out record: INCOMPLETE - problems: verify", ["EMPTY -"]),
-    ("duplicated_quality",
-     body("feat(x): s", "RED: not observed — reason", "quality: 1 move applied",
-          "quality: nothing to do", "lenses: no lens triggered",
-          "mutation: none — no new guards", "verify: skipped — small"),
-     ["check"], 1, "close-out record: INCOMPLETE - problems: quality",
+    ("duplicated_mutation",
+     body("feat(x): s", "RED: not observed — reason", "lenses: no lens triggered",
+          "mutation: 1 guard, seen to fail", "mutation: none — no new guards",
+          "verify: skipped — small"),
+     ["check"], 1, "close-out record: INCOMPLETE - problems: mutation",
      ["DUPLICATED (2 lines)"]),
     ("duplicated_lenses",
      # Two review passes each writing their own verdict line: nobody knows which
      # is the record, and the denominator this key exists for is the casualty.
-     body("feat(x): s", "RED: not observed — reason", "quality: nothing to do",
+     body("feat(x): s", "RED: not observed — reason",
           "lenses: untrusted input: clean", "lenses: no lens triggered",
           "mutation: none — no new guards", "verify: skipped — small"),
      ["check"], 1, "close-out record: INCOMPLETE - problems: lenses",
      ["DUPLICATED (2 lines)"]),
     ("anchors_midline_lookalikes_do_not_count",
-     # Prose names "RED:", "quality:" and "lenses:" mid-line. Neither RED nor
-     # quality has a real line, so both must read as missing. lenses: DOES have a
-     # real line below, so with the anchor intact it reads as present-once — and
-     # if the anchor were dropped the prose mention would make it duplicated,
-     # which is what pins the anchor for this key rather than only for the other two.
-     "feat(x): s\n\nCopy the RED: lines, the quality: line and the lenses: line\n"
+     # Prose names "RED:" and "lenses:" mid-line. RED has no real line, so it must
+     # read as missing. lenses: DOES have a real line below, so with the anchor
+     # intact it reads as present-once - and if the anchor were dropped the prose
+     # mention would make it duplicated, which pins the anchor for that key too.
+     "feat(x): s\n\nCopy the RED: lines and the lenses: line\n"
      "from the record.\n\n"
      "lenses: no lens triggered\nmutation: none — no new guards\n"
      "verify: skipped — small\n",
-     ["check"], 1, "close-out record: INCOMPLETE - problems: RED quality", []),
+     ["check"], 1, "close-out record: INCOMPLETE - problems: RED", []),
     ("lookalikes_beside_full_record",
-     body("feat(x): s", "Per the record contract the RED: and quality: lines follow.",
+     body("feat(x): s", "Per the record contract the RED: and lenses: lines follow.",
           "RED: not observed — reason", *FULL_TAIL.splitlines()),
      ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("crlf_body",
@@ -218,15 +223,12 @@ CASES = [
           "RED: pytest -q — t.py:9 — exit 2", *FULL_TAIL.splitlines()),
      ["check"], 0, None, ["COMPLETE - RED(3)"]),
     # Real field bodies, kept verbatim. Both predate the lenses: key (0.27.0), so
-    # both are now INCOMPLETE on exactly that one line and nothing else — which is
-    # the transition consequence stated in sdlc-update.md, pinned here rather than
-    # asserted in prose: the first slice closed after updating fails until the line
-    # is written. Editing the field evidence to make the suite green would delete
-    # the only proof that the failure is narrow.
+    # both are INCOMPLETE on exactly that one line and nothing else - their
+    # quality: line, from before 0.38.0, is ignored. Editing the field evidence to
+    # make the suite green would delete the only proof that the failure is narrow.
     ("adopter_s7_verbatim_pre_lenses", ADOPTER_S7, ["check"], 1,
      "close-out record: INCOMPLETE - problems: lenses",
-     ["RED:      present (3 lines)", "quality:  present", "mutation: present",
-      "verify:   present"]),
+     ["RED:      present (3 lines)", "mutation: present", "verify:   present"]),
     ("adopter_s6_verbatim_pre_lenses", ADOPTER_S6, ["check"], 1,
      "close-out record: INCOMPLETE - problems: lenses",
      ["RED:      present (1 lines)", "verify:   present"]),
@@ -243,18 +245,20 @@ CASES = [
                         "no production consumer\n"),
      ["check"], 0, None, ["COMPLETE - RED(1)"]),
     ("no_record_at_all", "feat(x): subject only\n\nProse.\n",
-     ["check"], 1, "close-out record: INCOMPLETE - problems: RED quality lenses mutation verify", []),
+     ["check"], 1, "close-out record: INCOMPLETE - problems: RED lenses mutation verify", []),
+    # The retired stop-time backstop. A Stop launcher left by a 0.22.0-0.37.1
+    # install still calls this mode; it must print nothing and exit 0, because an
+    # unknown mode exits 2 and a Stop hook exiting 2 blocks every stop.
+    ("stop_check_retired_is_silent", None, ["stop-check"], 0, "", []),
     ("bad_ref", None, ["check", "no-such-ref"], 2, None,
      ["CANNOT CHECK -", "does not resolve"]),
     ("unknown_mode", None, ["frob"], 2, None, ["CANNOT CHECK -", "unknown mode 'frob'"]),
     ("no_mode", None, [], 2, None, ["CANNOT CHECK -", "unknown mode ''"]),
 ]
 
-# One mutation per defect class the corpus pins; each must break >= 1 unit or
-# stop case.
+# One mutation per defect class the corpus pins; each must break >= 1 case.
 MUTATIONS = [
     ("anchor_dropped_RED", "/^RED:/      { rn++;", "/RED:/      { rn++;"),
-    ("anchor_dropped_quality", "/^quality:/  { qn++;", "/quality:/  { qn++;"),
     ("anchor_dropped_lenses", "/^lenses:/   { ln++;", "/lenses:/   { ln++;"),
     ("empty_check_disabled", "if ($0 ~ /^RED:[[:space:]]*$/) re++", ""),
     ("duplicate_check_disabled", '[ "$n" -gt 1 ]', '[ "$n" -gt 99 ]'),
@@ -263,65 +267,13 @@ MUTATIONS = [
      'line="MISSING - $AMEND"'),
     ("ref_guard_bypassed", '--verify --quiet "$REF^{commit}"', "--verify --quiet HEAD"),
     ("mode_gate_loosened", '[ "$MODE" = "check" ]', '[ -n "$MODE" ]'),
-    # --- stop-check (§52). Each models a plausible backstop defect.
-    ("copilot_standdown_disabled",
-     """    *'"hook_event_name"'*) case "$IN" in *'"timestamp"'*) exit 0 ;; esac ;;
-""",
-     ""),
-    ("copilot_standdown_ignores_permission_mode",
-     """    *'"permission_mode"'*) ;;
-""", ""),
-    ("copilot_standdown_catches_native",
-     """    *'"hook_event_name"'*) case "$IN" in""", """    *'"timestamp"'*) case "$IN" in"""),
-    ("standdown_disabled",
-     '"stop_hook_active"[[:space:]]*:[[:space:]]*true',
-     '"stop_hook_active_never"[[:space:]]*:[[:space:]]*true'),
-    # RE-POINTED for 0.29.0: the anchor gained the defective_shas list that the
-    # de-dup reads. §72's lesson - re-point a mutation when the fix restructures
-    # what it targets, or a defect class silently loses its coverage.
-    ("defective_counted_complete",
-     'else defective="$defective $C($probs )"; defective_shas="$defective_shas $C"; fi',
-     'else complete=$((complete + 1)); fi'),
-    # --- the candidate filter and de-dup (§73.8).
-    ("filter_disabled",
-     'if [ "$bookkeeping" = "1" ]; then skipped=$((skipped + 1)); continue; fi',
-     'if [ "$bookkeeping" = "never" ]; then skipped=$((skipped + 1)); continue; fi'),
-    ("filter_too_greedy",
-     'if ($0 !~ /^spec\// && $0 != "CLAUDE.md" && $0 != "README.md") other = 1',
-     'if (0) other = 1'),
-    ("filter_swallows_pathless_commits",
-     '(np > 0 && !other) ? 1 : 0',
-     '(!other) ? 1 : 0'),
-    ("dedup_disabled",
-     '    [ -f "$SEEN" ] || return 1',
-     '    return 1'),
-    ("empty_window_still_says_clean",
-     'slog "stop: n/a (nothing to inspect: no candidate commits; $SCOPE)"',
-     'slog "stop: clean (no candidate commits; $SCOPE)"'),
-    ("bare_ignores_guard_evidence",
-     'if [ -n "$GUARD_EVID" ]; then bare_flagged="$bare_flagged $C"',
-     'if [ -n "" ]; then bare_flagged="$bare_flagged $C"'),
-    ("guard_session_not_matched",
-     '[ "$(cat "$GD/sdlc-tdd/session" 2>/dev/null)" = "$SID" ]',
-     '[ -d "$GD/sdlc-tdd" ]'),
-    ("block_regardless_of_flag",
-     'if [ -f "$SD/deny-enabled" ]; then',
-     'if [ ! -f "$SD/deny-enabled.never" ]; then'),
+    ("red_treated_singleton", "status 'RED:     ' RED      \"$red_n\" \"$red_e\" \"\"",
+     "status 'RED:     ' RED      \"$red_n\" \"$red_e\" s"),
+    # --- the retired stop-check (§87.7): the stub must keep a leftover launcher silent.
+    ("stop_stub_removed", '[ "$MODE" = "stop-check" ] && exit 0\n', ""),
     # --- linked worktrees (FEATURE_PLAN.md 78).
-    ("stop_tests_for_git_directory", '  [ -e .git ] || exit 0\n  if [ -z "$GD" ]; then',
-     '  [ -d .git ] || exit 0\n  if [ -z "$GD" ]; then'),
-    ("stop_state_under_literal_dotgit", 'SD="$GD/sdlc-close-out"', 'SD=.git/sdlc-close-out'),
-    # Aimed at the WRITE, not the mkdir: the worktree pass's earlier stop cases create
-    # the log directory, so a mutated mkdir alone changes nothing observable and first
-    # survived the full run (0.31.1).
     ("docs_log_under_literal_dotgit", '"$MSG" >> "$GD/sdlc-close-out/log" 2>/dev/null',
      '"$MSG" >> .git/sdlc-close-out/log 2>/dev/null'),
-    ("unresolvable_gitdir_silent",
-     "printf '{\"decision\":\"block\",\"reason\":\"SDLC close-out backstop did not run",
-     "true '{\"decision\":\"block\",\"reason\":\"SDLC close-out backstop did not run"),
-    ("cap_unbounded", "rev-list --abbrev-commit -n 20", "rev-list --abbrev-commit -n 9999"),
-    ("scope_ignores_upstream", "-n 20 '@{u}..HEAD'", "-n 20 HEAD"),
-    ("red_treated_singleton", 'pk RED "$red_n" "$red_e" ""', 'pk RED "$red_n" "$red_e" s'),
     # --- docs-check (§67.3). Each models a plausible observer defect.
     ("docs_budget_relaxed", "  BUDGET=25 ", "  BUDGET=9999 "),
     ("docs_boundary_off_by_one", '[ "$ADDED" -gt "$BUDGET" ]', '[ "$ADDED" -ge "$BUDGET" ]'),
@@ -371,315 +323,6 @@ class Bench:
             argv = ["sh", self.script] + args
         p = subprocess.run(argv, cwd=self.root, capture_output=True)
         return p.returncode, p.stdout.decode("utf-8", "replace"), time.perf_counter() - t0
-
-
-SID = "11111111-2222-3333-4444-555555555555"
-STALE_SID = "99999999-8888-7777-6666-555555555555"
-
-
-def payload(sid=SID, active=False, camel=False):
-    key = "sessionId" if camel else "session_id"
-    return '{"%s":"%s","hook_event_name":"Stop","stop_hook_active":%s}' % (
-        key, sid, "true" if active else "false")
-
-
-FULL_BODY = body("feat(x): slice",
-                 "RED: pytest -q — t.py:1 — exit 1",
-                 "RED: pytest -q — t.py:9 — exit 1",
-                 "quality: nothing to do",
-                 "lenses: no lens triggered",
-                 "mutation: 2 guards, each seen to fail",
-                 "verify: ran — CLI path green (Git Bash)")
-DEFECTIVE_BODY = body("feat(x): slice missing verify",
-                      "RED: pytest -q — t.py:1 — exit 1",
-                      "quality: nothing to do",
-                      "lenses: no lens triggered",
-                      "mutation: 1 guard, seen to fail")
-BARE_BODY = "docs(z): notes only\n\nProse, no record keys.\n"
-
-
-class StopBench(Bench):
-    """A per-case repo for stop-check: optional origin/upstream, guard state,
-    arming flag, and the stop log - everything the backstop actually reads."""
-
-    def base_commit(self):
-        self.commit("chore: base\n\nPre-kit commit, no record.\n")
-
-    def set_origin(self, base):
-        origin = os.path.join(base, "origin.git")
-        subprocess.run(["git", "init", "-q", "--bare", origin], capture_output=True)
-        self.git("remote", "add", "origin", origin)
-        p = self.git("push", "-q", "-u", "origin", "HEAD")
-        assert p.returncode == 0, "bench push failed: " + p.stderr.decode()
-
-    template = None  # set by stop_pass: a directory holding a based proj/ + origin.git
-
-    def based(self, base):
-        """base_commit() then set_origin(base) - the arrangement all but one stop case
-        starts from. Building it costs ~0.8 s of git (a commit, a bare init, a push);
-        copying a prebuilt one costs ~0.15 s, so stop_pass builds it once per pass and
-        each case copies it, repointing origin at its own copy. Nothing timed changes:
-        the stop invocation runs after setup, as before."""
-        if self.template is None:
-            self.base_commit()
-            self.set_origin(base)
-            return
-        rmtree(os.path.join(self.root, ".git"))
-        shutil.copytree(os.path.join(self.template, "proj", ".git"),
-                        os.path.join(self.root, ".git"))
-        shutil.copytree(os.path.join(self.template, "origin.git"),
-                        os.path.join(base, "origin.git"))
-        self.git("remote", "set-url", "origin", os.path.join(base, "origin.git"))
-
-    def push(self):
-        p = self.git("push", "-q", "origin", "HEAD")
-        assert p.returncode == 0, "bench push failed: " + p.stderr.decode()
-
-    def commit_files(self, message, paths):
-        """A commit that really touches paths - the candidate filter's only input.
-        Every other stop case commits --allow-empty, i.e. no paths at all, which
-        the filter deliberately treats as NOT bookkeeping (a certainty is what it
-        removes; it never guesses). Without this helper the filter's cases cannot
-        exist, which is how the corpus came to pin only what the mode fires ON."""
-        for rel in paths:
-            full = os.path.join(self.root, *rel.split("/"))
-            d = os.path.dirname(full)
-            if d and not os.path.isdir(d):
-                os.makedirs(d)
-            with io.open(full, "a", encoding="utf-8", newline="\n") as fh:
-                fh.write("a line\n")
-            self.git("add", "--", rel)
-        p = self.git("commit", "--cleanup=verbatim", "-F", "-",
-                     input=message.encode("utf-8"))
-        assert p.returncode == 0, "bench commit_files failed: " + p.stderr.decode()
-
-    def seen(self, sid, ref="HEAD"):
-        """Pre-seed the per-session de-dup ledger, so one bench run stands in for
-        the second stop of a session."""
-        d = os.path.join(self.root, ".git", "sdlc-close-out")
-        os.makedirs(d, exist_ok=True)
-        sha = self.git("rev-parse", "--short", ref).stdout.decode().strip()
-        with io.open(os.path.join(d, "seen"), "a", encoding="utf-8", newline="\n") as fh:
-            fh.write("%s %s\n" % (sid, sha))
-
-    def guard_state(self, sid, evidence=True):
-        d = os.path.join(self.root, ".git", "sdlc-tdd")
-        os.makedirs(d, exist_ok=True)
-        io.open(os.path.join(d, "session"), "w", newline="\n").write(sid)
-        if evidence:
-            io.open(os.path.join(d, "prod-write-observed"), "w").write("")
-
-    def arm(self):
-        d = os.path.join(self.root, ".git", "sdlc-close-out")
-        os.makedirs(d, exist_ok=True)
-        io.open(os.path.join(d, "deny-enabled"), "w").write("")
-
-    def run_stop(self, pl):
-        p = subprocess.run(["sh", self.script, "stop-check"], cwd=self.root,
-                           input=pl.encode("utf-8"), capture_output=True)
-        log = os.path.join(self.root, ".git", "sdlc-close-out", "log")
-        text = io.open(log, encoding="utf-8").read() if os.path.exists(log) else ""
-        return p.returncode, p.stdout.decode("utf-8", "replace"), text
-
-
-# (name, setup(bench, base) -> payload, stdout check: None | "block-json",
-#  log must-contain, log must-NOT-contain)
-def _s_standdown(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY)
-    return payload(active=True)
-
-def _s_defective(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY)
-    return payload()
-
-def _s_complete(b, base):
-    b.based(base); b.commit(FULL_BODY)
-    return payload()
-
-def _s_bare_no_guard(b, base):
-    b.based(base); b.commit(BARE_BODY)
-    return payload()
-
-def _s_bare_guard(b, base):
-    b.based(base); b.commit(BARE_BODY)
-    b.guard_state(SID)
-    return payload()
-
-def _s_bare_guard_armed(b, base):
-    # bare NEVER blocks: armed or not, no stdout verdict.
-    b.based(base); b.commit(BARE_BODY)
-    b.guard_state(SID); b.arm()
-    return payload()
-
-def _s_bare_stale_session(b, base):
-    b.based(base); b.commit(BARE_BODY)
-    b.guard_state(STALE_SID)
-    return payload()
-
-def _s_bare_guard_camel(b, base):
-    b.based(base); b.commit(BARE_BODY)
-    b.guard_state(SID)
-    return payload(camel=True)
-
-def _s_defective_armed(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY)
-    b.arm()
-    return payload()
-
-def _s_no_upstream(b, base):
-    # HEAD-only narrowing: the older defective commit is out of scope, stated.
-    b.base_commit(); b.commit(DEFECTIVE_BODY); b.commit(FULL_BODY)
-    return payload()
-
-def _s_pushed_out_of_scope(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY); b.push()
-    return payload()
-
-def _s_defective_below_head(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY); b.commit(FULL_BODY)
-    return payload()
-
-def _s_crlf_defective(b, base):
-    b.based(base)
-    b.commit(DEFECTIVE_BODY.replace("\n", "\r\n"))
-    return payload()
-
-def _s_cap(b, base):
-    b.based(base)
-    for i in range(22):
-        b.commit("docs(z): bare %d\n\nProse.\n" % i)
-    return payload()
-
-def _s_bookkeeping_skipped(b, base):
-    # THE case the corpus lacked: a commit that CANNOT carry a record, in the
-    # window, with slice-loop evidence present - the exact configuration that
-    # produced 19 of one adoption's 19 flag lines. It must be skipped, silently
-    # and by name in the verdict.
-    b.based(base)
-    b.commit_files(BARE_BODY, ["spec/PHASE_01_X.md", "spec/PROJECT_INDEX.md", "CLAUDE.md"])
-    b.guard_state(SID)
-    return payload()
-
-def _s_bookkeeping_beside_candidate(b, base):
-    # Filtering must not cost a real catch standing next to it.
-    b.based(base)
-    b.commit_files(BARE_BODY, ["spec/PROJECT_INDEX.md"])
-    b.commit_files(DEFECTIVE_BODY, ["src/app.py"])
-    return payload()
-
-def _s_spec_plus_code_not_bookkeeping(b, base):
-    # Conservative in one direction on purpose: one non-spec path and it stays a
-    # candidate. A slice that also edits its phase spec is still a slice.
-    b.based(base)
-    b.commit_files(BARE_BODY, ["spec/PROJECT_INDEX.md", "src/app.py"])
-    b.guard_state(SID)
-    return payload()
-
-def _s_repeat_flag_dedups(b, base):
-    # The second stop of a session that already logged this flag.
-    b.based(base); b.commit(BARE_BODY)
-    b.guard_state(SID); b.seen(SID)
-    return payload()
-
-def _s_dedup_never_suppresses_block(b, base):
-    # Armed: a still-defective commit blocks at EVERY stop. De-dup governs
-    # logging only - being mentioned once must never buy a pass.
-    b.based(base); b.commit(DEFECTIVE_BODY)
-    b.arm(); b.seen(SID)
-    return payload()
-
-# FEATURE_PLAN.md 79: Copilot reads .claude/settings.json, so a both-dialect
-# project can reach stop-check from the Claude Stop entry with Copilot's payload
-# translated into Claude's shape (measured 2026-09-28, 1.0.88). That call stands
-# down - armed and defective, so a missing stand-down BLOCKS - while the two
-# payloads it must not be confused with still check.
-COPILOT_TRANSLATED = ('{"hook_event_name":"Stop","session_id":"%s",'
-                      '"timestamp":"2026-09-28T14:40:02.101Z","cwd":"D:\\p",'
-                      '"transcript_path":"x","stop_reason":"end_turn",'
-                      '"stop_hook_active":false}' % SID)
-COPILOT_NATIVE = ('{"sessionId":"%s","timestamp":1790606402101,"cwd":"D:\\p",'
-                  '"transcriptPath":"x","stopReason":"end_turn",'
-                  '"stop_hook_active":false}' % SID)
-
-def _s_copilot_translated(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY)
-    b.arm()
-    return COPILOT_TRANSLATED
-
-def _s_copilot_native(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY)
-    b.arm()
-    return COPILOT_NATIVE
-
-def _s_claude_with_timestamp(b, base):
-    b.based(base); b.commit(DEFECTIVE_BODY)
-    b.arm()
-    return ('{"session_id":"%s","hook_event_name":"Stop","permission_mode":"default",'
-            '"timestamp":"2026-09-28T14:40:02.101Z","stop_hook_active":false}' % SID)
-
-def _s_empty_payload(b, base):
-    b.based(base); b.commit(FULL_BODY)
-    return ""
-
-STOP_CASES = [
-    ("stop_standdown", _s_standdown, None,
-     ["standing down"], ["WOULD-BLOCK", "clean"]),
-    ("stop_defective_logs_wouldblock", _s_defective, None,
-     ["stop: WOULD-BLOCK - defective record on", "missing verify"], ["stop: BLOCK"]),
-    ("stop_complete_clean", _s_complete, None,
-     ["stop: clean (inspected 1, 0 bookkeeping skipped; 1 complete, 0 bare"],
-     ["WOULD-BLOCK"]),
-    ("stop_bare_without_guard_noted", _s_bare_no_guard, None,
-     ["stop: clean (inspected 1, 0 bookkeeping skipped; 0 complete, 1 bare"],
-     ["WOULD-BLOCK"]),
-    ("stop_bare_with_guard_flagged", _s_bare_guard, None,
-     ["stop: WOULD-BLOCK (bare, log-only by design)"], []),
-    ("stop_bare_never_blocks_even_armed", _s_bare_guard_armed, None,
-     ["stop: WOULD-BLOCK (bare, log-only by design)"], ["stop: BLOCK"]),
-    ("stop_bare_stale_session_noted", _s_bare_stale_session, None,
-     ["stop: clean (inspected 1, 0 bookkeeping skipped; 0 complete, 1 bare"],
-     ["WOULD-BLOCK"]),
-    ("stop_bare_camel_session_id", _s_bare_guard_camel, None,
-     ["stop: WOULD-BLOCK (bare, log-only by design)"], []),
-    ("stop_defective_armed_blocks", _s_defective_armed, "block-json",
-     ["stop: BLOCK - defective record on"], []),
-    ("stop_no_upstream_head_only", _s_no_upstream, None,
-     ["stop: clean (inspected 1, 0 bookkeeping skipped; 1 complete, 0 bare",
-      "no upstream configured"], ["WOULD-BLOCK"]),
-    # "clean" is ABSENT on purpose: an empty window is not a clean inspection,
-    # and the two printing the same word is finding 5's opening sentence.
-    ("stop_pushed_out_of_scope", _s_pushed_out_of_scope, None,
-     ["stop: n/a (nothing to inspect: no candidate commits"],
-     ["WOULD-BLOCK", "clean"]),
-    ("stop_defective_below_head_flagged", _s_defective_below_head, None,
-     ["stop: WOULD-BLOCK - defective record on", "missing verify"], []),
-    ("stop_crlf_defective", _s_crlf_defective, None,
-     ["stop: WOULD-BLOCK - defective record on"], []),
-    ("stop_candidate_cap_20", _s_cap, None,
-     ["inspected 20", "20 bare without slice-loop evidence"], ["22 bare"]),
-    ("stop_empty_payload_fails_open", _s_empty_payload, None,
-     ["stop: clean (inspected 1, 0 bookkeeping skipped; 1 complete"], ["WOULD-BLOCK"]),
-    # --- the candidate filter and the per-session de-dup (§73.8, 0.29.0).
-    ("stop_bookkeeping_skipped_not_flagged", _s_bookkeeping_skipped, None,
-     ["stop: n/a (nothing to inspect: 1 bookkeeping skipped"],
-     ["WOULD-BLOCK", "clean"]),
-    ("stop_bookkeeping_beside_candidate", _s_bookkeeping_beside_candidate, None,
-     ["stop: WOULD-BLOCK - defective record on", "missing verify"], ["n/a"]),
-    ("stop_spec_plus_code_not_bookkeeping", _s_spec_plus_code_not_bookkeeping, None,
-     ["stop: WOULD-BLOCK (bare, log-only by design)"], ["n/a", "bookkeeping skipped"]),
-    ("stop_repeat_flag_dedups", _s_repeat_flag_dedups, None,
-     ["stop: repeat (bare flag already logged this session on"], ["WOULD-BLOCK"]),
-    ("stop_dedup_never_suppresses_block", _s_dedup_never_suppresses_block,
-     "block-json", ["stop: BLOCK - defective record on"], ["repeat"]),
-    # --- Copilot running the Claude dialect's Stop entry (§79). The stand-down
-    # is silent: no stdout, no log line, on an armed defective commit.
-    ("stop_copilot_translated_stands_down", _s_copilot_translated, None,
-     [], ["stop:"]),
-    ("stop_copilot_native_still_checks", _s_copilot_native, "block-json",
-     ["stop: BLOCK - defective record on"], []),
-    ("stop_claude_with_timestamp_still_checks", _s_claude_with_timestamp,
-     "block-json", ["stop: BLOCK - defective record on"], []),
-]
 
 
 class DocsBench(Bench):
@@ -823,56 +466,6 @@ def docs_pass(src, verbose, first_only=False):
 docs_pass.median = 0.0
 
 
-def stop_pass(src, verbose, only=None, first_only=False):
-    """Runs every stop case (or just the one named by `only`) in its own bench repo;
-    returns (failures, {name: secs}). first_only stops at the first failing case."""
-    failures, times = [], {}
-    template = tempfile.mkdtemp(prefix="closeout-tmpl-")
-    try:
-        StopBench(template, src).based(template)
-        _stop_cases(src, verbose, only, first_only, template, failures, times)
-    finally:
-        rmtree(template)
-    return failures, times
-
-
-def _stop_cases(src, verbose, only, first_only, template, failures, times):
-    for name, setup, stdout_kind, contains, absent in STOP_CASES:
-        if only is not None and name != only:
-            continue
-        with tempfile.TemporaryDirectory() as base:
-            b = StopBench(base, src)
-            b.template = template
-            pl = setup(b, base)
-            t0 = time.perf_counter()
-            code, out, log = b.run_stop(pl)
-            times[name] = time.perf_counter() - t0
-            problems = []
-            if code != 0:
-                problems.append("exit %d, expected 0 (stop-check must fail open)" % code)
-            if stdout_kind == "block-json":
-                try:
-                    d = json.loads(out)
-                    if d.get("decision") != "block" or not d.get("reason"):
-                        problems.append("stdout is not a block verdict: %r" % out)
-                except ValueError:
-                    problems.append("stdout is not valid JSON: %r" % out)
-            elif out.strip():
-                problems.append("unexpected stdout (logging mode must stay silent): %r" % out)
-            for c in contains:
-                if c not in log:
-                    problems.append("log lacks %r" % c)
-            for c in absent:
-                if c in log:
-                    problems.append("log wrongly contains %r" % c)
-            if problems:
-                failures.append((name, problems, "stdout: %s\nlog:\n%s" % (out, log)))
-            if verbose:
-                print("  %-38s %s" % (name, "FAIL: " + "; ".join(problems) if problems else "ok"))
-            if problems and first_only:
-                break
-
-
 def unit_pass(src, verbose, first_only=False):
     """Runs every case; returns (failures, max_seconds). first_only stops at the first
     failing case. The cases share one bench and its growing history, so stopping
@@ -914,23 +507,11 @@ def unit_pass(src, verbose, first_only=False):
 unit_pass.median = 0.0
 
 
-# --- linked worktrees and the launchers (FEATURE_PLAN.md 78) ------------------------
+# --- linked worktrees (FEATURE_PLAN.md 78) -----------------------------------------
 # Every other pass builds an ordinary checkout, whose .git is a directory - the one
 # configuration that cannot see this defect. In a linked worktree .git is a FILE
-# naming the git directory: the launchers tested for a directory and stood down in
-# silence, and the script kept its state under a literal .git/ that is not a
-# directory there. These cases build a REAL worktree with git.
-HOOK_JSON = os.path.join(REPO, "sdlc-kit", "templates", "close-out-hook.template.json")
-SETTINGS = os.path.join(REPO, "sdlc-kit", "templates", "settings.template.json")
-
-
-def _reopen_git(root, text):
-    """Rewrite a worktree's .git FILE. Windows git marks it hidden, and a hidden file
-    cannot be opened for a truncating write there - so remove it, then create it."""
-    p = os.path.join(root, ".git")
-    if os.path.isfile(p):
-        os.remove(p)
-    io.open(p, "w", newline="\n").write(text)
+# naming the git directory, and the script once kept its state under a literal .git/
+# that is not a directory there. This case builds a REAL worktree with git.
 
 
 def wt_pass(src, verbose):
@@ -958,128 +539,18 @@ def wt_pass(src, verbose):
         os.makedirs(os.path.dirname(script))
         io.open(script, "w", encoding="utf-8", newline="\n").write(src)
 
-        def commit(message):
-            g("-C", wt_r, "-c", "user.email=b@b", "-c", "user.name=b", "commit", "-q",
-              "--allow-empty", "--cleanup=verbatim", "-F", "-", input=message.encode())
-
-        def stop(pl):
-            p = subprocess.run(["sh", script, "stop-check"], cwd=wt_r,
-                               input=pl.encode(), capture_output=True)
-            f = os.path.join(gd, "sdlc-close-out", "log")
-            return (p.stdout.decode("utf-8", "replace"),
-                    io.open(f, encoding="utf-8").read() if os.path.exists(f) else "")
-
-        os.makedirs(os.path.join(gd, "sdlc-close-out"))
-        io.open(os.path.join(gd, "sdlc-close-out", "deny-enabled"), "w").write("")
-        commit(DEFECTIVE_BODY)
-        out, log = stop(payload())
-        check("wt_stop_blocks_from_worktree_gitdir",
-              out.strip().startswith("{") and '"decision":"block"' in out
-              and "stop: BLOCK - defective record on" in log
-              and not os.path.exists(os.path.join(main_r, ".git", "sdlc-close-out")),
-              out + "\n--- log ---\n" + log)
-
-        os.remove(os.path.join(gd, "sdlc-close-out", "deny-enabled"))
-        os.makedirs(os.path.join(gd, "sdlc-tdd"))
-        io.open(os.path.join(gd, "sdlc-tdd", "session"), "w", newline="\n").write(SID)
-        io.open(os.path.join(gd, "sdlc-tdd", "prod-write-observed"), "w").write("")
-        commit(BARE_BODY)
-        out, log = stop(payload())
-        check("wt_stop_reads_guard_evidence_from_worktree_gitdir",
-              "stop: WOULD-BLOCK (bare, log-only by design)" in log, log)
-
         idx = os.path.join(wt_r, "spec", "PROJECT_INDEX.md")
         os.makedirs(os.path.dirname(idx))
         io.open(idx, "w", newline="\n").write("a\nb\nc\n")
         g("-C", wt_r, "add", "spec/PROJECT_INDEX.md")
-        commit("docs: close\n")
+        g("-C", wt_r, "-c", "user.email=b@b", "-c", "user.name=b", "commit", "-q",
+          "-m", "docs: close")
         p = subprocess.run(["sh", script, "docs-check"], cwd=wt_r, capture_output=True)
         f = os.path.join(gd, "sdlc-close-out", "log")
         log = io.open(f, encoding="utf-8").read() if os.path.exists(f) else ""
         check("wt_docs_check_logs_to_worktree_gitdir",
-              p.returncode == 0 and "docs budget: OK - 3 lines added" in log, log)
-
-        _reopen_git(wt_r, "gitdir: %s\n" % os.path.join(base, "nowhere").replace(os.sep, "/"))
-        p = subprocess.run(["sh", script, "stop-check"], cwd=wt_r,
-                           input=payload().encode(), capture_output=True)
-        out = p.stdout.decode("utf-8", "replace")
-        check("wt_unresolvable_gitdir_blocks_saying_it_did_not_run",
-              '"decision":"block"' in out and "did not run" in out, out)
-        p = subprocess.run(["sh", script, "stop-check"], cwd=wt_r,
-                           input=payload(active=True).encode(), capture_output=True)
-        check("wt_unresolvable_gitdir_stands_down_when_active",
-              p.stdout.decode().strip() == "", p.stdout.decode())
-
-        # The launchers. A broken install - the config present, the script not - must
-        # reach someone: an exit code does not (measured: session log only); a stop
-        # block does. Both dialects' stop launchers carry the same branch.
-        broken = os.path.join(base, "broken")
-        os.makedirs(os.path.join(broken, ".git"))
-        hj = json.load(io.open(HOOK_JSON, encoding="utf-8"))
-        entries = [h for hs in hj["hooks"].values() for h in hs]
-        check("launcher_copilot_pins_cwd_and_no_dir_test",
-              all(h.get("cwd") == "." and "-d .git" not in h["bash"]
-                  and not any(c in h["bash"] for c in "\\$") for h in entries),
-              json.dumps(entries))
-        st = json.load(io.open(SETTINGS, encoding="utf-8"))
-        claude_cmd = [h["command"] for blk in st["hooks"]["Stop"] for h in blk["hooks"]
-                      if "sdlc-close-out.sh" in h["command"]]
-        check("launcher_claude_no_dir_test", len(claude_cmd) == 1
-              and "-d .git" not in claude_cmd[0], repr(claude_cmd))
-        for label, argv in (("copilot", ["sh", "-c", entries[0]["bash"]]),
-                            ("claude", ["sh", "-c", claude_cmd[0] if claude_cmd else "false"])):
-            p = subprocess.run(argv, cwd=broken, input=payload().encode(), capture_output=True)
-            out = p.stdout.decode("utf-8", "replace").strip()
-            try:
-                j = json.loads(out)
-            except ValueError:
-                j = {}
-            check("launcher_%s_missing_script_blocks" % label,
-                  j.get("decision") == "block" and "did not run" in (j.get("reason") or ""),
-                  out)
-            p = subprocess.run(argv, cwd=broken, input=payload(active=True).encode(),
-                               capture_output=True)
-            check("launcher_%s_missing_script_stands_down_when_active" % label,
-                  p.stdout.decode().strip() == "", p.stdout.decode())
-            # The other direction: at a root that HAS the script (the worktree above,
-            # its .git a file), the launcher must take the script branch - a typo in its
-            # -f path would otherwise block every stop, unseen by the shape check.
-            _reopen_git(wt_r, "gitdir: %s\n" % gd.replace(os.sep, "/"))
-            f = os.path.join(gd, "sdlc-close-out", "log")
-            n0 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
-            p = subprocess.run(argv, cwd=wt_r, input=payload().encode(), capture_output=True)
-            n1 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
-            check("launcher_%s_present_script_runs_it_no_block" % label,
-                  "did not run" not in p.stdout.decode("utf-8", "replace") and n1 > n0,
-                  p.stdout.decode("utf-8", "replace"))
-        # A moved cwd is not a missing script. Claude Code starts hooks in the session's
-        # cwd, which a shell `cd` moves and keeps moved (sdlc-kit#13); since 0.36.0 the
-        # launcher anchors itself at `git rev-parse --show-toplevel` first (85.7). From
-        # a subdirectory - its name carrying a space and a `$`, so a word-split or
-        # re-expanded path shows - of this linked worktree, it must run the script.
-        # Copilot pins "cwd": "." to the root.
-        sub = os.path.join(wt_r, "apps", "store $front")
-        os.makedirs(sub)
-        n0 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
-        p = subprocess.run(["sh", "-c", claude_cmd[0] if claude_cmd else "false"], cwd=sub,
-                           input=payload().encode(), capture_output=True)
-        n1 = io.open(f, encoding="utf-8").read().count("\n") if os.path.exists(f) else 0
-        check("launcher_claude_moved_cwd_starts_at_root",
-              "did not run" not in p.stdout.decode("utf-8", "replace") and n1 > n0,
-              p.stdout.decode("utf-8", "replace"))
-        # Where git cannot name the root (here: a .git file naming nothing), the anchor
-        # changes nothing, and the message names where it looked.
-        _reopen_git(wt_r, "gitdir: %s\n" % os.path.join(base, "nowhere").replace(os.sep, "/"))
-        p = subprocess.run(["sh", "-c", claude_cmd[0] if claude_cmd else "false"], cwd=sub,
-                           input=payload().encode(), capture_output=True)
-        out = p.stdout.decode("utf-8", "replace").strip()
-        try:
-            reason = json.loads(out).get("reason") or ""
-        except ValueError:
-            reason = ""
-        check("launcher_claude_moved_cwd_names_where_it_looked",
-              "not found from " in reason and "/apps/store $front." in reason
-              and "cd back to the root" in reason, out)
+              p.returncode == 0 and "docs budget: OK - 3 lines added" in log
+              and not os.path.exists(os.path.join(main_r, ".git", "sdlc-close-out")), log)
     finally:
         rmtree(base)
     return failures, 0.0
@@ -1117,7 +588,7 @@ def main():
 
     print("== unit pass (%d cases) ==" % len(CASES))
     failures, slowest = guarded("unit pass", ([], 0.0), unit_pass, src, verbose=True)
-    # The verdict reads the MEDIAN, as the stop pass's has since §77: this machine adds
+    # The verdict reads the MEDIAN, as the retired stop pass's did since §77: this machine adds
     # about one +5 s stall per suite run, landing on a random case, and a max over the
     # unit pass's ~26 samples catches it nearly every time. Ruled 2026-09-04 (§77.7) to
     # apply on this pass's first breach - which came at 0.32.0, 5340 ms slowest against
@@ -1134,7 +605,7 @@ def main():
 
     print("\n== docs pass (%d cases) ==" % len(DOCS_CASES))
     failures, slowest = guarded("docs pass", ([], 0.0), docs_pass, src, verbose=True)
-    # The MEDIAN, like the unit and stop passes (§77). This pass was the last to read
+    # The MEDIAN, like the unit pass (§77). This pass was the last to read
     # its max, and failed the 0.34.0 release run on exactly the §77 artifact: 5409 ms
     # slowest under concurrent suite load, against 412-424 ms slowest re-run idle three
     # times (FEATURE_PLAN.md 82.10). With 7 samples the median is the 4th, which one
@@ -1148,54 +619,7 @@ def main():
     if docs_pass.median >= 1.0:
         perf.append("median docs invocation %.2f s (budget 1.00 s)" % docs_pass.median)
 
-    print("\n== stop pass (%d cases) ==" % len(STOP_CASES))
-    failures, times = guarded("stop pass", ([], {}), stop_pass, src, verbose=True)
-    # Two budgets, both against the 30 s hook timeout: typical sessions hold a
-    # handful of unpushed commits (< 1.5 s), and the cap case's 20-candidate walk
-    # pays ~2 Windows-sh forks per candidate (measured ~3.5 s at cap on the dev
-    # machine - bounded by the cap, nowhere near the timeout's fail-open edge).
-    #
-    # The typical verdict reads the MEDIAN, not the slowest (FEATURE_PLAN.md 77,
-    # ruled 2026-09-04). It read the slowest for five releases and failed every run
-    # at a suspiciously stable ~6.3 s, blamed first on load and then on nothing.
-    # Bisected across v0.26.0..v0.31.0 in per-tag worktrees, the median does not
-    # move - 1129 ms then, 1132 ms now - and this machine adds about ONE +5 s
-    # stall per suite run, landing on a random case: the same case run 40 times in
-    # one process gave median 1132 / p90 1263 with exactly one sample at 6203 ms.
-    # A max over ~19 samples catches that stall nearly every time, which is why the
-    # number looked stable across releases and identical loaded vs idle. The
-    # slowest is still printed, because a real regression would move the median AND
-    # show up there - it is an observation, not a verdict.
-    #
-    # The cap walk keeps its max: it is ONE case, so its max IS its measurement.
-    # .pop with a default and guarded statistics: a crashed stop pass returns no
-    # timings, and a KeyError here would re-create the abort this guard prevents.
-    cap_t = times.pop("stop_candidate_cap_20", 0.0)
-    ordered = sorted(times.values())
-    typical = ordered[len(ordered) // 2] if ordered else 0.0
-    worst = ordered[-1] if ordered else 0.0
-    print("median stop invocation: %.0f ms (budget: 1500 ms; slowest of %d: %.0f ms,"
-          " observed not asserted - FEATURE_PLAN 77); cap-20 walk: %.0f ms (budget: 5000 ms)"
-          % (typical * 1000, len(ordered), worst * 1000, cap_t * 1000))
-    if failures:
-        for name, problems, out in failures:
-            print("\nFAILED %s: %s\n--- detail ---\n%s" % (name, "; ".join(problems), out))
-        sys.exit(1)
-    if typical >= 1.5:
-        perf.append("median stop invocation %.2f s (budget 1.50 s)" % typical)
-    if cap_t >= 5.0:
-        # Best-of-2 for this one case (§77.7): it is a single sample, so the one stall
-        # per run can land on it. A second walk that also breaches is a real breach.
-        _, again = guarded("cap-20 re-walk", ([], {}), stop_pass, src, verbose=False,
-                           only="stop_candidate_cap_20")
-        retry = again.get("stop_candidate_cap_20", cap_t)
-        print("cap-20 walk breached at %.0f ms; best-of-2 re-walk: %.0f ms"
-              % (cap_t * 1000, retry * 1000))
-        cap_t = min(cap_t, retry)
-    if cap_t >= 5.0:
-        perf.append("cap-20 stop walk %.2f s (budget 5.00 s)" % cap_t)
-
-    print("\n== worktree + launcher pass (FEATURE_PLAN.md 78) ==")
+    print("\n== worktree pass (FEATURE_PLAN.md 78) ==")
     failures, _ = guarded("worktree pass", ([], 0.0), wt_pass, src, verbose=True)
     if failures:
         for name, problems, out in failures:
@@ -1205,8 +629,9 @@ def main():
     # The mutation pass needs ONE failing case per mutation, and the mutations are
     # independent - every bench is its own temp repo. It used to run every case of
     # every pass in order, one mutation at a time: ~46 minutes of a ~48-minute run,
-    # nearly all of it after the verdict was settled (16 of the 35 mutations are
-    # caught only by the stop pass, and each paid a full unit + docs pass first). So
+    # nearly all of it after the verdict was settled (16 of its 35 mutations were
+    # caught only by the since-retired stop pass, each paying a full unit + docs pass
+    # first). So
     # each pass now stops at its first failing case, and the mutations run
     # concurrently. Nothing here is timed: the S2 budgets above were measured before
     # this pass started, on an otherwise idle suite. CLOSEOUT_JOBS=1 runs it serially.
@@ -1219,7 +644,6 @@ def main():
     def run_mutation(name, mutated):
         for where, fn, default in (("unit", unit_pass, ([], 0.0)),
                                    ("docs", docs_pass, ([], 0.0)),
-                                   ("stop", stop_pass, ([], {})),
                                    ("worktree", wt_pass, ([], 0.0))):
             kw = {} if fn is wt_pass else {"first_only": True}
             broke, _ = guarded("mutation (%s): %s" % (where, name), default, fn, mutated,
@@ -1257,10 +681,9 @@ def main():
         # cp1252 - an em dash or a section sign arrives as a replacement character,
         # which is the same encoding trap change-verify's own guidance names.
         print("  (the correctness results above are unaffected - these are timing"
-              " budgets. The unit, docs and stop budgets read the median, and the"
-              " cap walk gets a best-of-2, so a single OS stall no longer breaches"
-              " any of them; a breach here means the typical invocation really did"
-              " slow down: FEATURE_PLAN 71, 77, 82.10)")
+              " budgets. The unit and docs budgets read the median, so a single OS"
+              " stall no longer breaches either; a breach here means the typical"
+              " invocation really did slow down: FEATURE_PLAN 71, 77, 82.10)")
 
     if guarded.crashed:
         print("\nCRASHED passes: %s - those cases did not run"
@@ -1269,8 +692,8 @@ def main():
     if survivors or stale or perf or guarded.crashed:
         sys.exit(1)
 
-    print("\nall green: %d unit + %d docs + %d stop cases, %d mutations caught"
-          % (len(CASES), len(DOCS_CASES), len(STOP_CASES), len(MUTATIONS)))
+    print("\nall green: %d unit + %d docs cases + the worktree pass, %d mutations caught"
+          % (len(CASES), len(DOCS_CASES), len(MUTATIONS)))
 
 
 if __name__ == "__main__":

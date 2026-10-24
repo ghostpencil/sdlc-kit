@@ -27,8 +27,8 @@ never overwriting). Either way it leaves the project with:
   `end-phase`, `sdlc-retro`, `sdlc-update` — into `.claude/commands/` (Copilot CLI:
   `.github/skills/<name>/SKILL.md`). User-typed entry points.
 - **The skills** — four vendored (`tdd`, `mutation-testing`,
-  `python-pro`, `hypothesis-tests`) and three kit-written (`diff-review`,
-  `change-simplify`, `change-verify`) — into `.claude/skills/`, which both CLIs read.
+  `python-pro`, `hypothesis-tests`) and two kit-written (`diff-review`,
+  `change-verify`) — into `.claude/skills/`, which both CLIs read.
   Model-invocable; the daily commands name them by step. `python-pro` and
   `hypothesis-tests` install on Python projects only.
 - **The hook guards** — the edit-time gate hook (always offered), the TDD-ordering
@@ -138,9 +138,9 @@ edits through untouched, and the stop guard does not bind it (see *Session scopi
 
 1. **Sanity check** — something to commit, and not on the main branch.
 2. **The gate** — lint, typecheck, full suite, green against the recorded baseline.
-3. **Quality pass** — the `change-simplify` skill, optional and never silent: behavior
-   frozen, one move at a time with the gate between, before the review so the
-   reviewer reads what will actually be committed.
+3. **Close-out licence** — where the TDD guards are installed, one declaration covering
+   steps 4 to 6. (Until 0.38.0 this was also the quality pass, `change-simplify`,
+   retired when the reviewers kept catching first the duplication it had passed over.)
 4. **Slice code review** — the `diff-review` skill: Spec and Standards axes reported
    side by side, plus the consumer-of-changed-behavior and test-double lenses, plus
    any matching lens from `REVIEW_LENSES.md`. Read-only in the shared tree. Every
@@ -153,8 +153,8 @@ edits through untouched, and the stop guard does not bind it (see *Session scopi
 6. **Slice verification** — the `change-verify` skill, optional and never silent:
    exercise the changed behavior through its real caller's path, not the harness.
 7. **Commit** — the body carries the evidence: `RED:` lines per behavior, and the
-   `quality:`, `lenses:`, `mutation:`, `verify:` outcomes. All five keys are
-   fail-closed at the record check — `lenses:` since 0.27.0, because a lens verdict
+   `lenses:`, `mutation:`, `verify:` outcomes. All four keys are fail-closed at the
+   record check — `lenses:` since 0.27.0, because a lens verdict
    of `clean` had no durable home before it and so could not be told apart from a
    lens that never ran.
 8. **Record** — PROJECT_INDEX updated (slice done in one line, backlog appended, kit
@@ -218,8 +218,7 @@ recognizing the project's own test runs.
   either a test edit this session followed by an observed failing run (the fresh-red
   license, for new behavior), or a declared `.git/sdlc-tdd/refactor-license` plus an
   observed green this session (the refactor license, for behavior-preserving edits at
-  any point in the cycle — refactors, `change-simplify` moves, mutation-testing
-  edits). The declaration
+  any point in the cycle — refactors, review fixes, mutation-testing edits). The declaration
   is one line naming the step and move; every write under it is logged, a test edit
   revokes it, and it survives reds on purpose. **"Production source" means a file
   inside the repository** — an absolute path outside the root is neither licensed nor
@@ -259,9 +258,9 @@ which named skills actually ran instead of trusting that presence meant activati
 | Event | Guard | Matters most during |
 |---|---|---|
 | File edit (post) | Edit-time gate hook | `/next-slice` TDD loop; every fix batch |
-| File edit (pre, Copilot) | G1 write guard | TDD loop; `/end-slice` quality pass and fixes |
+| File edit (pre, Copilot) | G1 write guard | TDD loop; `/end-slice` review fixes and mutations |
 | Shell run (post, Copilot) | observe-test | Every test run: TDD loop, gate, mutation check |
-| Skill activation (post) | Ledger | TDD skill and the three change passes |
+| Skill activation (post) | Ledger | TDD skill and the two change passes |
 | Session stop (Copilot) | G2 stop guard | Coding sessions only — ends each slice on green |
 
 ## After the arc

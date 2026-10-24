@@ -1,8 +1,8 @@
 # Third-Party Notices
 
-**Not everything under `skills/` is third-party.** Three files are **kit-written and
-carry no upstream** — `skills/diff-review/SKILL.md`, `skills/change-simplify/SKILL.md`,
-and `skills/change-verify/SKILL.md` (all 2026-08-03). They are covered by this kit's own
+**Not everything under `skills/` is third-party.** Two files are **kit-written and
+carry no upstream** — `skills/diff-review/SKILL.md` and `skills/change-verify/SKILL.md`
+(both 2026-08-03). They are covered by this kit's own
 `LICENSE`, and nothing in this file applies to them. `diff-review` owes a design debt to
 `mattpocock/skills` that is recorded in `reference/SKILLS.md`; the text is not copied and
 the file is not a derivative, so the debt is real without being a licence obligation.

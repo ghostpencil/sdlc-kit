@@ -395,11 +395,10 @@ def claude_suite(parser, check):
           repr(post.get("Skill", {}).get("command")))
     every = [h["command"] for gs in tpl["hooks"].values() for g in gs for h in g["hooks"]]
     check("every Claude launcher starts with the root anchor, and none carries '||'",
-          len(every) == 7 and all(c.startswith(ANCHOR) and "||" not in c for c in every),
+          len(every) == 6 and all(c.startswith(ANCHOR) and "||" not in c for c in every),
           repr([c[:60] for c in every]))
-    check("stop backstop invokes the checker's stop-check without the pin",
-          any("sdlc-close-out.sh stop-check" in h["command"]
-              for g in tpl["hooks"]["Stop"] for h in g["hooks"]))
+    check("no launcher calls the close-out stop-check retired in 0.38.0",
+          not any("sdlc-close-out.sh" in c for c in every), repr(every))
     check("no hook anywhere carries a 'shell' key (pin measured dead 2026-08-15, "
           "Claude Code 2.1.231, Stop and PostToolUse)",
           '"shell"' not in json.dumps(tpl))

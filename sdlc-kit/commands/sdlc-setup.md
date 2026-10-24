@@ -53,13 +53,13 @@ existing file becomes a shown merge plan, not a silent clobber.
    directories are kit-owned in this project, so an unrecorded answer is one a later
    update has to guess at.
 3. **Verify skills** (see `reference/SKILLS.md`): none of the TDD skill, the reviewer,
-   or the two change passes is built into either CLI — all are in `sdlc-kit/skills/`
+   or the verification pass is built into either CLI — all are in `sdlc-kit/skills/`
    and installed in step 2a/2b below. HALT if any of `sdlc-kit/skills/tdd/SKILL.md`,
-   `sdlc-kit/skills/diff-review/SKILL.md`, `sdlc-kit/skills/change-simplify/SKILL.md`,
-   or `sdlc-kit/skills/change-verify/SKILL.md` is missing; `/end-slice` and
-   `/end-phase` name all four between them, so a missing copy is a process that cannot
-   close a slice or a phase. `change-simplify` counts even though its step is optional
-   — a step that may run needs the skill present in order to decide against it.
+   `sdlc-kit/skills/diff-review/SKILL.md`, or `sdlc-kit/skills/change-verify/SKILL.md`
+   is missing; `/end-slice` and `/end-phase` name all three between them, so a missing
+   copy is a process that cannot close a slice or a phase. `change-verify` counts even
+   though its slice step is optional — a step that may run needs the skill present in
+   order to decide against it.
    On Copilot the built-ins the kit leans on are absent, each with its own consequence:
    show the owner *What the kit loses on Copilot today* from `reference/COPILOT.md` —
    that table is the answer, not a count repeated here — and let them decide knowing
@@ -257,8 +257,8 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    the definition, and `reference/COPILOT.md` carries the evidence and the reasoning
    behind the Copilot column.
 
-   The seven kit commands are user-typed workflow entry points; the seven kit skills
-   (four vendored, three kit-written) are model-invocable capabilities. They install
+   The seven kit commands are user-typed workflow entry points; the six kit skills
+   (four vendored, two kit-written) are model-invocable capabilities. They install
    to different places for that reason:
 
    | | Claude Code | Copilot CLI |
@@ -284,12 +284,11 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      links into relatively), `mutation-testing/` (always — `/end-slice`'s mutation-check
      step invokes it, so it is not optional), `diff-review/` (always — `/end-slice`
      step 4 and `/end-phase` step 5 both name it, and it is the only reviewer that
-     exists on both CLIs), `change-simplify/` (always — `/end-slice` step 3 names it;
-     the step is optional, the skill is not, because a step that may run needs the
-     skill present to decide against), and `change-verify/` (always — `/end-slice`
-     step 6 and `/end-phase` step 2 name it); then `python-pro/` +
-     `hypothesis-tests/` (Python projects only — offer). Copy directories, not files:
-     the seven `SKILL.md` files share a basename and only their parent directory tells
+     exists on both CLIs), and `change-verify/` (always — `/end-slice` step 6 and
+     `/end-phase` step 2 name it; the slice step is optional, the skill is not, because
+     a step that may run needs the skill present to decide against); then
+     `python-pro/` + `hypothesis-tests/` (Python projects only — offer). Copy
+     directories, not files: the six `SKILL.md` files share a basename and only their parent directory tells
      them apart.
    - `reference/REVIEW_LENSES.md` → `.claude/commands/REVIEW_LENSES.md` (always) —
      `end-slice.md` §4 points at that installed path, so skipping this breaks the
@@ -542,13 +541,13 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
 
    **Install the close-out evidence checker — both CLIs, always, not an offer.**
    `close-out.template.sh` → `.github/hooks/sdlc-close-out.sh`, copied verbatim — it
-   takes no values (the record's five keys are fixed by the process); do not edit it.
+   takes no values (the record's four keys are fixed by the process); do not edit it.
    It is not a hook despite its address: `/end-slice`'s verify-the-record step runs
    it as a command step in the agent's shell, and it fails closed there on purpose.
    Prove it the way every other check is proven — by seeing it fail: run it against
    `HEAD` (`sh .github/hooks/sdlc-close-out.sh check` wherever `sh` resolves in the
    agent's shell — Claude Code's Bash tool does, measured 2026-08-10), and a pre-kit
-   commit carries no record, so the proof is INCOMPLETE naming all five keys,
+   commit carries no record, so the proof is INCOMPLETE naming all four keys,
    exit 1. Two branches, neither assumed: a repo whose `HEAD` **does** carry a
    record (a re-adoption from kit ≥ 0.15.0 — the partial-install case in the Notes)
    proves against a commit predating the record instead, because a COMPLETE is the
@@ -662,56 +661,6 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    guards run it in the hook shell, which can differ, and the guard log's `not cosmetic
    (…)` lines are where a missing toolchain shows. Do not install a toolchain for it.
 
-   **Then offer the checker's stop-time backstop — both CLIs, per dialect, and
-   optional where the checker itself is not.** The same script's `stop-check` mode,
-   wired as a stop hook: at session end it classifies the *unpushed* commits by the
-   record grammar and logs a would-block when one carries a **defective** record
-   (some evidence keys present, but one missing, empty, or duplicated) — the
-   `/end-slice` escape the command step cannot catch, a session that committed and
-   ended without verifying. A commit with **no** record keys at all is flagged only
-   when the TDD guards are installed and their state shows this session did
-   slice-loop work, and that class never blocks — it is log-only by design on
-   every install — so on a guard-less adoption say plainly: the
-   backstop catches defective records, not silently absent ones. The cost is one
-   more stop hook and a per-clone log. Default to offering, not to installing.
-   If accepted:
-   - Copilot CLI: `close-out-hook.template.json` → `.github/hooks/sdlc-close-out.json`,
-     copied verbatim — it takes no values; do not edit it.
-   - Claude Code: the `sdlc-close-out.sh stop-check` Stop block already in the
-     instantiated `.claude/settings.json` stays — the launcher-neutral
-     `sh -c "…"` form, **never a `"shell"` key** (measured 2026-08-15, Claude Code
-     2.1.231: a pinned hook silently never fires — *The hook environment* in
-     `reference/GATE_RECIPES.md`). **If the backstop is
-     declined, or the project runs no Claude Code, REMOVE that block** — the same
-     two-state handling as the guard and ledger blocks, recorded the same way.
-   - It installs in **logging mode** and stays there: never create
-     `.git/sdlc-close-out/deny-enabled` during setup — blocking is armed by the
-     owner after reading `.git/sdlc-close-out/log` across a few real sessions.
-   - Prove it by seeing it fire: in a scratch session of each installed CLI —
-     **launched the way this project's operator actually launches it**, since the
-     Copilot hook shell is per-launcher and the Claude dispatch layer has been
-     measured moving under an auto-updating CLI (the hook environment's dispatch
-     check exists because a wiring shape worked on one version and silently never
-     fired on the next) — end a
-     session in a repo whose `HEAD` is an unpushed commit missing a record key and
-     confirm the log holds `stop: WOULD-BLOCK - defective record` naming the
-     commit. A stop that inspected commits and found their records whole logs
-     `stop: clean (inspected N, …)`; a stop with **nothing in its window** logs
-     `stop: n/a (nothing to inspect: …)` — deliberately a different word, because
-     until 0.29.0 both said `clean` and a control with no reach was
-     indistinguishable in its own log from one that found nothing. No line at all →
-     the hook is not firing; re-check the hook environment before trusting it.
-   - Record the outcome in the same `{{CLOSE_OUT_CHECK_NOTE}}` line: installed
-     (which CLIs, logging mode, the flag file and log path, per-clone, **the
-     catch-proof actually seen — which CLI and launcher, the would-block line read
-     back naming the commit**, and **the reach note** *Records* requires: the proof
-     above constructs an unpushed commit missing a record key, while `/end-slice`
-     commits, checks and pushes in one step, so state plainly whether that state has
-     been seen to arise on its own — *"constructed for the proof"* is the honest
-     answer at setup and the one the next close can check) or declined
-     with the date — the note's comment in `SDLC.template.md` states both forms. A
-     recorded install whose proof was never run is the silent absence this checker
-     family exists to catch, one layer up.
 7. Offer to scaffold CI (a workflow running the same gate), triggered on pushes to the
    arc branches (`feat/**`, `chore/cleanup-**`, `fix/**`) as well as on pull requests,
    so an arc's CI runs without a draft PR opened to start it. Report coverage; do not
@@ -839,7 +788,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      from `README.template.md` with the interview's resolved values. An existing
      README is never rewritten by setup; a run-command disagreement stays the owner
      finding step 2 surfaced, not an edit.
-   - Commands, the seven kit skills (four vendored, three kit-written), and
+   - Commands, the six kit skills (four vendored, two kit-written), and
      `reference/REVIEW_LENSES.md` installed
      per New mode step 5 — the destinations depend on the confirmed target CLI; hook
      installed and verified per New mode step 6, merged with any existing hooks rather
@@ -886,10 +835,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `.github/hooks/sdlc-tdd-guard.sh` on Copilot, `.github/hooks/sdlc-tdd-guard.py`
    on Claude Code, both on a both-CLIs project (the gate's
    and the guard's `.json` launchers take no values, and neither do the
-   skill-ledger's — `sdlc-skill-ledger.json` and `sdlc-skill-ledger.sh` alike — the
-   backstop's (`sdlc-close-out.json`),
+   skill-ledger's — `sdlc-skill-ledger.json` and `sdlc-skill-ledger.sh` alike —
    `.github/hooks/sdlc-close-out.sh`, `.github/hooks/sdlc-impact.py`, or
-   `.github/hooks/sdlc-cosmetic.py` — all copied verbatim — so none of the eight is
+   `.github/hooks/sdlc-cosmetic.py` — all copied verbatim — so none of the seven is
    in scope). The scope is
    exactly the files setup instantiates — a blanket `.claude/` grep would
    trip on the installed copy of this command, which legitimately names placeholders,
@@ -903,7 +851,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    a `chore/adopt-sdlc` branch and a normal PR (the team should see this land like any
    change). Never commit without asking. **New mode: the close-out checker proof
    deferred from step 6 runs now, against the initial commit just made** — it carries
-   no slice record, so the checker must report INCOMPLETE naming all five keys,
+   no slice record, so the checker must report INCOMPLETE naming all four keys,
    exit 1; quote that output and finalize the `{{CLOSE_OUT_CHECK_NOTE}}` line in
    `spec/SDLC.md` from deferred to proven — the INCOMPLETE line as its catch, with the
    reach note — in this same commit (amend it). If the

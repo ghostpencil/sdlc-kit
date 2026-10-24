@@ -1,7 +1,7 @@
 # End Slice
 
-Close out the current slice: gate → quality pass → review → fix → mutation check →
-verification → commit → record check → record. Runs without asking except for
+Close out the current slice: gate → close-out licence → review → fix → mutation check
+→ verification → commit → record check → record. Runs without asking except for
 owner-facing design questions. Process reference: `spec/SDLC.md`.
 
 ## How to use
@@ -45,10 +45,9 @@ operator-performed, the policy names the moment to set it).
   voids the declaration — and so does any source file at all where `spec/SDLC.md` slice-loop
   step 4 does not yet carry the classifier clause: the project predates it, and its
   process file wins. If it is voided, it is not docs-only and every step runs as
-  written. If it holds, steps 3 and 5 are written as their stated skips without being
-  walked — `quality: skipped — docs-only slice; reuse: not searched — docs-only slice`
-  and `mutation: none — no new guards` — step 4's review runs as ever, and step 6 runs
-  in its docs form.
+  written. If it holds, step 3 is skipped and step 5 is written as its stated skip
+  without being walked — `mutation: none — no new guards` — step 4's review runs as
+  ever, and step 6 runs in its docs form.
 
 ### 2. Run the gate
 
@@ -65,74 +64,29 @@ never assume it is zero. And green here is green **in this session's shell** —
 local and CI disagree about a measurement, CI is authoritative and the disagreement is
 itself a finding (`spec/SDLC.md` states the rule).
 
-### 3. Quality pass — optional, and never silent
+### 3. Declare the close-out licence
 
-Run the `change-simplify` skill on the working diff: reuse, simplification, efficiency,
-and altitude, applied only where this slice introduced or worsened the condition. It is
-installed at `.claude/skills/change-simplify/` and is available on
-both CLIs.
+Where the TDD guards are installed, declare the close-out licence now, before step 4's
+first edit: write one line naming the step and move it to
+`.git/sdlc-tdd/close-out-license`, behind a counted green, exactly as a refactor licence
+is declared — in a linked worktree `.git` is a file, and the directory is
+`$(git rev-parse --git-dir)/sdlc-tdd/` instead (the guard's refusal names it too).
+**One declaration covers steps 4 through 6.** Their writes are review fixes, mutations
+and probes, all made after the gate has run. Use the close-out licence, not the refactor
+one, because a test edit revokes the refactor one, and close-out's own mandated order
+puts test edits between its production writes — step 4's review fixes tests, step 5's
+mutation restores them, and a refactor licence declared here is revoked by the method it
+was declared for. On a real arc that cost seven re-declarations in a single phase, three
+of them inside one slice, across three consecutive retros (field, 2026-09-01). Every
+test edit the close-out licence survives is counted in the guard log, so a licence left
+open past step 6 is visible in review; it ends with the session either way. A docs-only
+slice (step 1) and a project without the guards skip this step.
 
-It runs **here, before the review**, so the reviewer reads the code that will actually
-be committed — a quality pass run afterwards invalidates the review it follows.
-
-Three rules make it safe to run automatically:
-
-- **Behavior is frozen.** Every move is behavior-preserving. An improvement that would
-  change what the code does is a **finding**, not an edit — including one that would fix
-  something obviously wrong. A behavior change smuggled in under a refactor is invisible
-  to step 4, because a reviewer reads a refactor as behavior-preserving by definition.
-- **One move at a time, gate between.** Not a batch then the gate. A batch that goes red
-  says only that the batch broke something; one at a time makes every failure
-  self-locating. **The gate between moves may be trimmed; the gate at the end may
-  not:** between moves, lint, the typecheck, and the tests covering the axis the move
-  touched are enough to locate a break; after the last move the gate runs in full,
-  once, and the `quality:` line below records which form ran between moves — an
-  unstated trim is a gap.
-- **Read-only about the tree's shape**, exactly as the review is: no `git checkout`,
-  `git restore`, or `git stash`. The code being improved is uncommitted, so there is no
-  restore point behind it.
-
-**Skipping it is legitimate; skipping it silently is not.** On a small or mechanical
-slice there may be nothing to do — say that in the hand-back (step 10), along with what
-was applied if it ran. A pass whose outcome nobody stated is one nobody can weigh.
-Either way the one-line outcome also goes into the slice commit body (step 7) — so the
-record outlives the session:
-
-```
-quality: <N moves applied (between moves: full | trimmed) | nothing to do |
-         skipped — reason>; reuse: <what was searched, and against what | not
-         searched — reason>
-```
-
-**The `reuse:` half is not decoration, and it is here because the record line without it
-was measured.** The skill's own contract requires per-axis verdicts and, for Reuse, a
-line naming *what was searched and against what* — because *"an unsearched 'no
-duplication' is not a verdict, it is a guess with the same spelling."* On a real arc the
-skill was dispatched in **every one of five slice sessions** and the durable record still
-carried **zero** named searches, because this line asked only for a move count: the half
-the command restated survived into the commit bodies and the half only the skill carried
-did not (field, 2026-09-01). Dispatching the skill is therefore *not* what preserves its
-contract — the record line is. A move that names the duplicate but not the search does
-not satisfy this; naming the search is what distinguishes a pass that looked from one
-that glanced.
-
-**This is the first close-out step that writes production code, so it is where the
-licence is declared — and it is the close-out licence, not the refactor one.** Where the
-TDD guards are installed, before the first edit here: write one line naming the step and
-move it to `.git/sdlc-tdd/close-out-license`, behind a counted green, exactly as a
-refactor licence is declared — in a linked worktree `.git` is a file, and the directory
-is `$(git rev-parse --git-dir)/sdlc-tdd/` instead (the guard's refusal names it too).
-**One declaration covers steps 3 through 6.** Use the
-close-out licence because a test edit revokes the refactor one, and close-out's own
-mandated order puts test edits between its production writes — step 4's review fixes
-tests, step 5's mutation restores them, and a refactor licence declared here is revoked
-by the method it was declared for. On a real arc that cost seven re-declarations in a
-single phase, three of them inside one slice, across three consecutive retros (field,
-2026-09-01). Every test edit the close-out licence survives is counted in the guard log,
-so a licence left open past step 6 is visible in review; it ends with the session either
-way. Declaring it is not a formality here — this step edits production code after the
-gate has run, so the write is behavior-preserving by construction and the licence is its
-precondition.
+Until 0.38.0 this step was also the quality pass (`change-simplify`). That pass was
+retired when its final clock failed: on two field arcs, reuse misses it had passed over
+were first caught by step 4's review or by the whole-arc review. Duplication is now step
+4's to find. The number stays so that every step reference in the kit and in adopted
+projects holds.
 
 ### 4. Slice code review
 
@@ -295,9 +249,10 @@ each other until an arc ran into it, so do not read the block as a sign the lint
 config is wrong.
 
 **The close-out licence declared at step 3 covers this step — and this is the step that
-most needs it.** Where the TDD guards are installed and step 3 was skipped (so nothing
-was declared), declare `.git/sdlc-tdd/close-out-license` here before the first mutation
-(in a linked worktree, under `$(git rev-parse --git-dir)/sdlc-tdd/`, as step 3 says).
+most needs it.** Where the TDD guards are installed and none is in force (a slice first
+judged docs-only, or a session restarted mid-close-out), declare
+`.git/sdlc-tdd/close-out-license` here before the first mutation (in a linked worktree,
+under `$(git rev-parse --git-dir)/sdlc-tdd/`, as step 3 says).
 Do not fall back to the refactor licence: this step's own prescribed *restore* touches
 test files between its production writes, so a refactor licence declared here is revoked
 by the method it was declared for — which is what cost one arc three re-declarations
@@ -368,7 +323,7 @@ fix commits later. The skill is installed at
 `.claude/skills/change-verify/` and is available on both CLIs; its own report contract
 applies (a transcript block per run — a pass not observed is not a pass).
 
-Same contract as step 3: **skipping is legitimate; skipping silently is not.** On a
+**Skipping is legitimate; skipping silently is not.** On a
 small or mechanical slice — config, a change the gate fully pins — state the skip and
 its reason in the hand-back (step 10).
 
@@ -410,7 +365,7 @@ the gate, and any new guard joins step 5's mutation obligation.
 
 Where this step writes a harness or a probe into the repository, it is production source
 to the guards and is covered by the close-out licence step 3 declares — which is what the
-one declaration spanning steps 3 through 6 is scoped for.
+one declaration spanning steps 4 through 6 is scoped for.
 
 ### 7. Commit the slice
 
@@ -428,9 +383,6 @@ git commit -m "$(cat <<'EOF'
 <what and why, briefly>
 
 RED: <test command> — <the failing line> — exit <code>   (one per behavior batch)
-quality: <N moves applied (between moves: full | trimmed) | nothing to do |
-         skipped — reason>; reuse: <what was searched, and against what | not
-         searched — reason>
 lenses: <lens: finding | lens: clean, …  | no lens triggered>
 mutation: <N guards, each seen to fail | none — no new guards>
 verify: <ran — verdict per behavior, naming the shell; not exercised: <what, why |
@@ -466,18 +418,18 @@ CHECK.
 
 The checker verifies **structural presence only**: every evidence line of step 7's
 record present, or carrying its stated-skip form — one line per key for
-`quality:`/`lenses:`/`mutation:`/`verify:` (a duplicate fails: nobody knows which
+`lenses:`/`mutation:`/`verify:` (a duplicate fails: nobody knows which
 line is the record), each key at the start of its line — with silent absence failing
 loudly. It never verifies truth — its own output says so — and COMPLETE is not
 evidence the work behind a line happened; the steps that produced the lines remain
 the record of that.
 
-**COMPLETE therefore does not mean the two sub-keys are there.** The checker asserts
-presence of the five keys and nothing inside them, so a `verify: ran` line missing
-`not exercised:` and a `quality:` line missing `reuse:` both pass it. Read those two
-lines yourself before accepting COMPLETE — they are the halves a real arc lost while
-every key was present and the record read as complete (field, 2026-09-01), which is
-precisely the class a structural check cannot see.
+**COMPLETE therefore does not mean the sub-key is there.** The checker asserts
+presence of the four keys and nothing inside them, so a `verify: ran` line missing
+`not exercised:` passes it. Read that line yourself before accepting COMPLETE — it is
+the half a real arc lost while every key was present and the record read as complete
+(field, 2026-09-01), which is precisely the class a structural check cannot see. A
+`quality:` line from before 0.38.0 is ignored by the checker.
 
 - **INCOMPLETE** — `git commit --amend` the slice commit with the real outcome, or
   with the stated-skip form if the step was skipped. Never with invented evidence:
@@ -588,12 +540,10 @@ Report per the hand-back standard (`spec/SDLC.md`, *Owner halt points*). Open wi
 plain-English executive summary in bullets: what the slice now does, gate green (test
 count), and what is next — with any decision the owner still owes **numbered and
 explicitly marked** (usually there is none; an open design question is the exception).
-Then the detail, after the summary and never mixed into it: quality-pass outcome (N
-moves applied / N dropped, or **skipped** with the reason — never omitted), review
-outcome (N fixed / N deferred / N discarded as unverified, naming those),
+Then the detail, after the summary and never mixed into it: review outcome (N fixed / N deferred / N discarded as unverified, naming those),
 mutation-check outcome (N guards checked, each seen to fail), **RED evidence per
 behavior batch** (the command, the failing line, the exit code — with `not observed`
-stated, never omitted, same contract as the quality pass), **verification outcome**
+stated, never omitted), **verification outcome**
 (the verdicts, or skipped with the reason), **the record check's quoted output**
 (step 8 — COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line**
 (step 9 — quoted, and an `OVER` answered rather than merely reported), **the final

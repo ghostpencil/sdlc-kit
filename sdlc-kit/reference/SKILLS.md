@@ -6,8 +6,8 @@ which is which matters — only one of them travels with a `git clone`:
 1. **Built into Claude Code** — ship with the tool itself; nothing to install, just
    keep Claude Code current (`claude update`).
 2. **Shipped in this kit** (`sdlc-kit/skills/`) — the TDD skill set, vendored from
-   public repos, plus the kit-written `diff-review`, `change-simplify`, and
-   `change-verify`. **Not** part of either CLI.
+   public repos, plus the kit-written `diff-review` and `change-verify`. **Not** part
+   of either CLI.
    `/sdlc-setup` copies these into the target project's `.claude/skills/`, so once
    committed, every teammate gets them via `git clone` — no per-machine step. That
    directory is read by Claude Code *and* Copilot CLI, so one copy serves both
@@ -48,18 +48,17 @@ fields and let `/sdlc-update` re-verify the file against its manifest.
 |---|---|---|
 | `tdd` (+ `tdd-references/`) | **kit-vendored** → project `.claude/skills/tdd/` | The red–green–refactor loop for every slice; the vertical-slicing mandate and mock policy it enforces. `/next-slice` invokes it after reading `spec/TESTING.md`. **Setup must install this and halt if the copy fails.** |
 | `diff-review` | **kit-written** → project `.claude/skills/diff-review/` | The reviewer both `/end-slice` (step 4, working diff) and `/end-phase` (step 5, arc range) name. Two axes reported side by side and never merged: **Spec** — does the change implement the slice's or phase's exit criteria, and only those — and **Standards** — does it follow `CLAUDE.md` *Runtime Conventions*, falling back to a structural-smell baseline. Names no CLI-specific agent or model, so it works on both CLIs. The built-in `/code-review` is the owner-typed, billed escalation — agents cannot launch it, and it is not what any command means by "review". |
-| `change-simplify` | **kit-written** → project `.claude/skills/change-simplify/` | The post-green quality pass `/end-slice` step 3 names — reuse, simplification, efficiency, altitude, applied only where the slice introduced or worsened the condition. **The step is optional; the skill is not**, because a step that may run needs the skill present to decide against. Unlike `diff-review` it **edits**, so its prime directive is that behavior is frozen: an improvement that would change behavior is a finding, not an edit. |
-| `change-verify` | **kit-written** → project `.claude/skills/change-verify/` | The verification pass named at **both** closes: `/end-slice` step 6 (slice close — optional but never silent, same contract as the quality pass; on a docs-only slice it runs its narrower docs form instead, which is not optional) and `/end-phase` step 2 (phase level, on the arc). Exercises the change through the path a real caller takes rather than through the test harness — the gap a green gate structurally cannot cover. Its rule is that **a pass not observed is not a pass**: anything it could not exercise is reported unverified, so halt 4 is not spent on a check that never ran. |
+| `change-verify` | **kit-written** → project `.claude/skills/change-verify/` | The verification pass named at **both** closes: `/end-slice` step 6 (slice close — optional but never silent; on a docs-only slice it runs its narrower docs form instead, which is not optional) and `/end-phase` step 2 (phase level, on the arc). Exercises the change through the path a real caller takes rather than through the test harness — the gap a green gate structurally cannot cover. Its rule is that **a pass not observed is not a pass**: anything it could not exercise is reported unverified, so halt 4 is not spent on a check that never ran. |
 | kit commands | this kit | `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`, `end-phase`, `sdlc-retro`, `sdlc-update` → copied into `<project>/.claude/commands/`, or packaged into `<project>/.github/skills/<name>/SKILL.md` on Copilot CLI; either way they travel with the repo. `sdlc-setup` is installed by hand — it cannot install its own entry point. The install list in `commands/sdlc-setup.md` (New mode step 5) is the source of truth for this set. |
 
 ## Shipped in `sdlc-kit/skills/` — what gets installed when
 
-Four are vendored from upstreams; `diff-review/`, `change-simplify/`, and
-`change-verify/` are kit-written. The install mechanics are identical, but the
-*provenance regime* is not — see the note below the table.
+Four are vendored from upstreams; `diff-review/` and `change-verify/` are
+kit-written (a third, `change-simplify/`, was retired in 0.38.0). The install mechanics
+are identical, but the *provenance regime* is not — see the note below the table.
 
 Each is a skill directory holding a `SKILL.md`, copied whole into
-`.claude/skills/<name>/`. The seven `SKILL.md` files share a basename — only the parent
+`.claude/skills/<name>/`. The six `SKILL.md` files share a basename — only the parent
 directory tells them apart, so they are copied as directories, never as files.
 
 | Directory | Install when | What it is |
@@ -67,7 +66,6 @@ directory tells them apart, so they are copied as directories, never as files.
 | `tdd/` (`SKILL.md` + `tdd-references/{tests,mocking}.md`) | **always** | Core TDD skill: tracer-bullet vertical slicing, behavior-over-implementation testing, mock policy. `SKILL.md` links into `tdd-references/` relatively, so the subfolder travels with it. |
 | `mutation-testing/` | **always** | Test-suite strength assessment by injecting deliberate bugs. Installs with the core set since 0.5.0. **It is reference depth, not a dispatched step:** `/end-slice` §5 names it for a pass that gets difficult, but the rules that bite — safe restore, one mutation at a time, a stated 3–8 sample — are stated in the command itself as of 0.27.0, because two field arcs measured **zero** activations against roughly a hundred mutations actually run. Do not restore the "the step invokes it" wording; the ledger disagrees with it. **Its clean-tree pre-flight does not apply at §5:** the slice under test is uncommitted by design, so a clean tree is unreachable there and stashing the slice to reach one is exactly what §5's restore rules forbid. Where the kit invokes it, the command's check-before-restore rule replaces that pre-flight; the vendored text is left unedited. |
 | `diff-review/` | **always** | The two-axis reviewer (Spec + Standards) named by `/end-slice` step 4 and `/end-phase` step 5. Required since 0.14.0 — without it both commands name a reviewer that does not exist. **Kit-written, not vendored:** see the provenance note below. |
-| `change-simplify/` | **always** | The post-green quality pass named by `/end-slice` step 3. Required since 0.14.0 even though the step is optional — the decision to skip it is only available if the skill is there to skip. **Kit-written, not vendored.** |
 | `change-verify/` | **always** | The verification pass named by `/end-slice` step 6 (since 0.15.0) and `/end-phase` step 2. Required since 0.14.0 — without it the commands name a pass that does not exist. **Kit-written, not vendored.** |
 | `python-pro/` | Python projects only | Typed, strict-mypy Python idioms (attribution: github.com/Jeffallan). **The kit's rules win where it disagrees:** its own workflow runs `mypy --strict`, `black` and `ruff`, but the project's gate, recorded in `spec/SDLC.md`, is the only toolchain a session runs, and the `tdd` skill's one-failing-test-first order governs test writing. Read it for idiom, not procedure. |
 | `hypothesis-tests/` | Python projects only | Property-based test authoring with Hypothesis. |
@@ -88,9 +86,9 @@ directory tells them apart, so they are copied as directories, never as files.
   upstream carrying no `license:` frontmatter to vendor from, so the idea was taken and
   the plumbing was not. Recorded here because the debt is real even though the licence
   obligation is not.
-- `change-simplify/SKILL.md`, `change-verify/SKILL.md` — **kit-written, 2026-08-03. No
-  upstream, nothing vendored.** Each carries a pass Claude Code ships as a built-in
-  (`simplify`, `verify`) and Copilot CLI has no equivalent for, so the kit writes its
+- `change-verify/SKILL.md` — **kit-written, 2026-08-03. No upstream, nothing
+  vendored.** It carries a pass Claude Code ships as a built-in (`verify`) and Copilot
+  CLI has no equivalent for, so the kit writes its
   own and the process can name the pass without knowing which CLI is running. **The
   built-ins were not read, copied, or derived from** — what was portable was the idea of
   the pass, which is not anyone's to license. The names deliberately differ from the
@@ -140,7 +138,6 @@ do not have.
 | Pass | When | Claude Code | Copilot CLI |
 |---|---|---|---|
 | exercise a change end-to-end | before committing nontrivial changes | `verify` (built-in) **or** the kit's `change-verify` | `change-verify` (kit-shipped) |
-| post-green quality pass | on the slice diff, before review | `simplify` (built-in) **or** the kit's `change-simplify` | `change-simplify` (kit-shipped) |
 | secure-coding review | phases touching auth, secrets, user input, or the network | `security-review` (built-in) **or** the lenses | the secure-coding lenses in `.claude/commands/REVIEW_LENSES.md` |
 | edit hook/permission config safely | changing the gate hook or permissions | `update-config` (built-in) | **not needed** — Copilot's config is plain JSON any editor can open |
 
@@ -152,13 +149,14 @@ Two rules for reading that table:
 - **A missing built-in is an outdated install, not a gap to fill.** If a built-in named
   here is absent from the Claude Code skill listing, run `claude update`; do not
   recreate it by hand. The kit's own equivalents are deliberately named differently
-  (`change-verify`, `change-simplify`) so that installing them shadows nothing.
+  (`change-verify`) so that installing them shadows nothing.
 
-Rows one and two used to read "none" on the Copilot side. `change-verify` and
-`change-simplify` closed them in 0.14.0, and both are now named by the process rather
-than merely recommended — `change-verify` at `/end-slice` step 6 and `/end-phase`
-step 2, `change-simplify` at `/end-slice` step 3. Row three was closed by the review
-lenses in 0.13.0.
+Row one used to read "none" on the Copilot side. `change-verify` closed it in 0.14.0,
+and it is named by the process rather than merely recommended — at `/end-slice` step 6
+and `/end-phase` step 2. Row two was closed by the review lenses in 0.13.0. A third row,
+the post-green quality pass (`simplify` / the kit's `change-simplify`), left the table in
+0.38.0 when the process stopped naming the pass: its final clock failed, because the
+reviewers kept catching first the duplication it had passed over.
 
 **The review apparatus left this list entirely.** Until 0.14.0 the per-slice and
 whole-arc reviews named `pr-review-toolkit`, which does not exist on Copilot, so an
@@ -186,7 +184,7 @@ anything a teammate needs must be in the repo, not on your machine.
    Code, and a repo may hold both (`.github/hooks/sdlc-close-out.sh` alone signals
    neither — it installs on both CLIs from 0.20.0). On Claude Code, run `claude update` to current.
 2. Clone the project repo — the kit commands, the TDD skill set, `diff-review`,
-   `change-simplify`, `change-verify`, the hook, and the specs all come with it (they
+   `change-verify`, the hook, and the specs all come with it (they
    were installed project-scoped by `/sdlc-setup`). **Nothing per-machine is required
    for review** — which was not the case before 0.14.0.
 3. Optional, Claude Code only:
@@ -195,8 +193,8 @@ anything a teammate needs must be in the repo, not on your machine.
 4. Install the project toolchain so **the gate runs locally** (right language version —
    a wrong local runtime makes the local gate lie; CI is authoritative when they differ).
 5. Open the CLI in the repo, type `/` and confirm `tdd`, `diff-review`,
-   `change-simplify`, `change-verify`, and the seven SDLC commands appear, then run
-   `/next-slice` and confirm it orients correctly. The three kit-written skills are the
+   `change-verify`, and the seven SDLC commands appear, then run `/next-slice` and
+   confirm it orients correctly. The two kit-written skills are the
    ones worth catching early — the commands name them, so a session otherwise finds out
    at slice or phase close rather than at setup. Nothing appearing
    is an install-path problem, not a missing skill — check where they landed against

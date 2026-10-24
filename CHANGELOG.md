@@ -8,11 +8,51 @@ An entry marked **[installable]** changes a file an adopted project holds
 (`commands/**`, `skills/**`, `reference/REVIEW_LENSES.md`, and the templates copied
 verbatim — `close-out.template.sh`, `sdlc-impact.template.py`,
 `sdlc-cosmetic.template.py` on both CLIs; `explore.agent.template.md` on Copilot;
-`close-out-hook.template.json` where the backstop was accepted) and therefore matters
-at update time. Entries marked **[adoption-only]** change the other templates or the
+`close-out-hook.template.json` where the backstop was accepted, until 0.38.0 retired it)
+and therefore matters at update time. Entries marked **[adoption-only]** change the other templates or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
+
+## 0.38.0 — unreleased
+
+Three controls retired on their own pre-registered clocks (`FEATURE_PLAN.md` §87, the
+first reading of four field arcs across two adopters; rulings §87.6–§87.7, built as
+§88). Each was given two field arcs to show a catch. None did, and two failed by their
+stated failure condition.
+
+### Removed
+- **[installable]** **`change-simplify`, the post-green quality pass.** Its final clock's
+  failure condition fired in two arcs: a duplication the pass had searched past was first
+  caught by `diff-review` or the whole-arc review (TFit Phase 12 S4; chainmail Phase 01
+  S6 and S3). `skills/change-simplify/` is gone. `/end-slice` step 3 keeps its number
+  and is now only the close-out licence declaration. The record drops `quality:` and
+  becomes four keys. The checker ignores a `quality:` line, so older commits still read
+  COMPLETE.
+- **[installable]** **The close-out stop-time backstop (`stop-check`).** In five field
+  arcs it flagged no slice commit missing its record, logged five false candidates, and
+  usually found nothing to inspect, because adopters push every slice as soon as it is
+  committed. `close-out-hook.template.json` and the Claude `Stop` block are gone, and
+  setup no longer offers it. The mode stays as a silent `exit 0`, so a launcher an older
+  install left behind cannot block a stop.
+- **[installable]** **The `secrets and exposure` review lens.** Fifteen applications
+  across two clock arcs, no catch. Its linter rules stay in `GATE_RECIPES.md`'s
+  lens↔rule map. `CLAUDE.template.md`'s *Runtime Conventions* enforcement line is
+  re-pointed **[adoption-only]**.
+
+### Changed
+- **[installable]** `/sdlc-update` carries the 0.38.0 note. It covers the two removals
+  through its removal clause (the fourth instance), the Claude `Stop` block to remove by
+  hand, the `spec/SDLC.md` fold that must happen in the same update, and the `CLAUDE.md`
+  re-point. Its every-update hook-record check now reads two offers, not three.
+- **[adoption-only]** `SDLC.template.md` slice-loop step 6 is the close-out licence step.
+  The docs-only skip, the commit record and the record check drop `quality:`. The
+  close-out note no longer records a backstop.
+- Proof suites: `tools/close-out-check.py` loses its stop pass. It gains cases pinning
+  that a pre-0.38.0 `quality:` line is ignored (single, doubled and empty), and that the
+  retired mode stays silent; 17 mutations, all caught. The behavioral root-anchor case
+  for Claude launchers moves to `tools/skill-ledger-check.py`. It was seen to fail,
+  exit 127, with the anchor removed.
 
 ## 0.37.1 — 2026-10-23
 

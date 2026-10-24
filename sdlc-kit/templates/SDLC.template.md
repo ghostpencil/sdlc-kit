@@ -334,24 +334,7 @@ lint error, naming the file), and the **reach note** the rule above requires:
      recorded for it. That mode is log-only on every install, exits 0 even on its
      own errors, and is read at slice step 12; it is not part of what the note
      proves, because a mode that cannot fail a step cannot lie about one.
-     THE SAME NOTE also records the stop-time backstop's state — the same script's
-     `stop-check` mode wired at agentStop (Copilot, `.github/hooks/sdlc-close-out.json`)
-     / Stop (Claude Code, the settings-file block), offered separately and OPTIONAL
-     where the checker itself is not. Installed: which CLIs, the catch-proof
-     actually seen (which CLI and launcher, the would-block line read back NAMING
-     THE COMMIT — a recorded install whose proof never ran is the silent absence
-     this family catches, one layer up), THE REACH NOTE the rule above requires
-     (the proof constructs an unpushed commit missing a key, while /end-slice
-     commits, checks and pushes in one step — so say whether that state has been
-     seen to arise on its own), logging or armed
-     (the flag file `.git/sdlc-close-out/deny-enabled`, present means armed — arming
-     or disarming means updating this line, because nothing else will), and that the log lives at
-     `.git/sdlc-close-out/log`, per-clone like everything under `.git/` — and
-     per-worktree, as the guard note says. Declined:
-     say so WITH THE DATE — never delete the line; /sdlc-update reads it exactly as
-     it reads the guard note's decline. Unlike the command step above, the backstop
-     fails OPEN (a hook that errors must not block work), and its bare-commit class
-     is log-only by design regardless of the flag. -->
+     -->
 
 
 
@@ -809,9 +792,8 @@ Run `/next-slice` in a **fresh session**:
    production source beyond comments and layout and no test file, say so in one line
    citing the ratified approach, and skip `spec/TESTING.md`, the TDD skill, and the loop:
    the record is the zero-form `RED: none — no behavior batches this slice`, and
-   `/end-slice` writes steps 6 and 8 as their stated skips directly (`quality: skipped —
-   docs-only slice; reuse: not searched — docs-only slice`, `mutation: none — no new
-   guards`) rather than walking them to find nothing. Step 9 still runs, in its docs
+   `/end-slice` skips step 6 and writes step 8 as its stated skip directly (`mutation:
+   none — no new guards`) rather than walking it to find nothing. Step 9 still runs, in its docs
    form. **A comment- or layout-only source edit stays docs-only only on the cosmetic
    classifier's word at close-out** (`.github/hooks/sdlc-cosmetic.py`), never on the
    planner's. **A docstring is not a comment**: a string literal the parser keeps, as
@@ -841,30 +823,14 @@ daily loop, not a sixth halt.
 Run `/end-slice` when the slice's exit criteria are met:
 
 5. Run the gate.
-6. Quality pass, **optional** (the `change-simplify` skill on the working diff — reuse,
-   simplification, efficiency, altitude, applied only where this slice introduced or
-   worsened the condition). It runs here and not later because the reviewer should read
-   the code that will actually be committed. **Behavior is frozen**: every move is
-   behavior-preserving, one move at a time with the gate between, and an improvement
-   that would change behavior is a finding rather than an edit. The gate between moves
-   may be trimmed to lint, the typecheck and the tests covering the axis the move
-   touched; the gate is then run in full, once, after the last move, and the `quality:`
-   line records which form ran between moves. It requires a green
-   gate — a quality pass over red code cannot tell an improvement from a fix. It is
-   **read-only about the tree's shape** exactly as the review is — no `git
-   checkout/restore/stash` — because the code it improves is uncommitted and has no
-   restore point behind it. Skipping
-   it is a legitimate choice on a small or mechanical slice; skipping it silently is
-   not, so say so in the hand-back either way — and the one-line outcome
-   (`quality: <N moves applied (between moves: full | trimmed) | nothing to do | skipped
-   — reason>; reuse: <what was
-   searched, and against what | not searched — reason>`) is recorded in the slice
-   commit body. **The `reuse:` half is required**, because the skill's rule that Reuse
-   is *searched, not eyeballed* has no other durable home: one arc dispatched the skill
-   in every one of five slice sessions and recorded zero named searches, since the line
-   asked only for a move count. This is also the first close-out step that writes
-   production code, so where the TDD guards are installed it is where the **close-out
-   licence** is declared — one declaration covering steps 6 through 9.
+6. Close-out licence, where the TDD guards are installed: declared once, before step
+   7's first edit, and covering steps 7 through 9 — their review fixes, mutations and
+   probes are all production writes made after the gate has run. It is the close-out
+   licence rather than the refactor one because close-out's own order puts test edits
+   between those writes, and a test edit revokes a refactor licence. A docs-only slice
+   skips this step. (Until 0.38.0 this step was also the quality pass, `change-simplify`;
+   it was retired after its final clock failed, and duplication is step 7's review's to
+   find. The number stays so every step reference holds.)
 7. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
    reported side by side, never merged; plus the matching
    lens from `.claude/commands/REVIEW_LENSES.md` when the slice changed error
@@ -972,7 +938,7 @@ Run `/end-slice` when the slice's exit criteria are met:
     record (one per behavior batch — command, failing line, exit code, with
     `not observed — <reason>` stated rather than omitted, and a slice with no
     behavior batches writing the zero-form `RED: none — no behavior batches this
-    slice`), the `quality:`, `mutation:`, and `verify:` lines from steps 6, 8, and 9,
+    slice`), the `mutation:` and `verify:` lines from steps 8 and 9,
     and the `lenses:` line from step 7's review.
 11. Verify the record: run the close-out checker on the commit just made — **in the
     agent's shell tool**, the same scope as steps 5–9, using the invocation line the
@@ -980,8 +946,8 @@ Run `/end-slice` when the slice's exit criteria are met:
     running this session** (on a both-CLIs project the note carries one line each) — and
     quote its output in full — a pass not observed is not a pass. The
     checker verifies **structural presence only** — every evidence line there or
-    carrying its stated-skip form, one line per key for `quality:`/`lenses:`/
-    `mutation:`/`verify:` (a duplicate fails — nobody knows which line is the
+    carrying its stated-skip form, one line per key for `lenses:`/`mutation:`/
+    `verify:` (a duplicate fails — nobody knows which line is the
     record), each key at the start of its line — never truth; its own output says so. On
     INCOMPLETE, `git commit --amend` with the real outcome or the stated-skip form —
     never with invented evidence — and re-run; on CANNOT CHECK, fix what it names

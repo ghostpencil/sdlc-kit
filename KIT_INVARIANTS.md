@@ -168,8 +168,8 @@ six vendored files (across four vendored directories — `tdd/` and its two
 `tdd-references/` files count per file, which is the point: the specimen below is one
 of them) are third-party MIT content: each either matches the upstream
 verification recorded in `reference/SKILLS.md`, or its divergence is documented there,
-and `THIRD_PARTY_NOTICES.md` carries the attributions. The three kit-written files
-(`diff-review`, `change-simplify`, `change-verify`, all 2026-08-03) have **no upstream to
+and `THIRD_PARTY_NOTICES.md` carries the attributions. The two kit-written files
+(`diff-review`, `change-verify`, both 2026-08-03) have **no upstream to
 verify against** — for them the invariant is the opposite one: they must not be described
 as vendored, and `THIRD_PARTY_NOTICES.md` must say the notices do not apply to them.
 Attributing kit-written work to a third party is as much a provenance defect as the
@@ -197,15 +197,14 @@ hook-environment probe and its dispatch check (the pinned-vs-unpinned probe pair
 CLI version recorded — added 0.24.0 after a wiring shape was measured silently never
 firing), the TDD-ordering guards' proof step and their logging-to-deny
 ramp, the skill-activation ledger's proof step, the close-out evidence checker and its
-setup proof step (five keys as of 0.27.0: `lenses:` joined RED/quality/mutation/verify
-fail-closed, because a lens verdict of `clean` or `no lens triggered` previously had no
-durable home — the review hand-back is not retained and only a lens *finding* travelled
-onward, so two field arcs could not distinguish a lens that ran clean from one that
-never triggered), the checker's stop-time backstop with its
-catch-proof, its reach note (invariant 16) and its logging-to-deny ramp — whose
-negative cases as of 0.29.0 also include a bookkeeping commit that must be seen NOT to
-be flagged, a repeated stop that must be seen not to re-log a flag it already logged,
-and an empty window that must be seen to log `n/a` rather than `clean`, the checker's docs-budget observer (0.26.0 — log-only by
+setup proof step (four keys as of 0.38.0: `lenses:` joined RED/quality/mutation/verify
+fail-closed in 0.27.0, because a lens verdict of `clean` or `no lens triggered`
+previously had no durable home — the review hand-back is not retained and only a lens
+*finding* travelled onward, so two field arcs could not distinguish a lens that ran clean
+from one that never triggered — and `quality:` left with its pass in 0.38.0, its negative
+case now a pre-0.38.0 `quality:` line seen to be ignored, single or doubled; the
+retired `stop-check` mode's negative case is its stub seen to stay silent at exit 0), the
+checker's docs-budget observer (0.26.0 — log-only by
 design, so it has no arming ramp and no fire-proof at setup; its negative case is
 `tools/close-out-check.py`'s docs corpus and its six mutations, which is where a
 budget that stopped discriminating would show), the retro's ledger-alive precheck and its
@@ -308,9 +307,10 @@ the session's start, a mutation restored to its start content, and a commit date
 before the session must be seen not charged), `/sdlc-update`'s **fold markers**
 (`tools/rederive-check.py`: every marker must be seen exactly once in the template, and
 a template with one removed must be seen to fail), and the Claude Code launchers' **root
-anchor** (`tools/close-out-check.py`: from a subdirectory of a linked worktree the
-backstop launcher must be seen to run the script; the case was seen to fail with the
-anchor removed; `tools/gate-hook-check.py` pins the anchor on every launcher) — the
+anchor** (`tools/skill-ledger-check.py` since 0.38.0, `tools/close-out-check.py` before
+it: from a subdirectory of a linked worktree the ledger launcher must be seen to reach its
+script; the case was seen to fail with the anchor removed, exit 127;
+`tools/gate-hook-check.py` pins the anchor on every launcher) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
@@ -400,4 +400,6 @@ key — but `/end-slice` commits, checks and pushes in one step, so that state e
 never arises: **96 of 125 stops had an empty window, every one of the other 29 held zero
 commits carrying a record, and all 19 flag lines were two bookkeeping commits.** Zero
 real catches across the control's entire life, recorded the whole time as installed and
-proven (`FIELD_REPORT_2026-08-21.md` finding 5; plan §73.2, fixed in 0.29.0).
+proven (`FIELD_REPORT_2026-08-21.md` finding 5; plan §73.2, fixed in 0.29.0). Recording
+its reach made it readable, and the reading retired it: five more field arcs with no catch
+and five false candidates (plan §87.3 (iv), retired in 0.38.0).

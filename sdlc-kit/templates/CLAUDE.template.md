@@ -92,9 +92,10 @@ If unsure → ask
 How this project's code logs and fails. Recorded at setup — owner-answered (New
 Project) or discovered from the code and confirmed (Existing). Enforcement: the linter
 rules named below run in the gate and the edit-time hook; the *logging and swallowed
-errors*, *untrusted input*, and *secrets and exposure* lenses in
-`.claude/commands/REVIEW_LENSES.md` cover what no rule can state. A convention changed
-here without its linter rule is a claim, not a control — change both together.
+errors* and *untrusted input* lenses in `.claude/commands/REVIEW_LENSES.md` cover what
+no rule can state. Secrets have rules only: the secret-scanning rules below, and no
+lens. A convention changed here without its linter rule is a claim, not a control —
+change both together.
 
 - **Logging:** {{LOGGING_CONVENTIONS}}
 - **Error handling:** {{ERROR_CONVENTIONS}}

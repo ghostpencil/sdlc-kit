@@ -62,15 +62,14 @@ sdlc-kit/ (the product)  ──/sdlc-setup──▶  target project
 runs in two modes — **New Project** (interview → scaffold → establish a green gate) and
 **Existing Project** (analyze → propose → confirm → generate, merging never overwriting) —
 and it instantiates every template, installs the four daily commands, `sdlc-retro.md`,
-`sdlc-update.md`, the vendored TDD skill set, and the three kit-written change passes
-(`diff-review`, `change-simplify`, `change-verify`), writes the edit-time hook, and
-installs the close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, verbatim,
-both CLIs), offers its stop-time backstop (`.github/hooks/sdlc-close-out.json` on
-Copilot, a `Stop` settings block on Claude Code), and installs the architecture-impact
-adapter (`.github/hooks/sdlc-impact.py`, verbatim, both CLIs, never offered — it is
-inert without an Understand Anything graph) and the cosmetic classifier
+`sdlc-update.md`, the vendored TDD skill set, and the two kit-written change passes
+(`diff-review`, `change-verify`), writes the edit-time hook, and installs the close-out
+evidence checker (`.github/hooks/sdlc-close-out.sh`, verbatim, both CLIs; its stop-time
+backstop was retired in 0.38.0), the architecture-impact adapter
+(`.github/hooks/sdlc-impact.py`, verbatim, both CLIs, never offered — it is inert
+without an Understand Anything graph) and the cosmetic classifier
 (`.github/hooks/sdlc-cosmetic.py`, verbatim, both CLIs, never offered — it can only
-grant the TDD guards' comment/format exemption) — those four are the kit-owned files
+grant the TDD guards' comment/format exemption) — those three are the kit-owned files
 in that directory; every other file there is project-owned.
 `commands/sdlc-update.md`
 brings an adopted project forward to a newer kit release; it and the root README's
@@ -89,8 +88,9 @@ load-bearing piece that lets a fresh session orient in seconds.
 **The install split is by how a file is invoked, not by what it contains.** The seven
 commands are user-typed entry points and go to `.claude/commands/` (on Copilot CLI,
 packaged as `.github/skills/<name>/SKILL.md` — the flow diagram above shows both); the
-seven skills —
-four vendored, three kit-written since 0.14.0 — are model-invocable and go to
+six skills —
+four vendored, two kit-written (three from 0.14.0 until `change-simplify` was retired in
+0.38.0) — are model-invocable and go to
 `.claude/skills/<name>/SKILL.md`. Both are
 project-scoped, so both travel with a `git clone` — that was always the point, and until
 0.14.0 it was served by putting everything in `.claude/commands/`. The move happened
@@ -124,8 +124,8 @@ them. The six below are the working summary; on disagreement the ledger wins.
    disagree, the file is right and the command is the bug. A process change therefore
    usually touches the template *and* one or more commands — check both.
 3. **`skills/` has two provenance regimes.** Six files (four directories) came from
-   upstream MIT repos; three (`diff-review`, `change-simplify`, `change-verify`) are
-   kit-written with no upstream. `reference/SKILLS.md` records per-file provenance and
+   upstream MIT repos; two (`diff-review`, `change-verify`) are kit-written with no
+   upstream. `reference/SKILLS.md` records per-file provenance and
    verification dates, and `THIRD_PARTY_NOTICES.md` carries the attributions *and* says
    which files it does not cover. Editing a vendored skill diverges it from upstream —
    note that in `reference/SKILLS.md` rather than silently drifting. Describing a

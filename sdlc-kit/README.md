@@ -37,8 +37,8 @@ project is written in.
 
 Setup auto-detects **New Project** mode (interview → scaffold → establish a green gate)
 or **Existing Project** mode (analyze → propose → confirm → generate, merging and never
-overwriting), instantiates every template, installs the daily commands and the seven
-skills (four vendored, three kit-written), and writes the edit-time gate hook.
+overwriting), instantiates every template, installs the daily commands and the six
+skills (four vendored, two kit-written), and writes the edit-time gate hook.
 
 After setup the daily loop is `/plan-phase` → `/next-slice` → `/end-slice` → `/end-phase`,
 one slice per session, `/clear` between slices.
@@ -50,15 +50,14 @@ VERSION                  ← the kit version this bundle is
 MANIFEST.sha256          ← checksums of every file below (see "Verifying" and "Updating")
 commands/                ← installed into <project>/.claude/commands/
                            (Copilot CLI: .github/skills/<name>/SKILL.md)
-skills/                  ← TDD skill set + the three kit-written passes
-                           (diff-review, change-simplify, change-verify)
+skills/                  ← TDD skill set + the two kit-written passes
+                           (diff-review, change-verify)
                            → <project>/.claude/skills/
                            (one directory per skill; both CLIs read that path)
-templates/               ← instantiated into the project by /sdlc-setup; ten are
+templates/               ← instantiated into the project by /sdlc-setup; nine are
                            copied verbatim instead (the explore agent profile, the TDD
-                           guards' hook JSON, the gate hook's launcher JSON, the
-                           skill-ledger hook JSON, and the close-out backstop's hook
-                           JSON — all Copilot-side — plus the skill-ledger script (both
+                           guards' hook JSON, the gate hook's launcher JSON and the
+                           skill-ledger hook JSON — all Copilot-side — plus the skill-ledger script (both
                            CLIs since 0.31.1), the close-out evidence checker,
                            the architecture-impact adapter and the cosmetic
                            classifier, all three both CLIs, and
@@ -74,10 +73,8 @@ THIRD_PARTY_NOTICES.md   ← attributions for the vendored skills (MIT; python-p
 `commands/`, `skills/`, the installed `reference/REVIEW_LENSES.md`, the Copilot
 read-only sweep profile (`.github/agents/explore.agent.md`, a verbatim template
 copy), and the
-close-out evidence checker with its optional stop-hook wiring
-(`.github/hooks/sdlc-close-out.sh` on both CLIs, `.github/hooks/sdlc-close-out.json`
-on a Copilot project that accepted the backstop offer — verbatim copies holding no
-project values), the architecture-impact adapter (`.github/hooks/sdlc-impact.py`,
+close-out evidence checker (`.github/hooks/sdlc-close-out.sh`, both CLIs, a verbatim
+copy holding no project values), the architecture-impact adapter (`.github/hooks/sdlc-impact.py`,
 both CLIs, verbatim), and the cosmetic classifier (`.github/hooks/sdlc-cosmetic.py`,
 both CLIs, verbatim) are **kit-owned**:
 they track upstream and an update may overwrite them when they are unmodified. Everything else `/sdlc-setup` writes into your project
@@ -106,8 +103,8 @@ commands), or see the *Updating an adopted project* section of the home reposito
 README — both state the same procedure. The short version: compare your installed
 `.claude/commands/*.md` and `.claude/skills/*/SKILL.md` (plus `.github/skills/` and
 `.github/agents/` on a Copilot CLI project, `.github/hooks/sdlc-close-out.sh` on
-kits ≥ 0.20.0, `.github/hooks/sdlc-close-out.json` where the ≥ 0.22.0 backstop
-offer was accepted, `.github/hooks/sdlc-impact.py` on kits ≥ 0.28.0,
+kits ≥ 0.20.0, `.github/hooks/sdlc-close-out.json` where the backstop offer of kits
+0.22.0–0.37.1 was accepted (0.38.0 removes it), `.github/hooks/sdlc-impact.py` on kits ≥ 0.28.0,
 `.github/hooks/sdlc-cosmetic.py` on kits ≥ 0.34.0, and `.claude/agents/*.md` on kits
 0.6.0–0.9.0) against the
 `MANIFEST.sha256` of the version you are currently

@@ -77,11 +77,12 @@ none of them writes anything.
   a review that undo review changes, reverts, and slices whose commit span is much wider
   than their siblings'.
 - **Step-evidence enumeration.** Read the named steps out of `spec/SDLC.md` — every
-  skill, lens, and check the slice loop and phase end name (the quality pass, the
-  reviewer and its lenses, the mutation check, the verification pass, observed-RED) —
+  skill, lens, and check the slice loop and phase end name (the reviewer and its
+  lenses, the mutation check, the verification pass, observed-RED) —
   and report each one's evidence in the window: **ran**, **caught** (ran and caught
   something — say what), **skipped with a stated reason**, or **no evidence**. Where to look: slice
-  commit bodies (the `RED:`, `quality:`, `lenses:`, `mutation:`, and `verify:` evidence lines —
+  commit bodies (the `RED:`, `lenses:`, `mutation:`, and `verify:` evidence lines, plus
+  `quality:` on commits from before 0.38.0 —
   `git log` carries them; where the process file names the close-out record check,
   that checker structurally prevents a missing line at slice close, so an absent
   line on such a slice means the checker itself was never run — a different and
