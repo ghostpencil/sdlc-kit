@@ -7773,3 +7773,14 @@ not updated to 0.38.1 now.** All three already carry a correct line, so it rides
 next update. On the owner's word, TFit's PR #38 also closes the four items 0.38.0 made
 moot (three `RULING OPEN` friction entries naming `change-simplify`, and backlog #138).
 Still owed: the owner's merge of the three 0.38.0 PRs, then the post-merge check.
+
+**Post-merge check, 2026-10-23: all three adopters on 0.38.0, verified on `main`.** TFit
+#38 (`48a91ff`), chainmail #5 (`8e3eb95`), ai-news #25 (`9e7289e`). On each, both stamps
+read 0.38.0, the committed bundle verifies 43/43 (44 files with the manifest, no
+`__pycache__`), `{{` is 0, there is no `change-simplify`, no backstop JSON and no backstop
+Stop block, the 0.38.0 marker is present, and the tree is clean. TFit's cleanup landed
+with two of its three friction flips. The 2026-08-19 entry had already been closed by
+tfit-qa-app#37 with its true provenance (kit 0.27.0, then 0.37.0), and the merge
+conflict resolution (`98940e6`) kept that and noted the 0.38.0 retirement. That is more
+accurate than the flip it replaced. Backlog #138 is closed. **§88 is closed**; the next
+owed act is the next clock reading, at the next arc any adopter closes.
