@@ -13,6 +13,10 @@ its artifact on every update — which step 5 states in full; the notes here add
 their version-specific readings. This file is these notes' only home;
 nothing else restates them.
 
+**An update that also crosses 0.38.0 skips two of these folds:** the 0.22.0 backstop
+offer and the 0.31.0 `quality:` `reuse:` rule. 0.38.0 retired both, and its note in the
+command says what replaces them.
+
 Not installed into a project, like the rest of `reference/`: an update reads it from the
 target kit (`/tmp/kit/sdlc-kit/reference/UPDATE_NOTES.md` in the command's own steps).
 

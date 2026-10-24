@@ -7628,7 +7628,9 @@ to the owner before the build, and both went as recommended:
    owner. Until it goes, the stub makes it harmless.
 5. **The secrets lens's residue gets a named home rather than a silent drop.** Who may
    call a new surface belongs to the phase spec's *trust boundaries*. Whether an error
-   path discloses internals to its caller is already *error propagation*'s point 3. The
+   path discloses internals to its caller is **unreviewed** now: the build first claimed
+   *error propagation*'s point 3 asked it, and the release `/kit-check` refuted that
+   (point 3 is about status codes). The
    rules half stays in the lens↔rule map, under a heading that is no longer a `Lens:`
    entry, so `/kit-check`'s heading-to-entry count still matches at 7 = 7.
 
@@ -7678,3 +7680,47 @@ until the release commit.
   2026-10-23). TFit and chainmail each carry the Claude `Stop` block, one line apiece, and
   remove it by hand. ai-news, on Copilot, holds `.github/hooks/sdlc-close-out.json`,
   which the removal clause deletes. All three re-point `CLAUDE.md`'s enforcement line.
+
+### 88.5 The pre-release `/kit-check` — three reading agents, about 25 findings, all fixed
+
+Mechanical: inv 4, 9 and 10 pass (43 manifest entries, 0 mismatches). The nine suites
+ran green on 572368d, and the five that read anything the fixes touched re-ran green on
+the fixed tree. The findings, grouped:
+
+- **The batch's own claims, wrong (the §58 class again).** The retired lens's trigger
+  survived in both trigger lists, `/end-slice` step 4 and template step 7, so a
+  credentials slice would fire a clause with no lens behind it. Both are deleted. The
+  claim that *error propagation*'s point 3 asks about error disclosure was false: point 3
+  is about status codes. Disclosure is now stated as **unreviewed** residue.
+  `GATE_RECIPES.md` said the guard's stop launcher carries the missing-script branch "in
+  both dialects", but only the Copilot one does.
+- **Derived counts missed:** setup's own install table (7 → 6 skill directories),
+  `COPILOT.md` (three places), the README ownership row, `sdlc-update`'s "four
+  kit-owned", and the ordinal comments in both classification scripts.
+- **Stale denominators:** the inv-13 list and `/kit-check`'s copy still named the close-out
+  Stop launcher's moved-cwd message, a control that no longer exists. The list header
+  said "as of 0.36.0".
+- **Transition gaps:** the 0.35.0 and 0.36.0 notes would still hand an owner the retired
+  Stop block, and `UPDATE_NOTES.md`'s 0.22.0 and 0.31.0 notes would re-introduce two
+  retired rules. Each now carries a skip-when-crossing-0.38.0 clause. The backstop fold
+  in the 0.38.0 note had no stated writer and now says "hand the owner".
+- **Inv 5:** `REVIEW_LENSES.md` (installed) pointed at `GATE_RECIPES.md`, which is not
+  installed. It now points at `CLAUDE.md` *Runtime Conventions*.
+- **Inv 8:** the README's new removal-instance paragraph restated the 0.38.0 note's Claude
+  half, and it now points there instead. `/next-slice` still listed "quality pass" among
+  `/end-slice`'s steps.
+- **The stub** moved to just after `MODE=$1`, so "exits 0 before reading anything" is
+  true. It used to run the git-dir resolution first. Its comment's arc count is
+  corrected from "two" to five.
+- **`diff-review`'s structural baseline applied only "if neither [standard] exists"**,
+  and every adoption has `CLAUDE.md` *Runtime Conventions*. So, read literally, the
+  duplication row that the retirement rests on never applied. It now applies always,
+  beneath the documented standards, which win where the two meet. This is a kit-written
+  skill, so no invariant-3 note is owed.
+- **Smaller:** the fallback for a session restarted mid-close-out moved to step 3 and is
+  mirrored in template step 6. The template's "all five keys" now reads "every key", an
+  ambiguous "step 4" was made explicit, and the root-anchor proof now names its date and
+  shell.
+
+One finding was refuted: the reader said root `CLAUDE.md` still said "three kit-written".
+It had been fixed in 572368d, and the reader was looking at stale text.

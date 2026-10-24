@@ -264,7 +264,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    | | Claude Code | Copilot CLI |
    |---|---|---|
    | the 7 commands | `.claude/commands/<name>.md` | `.github/skills/<name>/SKILL.md` |
-   | the 7 skill directories | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
+   | the 6 skill directories | `.claude/skills/<name>/SKILL.md` | the same path — both CLIs read it |
    | `REVIEW_LENSES.md` | `.claude/commands/REVIEW_LENSES.md` | the same path — it is a document, not an executable |
 
    Packaging a command as a Copilot skill is mechanical, and the shape is **exact**: a

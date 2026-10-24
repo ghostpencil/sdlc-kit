@@ -97,9 +97,9 @@ Find the standards, in this order:
    levels, error handling, config access, whatever it wrote down). This is the kit's
    home for them.
 2. Any other convention file the repo carries (`CONTRIBUTING.md`, a style guide).
-3. The baseline below, if neither exists.
+3. The baseline below, **always** — beneath the first two, never instead of them.
 
-**A documented project standard always wins over the baseline.** If the repo says to do
+**A documented project standard always wins over the baseline where the two meet.** If the repo says to do
 something the baseline calls a smell, the repo is right and the baseline is silent —
 say so explicitly in the report rather than filing a finding you already know is wrong.
 

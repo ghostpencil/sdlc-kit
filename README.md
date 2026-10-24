@@ -308,7 +308,7 @@ The whole procedure rests on this split:
 | Path in your project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
-| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the seven `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
+| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the six `SKILL.md` files share a basename. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
 | `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the three kit-owned files in that directory (with `sdlc-impact.py` and `sdlc-cosmetic.py`; a fourth, `sdlc-close-out.json`, is retired) — every other file there is project-owned. |
@@ -402,13 +402,13 @@ name each one.
          base=sdlc-close-out.json
          want=$(awk '$2 == "templates/close-out-hook.template.json" {print $1}' "$MAN") ;;
        .github/hooks/sdlc-impact.py)
-         # the third: the architecture-impact adapter (0.28.0), verbatim on both CLIs.
+         # the second: the architecture-impact adapter (0.28.0), verbatim on both CLIs.
          # A project coming from a pre-0.28.0 kit has no such file yet — git ls-files
          # skips it and it arrives as a new install like any other.
          base=sdlc-impact.py
          want=$(awk '$2 == "templates/sdlc-impact.template.py" {print $1}' "$MAN") ;;
        .github/hooks/sdlc-cosmetic.py)
-         # the fourth: the cosmetic-edit classifier (0.34.0), verbatim on both CLIs;
+         # the third: the cosmetic-edit classifier (0.34.0), verbatim on both CLIs;
          # absent before 0.34.0, so it arrives as a new install the first time.
          base=sdlc-cosmetic.py
          want=$(awk '$2 == "templates/sdlc-cosmetic.template.py" {print $1}' "$MAN") ;;
@@ -533,9 +533,8 @@ name each one.
    owns.
 
    The fourth is 0.38.0's: the `change-simplify/` skill and, on a Copilot project that
-   accepted the backstop, `.github/hooks/sdlc-close-out.json`. On Claude Code the
-   backstop's `Stop` block in `.claude/settings.json` is yours to remove by hand; until
-   you do, the retired mode exits 0 and blocks nothing.
+   accepted the backstop, `.github/hooks/sdlc-close-out.json`. The Claude Code half of
+   that release's change is in its note (`commands/sdlc-update.md`, step 5).
 
    Before copying anything, read the per-version *[installable]* transition notes in
    the update command itself (`commands/sdlc-update.md`, step 5 — and, for a version

@@ -79,8 +79,9 @@ mutation restores them, and a refactor licence declared here is revoked by the m
 was declared for. On a real arc that cost seven re-declarations in a single phase, three
 of them inside one slice, across three consecutive retros (field, 2026-09-01). Every
 test edit the close-out licence survives is counted in the guard log, so a licence left
-open past step 6 is visible in review; it ends with the session either way. A docs-only
-slice (step 1) and a project without the guards skip this step.
+open past step 6 is visible in review; it ends with the session either way, so a session
+restarted mid-close-out re-declares it before its first production write in steps 4–6.
+A docs-only slice (step 1) and a project without the guards skip this step.
 
 Until 0.38.0 this step was also the quality pass (`change-simplify`). That pass was
 retired when its final clock failed: on two field arcs, reuse misses it had passed over
@@ -130,9 +131,8 @@ Two lenses the diff-shaped review structurally lacks — apply them explicitly:
 If the slice changed error propagation, added a catch or failure path or logging
 around one, swept the codebase for a pattern or wrote a script or check whose output
 will be trusted, touched an object that outlives a request or is reachable
-from more than one, took in outside data or passed it to an interpreter, touched
-credentials or an externally reachable surface or added logging or error output near
-either, deleted, skipped, or gutted a test `spec/PRODUCT_CONTRACT.md` names as a
+from more than one, took in outside data or passed it to an interpreter, deleted,
+skipped, or gutted a test `spec/PRODUCT_CONTRACT.md` names as a
 pin (opening the contract to check that is the disposal-intent lens's sanctioned
 exception to its read-at-phase-boundaries rule; a project without the file
 predates it — say so rather than silently not firing), or added a test the slice
@@ -249,10 +249,8 @@ each other until an arc ran into it, so do not read the block as a sign the lint
 config is wrong.
 
 **The close-out licence declared at step 3 covers this step — and this is the step that
-most needs it.** Where the TDD guards are installed and none is in force (a slice first
-judged docs-only, or a session restarted mid-close-out), declare
-`.git/sdlc-tdd/close-out-license` here before the first mutation (in a linked worktree,
-under `$(git rev-parse --git-dir)/sdlc-tdd/`, as step 3 says).
+most needs it.** If none is in force here, re-declare it as step 3 says before the first
+mutation.
 Do not fall back to the refactor licence: this step's own prescribed *restore* touches
 test files between its production writes, so a refactor licence declared here is revoked
 by the method it was declared for — which is what cost one arc three re-declarations

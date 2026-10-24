@@ -47,6 +47,13 @@
 
 MODE=$1
 
+# stop-check was the stop-time backstop, retired in 0.38.0: across five field arcs it
+# found no slice commit missing its record, and logged five false candidates. A Stop or
+# agentStop launcher left behind by an older install still calls it, so the mode stays
+# and does nothing, before reading anything - an unknown mode exits 2, and a Stop hook
+# exiting 2 blocks every stop.
+[ "$MODE" = "stop-check" ] && exit 0
+
 cannot() { printf 'close-out record: CANNOT CHECK - %s\n' "$1"; exit 2; }
 
 # The git directory (0.31.1) - every .git/ path this script names means
@@ -101,13 +108,6 @@ count_record() {
   set -- $COUNTS
   red_n=$1; red_e=$2; len_n=$3; len_e=$4; mut_n=$5; mut_e=$6; ver_n=$7; ver_e=$8
 }
-
-# stop-check was the stop-time backstop, retired in 0.38.0: two field arcs and more
-# found zero slice commits missing their record, and five false candidates. A Stop
-# or agentStop launcher left behind by an older install still calls it, so the mode
-# stays and does nothing - an unknown mode exits 2, and a Stop hook exiting 2 blocks
-# every stop.
-[ "$MODE" = "stop-check" ] && exit 0
 
 if [ "$MODE" = "docs-check" ]; then
   # ---- the docs-commit observer: LOG-ONLY on every install, fail-open on its

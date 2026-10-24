@@ -279,8 +279,7 @@ output, and the non-blocking note seen at exit 0), the **Copilot commit detector
 (`tools/impact-check.py` — seven commands that only mention a commit must be seen not to
 fire), the **scripted mutation runner** (its sha256 assert must fail on bytes not
 restored, and the `git diff` after the run stays mandatory because a killed runner
-restores nothing), the **close-out Stop launcher's moved-cwd message** (a launcher run
-below the root must be seen to name the directory it looked from), and `/sdlc-update`'s
+restores nothing), and `/sdlc-update`'s
 **friction enumeration** (an entry the release does not address must be seen listed as
 `nothing in range`, never dropped), and `/sdlc-update`'s **hook-script walk-through**
 (0.35.1 — its helper must be seen to stop, never propose, with `UNRESOLVED` on a
@@ -309,7 +308,8 @@ before the session must be seen not charged), `/sdlc-update`'s **fold markers**
 a template with one removed must be seen to fail), and the Claude Code launchers' **root
 anchor** (`tools/skill-ledger-check.py` since 0.38.0, `tools/close-out-check.py` before
 it: from a subdirectory of a linked worktree the ledger launcher must be seen to reach its
-script; the case was seen to fail with the anchor removed, exit 127;
+script; the case was seen to fail with the anchor removed, exit 127 — once by hand,
+2026-10-23, Git Bash on Windows; the suite's exact-launcher case pins it thereafter;
 `tools/gate-hook-check.py` pins the anchor on every launcher) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.

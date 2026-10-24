@@ -154,8 +154,9 @@ such data onward to an interpreter.
 Provenance note: the two lenses above (logging and swallowed errors, untrusted input)
 shipped as standards in kit 0.13.0 rather than from a measured field catch, and both
 have since earned one. A third, *secrets and exposure*, shipped with them and was
-retired in 0.38.0 after two field arcs with no catch. Its linter rules remain in the
-kit's `reference/GATE_RECIPES.md` (the lens↔rule map). The caveat on *error propagation* still applies:
+retired in 0.38.0 after two clock readings (five field arcs) with no catch. Its
+secret-scanning linter rules remain, named in this project's `CLAUDE.md` *Runtime
+Conventions*. The caveat on *error propagation* still applies:
 lenses to look through, not defect-rate claims.
 
 ## Lens: the disposal-intent test

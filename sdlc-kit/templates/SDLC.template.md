@@ -827,8 +827,9 @@ Run `/end-slice` when the slice's exit criteria are met:
    7's first edit, and covering steps 7 through 9 — their review fixes, mutations and
    probes are all production writes made after the gate has run. It is the close-out
    licence rather than the refactor one because close-out's own order puts test edits
-   between those writes, and a test edit revokes a refactor licence. A docs-only slice
-   skips this step. (Until 0.38.0 this step was also the quality pass, `change-simplify`;
+   between those writes, and a test edit revokes a refactor licence. It ends with the
+   session, so a session restarted mid-close-out re-declares it before its next
+   production write in steps 7–9. A docs-only slice skips this step. (Until 0.38.0 this step was also the quality pass, `change-simplify`;
    it was retired after its final clock failed, and duplication is step 7's review's to
    find. The number stays so every step reference holds.)
 7. Slice code review (the `diff-review` skill on the diff — its Spec and Standards axes
@@ -837,8 +838,7 @@ Run `/end-slice` when the slice's exit criteria are met:
    propagation, added a catch or failure path or logging around one, swept for a
    pattern or wrote a script or check whose output will be trusted, touched an
    object that outlives a request or is reachable from more than one, took in outside
-   data or passed it to an interpreter, touched credentials or an externally
-   reachable surface or added logging or error output near either, or added a test
+   data or passed it to an interpreter, or added a test
    the slice itself then deleted, skipped, or gutted — or deleted, skipped, or
    gutted a test `spec/PRODUCT_CONTRACT.md` names as a pin — or, under armed
    TDD-ordering guards, added a test reaching into internals the mock policy fences
@@ -917,7 +917,7 @@ Run `/end-slice` when the slice's exit criteria are met:
    slice commit body either way. **The `not exercised:` half is required and `nothing`
    is a real answer**: the skill's third verdict — *not exercised, and why* — is a
    first-class result that must never be folded into the first, and it is the half that
-   disappeared on a real arc while all five keys stayed present and the record read as
+   disappeared on a real arc while every key stayed present and the record read as
    complete. The step runs in the agent's shell, and a pass there
    does not stand in for halt 4's owner acceptance.
    A break it observes is fixed through the same loop as a review fix: apply, re-run

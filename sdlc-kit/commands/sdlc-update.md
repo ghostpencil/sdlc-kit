@@ -79,8 +79,8 @@ git -C /tmp/kit worktree add /tmp/kit-old vX.Y.Z                # the version yo
 ### 3. Classify every installed file
 
 Compare every installed file — `.claude/commands/`, `.claude/skills/`, `.claude/agents/`,
-`.github/skills/`, `.github/agents/` and the four kit-owned `.github/hooks/` files, as the
-script below enumerates them — against the **old** version's manifest. Hash committed content (`git cat-file -p :path`), never the working
+`.github/skills/`, `.github/agents/` and the kit-owned `.github/hooks/` files (three, plus
+the retired `sdlc-close-out.json` where present), as the script below enumerates them — against the **old** version's manifest. Hash committed content (`git cat-file -p :path`), never the working
 tree — an unpinned checkout on Windows holds CRLF and would report every file as
 drifted, uniformly and plausibly wrong.
 
@@ -111,14 +111,14 @@ for f in $(git ls-files .claude/commands .claude/skills .claude/agents \
       want=$(awk '$2 == "templates/close-out-hook.template.json" {print $1}' "$MAN") ;;
     .github/hooks/sdlc-impact.py)
       base=sdlc-impact.py
-      # the third kit-owned file: the architecture-impact adapter (0.28.0), copied
+      # the second kit-owned file: the architecture-impact adapter (0.28.0), copied
       # verbatim on both CLIs. A project updating FROM a pre-0.28.0 kit has no such
       # file, so git ls-files skips it and the add happens at step 5 like any other
       # new install — this branch classifies it on every update after that.
       want=$(awk '$2 == "templates/sdlc-impact.template.py" {print $1}' "$MAN") ;;
     .github/hooks/sdlc-cosmetic.py)
       base=sdlc-cosmetic.py
-      # the fourth: the cosmetic-edit classifier (0.34.0), verbatim on both CLIs;
+      # the third: the cosmetic-edit classifier (0.34.0), verbatim on both CLIs;
       # absent before 0.34.0, so it is added at step 5 the first time, like the third.
       want=$(awk '$2 == "templates/sdlc-cosmetic.template.py" {print $1}' "$MAN") ;;
     .claude/commands/*)
@@ -511,7 +511,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   a shell `cd` below the root produced the same message as a real missing script. The
   block lives in `.claude/settings.json`, which is project-owned: hand the owner the
   template's new `Stop` command to paste over the old one, never edit it. Until then
-  the old message stands, and a *missing* block may mean a moved cwd.
+  the old message stands, and a *missing* block may mean a moved cwd. Skip this when the
+  update also crosses 0.38.0, which retires the block.
 - **0.35.1 makes three hook scripts start far fewer processes, with no change in what
   they decide.** The Copilot TDD guard (`sdlc-tdd-guard.sh`) and both edit-time gate
   hooks (`sdlc-gate.sh`, `sdlc-gate-claude.sh`) did their string work through dozens
@@ -551,7 +552,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   leaves test runs unrecorded, the gate skipped in silence, or every edit denied by the
   guard's launcher until the session `cd`s back. The file is project-owned: hand the
   owner the prefix to put at the front of each kit launcher that is installed — the
-  guard's four, the gate's, the ledger's, the close-out `Stop` block — never edit the
+  guard's four, the gate's, the ledger's, and the close-out `Stop` block unless the
+  update also crosses 0.38.0, which retires it — never edit the
   file, and never prefix a hook the project added itself. It must be copied exactly:
   `;`, never `|| exit 2`, because Copilot runs these launchers through PowerShell, where
   5.1 cannot parse `||`, and a PreToolUse launcher that fails to parse denies every
@@ -599,16 +601,16 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
     loses its `quality:` line, and the checker now ignores one, so older commits still
     read COMPLETE. `/end-slice` step 3 is now the close-out licence alone. Fold
     `spec/SDLC.md` **in this update**, from `templates/SDLC.template.md`: slice-loop step 6
-    becomes the close-out-licence step, step 4's docs-only skip drops its `quality:` form,
-    and steps 10 and 11 drop `quality:` from the record (step 4's marker table carries the
-    row). Unfolded, step 6 names a pass whose skill this update just removed.
+    becomes the close-out-licence step, slice-loop step 4's docs-only skip drops its
+    `quality:` form, and steps 10 and 11 drop `quality:` from the record (this command's
+    step 4 marker table carries the row). Unfolded, step 6 names a pass whose skill this update just removed.
   - **The close-out backstop** (`stop-check`). On Copilot, `.github/hooks/sdlc-close-out.json`
     goes by the same removal clause. On Claude Code, hand the owner the removal of the
     `Stop` block that runs `sdlc-close-out.sh stop-check` from `.claude/settings.json`;
-    this command never edits that file. Until it goes, the mode exits 0 at once, so the
-    leftover costs one process per stop and blocks nothing. The close-out checker note in
-    `spec/SDLC.md` *Records* replaces its backstop state with `backstop: retired in
-    0.38.0`. `.git/sdlc-close-out/deny-enabled` and `seen` may be deleted. Keep the
+    this command never edits that file. Until it goes, the mode exits 0 before reading
+    anything, so the leftover costs a few processes per stop and blocks nothing. Hand the
+    owner the fold for the close-out checker note in `spec/SDLC.md` *Records*: its
+    backstop state becomes `backstop: retired in 0.38.0`. `.git/sdlc-close-out/deny-enabled` and `seen` may be deleted. Keep the
     `log`: `docs-check` still writes it.
   - **The `secrets and exposure` lens.** `REVIEW_LENSES.md` arrives with the update.
     `CLAUDE.md`'s *Runtime Conventions* enforcement line names the lens: hand the owner

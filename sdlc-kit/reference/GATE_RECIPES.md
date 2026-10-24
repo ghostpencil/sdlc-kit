@@ -485,8 +485,8 @@ result. A consequence worth stating wherever a mode is recorded: state is theref
 **per-worktree** — deny armed in the main checkout does not arm a linked worktree. **Exit codes are not loud on Copilot**: a non-zero hook exit lands in the
 session's own log (`~/.copilot/session-state/<id>/events.jsonl`) and nowhere the agent
 or the operator reads (measured 2026-09-27). The one channel measured to reach the
-agent without blocking work is a stop hook's block, so each stop-bearing launcher —
-the guard's, in both dialects — carries an `else` branch that
+agent without blocking work is a stop hook's block, so the guard's Copilot stop
+launcher (and until 0.38.0 the backstop's, in both dialects) carries an `else` branch that
 blocks once, naming the missing script, and stands down on `stop_hook_active`. That
 branch prints JSON, so it carries quotes; quotes were banned from launchers as a
 precaution, and a quoted branch was measured surviving both launcher routes.
@@ -499,8 +499,9 @@ precaution, and a quoted branch was measured surviving both launcher routes.
 file* and its test runs went unrecorded; the gate launcher exited 127, which PostToolUse
 treats as non-blocking, so **the gate was skipped in silence**; and the close-out Stop
 block's `-e`/`-f` test failed, which until 0.35.0 printed the same *is missing* message
-a real missing script prints. That message now says *not found from `<pwd>`* and tells
-the session to `cd` back to the root, so the two cases read differently. **Since
+a real missing script prints. From 0.35.0 until the block was retired in 0.38.0, that
+message said *not found from `<pwd>`* and told the session to `cd` back to the root, so
+the two cases read differently. **Since
 0.36.0 every launcher in `.claude/settings.json` starts with the root anchor
 `cd "$(git rev-parse --show-toplevel)"; `**, so a moved session no longer moves its
 hooks. Measured live 2026-10-23 on the bench, after a `cd spec` in the session's shell:
@@ -745,7 +746,8 @@ The close-out checker's `stop-check` mode, wired as a stop hook, ran from 0.22.0
 slice commit missing its record, logged five false candidates, and found its window
 empty at almost every stop, because adopters push each slice as soon as it is committed.
 The mode now exits 0 without reading anything, so a launcher an older install left
-behind cannot block. `/sdlc-update` removes the launchers. `/end-slice` step 8's check
+behind cannot block. `/sdlc-update` removes the Copilot launcher and hands the owner the
+Claude `Stop` block to remove. `/end-slice` step 8's check
 is the close-out control.
 
 ---
@@ -1054,8 +1056,10 @@ mechanism at each hop, and the canonicalize-then-prefix-check sequence. A rule s
 root, which is the near-miss the lens was written for.
 
 **Secrets and exposure — rules only since 0.38.0.** The lens was retired after two
-field arcs with no catch. Its rules stand on their own, and adopting them is all the
-kit now asks here. *Mechanized:* the hardcoded credential, and committed config. Python `S105`–`S107`; JS/TS eslint-plugin-no-secrets (`no-secrets/no-secrets`);
+clock readings (five field arcs) with no catch. Its rules stand on their own, and
+adopting them is all the kit now asks here. *Mechanized:* the hardcoded credential, and
+committed config. Python `S105`–`S107`; JS/TS eslint-plugin-no-secrets
+(`no-secrets/no-secrets`);
 C# `CA5390`, plus `CA5350`/`CA5351` for the weak-crypto neighbours; Go gosec `G101`;
 Java find-sec-bugs `HARD_CODE_PASSWORD`, `HARD_CODE_KEY`; Rust has no clippy rule here.
 Across all six, repository-level secret scanning (the forge's push protection, or a
@@ -1063,8 +1067,10 @@ scanner in CI) is the rule that catches what a language linter never sees, becau
 secret's usual home is a config file no linter reads.
 *Residue, now without a lens:* who may call a new surface and what enforces that
 **where the code will actually run**, and whether an error path discloses internals to
-its caller. *Error propagation*'s point 3 still asks the second. The first belongs to
-the phase spec's *trust boundaries*, which `SDLC.md`'s phase start already requires.
+its caller. The first belongs to the phase spec's *trust boundaries*, which `SDLC.md`'s
+phase start already requires. The second is **unreviewed** since the retirement: no
+lens and no rule asks it, which is the cost the two clean clock readings were weighed
+against.
 
 **Lens: the disposal-intent test.** *Mechanized:* nothing, in any language, and not for
 want of a rule — the lens's subject is a property of the **diff** (a test added and then

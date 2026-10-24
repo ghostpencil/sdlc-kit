@@ -212,8 +212,8 @@ skip.
 
 When the slice's exit criteria are met, tell the owner the slice is ready for close-out
 — an executive summary per the hand-back standard: what the slice now does, in plain
-English — **and stop there. Do not run `/end-slice`; the owner runs it** (gate, quality
-pass, review, mutation check, verification, commit, record check, PROJECT_INDEX,
+English — **and stop there. Do not run `/end-slice`; the owner runs it** (gate, close-out
+licence, review, mutation check, verification, commit, record check, PROJECT_INDEX,
 then `/clear`).
 
 **Quote the architecture impact preview in that hand-back**, where the project has one:

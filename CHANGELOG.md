@@ -48,6 +48,12 @@ stated failure condition.
 - **[adoption-only]** `SDLC.template.md` slice-loop step 6 is the close-out licence step.
   The docs-only skip, the commit record and the record check drop `quality:`. The
   close-out note no longer records a backstop.
+- **[installable]** **`diff-review`'s structural-smell baseline applies always**, beneath
+  the project's documented standards, which win where the two meet. It used to apply only
+  where no standard existed, and every adopted project has one, so its duplication row,
+  now the kit's only reuse control at slice level, read as dead.
+- **[installable]** The retired lens's trigger clause is removed from `/end-slice` step 4
+  and the template's step 7 lens list **[adoption-only]**.
 - Proof suites: `tools/close-out-check.py` loses its stop pass. It gains cases pinning
   that a pre-0.38.0 `quality:` line is ignored (single, doubled and empty), and that the
   retired mode stays silent; 17 mutations, all caught. The behavioral root-anchor case

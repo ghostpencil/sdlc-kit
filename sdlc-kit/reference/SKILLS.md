@@ -92,7 +92,7 @@ directory tells them apart, so they are copied as directories, never as files.
   own and the process can name the pass without knowing which CLI is running. **The
   built-ins were not read, copied, or derived from** — what was portable was the idea of
   the pass, which is not anyone's to license. The names deliberately differ from the
-  built-ins': a project-scoped skill named `simplify` or `verify` would shadow one, and
+  built-ins': a project-scoped skill named `verify` would shadow one, and
   this file already tells adopters not to recreate built-ins by hand.
 - `tdd/SKILL.md`, `tdd/tdd-references/tests.md`, `tdd/tdd-references/mocking.md` — from
   [mattpocock/skills](https://github.com/mattpocock/skills)

@@ -18,7 +18,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 |---|---|---|
 | Agent instructions | `CLAUDE.md` | `CLAUDE.md` — **read directly, no translation** |
 | Kit commands (7) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
-| Kit skills (7: 4 vendored, 3 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
+| Kit skills (6: 4 vendored, 2 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.github/hooks/sdlc-gate-claude.sh` + a bare launcher block in `.claude/settings.json`, `PostToolUse` (split 0.24.0 — the per-hook `"shell"` pin was measured never firing on Claude Code 2.1.231) | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
 | TDD-ordering guards (optional, per dialect since 0.21.0) | `.github/hooks/sdlc-tdd-guard.py` + four hook blocks in `.claude/settings.json` — see *The TDD-ordering guards* below | `.github/hooks/sdlc-tdd-guard.json` + `.sh` |
@@ -31,7 +31,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Specs | `spec/*.md` | `spec/*.md` — plain files, no mechanism involved |
 
 A repo that answers **both** at the interview gets both columns. Nothing is written
-twice: the seven commands exist once per CLI in different formats, and the seven skill
+twice: the seven commands exist once per CLI in different formats, and the six skill
 directories exist once in a shared directory. One row is Copilot-only by nature — the
 sweep agent file — and the model pin has a different mechanism on each CLI; the table
 says so in place rather than letting a dual-CLI project assume symmetry.
@@ -58,7 +58,7 @@ This is a prohibition, not an omission. A future batch that "helpfully" adds
 `.claude/skills` is one of the three project skill directories Copilot CLI reads
 (`.github/skills`, `.claude/skills`, `.agents/skills`) — confirmed first-hand against
 1.0.77, where a kit skill placed there is listed under *Project skills*. Installing the
-seven skill directories there means a dual-CLI repo carries **one** copy of each skill
+six skill directories there means a dual-CLI repo carries **one** copy of each skill
 rather than two that can drift apart. The Claude-flavoured directory name on a Copilot-only project is
 the accepted cost of that; it is a name, and the alternative is a sync surface.
 
@@ -765,14 +765,15 @@ launcher routes). What moved:
   `session_id`, `tool_name`, `tool_input`, tools renamed (create→`Write`,
   edit→`Edit`, powershell→`Bash`, skill→`skill`) — plus a `timestamp` and never a
   `permission_mode`; its native payload is camelCase with no `hook_event_name`. **Since
-  0.31.3 every Claude-dialect script stands down on that signature** (the guard, the
-  gate body, and the shared close-out checker's `stop-check`), so the Copilot hooks are
+  0.31.3 every Claude-dialect script stands down on that signature** (the guard and the
+  gate body; the close-out checker's `stop-check` did too until 0.38.0 retired it), so
+  the Copilot hooks are
   the only ones acting in a Copilot session. What remains, by launcher: `python …` runs
   under PowerShell, so a Copilot contributor needs `python` on PATH or every edit is
   denied; `sh …` launchers fail to start when Copilot was launched from PowerShell (a
-  logged failed hook, no effect), and run — then stand down — from Git Bash; the
-  close-out Stop launcher's quoting does not survive PowerShell on either route, so
-  that call never reaches the checker. The `Skill` matcher and `PostToolUseFailure`
+  logged failed hook, no effect), and run — then stand down — from Git Bash. (Until
+  0.38.0 the close-out Stop launcher's quoting did not survive PowerShell on either
+  route; that launcher is retired.) The `Skill` matcher and `PostToolUseFailure`
   never fire under Copilot at all (the tool arrives as lowercase `skill`; a failing
   command arrives as a `PostToolUse` success). `CLAUDE_PROJECT_DIR` is set by Copilot
   too, and `COPILOT_CLI` / `CLAUDECODE` leak across a nested launch — neither
