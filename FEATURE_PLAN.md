@@ -7724,3 +7724,14 @@ the fixed tree. The findings, grouped:
 
 One finding was refuted: the reader said root `CLAUDE.md` still said "three kit-written".
 It had been fixed in 572368d, and the reader was looking at stale text.
+
+### 88.6 Released 2026-10-23, and §87.7 ruling 8 delivered
+
+Commit `a0de9f3`, tag `v0.38.0`, workflow run 40044445707 green on the first run. The four
+release gates were simulated on an export of the index before tagging. The tarball was
+verified from the download: checksums OK, VERSION 0.38.0, manifest 43/43, six skills, no
+`close-out-hook.template.json`, the stub present, and the 0.38.0 update note present. The
+adopter message was posted on sdlc-kit#17 (owner's choice of channel,
+issuecomment-6377439099). It names both adopters, which #17's and #10's own bodies
+already do. Next: the three adopter updates, 0.37.1 → 0.38.0 (§88.4 lists what each
+holds).
