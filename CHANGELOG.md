@@ -14,7 +14,7 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
-## 0.38.0 — unreleased
+## 0.38.0 — 2026-10-23
 
 Three controls retired on their own pre-registered clocks (`FEATURE_PLAN.md` §87, the
 first reading of four field arcs across two adopters; rulings §87.6–§87.7, built as
