@@ -8276,3 +8276,18 @@ for the Claude dialect.
   `sdlc-update.md` that did not name `sdlc-state.py`. Fixed; manifest regenerated.
 - **Bare plan numbers (`89.4`, `89.6`) sit in four shipped hook comments,** following
   the existing `84.8` precedent; an adopter cannot resolve them. Left as is.
+
+### 89.17 Released 2026-10-24 — v0.39.0, and the manifest trap's fifth recurrence
+
+Built as 3bc7451 (every proof green the same afternoon: sdlc-state-check 36/10,
+tdd-guard-claude-check 115/55, tdd-guard-check 148 + 138 unit cases and 61/61
+mutations, gate-hook-check, shipped-lint, rederive), the CHANGELOG entry as 71f5c47,
+tag `v0.39.0`. The first workflow run (40128452416) failed its "manifest covers every
+file" check for every file: the manifest regenerated after the last template edit had
+been written by `sha256sum` with filenames as arguments, which on MSYS is binary mode -
+`hash *path` - and local `sha256sum -c` accepts that format, so "verifies" proved nothing
+about it. 6231fda regenerates with `--text` and runs the workflow's own `cut -d' ' -f3-`
+round-trip locally; the tag was re-pointed before any release object existed, run
+40128665224 passed, and the archive was verified from the download (both checksums,
+VERSION, 45/45, the new files). The trap's memory note gains the check that catches it.
+Owed: the three adopter updates to 0.39.0, and 0.40.0's release behind them (§90).
