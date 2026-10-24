@@ -7784,3 +7784,453 @@ tfit-qa-app#37 with its true provenance (kit 0.27.0, then 0.37.0), and the merge
 conflict resolution (`98940e6`) kept that and noted the 0.38.0 retirement. That is more
 accurate than the flip it replaced. Backlog #138 is closed. **§88 is closed**; the next
 owed act is the next clock reading, at the next arc any adopter closes.
+
+
+---
+
+## 89. STATE opened — an SDLC state the hooks read before they act: off, in flight,
+## paused — owner-raised 2026-10-24, proposed not built
+
+Opened on the owner's report that the kit's hooks fire when the process does not
+apply, and that this recurs. The ask, in the owner's terms: a state that is **off**
+when the SDLC rules do not apply, **begins** when `/plan-phase` runs and **ends** when
+`/end-phase` completes, tracks the intermediate stages (slice start, the TDD legs,
+slice close), and can be **paused** for non-SDLC work in the middle of a phase or a
+slice. The constraints are the owner's too and bind every choice below: lightweight,
+easy to read and change by hand, a boost and not a hindrance.
+
+### 89.1 The finding, measured
+
+Every control the kit installs asks whether a write is *in order*. None asks whether
+the work is *in the process at all*. The guards' scope is the repository (0.25.0:
+inside the root is production source, outside is not); the process's scope is the arc.
+Between the two sits every session that opens the repo for something that is not a
+slice — a tidy-up, a dependency bump, a doc move, a script — and every such session
+pays the full price of a slice session.
+
+TFit's log shows it. `spec/PROJECT_INDEX.md` has read `BUILD — between phases. Phase 12
+MERGED` since 2026-10-19, and `.git/sdlc-tdd/guard.log` from 13:00 that day to
+2026-10-24, canary sessions excluded, holds **370 lines over 13 sessions**: 23 denials
+(deny is armed there), 76 production writes licensed by a red, 10 by the cosmetic
+classifier, one refactor licence declared for `chore/root-tidy`, 107 test edits
+recorded, 13 `NOT counted` notices spoken, and two stop-time blocks. Nine `scripts/*.py`
+writes on 2026-10-22 each went through a manufactured test-edit-then-red cycle so the
+guard would let them through. None of that work was a slice; no `/next-slice` ran; the
+index said so the whole time. chainmail's window since its Phase 01 merge has 59 lines
+over 6 sessions, two of them denials. The edit-time gate hook has no log, so its share
+is unmeasured; the field reports put it at the same seam (sdlc-kit#14, #15, #17 — lint
+on files that were never the slice's).
+
+This is the eleventh report's class pointed at the whole kit: **the controls observe a
+proxy** — "a write to a `*.py` inside the root" — **for the fact they guard**, "a
+production write inside a slice". The fix the lineage asks for is not another exemption
+pattern (0.25.0, 0.35.0 and 0.36.0 each added one, and each arc finds the next shape),
+but a recorded fact the hooks can read: is the process in force right now?
+
+### 89.2 The artifact
+
+**One file, `<git-dir>/sdlc-state`**, beside `sdlc-tdd/` and `sdlc-close-out/` — the
+git directory, so it is per clone, per linked worktree, never committed and never a
+`.gitignore` question, exactly as the guard state already is (0.31.1's rule for what
+`.git/` means applies verbatim). Plain text; the first line is the state word and the
+only line any hook reads; the lines after it are `key: value`, optional, for people and
+for `/sdlc status`:
+
+```
+paused
+stage: slice
+phase: 12
+slice: S4
+since: 2026-10-24T14:02Z
+by: /sdlc pause
+reason: dependency bump on main before the slice continues
+```
+
+Every transition appends one line to `<git-dir>/sdlc-state.log` (`<time> <from> ->
+<to> <by> — <reason>`), so a retro can count pauses and `/end-slice` can see one that
+was forgotten. **Absent means on**: a hook that finds no file guards exactly as today.
+That is the only safe reading — a fresh clone mid-phase, a deleted file, an adopter who
+never took this release — and it keeps every existing proof case true unchanged. The
+cost of that reading is named below (89.4): a fresh clone between phases guards until
+someone writes the file, and says so once.
+
+### 89.3 The states, and who writes them
+
+| State | Meaning | Written by |
+|---|---|---|
+| `off` | no arc in flight; the kit's hooks stand down | setup (initial); `/end-phase` step 7 after the docs commit; `/sdlc off` |
+| `phase` | a phase is planned or between slices | `/plan-phase` step 1 (`stage: planning`), rewritten at step 6 with `phase: NN`; `/end-slice` step 10 after the push |
+| `slice` | a slice is open; TDD cycles | `/next-slice` step 3, beside `record-base`, once the branch is settled |
+| `close-out` | `/end-slice` is running | `/end-slice` step 3, with the licence declaration |
+| `phase-end` | `/end-phase` is running | `/end-phase` step 1 |
+| `paused` | an arc is in flight and suspended; `stage:` holds what resume restores | `/sdlc pause <reason>`; cleared by `/sdlc resume` or by any daily command writing its own state |
+
+**The TDD legs are derived, never duplicated.** RED, GREEN, REFACTOR and CLOSE-OUT are
+already facts the guard owns in `.git/sdlc-tdd/` (`red-observed` newer than
+`last-test-edit`, `green-observed` newest, `refactor-license`, `close-out-license`), so
+`/sdlc status` reads them from there and the state file does not restate them — one
+number, one home, the rule the index preaches. The hooks need only one distinction:
+`off` or `paused` → stand down; anything else, the absent file included → guard. `phase`
+is deliberately **not** off: between slices the guards stay up, because a production
+write between slices is exactly the breach the process exists to catch, and a planning
+or bookkeeping session already stops clean by construction (§42).
+
+### 89.4 The hook rule — one rule, four bodies
+
+Both guard dialects (`tdd-guard-claude.template.py`, `tdd-guard.template.sh`) and both
+gate dialects (`claude-gate.template.sh`, `copilot-hook.template.sh`) read the first
+line of the state file as their first act after resolving the root, before anything
+that costs a process — in the gate hooks that is before the JSON parser is spawned,
+which is where the per-edit cost lives (measured 2026-10-21). An ordinary checkout
+reads it with a shell builtin; a worktree pays one `sed` to follow the `gitdir:` line,
+the recipe the close-out checker already carries.
+
+- **`off` or `paused` → stand down:** no state write, no stdout, exit 0. A green run
+  observed while paused is not counted, a test edit does not start a cycle, and a stop
+  is clean — the whole point is that nothing is remembered from work the process does
+  not govern.
+- **`paused` logs what it did not guard.** For a production write the guard would
+  otherwise have charged, one line: `paused: unguarded production write: <rel>`. The
+  gate hook has no log and stays silent. This is detection in the 0.36.0 shape: a pause
+  left open through real slice work is visible at the close (89.6), not prevented.
+- **The guard's session bookkeeping runs before the stand-down**, so a session that
+  begins paused still records its start, and a later resume in the same session has a
+  baseline for the outside-the-editor report. One file read; `record_start` runs only on
+  a new session, as today.
+- **Spoken once per session, for `paused` only:** `SDLC paused since <since> (<reason>)
+  — the kit's hooks are standing down; /sdlc resume re-enters <stage>.` It rides the
+  guard's existing new-session detection; whether a PreToolUse `additionalContext` is
+  delivered on the current Claude Code build is **probe P1** (observe-test's PostToolUse
+  form is measured; the Copilot dialect's top-level form is measured). Fallback: the
+  first observe-test or stop of the session speaks it. `off` is silent — it is the
+  deliberate rest state, set by `/end-phase`, and a line in every between-phase session
+  is the noise this batch exists to remove. An absent file is spoken once in the same
+  slot, because it is the one state nobody chose: `no SDLC state file — guards active by
+  default; /sdlc status`.
+
+The skill-activation ledger is untouched: logging-only, cheap, read by the retro, and
+not a thing anyone has reported as firing. The impact adapter, the cosmetic classifier
+and the close-out checker are command steps or callees, not hooks, and need no rule.
+
+### 89.5 `/sdlc` and the helper it wraps
+
+A kit-owned, verbatim, placeholder-free helper — `templates/sdlc-state.template.py` →
+`.github/hooks/sdlc-state.py`, both CLIs, the `sdlc-impact.py` pattern exactly: python
+because the daily commands already invoke it from whatever shell the session has,
+`.github/hooks/` because that is where the kit's command-step scripts live. It owns the
+format, the git-directory resolution, the log, and the status composition:
+
+```
+python .github/hooks/sdlc-state.py status
+python .github/hooks/sdlc-state.py set <state> [--phase NN] [--slice Sn] [--by <cmd>]
+python .github/hooks/sdlc-state.py pause "<reason>"
+python .github/hooks/sdlc-state.py resume
+python .github/hooks/sdlc-state.py off
+```
+
+`status` prints one block: the state and its keys, the derived TDD leg, whether deny is
+armed, and the index's Phase line beside it — `index: BUILD Phase 12 / state: off` is a
+disagreement the owner should see. `resume` with no saved `stage:` (a fresh clone) reads
+the index's Phase line and sets `phase` or `off` from it, saying which. `off` while the
+file says an arc is in flight asks once before writing. Fail direction: **closed** — it
+is a command step, so its own error is printed and quoted, never swallowed (§46.3).
+
+`commands/sdlc.md` → `/sdlc status | pause <reason> | resume | off` is the typed entry
+point, one screen long, a thin wrapper that runs the helper and reports its block per
+the hand-back standard. Writing the file by hand is sanctioned and documented — it is
+plain text in a known place — the command is the convenience and the logger.
+
+**Pausing is an owner act.** The guards are a cooperative backstop a session can already
+edit around, and the deny message itself names the licence path; a pause is no wider a
+door than that, but it must not become the model's answer to a denial. One bullet in
+`CLAUDE.template.md` *Always-Active Rules*: a session never pauses or turns the state
+off on its own — a denied write takes the TDD path or declares a licence; `/sdlc pause`
+is typed by the owner. Every transition carries `by:`, so a retro can read who paused.
+
+### 89.6 Daily-command touchpoints — one line each
+
+- `/plan-phase` step 1: `set phase --by plan-phase` (`stage: planning`); step 6, on
+  approval, after the branch: `set phase --phase NN`.
+- `/next-slice` step 3, after the branch is settled, beside `record-base`: `set slice
+  --phase NN --slice Sn`.
+- `/end-slice` step 3, with the licence: `set close-out`. Step 10, after the push: `set
+  phase`. **Step 1 reads before it writes:** quote the state found. `paused` or `off`
+  during a slice is reported, never refused — the close-out proceeds — and the hand-back
+  carries the count of `paused: unguarded production write` lines in the slice's window
+  (from `sdlc-state.log`'s pause intervals against `guard.log`). Zero is the expected
+  answer; a nonzero count is the forgotten-pause finding, stated beside the RED record.
+- `/end-phase` step 1: `set phase-end`; step 7, after the docs commit: `set off`. The
+  reconcile pass gains one row, `recorded <index Phase line> / measured <state>` — the
+  state file is the enforcing artifact for "the process is in force", the index is its
+  record, and invariant 14 says the two are read together.
+- Every daily command that finds `paused` says so in one line and writes its own state;
+  resuming by doing the next step is the normal path, `/sdlc resume` is for returning
+  to the same stage without a command boundary.
+
+`SDLC.template.md` carries the canonical statement under *Shape* (the states, the file,
+the hand-edit sanction, the owner-act rule) with the commands pointing at it — invariant
+2 — and `GATE_RECIPES.md`'s guard section records the hook rule and its negative cases.
+
+### 89.7 Fail directions, stated per §46.3/§52.3
+
+The hook bodies fail **open toward guarding**: an unreadable or malformed state file is
+treated as absent (guard, speak once). The helper fails **closed**. A state the hooks do
+not recognize is guarded, so a typo in a hand edit costs a spoken line, never a silent
+disarm — the direction every lesson since 0.16.0 points.
+
+### 89.8 Setup, update, and the adoption seam
+
+- **Setup** installs the helper verbatim (New mode step 5's list and the Existing-mode
+  mirror), writes the initial state — `off` in New mode; in Existing mode `off` when the
+  index says between phases, `phase` or `slice` when it says BUILD mid-feature, confirmed
+  at the round where the index status is — and records nothing in *Records*: the state
+  is always installed, never an offer, and carries no project value. No new placeholder.
+- **Update** adds the helper as a kit-owned row (`sdlc-update.md`'s table, the README's
+  mirror, COPILOT.md's mapping) and writes the initial state the same way, from the
+  index. **The four hook bodies are project-owned** (never overwritten), so the stand-down
+  arrives only through the re-derive walk-through — the 0.36.0 precedent ("both TDD-guard
+  dialects change twice, and both arrive only through the walk-through"). The 0.39.0
+  note says so, names the diff, and says what an adopter who declines keeps: guards that
+  fire as today, with a state file nothing reads.
+- The adopters are all between phases (standing clocks, 2026-10-23); their first state is
+  `off`, and the first measurement of the control is their next between-phase session.
+
+### 89.9 Proofs
+
+- `tools/sdlc-state-check.py`, new: the helper's transitions, `status` composition
+  against a fixture `.git/sdlc-tdd/` and index, worktree resolution, the log, the
+  `off`-while-in-flight confirmation, and mutations (a `set` that does not log; a
+  `resume` that ignores `stage:`).
+- `tools/tdd-guard-claude-check.py`, `tools/tdd-guard-check.py`, `tools/gate-hook-check.py`
+  each gain the same four cases — absent guards, `off` stands down silently, `paused`
+  stands down and logs the unguarded write, unknown word guards — and two mutations
+  each: the stand-down removed (every `off` case must fail) and the stand-down widened to
+  absent (the absent case must fail). The Copilot gate proof gains the same four.
+- Invariant 13's ledger gains the entries; invariant 16's reach note is written in
+  advance, honestly: the stand-down's trigger **is** ordinary operation — every
+  between-phase session produces it — so the question is inverted here, and the catch is
+  a stand-down that provably replaced a denial or a licence (89.11).
+- `/kit-check` reading passes: the states table against the five commands that write
+  them (one source, the SDLC template), the install list against both READMEs and
+  COPILOT.md, the 0.39.0 note against the walk-through.
+
+### 89.10 Cost named up front
+
+New: `templates/sdlc-state.template.py`, `commands/sdlc.md`, `tools/sdlc-state-check.py`.
+Edited: the four hook templates (about ten lines each); `plan-phase.md`, `next-slice.md`,
+`end-phase.md` (one line per touchpoint), `end-slice.md` (two lines plus the step-1
+read); `SDLC.template.md` (*Shape*, *Phase end* step 7 reconcile row);
+`CLAUDE.template.md` (one rule); `GATE_RECIPES.md`; `sdlc-setup.md` (install, initial
+write, exit list unchanged); `sdlc-update.md` (table row, 0.39.0 note, walk-through
+diff); both READMEs (file trees, the command table gains `/sdlc`); `COPILOT.md` (two
+mapping rows — the command is the eighth, the helper another verbatim file);
+`KIT_INVARIANTS.md` (13, 16); the three proof suites; `MANIFEST.sha256`, `VERSION`. Two
+sessions: build with proofs, then `/kit-check` and the release. Ships alone as 0.39.0 —
+it adds a rule, so a clock refresh is owed at release (standing clocks preamble).
+
+### 89.11 Value criterion and clock, pre-registered
+
+**Baseline:** the TFit window above — 23 denials, 77 licensed writes, 13 spoken notices
+in 13 sessions with no arc in flight. **Criterion, read at the next reading after every
+adopter has taken 0.39.0:** in sessions whose state was `off` or `paused`, zero denials,
+zero licences and zero spoken guard notices (the control working), **and** the
+`sdlc-state.log` shows the state moved by the daily commands without a hand edit over at
+least one whole arc (the bookkeeping not becoming its own friction). The confirmed catch
+for the §16 regime is a `paused:` or stand-down window in `guard.log` that covers a
+write the previous release would have denied or charged — read mechanically from the
+logs, no retro needed. The counter-check is 89.6's count: a nonzero
+unguarded-while-paused count at any slice close is a finding against the design, not
+the adopter, and two such findings reopen this section. Two arcs with the bookkeeping
+hand-edited more often than command-written → the commands' touchpoints are wrong and
+are redesigned, not the state.
+
+### 89.12 Considered and held, so neither is rediscovered
+
+- **State derived from the branch** (on the main branch → off). Hotfix branches, arc
+  branches between slices and a slice's own branch all break it; explicit wins.
+- **A `SessionStart` hook that prints the status.** The natural home for the
+  once-per-session line, but it adds a hook block to project-owned settings, and Copilot
+  runs that event's bash command in PowerShell, where it is dead (SDLC template,
+  *Architecture impact view*). The guard's new-session slot already exists on both
+  dialects. Revisit if P1 fails and the fallback reads late.
+- **Absent means off.** The friendlier default and the one the 0.16.0 lesson forbids: it
+  disarms every guard on every fresh clone silently.
+- **Committing the state under `spec/`.** The index already is the committed record;
+  the state is a per-clone fact, and a `paused` committed to a branch is a lie in every
+  other checkout.
+
+### 89.13 Owner decisions owed before the build
+
+- **(a) Does the edit-time gate hook obey the state too?** Yes (recommended — it is the
+  second-most reported seam, #14/#15/#17, and the end-slice gate plus CI are the
+  authoritative checks either way), or guards only, with lint-on-edit always on.
+- **(b) Where `phase` begins.** At `/plan-phase` step 1 with `stage: planning`, as the
+  owner put it (recommended — `/sdlc status` says "planning" during the interview, at the
+  cost of a stale `phase` if planning is abandoned, which `/sdlc off` clears), or at step
+  6 on approval, one write instead of two.
+- **(c) The paused form.** Stand down, log the unguarded production writes, speak once
+  per session (recommended — the forgotten pause stays visible at the close), or fully
+  silent.
+- **(d) The command's name.** `/sdlc` with verbs (recommended — reads as the kit itself,
+  and the kit-level commands are already `sdlc-*`), or `/sdlc-state`.
+- **(e) Absent means on,** spoken once (recommended, 89.2), or absent means on and
+  silent.
+
+### 89.14 Ruled 2026-10-24 — all five as recommended
+
+- **(a) Gate hook — RULED: obeys the state.** All four hook bodies carry the rule.
+- **(b) Begin — RULED: `/plan-phase` step 1**, `stage: planning`; step 6 rewrites it
+  with `phase: NN`.
+- **(c) Paused — RULED: stand down, log the unguarded production writes, speak once per
+  session.**
+- **(d) Name — RULED: `/sdlc`**, file `commands/sdlc.md`, Copilot package
+  `.github/skills/sdlc/SKILL.md`.
+- **(e) Absent — RULED: on, spoken once per session.**
+
+Nothing else is open; the build can start. The owner is handing the build to a
+different session, so 89.15 is the brief for it — file by file, with the anchors as the
+tree stands at 0.38.1 — and §89.1–§89.13 is the design it must not depart from.
+
+### 89.15 Build brief — read this, then §89.2–§89.9, then the files it names
+
+**Ground rules for the implementer.** The design is ruled; do not re-litigate it or
+widen it. Where this brief and §89.2–§89.9 disagree, the design sections win and the
+disagreement is reported. Hard-wrap prose near 90 columns. Commands state no project
+facts (invariant 1). `SDLC.template.md` is written first and the commands point at it
+(invariant 2). Run every proof suite named below and quote its last line; a suite not
+run is reported as not run. Finish with `/kit-check`. Do not release: stop after the
+pre-release `/kit-check` with the tree uncommitted and hand back.
+
+**1. The helper — `templates/sdlc-state.template.py` (new, verbatim, zero `{{`).**
+Model it on `templates/sdlc-impact.template.py`: a header stating purpose, fail
+direction (closed), and that it is a command step and not a hook. Resolve the git
+directory exactly as `tdd-guard-claude.template.py`'s `git_dir()` does (a `.git` file
+names a worktree's directory). Files: `<git-dir>/sdlc-state`, `<git-dir>/sdlc-state.log`.
+Modes, all printing one block and exiting 0, or an error line and exit 2:
+- `status` — the state word and its keys; the derived TDD leg from `<git-dir>/sdlc-tdd/`
+  (`close-out-license` present → CLOSE-OUT; else `refactor-license` → REFACTOR; else
+  `red-observed` newer than `last-test-edit` and newer than `green-observed` → RED; else
+  `green-observed` present → GREEN; else `none observed this session`); `deny: armed` or
+  `logging` from `sdlc-tdd/deny-enabled`; the first bold line of `spec/PROJECT_INDEX.md`'s
+  *Phase* section as `index:`; and `absent — guards active by default` when the file is
+  missing.
+- `set <word> [--phase NN] [--slice Sn] [--by <name>] [--reason <text>]` — words
+  accepted: `off phase slice close-out phase-end paused`; anything else is exit 2.
+  Rewrites the file whole (word, then keys, then `since:` in UTC `%Y-%m-%dT%H:%MZ`) and
+  appends `<since> <old-or-absent> -> <new> <by> — <reason>` to the log.
+- `pause <reason…>` — requires a reason (exit 2 without); saves the current word as
+  `stage:` (an absent file saves `stage: phase`), keeps `phase:`/`slice:`, writes
+  `paused`. Pausing an `off` state is exit 2 with one line: nothing is in flight.
+- `resume` — restores `stage:`; with no `stage:` reads the index's Phase line: `BUILD`
+  or `STABILIZATION` with a phase in flight → `phase`, `between phases` or
+  `PRE-PHASE-1` → `off`, and says which it chose and why.
+- `off` — when the current word is anything but `off` or `paused`-over-`off`, print
+  `an arc is in flight (<word>, phase <NN>): pass --force to turn the state off, or
+  /sdlc pause <reason>` and exit 2; with `--force`, or from `off`/absent, write it.
+UTF-8 on every open (the 84.8 lesson). No `__pycache__`: run with `-B` or set
+`sys.dont_write_bytecode`.
+
+**2. The hook rule — four templates.** Insert the same logic in each; keep every
+existing proof case true.
+- `templates/tdd-guard-claude.template.py`: after the new-session block ends (today
+  line 453, `log("new session …")`) and before `TOOL_INPUT = …` (line 455). Read
+  `os.path.join(GD, "sdlc-state")`'s first line, stripped, lowercased; unreadable or
+  missing → `absent`. If the word is `off` or `paused`: when this call is the one that
+  opened the session (`SID != prev`) and the word is `paused`, speak §89.4's sentence
+  (reason and since from the file's keys) — PreToolUse via
+  `hookSpecificOutput.additionalContext` **after probe P1 confirms delivery**; otherwise
+  speak it from `observe-test`/`stop-check` only. Then, for `pre-write` with `paused` and
+  a path that `is_code()` and is not a test, `log("paused: unguarded production write:
+  %s" % rel)`. Then `sys.exit(0)`. For `absent` on a new session, speak §89.4's absent
+  sentence in the same slot. Nothing else changes; `deny-enabled` is not consulted.
+- `templates/tdd-guard.template.sh`: the same, after the session block (today lines
+  359–364) and before `case "$MODE"` (line 396). Read with
+  `IFS= read -r st < "$GD/sdlc-state"`, lowercase with the existing `tr` idiom once.
+  Speak through `emit_context`. The paused log line for pre-write needs the path
+  classification, which lives inside `case pre-write`; so set a flag here and, inside
+  pre-write, after the exempt/test checks and before the licence checks, log and
+  `exit 0` when the flag is set. Simpler is fine if it keeps the log line.
+- `templates/claude-gate.template.sh`: right after `i=$(cat)` (line 38), before the
+  parser search: `[ -d .git ] && f=.git/sdlc-state || f=$(sed -n 's/^gitdir:[[:space:]]*//p' .git 2>/dev/null | tr -d '\r')/sdlc-state`;
+  `IFS= read -r st < "$f" 2>/dev/null`; `case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac`.
+  The launcher has already `cd`'d to the repository root (settings template), so `.git`
+  is in the cwd. No output, no log — the gate hook has none.
+- `templates/copilot-hook.template.sh`: the same three lines after `IN=$(cat)` (line
+  30); `"cwd": "."` puts `.git` in the cwd.
+Document the rule in each header in two sentences, naming §89 and the negative cases.
+
+**3. The command — `commands/sdlc.md` (new).** Title `# SDLC`; one paragraph: what the
+state is and that `spec/SDLC.md` *Shape* is the canonical statement; prime directive:
+**pausing and turning off are owner acts — never run `pause` or `off` to get past a
+denied write**; *How to use*: `/sdlc status`, `/sdlc pause <reason>`, `/sdlc resume`,
+`/sdlc off`; *Workflow*: run `python .github/hooks/sdlc-state.py <verb> …` from the
+repository root, quote its block verbatim, and on `status` say in one line whether the
+index and the state agree. Under a screen long.
+
+**4. The daily commands — one line each, exact places.**
+- `commands/plan-phase.md` step 1 *Orient*: first bullet — run `python
+  .github/hooks/sdlc-state.py set phase --by plan-phase` (`stage: planning`; the helper
+  writes it when `--phase` is absent). Step 6, after "create `feat/phase-NN-<slug>`":
+  `set phase --phase NN --by plan-phase`.
+- `commands/next-slice.md` step 3, the `record-base` bullet: add `python
+  .github/hooks/sdlc-state.py set slice --phase NN --slice Sn --by next-slice` in the
+  same bullet, before `record-base`.
+- `commands/end-slice.md` step 1: a new first bullet — run `status`, quote it; if it
+  reads `paused` or `off`, say so, count `paused: unguarded production write` lines in
+  `.git/sdlc-tdd/guard.log` since the slice's base commit time, and carry the count to
+  step 10; proceed either way. Step 3: `set close-out --by end-slice` beside the licence.
+  Step 10, after `git push`: `set phase --by end-slice`, and the hand-back's detail
+  carries the step-1 count (`unguarded while paused: 0` is the expected line).
+- `commands/end-phase.md` step 1: `set phase-end --by end-phase`. Step 7: the
+  reconcile pass's subject list gains subject 5, `the SDLC state`: `recorded <index Phase
+  line> / measured <state word>`; after the docs commit bullet: `set off --by end-phase`.
+
+**5. The canonical statement.** `templates/SDLC.template.md` *Shape*: a new paragraph
+after the hotfix exception — **The SDLC state** — the file, the six words and their
+meanings, which command writes each, that hand edits are sanctioned, the one hook rule,
+the owner-act rule, and that `/sdlc status` composes it. *Phase end* step 7's reconcile
+mirror gains the fifth subject. `templates/CLAUDE.template.md` *Always-Active Rules*:
+one bullet — `/sdlc pause` and `/sdlc off` are the owner's; a denied write takes the TDD
+path or declares a licence, never the state. `reference/GATE_RECIPES.md`, the guards
+section: one paragraph on the stand-down and its negative cases.
+
+**6. Setup and update.** `commands/sdlc-setup.md` New mode step 5's list: `sdlc.md`
+joins the commands (eight now — fix every "seven" in the kit: `sdlc-setup.md`,
+`sdlc-update.md`, both READMEs, `COPILOT.md`, the root `CLAUDE.md`); step 6's
+verbatim block beside the impact adapter: `sdlc-state.template.py` →
+`.github/hooks/sdlc-state.py`, then `set off --by sdlc-setup` (New mode) or the
+Existing-mode word confirmed with the index status. `commands/sdlc-update.md`: table
+row for the helper (kit-owned, verbatim, from 0.39.0); step 5 note for 0.39.0 — the
+helper and command arrive by copy, the initial state is written from the index with the
+owner's confirmation, and **the four hook bodies are project-owned, so the stand-down is
+a walk-through diff** (point at 0.36.0's note for the shape). Root `README.md` *Updating
+an adopted project* must say the same. `reference/COPILOT.md` mapping: the command row's
+count and a row for the helper.
+
+**7. Trees and ledgers.** Both READMEs' file trees (`commands/sdlc.md`,
+`templates/sdlc-state.template.py`, `tools/sdlc-state-check.py`); the root README's
+daily-loop table gains `/sdlc`; `KIT_INVARIANTS.md` 13 (the four stand-down cases and
+the helper's suite) and 16 (89.9's inverted reach note); `sdlc-kit/MANIFEST.sha256`
+regenerated (text-mode hashing — the `*` and `\` prefix traps are in the kit's memory
+and in `sdlc-update.md`); `sdlc-kit/VERSION` → 0.39.0.
+
+**8. Proofs.** `tools/sdlc-state-check.py` (new, the shape of `tools/impact-check.py`):
+a temp repo per case, every mode, the worktree form, the `--force` refusal, `resume`
+from the index, and a `MUTATIONS` list applied to a copy of the template with the unit
+pass required to catch each. The three existing suites gain the four cases of §89.9 and
+the two mutations each — in `tools/tdd-guard-claude-check.py` and `tools/tdd-guard-check.py`
+the cases write `sdlc-state` into the bench's `.git/` before the `write()` call and
+assert no deny, no state file created, and the `paused:` log line; in
+`tools/gate-hook-check.py` both suites (`copilot_suite`, `claude_suite`) assert exit 0
+with empty output on `off` and `paused` and the ordinary result on absent. Run each
+suite alone, `tdd-guard-check.py` first (they are memory-hungry on this machine).
+
+**9. Probe P1, before step 2's speak path is wired.** In a scratch repo with the
+instantiated Claude guard, set `paused`, make one edit, and read whether the PreToolUse
+`additionalContext` reaches the transcript on the installed Claude Code build; record
+the build number and the answer in §89.16. If it does not, the paused sentence is spoken
+from `observe-test` and `stop-check` only, and §89.4 is annotated.
+
+**10. Hand back** with: the suites' last lines, the `/kit-check` findings and their
+fixes, the P1 result, `git status --short`, and anything in this brief that turned out
+to be wrong against the tree — reported, not silently adapted.
