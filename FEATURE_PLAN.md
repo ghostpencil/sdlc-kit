@@ -8488,3 +8488,23 @@ mutation added, an `off` that needs no reason. §89.11's criterion stands with o
 reading added: pauses `by: agent` per arc, and how many the retro finds against. Two
 arcs in which agent pauses cover slice work the previous release would have denied
 reopen the rule for that caller, not for all.
+
+### 91.4 Released 2026-10-24 — v0.40.0, the workflow green on its first run
+
+The branch's three commits (bdf42da §90, d9388e6 and 97ad9e1 §91) plus the release
+commit 7e54271, fast-forwarded onto main; tag `v0.40.0`, run 40132209871 green first
+time, the archive verified from the download (both checksums, VERSION, 45/45). The
+manifest was written by `printf` over committed content with `sha256sum --text`, and
+the workflow's four gates were run locally before the tag, so the §89.17 trap did not
+recur. The release `/kit-check` ran every suite, all exit 0: tdd-guard-check 148 + 138
+unit cases and 62/62 mutations in 299 s, sdlc-state 12 mutations, tdd-guard-claude 55,
+gate-hook, skill-ledger 18 cases, impact 48 / 58, close-out 28 + 7 / 17, rederive 8 / 7,
+shipped-lint 4 files / 5, cosmetic 20 on typescript 5.9.3 and 6.0.3. Its reading passes
+found what 7e54271 fixed: a "plan §91" pointer in an installed command, no 0.40.0
+fold-marker row, command counts left at seven after `/sdlc` made eight, `/end-slice`
+calling every paused write forgotten, the retro's caller count not marked claim-only nor
+its log's clone named, and invariant 13's denominator missing 0.39.0 and 0.40.0. §91.3's
+"one mutation added" was true of d9388e6; 97ad9e1 added the second. Held, pre-existing:
+invariant 16's state row against setup's "nothing goes in *Records*". Owed: the three
+adopter updates 0.38.0 → 0.40.0 at their between-phase windows; the §89.11 reading
+starts there. Held for the owner: killer-first ordering (§90.8).
