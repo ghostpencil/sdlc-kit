@@ -14,6 +14,65 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.39.0 — 2026-10-24
+
+An SDLC state the hooks read before they act (`FEATURE_PLAN.md` §89, owner-raised
+2026-10-24 on the recurring complaint that the kit's hooks fire when the process is not
+in force; ruled §89.14, built as §89.16). One file, `<git-dir>/sdlc-state`, says where
+the process stands — `off`, `phase`, `slice`, `close-out`, `phase-end` or `paused` —
+and both TDD guards and both edit-time gate hooks stand down on `off` and `paused` and
+guard on anything else, an absent file included.
+
+### Added
+- **[installable]** **`.github/hooks/sdlc-state.py`**, the fifth kit-owned hook file
+  (from `templates/sdlc-state.template.py`, verbatim, both CLIs): `status`, `set`,
+  `pause`, `resume`, `off`. It owns the file's format, the git-directory resolution (a
+  linked worktree's included), the transition log `<git-dir>/sdlc-state.log`, and the
+  status block, which reads the TDD leg from the guard's own state rather than restating
+  it and shows the index's Phase line beside the state, so a disagreement is seen. It
+  fails closed, as a command step does.
+- **[installable]** **`/sdlc`** (`commands/sdlc.md`; `.github/skills/sdlc/SKILL.md` on
+  Copilot), the eighth command: `status | pause <reason> | resume | off`, a thin wrapper
+  over the helper. Pausing is an owner act: a session never pauses or turns the state
+  off on its own; a denied write takes the TDD path or declares a licence.
+- `tools/sdlc-state-check.py`: 36 cases, 10 mutations. `tools/gate-hook-check.py` gains
+  a mutation pass of its own; it, `tools/tdd-guard-check.py` and
+  `tools/tdd-guard-claude-check.py` each gain the four stand-down cases (absent guards,
+  `off` stands down silently, `paused` logs the unguarded write, an unknown word guards)
+  and two mutations each (the stand-down removed; widened to an absent file).
+
+### Changed
+- **[adoption-only]** **The four hook bodies read the state first** —
+  `tdd-guard.template.sh`, `tdd-guard-claude.template.py`, `claude-gate.template.sh`,
+  `copilot-hook.template.sh` — before anything that costs a process. `off` or `paused`:
+  no state write, no output, exit 0; a `paused` production write is logged (`paused:
+  unguarded production write: <path>`), never charged. The guards speak the state once
+  per session — `paused` with its reason and the stage `/sdlc resume` re-enters, an
+  absent file as `no SDLC state file - guards active by default`; `off` is silent. An
+  unreadable or unrecognized state guards, so a typo never disarms. The bodies are
+  project-owned, so this reaches an adopted project only through `/sdlc-update`'s
+  walk-through.
+- **[installable]** The daily commands write the state at the steps `spec/SDLC.md` names:
+  `/plan-phase` `phase`, `/next-slice` `slice`, `/end-slice` `close-out` then `phase`,
+  `/end-phase` `phase-end` then `off`. `/end-slice` step 1 reads before it writes and
+  reports the `paused: unguarded production write` lines in the slice's window;
+  `/end-phase`'s reconcile pass gains the row `recorded <index Phase line> / measured
+  <state>`.
+- **[adoption-only]** `SDLC.template.md` carries the canonical statement under *Shape*
+  (the states, the file, the hand-edit sanction, the owner-act rule) and the fifth
+  reconcile subject; `CLAUDE.template.md` *Always-Active Rules* gains the owner-act
+  bullet; `GATE_RECIPES.md` records the hook rule and its negative cases.
+- **[installable]** `/sdlc-setup` installs the helper and writes the initial state (`off`
+  in New mode; from the index in Existing mode). `/sdlc-update` carries the 0.39.0 note:
+  the helper and `/sdlc` arrive by copy, the initial state is written from the index with
+  the owner's confirmation, the hook bodies only through the walk-through, and what an
+  adopter who declines keeps — guards that fire exactly as today beside a file nothing
+  reads.
+- Found by the proofs and fixed before release: the gate hooks' state read leaked a "No
+  such file" line on stderr when `.git` was absent (redirection order; eleven existing
+  gate cases caught it), and the helper now prints UTF-8, since a Windows console code
+  page crashed `status` on an index line.
+
 ## 0.38.1 — 2026-10-23
 
 Two defects the adopter updates to 0.38.0 found (`FEATURE_PLAN.md` §88.7).
