@@ -298,6 +298,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.37.1 | the coverage floor records its catch and reach | `The proof's catch is recorded on` |
 | 0.38.0 | slice step 6 is the close-out licence, not the quality pass | `Close-out licence, where the TDD guards are installed` |
 | 0.39.0 | the SDLC state | `whether the process is in force right now` |
+| 0.40.0 | any caller may pause or turn the state off | `Any caller may pause or turn the state off` |
 
 ### 5. Apply
 
@@ -674,7 +675,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   found rewriting them behind the shell's back. Nothing to fold into project documents.
   Re-derive with the helper, run `sh -n` on the result, and where the project has its
   own guard tests, run them. The Claude guard (`sdlc-tdd-guard.py`) is untouched.
-  **The same release reverses 0.39.0's "owner act" rule for the SDLC state (plan §91):**
+  **The same release reverses 0.39.0's "owner act" rule for the SDLC state:**
   any caller — the session's agent, a harness, the owner — may pause or turn the state
   off with a reason, logged with who asked, and `/sdlc-retro` reads that log. The helper
   arrives by copy (`off` now requires a reason, like `pause`; `--by owner|agent|harness`
@@ -682,7 +683,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   kept), as do `/sdlc` and the retro. **Fold 0.40.0's wording, not
   0.39.0's,** into the project-owned documents: `CLAUDE.md` *Always-Active Rules*' bullet
   (the session may pause with a reason; a denied write of slice work still takes the TDD
-  path or a licence) and `spec/SDLC.md` *Shape*'s sentence on who may change the state.
+  path or a licence), the `/sdlc` line in its session-command list ("any caller", not
+  "the owner's"), and `spec/SDLC.md` *Shape*'s sentence on who may change the state.
   A project that folded 0.39.0's bullet replaces it.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and

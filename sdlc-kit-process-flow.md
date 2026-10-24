@@ -23,8 +23,8 @@ never overwriting). Either way it leaves the project with:
   `spec/PROJECT_INDEX.md` (the single source of truth a fresh session orients from),
   `spec/TESTING.md` (TDD + mock policy). Every `{{PLACEHOLDER}}` is resolved; setup's
   exit check greps the instantiated files for any `{{` left behind.
-- **The seven commands** — `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`,
-  `end-phase`, `sdlc-retro`, `sdlc-update` — into `.claude/commands/` (Copilot CLI:
+- **The eight commands** — `sdlc-setup`, `plan-phase`, `next-slice`, `end-slice`,
+  `end-phase`, `sdlc-retro`, `sdlc-update`, `sdlc` — into `.claude/commands/` (Copilot CLI:
   `.github/skills/<name>/SKILL.md`). User-typed entry points.
 - **The skills** — four vendored (`tdd`, `mutation-testing`,
   `python-pro`, `hypothesis-tests`) and two kit-written (`diff-review`,

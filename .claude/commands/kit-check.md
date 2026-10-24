@@ -127,7 +127,7 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.38.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.40.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe and its
   dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
@@ -166,7 +166,10 @@ For each, read the named files in full — do not sample — and cite evidence p
   (`tools/rederive-check.py`), the guards' cosmetic test edit and their
   outside-the-editor report, `/sdlc-update`'s fold markers, the Claude Code launchers'
   root anchor, and the impact adapter's phase-scope untracked line, gone files and
-  refresh-check count (all 0.36.0), the `tools/` proof suites, and this command.
+  refresh-check count (all 0.36.0), the SDLC state's hook stand-down and its helper's
+  transitions (0.39.0) with the reason-required `off`, the recorded caller and the
+  in-flight `off`'s kept stage (0.40.0), the retro's state-log reading (0.40.0), the
+  `tools/` proof suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy
   outcomes); each names the artifact that enforces or evidences it and the step that

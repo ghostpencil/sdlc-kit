@@ -17,7 +17,7 @@ third-party, it says so in place. Treat an undated claim in this file as a bug.
 | Concern | Claude Code | Copilot CLI |
 |---|---|---|
 | Agent instructions | `CLAUDE.md` | `CLAUDE.md` — **read directly, no translation** |
-| Kit commands (7) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
+| Kit commands (8) | `.claude/commands/*.md`, user-typed `/name` | `.github/skills/<name>/SKILL.md`, invoked `/name` |
 | Kit skills (6: 4 vendored, 2 kit-written) | `.claude/skills/<name>/SKILL.md` | the same path — a directory both CLIs read, so one copy serves both |
 | Review lenses | `.claude/commands/REVIEW_LENSES.md` | same path — a document, not an executable |
 | Gate hook | `.github/hooks/sdlc-gate-claude.sh` + a bare launcher block in `.claude/settings.json`, `PostToolUse` (split 0.24.0 — the per-hook `"shell"` pin was measured never firing on Claude Code 2.1.231) | `.github/hooks/sdlc-gate.sh` + `sdlc-gate.json`, `postToolUse` |
@@ -103,7 +103,7 @@ Two `/skills` subcommands matter at install time (documented, verified 2026-08-0
 checked in the listing without a fresh session — and `/skills info <name>` prints a
 skill's resolved location, the fastest check that the right copy won a name collision.
 
-**One command is packaged by hand: `sdlc-setup` itself.** Setup packages the other six
+**One command is packaged by hand: `sdlc-setup` itself.** Setup packages the other seven
 at install time, but it cannot install its own entry point, so the adopter does that one
 before the first session — a single file copy on Claude Code, this `SKILL.md` shape
 here. Both READMEs carry the procedure; this file is why the two CLIs differ at all.
@@ -565,7 +565,7 @@ is harmless when loaded into an interactive session, because it will be.
 ## Updating a Copilot project
 
 `/sdlc-update` treats the Copilot-side artifacts exactly as it treats the `.claude/`
-set — with one adjustment the packaging forces. The seven packaged skills are *not*
+set — with one adjustment the packaging forces. The eight packaged skills are *not*
 byte-identical to any bundle file: each is a frontmatter block plus the kit command
 verbatim. So the update strips that block and compares the remainder against the
 manifest's `commands/<name>.md` entry, which is why setup's packaging shape is specified

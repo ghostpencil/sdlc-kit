@@ -21,7 +21,7 @@ project is written in.
 
 1. Make sure this folder sits at the root of your project and is named `sdlc-kit` —
    `/sdlc-setup` looks for it by name.
-2. Install `sdlc-setup` by hand. It is the only one: setup installs the other six
+2. Install `sdlc-setup` by hand. It is the only one: setup installs the other seven
    commands itself, but it cannot install its own entry point.
    - **Claude Code:** copy `commands/sdlc-setup.md` into your project's
      `.claude/commands/`.

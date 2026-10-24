@@ -88,7 +88,7 @@ Full process: see `templates/SDLC.template.md` (becomes `spec/SDLC.md` in your p
    Either way you end up with plain files (not a nested git repo) that you commit
    alongside your project.
 2. Put `sdlc-setup` where your CLI will find it. **This is the one file you install by
-   hand** — setup installs the other six commands itself, but it cannot install its own
+   hand** — setup installs the other seven commands itself, but it cannot install its own
    entry point.
 
    **Claude Code** — copy it into the target's `.claude/commands/`:
@@ -484,8 +484,8 @@ handed to you to fold in — and the per-version transition notes name each one.
      too, and a project set up for both counts the eight commands twice, once per copy.
    - **The frontmatter strip fails safe.** If it breaks it hashes nothing, which matches
      no manifest entry, so the file lands in `DRIFTED` in front of you rather than in
-     `UNCHANGED` behind your back. Seven packaged skills all going `DRIFTED` at once
-     means the strip, not seven edits.
+     `UNCHANGED` behind your back. Eight packaged skills all going `DRIFTED` at once
+     means the strip, not eight edits.
 
 4. **Act on the classification.**
    - `UNCHANGED` → provably untouched since adoption. Copy the new version over it.

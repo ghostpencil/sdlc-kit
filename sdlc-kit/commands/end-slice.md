@@ -26,8 +26,9 @@ operator-performed, the policy names the moment to set it).
   reported, never a reason to refuse: the close-out proceeds. Then count the
   `paused: unguarded production write` lines in `.git/sdlc-tdd/guard.log` (the
   directory `$(git rev-parse --git-dir)/sdlc-tdd/` in a linked worktree) dated since
-  the slice's base commit, and carry that count to step 10. Zero is the expected
-  answer; a nonzero count is a forgotten pause and is stated beside the RED evidence.
+  the slice's base commit, and carry that count to step 10. A nonzero count is
+  stated beside the RED evidence with the pause's reason from `sdlc-state.log`; whether
+  it was a sanctioned pause or a forgotten one is the retro's reading, not this step's.
 - `git status` + `git diff --stat`. If the working tree is clean and the slice has
   made no commit on the branch — nothing since `<base>`, defined below — report that
   there is no slice to close and stop. A slice that already committed everything is
@@ -558,7 +559,7 @@ line, the exit code — with `not observed` stated, never omitted), **verificati
 (the verdicts, or skipped with the reason), **the record check's quoted output** (step 8 —
 COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line** (step 9 — quoted,
 and an `OVER` answered rather than merely reported), **`unguarded while paused: N`**
-(step 1's count; `0` is the expected line), **the final architecture footprint**
+(step 1's count, with each pause's logged reason when it is not `0`), **the final architecture footprint**
 (below, where the project has one), any tool substituted for one this file names, and
 commit hashes. End with: **safe to `/clear`**.
 

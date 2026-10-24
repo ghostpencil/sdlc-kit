@@ -14,7 +14,7 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
-## 0.40.0 — unreleased
+## 0.40.0 — 2026-10-24
 
 The proof-suite speed batch (`FEATURE_PLAN.md` §90), owner-directed 2026-10-24: the
 kit's slowest proof took ~29 minutes and said nothing about its progress while it ran.
@@ -60,7 +60,8 @@ kit's slowest proof took ~29 minutes and said nothing about its progress while i
   new rule, and the update note says to fold 0.40.0's wording. The deny message still
   names only the TDD path and the licence.
 - `tools/sdlc-state-check.py` gains the reason-required `off`, the recorded caller for
-  pause and resume, and the in-flight log line; one mutation added.
+  pause and resume, and the in-flight log line; two mutations added (an `off` that needs
+  no reason, an `off` that forgets the stage it abandoned).
 ## 0.39.0 — 2026-10-24
 
 An SDLC state the hooks read before they act (`FEATURE_PLAN.md` §89, owner-raised

@@ -318,7 +318,12 @@ the unguarded production write, an unknown word guards — and two mutations eac
 stand-down removed and the stand-down widened to an absent file; the helper's own
 transitions, `status`, worktree resolution and `off`-while-in-flight refusal in
 `tools/sdlc-state-check.py`, with a `set` that does not log and a `resume` that ignores
-`stage:` as its mutations) — the
+`stage:` as its mutations; 0.40.0 adds the reason-required `off` (`--force` included),
+the `--by` caller in the file and the log, and an in-flight `off` that keeps its stage
+for `on`, with an `off` that needs no reason and an `off` that forgets its stage as
+mutations), `/sdlc-retro`'s state-log reading (0.40.0: a pause whose reason is a denial,
+or with slice work logged under it, is reported as a finding — a missed one reads as a
+clean caller count over a log that holds it) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without
