@@ -7763,3 +7763,13 @@ present. The `quality:` mentions that remain are all history paragraphs.
 - **For the owner, on TFit:** three `RULING OPEN` friction entries naming `change-simplify`
   (2026-08-16, 2026-08-19, 2026-09-01) and backlog #138 (backstop window scoping) are made
   moot by 0.38.0. Closing them needs the owner's word.
+
+### 88.8 0.38.1 released, and TFit's moot items closed
+
+0.38.1 released 2026-10-23: commit `f2b3e87`, tag `v0.38.1`, workflow run 40050459078
+green on the first run. The tarball was verified from the download: checksums OK,
+VERSION 0.38.1, manifest 43/43, corrected sentence present. **Owner ruling: adopters are
+not updated to 0.38.1 now.** All three already carry a correct line, so it rides their
+next update. On the owner's word, TFit's PR #38 also closes the four items 0.38.0 made
+moot (three `RULING OPEN` friction entries naming `change-simplify`, and backlog #138).
+Still owed: the owner's merge of the three 0.38.0 PRs, then the post-merge check.
