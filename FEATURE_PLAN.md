@@ -158,6 +158,9 @@ two arcs), `stop-check` and with it the bare-flag arming question (zero catches,
 false candidates), the `secrets and exposure` lens (zero catches in 15 applications), and
 §76.9(d)'s observer question (the restatement was enough, so nothing is built).
 
+**Released as 0.40.1:** §92 — the two gate hooks read the state word raw, so a CR-ended
+`off`/`paused` was not honored (found by the TFit 0.40.0 update).
+
 **Held work — owed, not scheduled:**
 
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
@@ -8508,3 +8511,48 @@ its log's clone named, and invariant 13's denominator missing 0.39.0 and 0.40.0.
 invariant 16's state row against setup's "nothing goes in *Records*". Owed: the three
 adopter updates 0.38.0 → 0.40.0 at their between-phase windows; the §89.11 reading
 starts there. Held for the owner: killer-first ordering (§90.8).
+
+---
+
+## 92. The gate hooks read the state word raw — a CR-ended `off` or `paused` is not
+## honored: found by the TFit 0.40.0 update 2026-11-02, built and released 2026-11-02 as 0.40.1
+
+### 92.1 What was found
+
+The TFit update to 0.40.0 (tfit-qa-app#50) found it, and the tree confirms it. Both
+shell gate templates — `templates/claude-gate.template.sh` (line 44) and
+`templates/copilot-hook.template.sh` (line 36) — do `IFS= read -r st < "$f"` and then
+`case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac`. `read -r` keeps a
+trailing CR, so a state file hand-edited in a CRLF editor holds `paused\r`, which the
+`case` does not match. The two siblings already cope: `templates/tdd-guard.template.sh`
+normalizes through `tr` (its comment names "a CR from a Windows editor"), and
+`tdd-guard-claude.template.py` reads through `splitlines()` and `.strip()`.
+
+### 92.2 Reach, and why it is small but real
+
+`sdlc-state.py` writes LF, so only a hand edit reaches it. The failure direction is the
+safe one: the gate hook checks as always, and the owner's pause or off is not honored by
+that hook while the TDD guard honors it. The two hooks then disagree about one file. It
+bites the Claude Code dialect as much as Copilot: `sdlc-gate-claude.sh` is built from
+`claude-gate.template.sh`, so TFit and chainmail hold the affected body.
+
+### 92.3 The shape of the fix
+
+Strip a trailing CR from `st` in both gate templates with no new fork — the hook's
+point (§89.4) is to stand down before the parser is spawned, and `tr` costs a fork. Add
+the case to each hook's proof (`paused\r` and `off\r` both stand down), with one
+mutation that removes the strip. Reaches adopters by `/sdlc-update`'s hook walk-through,
+like every hook fix; the update note for the release names the two files.
+
+### 92.4 Built
+
+Both templates gain `st=${st%[[:cntrl:]]}` after the read: one trailing control character
+off, a parameter expansion, no fork. `tools/gate-hook-check.py` gains three cases per
+body (`off` and `paused` ended by CRLF stand down; `offx` still gates, so the strip
+cannot widen the match) and one mutation that removes the strip; the suite exits 0 with
+it caught on both bodies. The 0.40.1 update note
+names `claude-gate.template.sh` and `copilot-hook.template.sh`. §89.11's reading still
+waits on the adopters' first arcs under 0.40.0.
+
+Released 2026-11-02 as 0.40.1 (CHANGELOG, the update note in `/sdlc-update` step 5,
+the invariant 13 denominator in both places).

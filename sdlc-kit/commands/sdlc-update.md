@@ -686,6 +686,14 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   path or a licence), the `/sdlc` line in its session-command list ("any caller", not
   "the owner's"), and `spec/SDLC.md` *Shape*'s sentence on who may change the state.
   A project that folded 0.39.0's bullet replaces it.
+- **0.40.1 makes the two gate hooks honor a CRLF-ended state word.**
+  `sdlc-gate.sh` (from `copilot-hook.template.sh`) and `sdlc-gate-claude.sh`
+  (`claude-gate.template.sh`) read the state file's first line raw, so a hand edit in a
+  Windows editor (`paused\r`) did not stand them down while the TDD guards did. Each
+  gains one line after the read, `st=${st%[[:cntrl:]]}`. Nothing to fold into project
+  documents; the walk-through below carries it. A project that declines keeps hooks
+  that ignore a CRLF-ended state word, harmless as long as the state is set through
+  `sdlc-state.py`, which writes LF.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from

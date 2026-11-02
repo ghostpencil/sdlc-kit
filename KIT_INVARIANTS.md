@@ -315,7 +315,9 @@ script; the case was seen to fail with the anchor removed, exit 127 — once by 
 `tools/tdd-guard-check.py` and both suites of `tools/gate-hook-check.py` by four cases —
 an absent state file guards, `off` stands down silently, `paused` stands down and logs
 the unguarded production write, an unknown word guards — and two mutations each, the
-stand-down removed and the stand-down widened to an absent file; the helper's own
+stand-down removed and the stand-down widened to an absent file (0.40.1 adds the CR-ended
+`off` and `paused` cases and a third mutation, the CR strip removed, to both gate-hook
+bodies); the helper's own
 transitions, `status`, worktree resolution and `off`-while-in-flight refusal in
 `tools/sdlc-state-check.py`, with a `set` that does not log and a `resume` that ignores
 `stage:` as its mutations; 0.40.0 adds the reason-required `off` (`--force` included),

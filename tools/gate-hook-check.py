@@ -616,6 +616,9 @@ def ts_recipe_suite(parser, check):
             rmtree(base)
 
 
+CR = chr(13)
+
+
 def state_cases(dialect, body, parser, check):
     """The SDLC state's stand-down (FEATURE_PLAN.md 89.4) against one gate-hook body,
     always on a DIRTY file so that any run which did not stand down is seen reporting:
@@ -667,6 +670,16 @@ def state_cases(dialect, body, parser, check):
         state("pausd" + NL)
         ok, _ = reports()
         check("%s: an unrecognized word gates (a typo never disarms)" % dialect, ok)
+        state("off" + CR + NL)
+        ok, p = reports()
+        check("%s: `off` ended by CRLF (a Windows hand edit) stands down" % dialect,
+              not ok and silent(p))
+        state("paused" + CR + NL + "stage: slice" + CR + NL)
+        ok, p = reports()
+        check("%s: `paused` ended by CRLF stands down" % dialect, not ok and silent(p))
+        state("offx" + NL)
+        ok, _ = reports()
+        check("%s: the CR strip does not widen the match (`offx` gates)" % dialect, ok)
         state("")
         ok, _ = reports()
         check("%s: an empty file gates" % dialect, ok)
@@ -691,6 +704,8 @@ STATE_MUTATIONS = [
     ("widen the stand-down to an absent state file (a fresh clone silently disarms)",
      "case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac",
      'case $st in ""|[Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac'),
+    ("remove the CR strip (a CRLF-ended `off`/`paused` must stop standing down)",
+     "st=${st%[[:cntrl:]]}", ":"),
 ]
 
 

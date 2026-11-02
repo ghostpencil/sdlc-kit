@@ -14,6 +14,22 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.40.1 — 2026-11-02
+
+One fix, found by the TFit 0.40.0 update (`FEATURE_PLAN.md` §92).
+
+### Fixed
+- **[adoption-only]** **`claude-gate.template.sh` and `copilot-hook.template.sh` honor
+  a CRLF-ended state word.** Both read the first line of `<git-dir>/sdlc-state` raw, so a
+  file hand-edited in a Windows editor held `paused\r` or `off\r`, which the stand-down
+  `case` did not match: the gate hook kept checking while the TDD guards stood down. Each
+  gains `st=${st%[[:cntrl:]]}` after the read, a parameter expansion with no fork.
+  `tools/gate-hook-check.py` adds three cases per body (`off` and `paused` ended by CRLF
+  stand down; `offx` still gates) and one mutation that removes the strip, caught on both
+  bodies. Both gate scripts are project-owned, so the fix arrives through
+  `/sdlc-update`'s walk-through; `sdlc-state.py` writes LF, so only hand edits were
+  affected.
+
 ## 0.40.0 — 2026-10-24
 
 The proof-suite speed batch (`FEATURE_PLAN.md` §90), owner-directed 2026-10-24: the

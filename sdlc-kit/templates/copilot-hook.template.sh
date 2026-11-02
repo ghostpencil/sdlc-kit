@@ -34,6 +34,7 @@ IN=$(cat)
 # as always. "cwd": "." puts .git in the working directory; a worktree pays one sed.
 [ -d .git ] && f=.git/sdlc-state || f=$(sed -n 's/^gitdir:[[:space:]]*//p' .git 2>/dev/null | tr -d '\r')/sdlc-state
 IFS= read -r st 2>/dev/null < "$f"
+st=${st%[[:cntrl:]]}   # a CR from a Windows editor (92): a parameter expansion, no fork
 case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac
 
 # The string work below uses parameter expansion, not `printf | sed` or `tr`: every

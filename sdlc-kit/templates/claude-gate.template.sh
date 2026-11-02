@@ -42,6 +42,7 @@ i=$(cat)
 # already cd'd to the repository root, so .git is in the cwd; a worktree pays one sed.
 [ -d .git ] && f=.git/sdlc-state || f=$(sed -n 's/^gitdir:[[:space:]]*//p' .git 2>/dev/null | tr -d '\r')/sdlc-state
 IFS= read -r st 2>/dev/null < "$f"
+st=${st%[[:cntrl:]]}   # a CR from a Windows editor (92): a parameter expansion, no fork
 case $st in [Oo][Ff][Ff]|[Pp][Aa][Uu][Ss][Ee][Dd]) exit 0 ;; esac
 JP=""; JN=""; for c in python python3; do if command -v "$c" >/dev/null 2>&1; then JP=$c; break; fi; done; if [ -z "$JP" ] && command -v node >/dev/null 2>&1; then JN=node; fi; jr(){ if [ -n "$JP" ]; then "$JP" -c "$1" 2>/dev/null | tr -d "\r"; elif [ -n "$JN" ]; then "$JN" -e "$2" 2>/dev/null | tr -d "\r"; else return 127; fi; }; if [ -z "$JP" ] && [ -z "$JN" ]; then echo "SDLC gate hook did NOT run: no JSON parser (python or node) on the PATH of the shell Claude Code runs hooks in. The gate did not check this file." >&2; exit 2; fi; o=$(printf '%s' "$i" | jr '
 import sys,json
