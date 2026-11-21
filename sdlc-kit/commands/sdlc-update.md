@@ -302,7 +302,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.41.0 | an arc reaching production state is run for real | `reaches production state takes that run` |
 | 0.41.0 | the old-value search runs again after the writes | `runs again as the close's last bookkeeping act` |
 | 0.41.0 | the retro offer quotes the friction log | `oldest open entry's date` |
-| 0.41.0 | `verify:` names its route | `ran (change-verify | inline)` |
+| 0.41.0 | `verify:` names its route | `names its route: the skill dispatched` |
 | 0.41.0 | backlog numbers are unique at every slice close | `Every slice close asserts the identifiers are unique` |
 | 0.41.0 | a docs-only slice states its verification skipped | `states the skip` |
 
@@ -568,7 +568,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 - **0.36.0 changes the impact adapter's output** (kit-owned, replaced as usual): phase
   views gain `untracked-files`, every view gains `graph-coverage:`, `coverage` gains
   `gone-files`, and `refresh-check`'s needed line names how many files the graph is
-  behind. `freshness()`'s wording is unchanged. A project with its own tests on these
+  behind (0.41.0 retired that mode). `freshness()`'s wording is unchanged. A project with its own tests on these
   lines is told before the replace.
 - **0.36.0 anchors every launcher in `.claude/settings.json` at the repository root**
   (Claude Code projects): each kit launcher gains the prefix

@@ -220,8 +220,14 @@ retirement step's closing-marker re-read (an entry moved to
 `spec/PROJECT_INDEX_HISTORY.md` without its closing marker is pulled back — the
 visible failure; as of 0.27.0 it reads a friction line's **disposition** too, so an
 entry absorbed with `RULING OPEN` must be seen NOT to retire however old it is), the
-backlog's **uniqueness assert** at the phase close (negative case: a duplicated
+backlog's **uniqueness assert** at the phase close and, from 0.41.0, at every slice
+close (negative case: a duplicated
 identifier surfaced by `sort | uniq -d` instead of folded into a silent count), the
+phase close's **second old-value search** (0.41.0: a value this close superseded must
+be seen to be listed at this close, file and line, where the first search - run before
+the write - cannot see it), the **test-double fidelity lens** (0.41.0: a double whose
+answer is derived from the code under test must be seen to draw a finding, where the
+old side-effect question read it clean), the
 retro's **open-ruling sweep** (an absorbed entry with nothing built must be seen to be
 reported beside the unabsorbed ones) and its **age-rule upstream re-check** (an aged
 entry whose defect the current kit release already fixed must be seen to be

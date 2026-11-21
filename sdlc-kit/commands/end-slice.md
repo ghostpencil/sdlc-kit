@@ -398,7 +398,7 @@ git commit -m "$(cat <<'EOF'
 RED: <test command> — <the failing line> — exit <code>   (one per behavior batch)
 lenses: <lens: finding | lens: clean, …  | no lens triggered>
 mutation: <N guards, each seen to fail | none — no new guards>
-verify: <ran — verdict per behavior, naming the shell; not exercised: <what, why |
+verify: <ran (change-verify | inline) — verdict per behavior, naming the shell; not exercised: <what, why |
         nothing> | skipped — reason>
 EOF
 )"

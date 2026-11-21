@@ -145,7 +145,8 @@ For each, read the named files in full — do not sample — and cite evidence p
   unconsumed-artifact lens's deletion-path contract search, the retirement step's
   closing-marker re-read (0.27.0: it reads the friction line's disposition, so an entry
   marked `RULING OPEN` must be seen NOT to retire), the backlog uniqueness assert at
-  the phase close, the retro's open-ruling sweep and its age-rule upstream re-check,
+  the phase close and at every slice close (0.41.0), the phase close's second old-value
+  search and the test-double fidelity lens (both 0.41.0), the retro's open-ruling sweep and its age-rule upstream re-check,
   the update
   classifier, the release workflow's manifest verification, the impact adapter's
   four-state taxonomy (0.28.0; negative cases in `tools/impact-check.py`) and its

@@ -428,6 +428,43 @@ CANDIDATES
     "$S/.start" "$S/.base" "$S/.now"
 }
 
+# The detector's blind route (0.41.0). outside_writes skips every path a pre-write saw,
+# so a test written by heredoc and then touched ONCE through the editor was never
+# reported - the commonest route, and the one the rule exists for: one adoption's log
+# shows one report against seven such writes (field reports 12 and 13). So at a file's
+# FIRST editor write of the session, before it is recorded as seen: has it already
+# changed outside the editor? A hit is held and reported from the stop seat. Asked only
+# of a write that goes through - a denied one stays unseen, and the stop detector names
+# it. The membership test is shell-only, so a file already seen costs no fork;
+# outside_writes runs once per file per session. $1 = newline-separated paths.
+ask_first_touch() {
+  fresh=""
+  while IFS= read -r fp; do
+    [ -n "$fp" ] || continue
+    known=""
+    for sfile in seen-writes reported-writes outside-early; do
+      [ -f "$S/$sfile" ] || continue
+      while IFS= read -r sl; do
+        if [ "$sl" = "$fp" ]; then known=1; break; fi
+      done < "$S/$sfile"
+      [ -z "$known" ] || break
+    done
+    [ -n "$known" ] || fresh="$fresh$fp$NL"
+  done <<FRESHLIST
+$1
+FRESHLIST
+  [ -n "$fresh" ] || return 0
+  ow=$(outside_writes)
+  [ -n "$ow" ] || return 0
+  printf '%s' "$fresh" > "$S/.fresh"
+  printf '%s\n' "$ow" | awk 'FILENAME == ARGV[1] { f[tolower($0)] = 1; next } tolower($0) in f' "$S/.fresh" - > "$S/.early"
+  while IFS= read -r ep; do
+    [ -n "$ep" ] || continue
+    printf '%s\n' "$ep" >> "$S/outside-early"
+    log "pre-write: code changed outside the editor tools before this edit - held for the stop report: $ep"
+  done < "$S/.early"
+}
+
 # Observations are SESSION-scoped: a red observed in an earlier session does not
 # license a production write in this one. A new sessionId resets them.
 prev=""
@@ -623,48 +660,17 @@ case "$MODE" in
     done <<PATHLIST
 $PATHS
 PATHLIST
-    # The detector's blind route (0.41.0). It skips every path a pre-write saw, so a
-    # test written by heredoc and then touched ONCE through the editor was never
-    # reported - the commonest route, and the one the rule exists for: one adoption's
-    # log shows one report against seven such writes (field reports 12 and 13). So at a
-    # file's FIRST editor write of the session, before it is recorded as seen: has it
-    # already changed outside the editor? A hit is held and reported from the stop
-    # seat. The membership test is shell-only, so a file already seen costs no fork;
-    # outside_writes runs once per file per session.
-    if [ "$STATE" != paused ] && [ -n "$tseen$prel" ]; then
-      fresh=""
-      while IFS= read -r fp; do
-        [ -n "$fp" ] || continue
-        known=""
-        for sfile in seen-writes reported-writes outside-early; do
-          [ -f "$S/$sfile" ] || continue
-          while IFS= read -r sl; do
-            if [ "$sl" = "$fp" ]; then known=1; break; fi
-          done < "$S/$sfile"
-          [ -z "$known" ] || break
-        done
-        [ -n "$known" ] || fresh="$fresh$fp$NL"
-      done <<FRESHLIST
-$tseen$prel
-FRESHLIST
-      if [ -n "$fresh" ]; then
-        ow=$(outside_writes)
-        if [ -n "$ow" ]; then
-          printf '%s' "$fresh" > "$S/.fresh"
-          printf '%s\n' "$ow" | awk 'FILENAME == ARGV[1] { f[tolower($0)] = 1; next } tolower($0) in f' "$S/.fresh" - > "$S/.early"
-          while IFS= read -r ep; do
-            [ -n "$ep" ] || continue
-            printf '%s\n' "$ep" >> "$S/outside-early"
-            log "pre-write: code changed outside the editor tools before this edit - held for the stop report: $ep"
-          done < "$S/.early"
-        fi
-      fi
-    fi
+    # A test write always goes through: ask the first-touch question, then record it.
+    # Paused, nothing is asked, and both kinds are recorded as seen - an editor write
+    # made under a pause is still an editor write, and must not read as a shell one
+    # once the state resumes.
+    if [ "$STATE" != paused ] && [ -n "$tseen" ]; then ask_first_touch "$tseen"; fi
     [ -z "$tseen" ] || printf '%s' "$tseen" >> "$S/seen-writes"
     if [ "$STATE" = paused ]; then
       [ -z "$prel" ] || while IFS= read -r pr; do [ -n "$pr" ] && log "paused: unguarded production write: $pr"; done <<PAUSEDLIST
 $prel
 PAUSEDLIST
+      [ -z "$prel" ] || printf '%s' "$prel" >> "$S/seen-writes"
       exit 0
     fi
     if [ -n "$prod" ]; then
@@ -705,6 +711,7 @@ PAUSEDLIST
       # records it as seen. A denied write changed nothing; a shell retry of the same
       # file is exactly what the stop-time detector exists to catch.
       if [ -n "$ok" ] || [ ! -f "$S/deny-enabled" ]; then
+        ask_first_touch "$prel"
         printf '%s' "$prel" >> "$S/seen-writes"
       fi
       if [ "$ok" = "red" ]; then

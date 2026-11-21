@@ -1024,6 +1024,29 @@ def unit(guard_src, verbose=True, counter=None, first_only=False):
              and not any("before this edit" in l for l in d.loglines()))
         g("checkout", "--", "tests/test_pay.py")
 
+        sid = begin()
+        put("pay.py", "production the shell wrote\n")
+        out1 = d.run("pre-write", write(D, "pay.py", sid=sid))
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36o a shell-written file whose editor write is denied is named once, not twice",
+             '"permissionDecision":"deny"' in out1 and blocked(out).count("pay.py") == 1)
+        g("checkout", "--", "pay.py")
+
+        sid = begin()
+        statefile = os.path.join(D, ".git", "sdlc-state")
+        io.open(statefile, "w", encoding="utf-8", newline="").write(
+            "paused\nstage: slice\nsince: 2026-11-21T10:00Z\nreason: proof\n")
+        d.run("pre-write", write(D, "tests/test_pay.py", sid=sid))
+        put("tests/test_pay.py", "the editor wrote this under a pause\n")
+        io.open(statefile, "w", encoding="utf-8", newline="").write("slice\n")
+        d.run("pre-write", write(D, "tests/test_pay.py", sid=sid))
+        out = d.run("stop-check", stop(D, sid=sid))
+        os.remove(statefile)
+        case("36p an editor write made under a pause is not a shell write after the resume",
+             "outside the editor tools" not in blocked(out)
+             and not any("before this edit" in l for l in d.loglines()))
+        g("checkout", "--", "tests/test_pay.py")
+
         # --- SDLC state (FEATURE_PLAN.md 89.4): off / paused stand down, anything
         # else - absent and an unknown word included - guards exactly as before ------
         sfile = os.path.join(b.root, ".git", "sdlc-state")

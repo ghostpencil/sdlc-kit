@@ -1004,7 +1004,7 @@ rule proposed and never seen to fire is configuration that reads as enforcement.
 
 ### The lens↔rule map: what a rule decides, and the residue it cannot
 
-`reference/REVIEW_LENSES.md` carries seven review lenses. Two of them (*logging and
+`reference/REVIEW_LENSES.md` carries eight review lenses. Two of them (*logging and
 swallowed errors*, *untrusted input*) have subject matter the rules above already
 cover mechanically, and so does the retired *secrets and exposure*. A rule is strictly
 better than a lens where it applies: it is deterministic, it runs on every file rather
@@ -1090,6 +1090,13 @@ its caller. The first belongs to the phase spec's *trust boundaries*, which `SDL
 phase start already requires. The second is **unreviewed** since the retirement: no
 lens and no rule asks it, which is the cost the two clean clock readings were weighed
 against.
+
+**Lens: test-double fidelity.** *Mechanized:* nothing, in any of the six languages. The
+lens asks whether a stand-in's answers were taken from the real dependency or re-derived
+from the code under test, and a linter reads neither the dependency nor the derivation.
+Its nearest mechanical counterpart is the same test run once against the real thing,
+which is a run and not a rule.
+*Residue:* all of it.
 
 **Lens: the disposal-intent test.** *Mechanized:* nothing, in any language, and not for
 want of a rule — the lens's subject is a property of the **diff** (a test added and then

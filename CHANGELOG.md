@@ -7,7 +7,7 @@ its version in `sdlc-kit/VERSION`.
 An entry marked **[installable]** changes a file an adopted project holds
 (`commands/**`, `skills/**`, `reference/REVIEW_LENSES.md`, and the templates copied
 verbatim — `close-out.template.sh`, `sdlc-impact.template.py`,
-`sdlc-cosmetic.template.py` on both CLIs; `explore.agent.template.md` on Copilot;
+`sdlc-cosmetic.template.py`, `sdlc-state.template.py` on both CLIs; `explore.agent.template.md` on Copilot;
 `close-out-hook.template.json` where the backstop was accepted, until 0.38.0 retired it)
 and therefore matters at update time. Entries marked **[adoption-only]** change the other templates or the
 non-installed reference docs, which are read at `/sdlc-setup` time and never re-applied
@@ -59,8 +59,10 @@ shell-write detector stops missing the route it was built for.
   through the editor.** The 0.36.0 detector skipped every path a pre-write had seen, so
   a test written by heredoc and edited once was never reported: one adoption's log shows
   one report against seven such writes. The guards now ask at a file's first editor
-  write and name the file in the stop report. Four cases and two mutations in each guard
-  suite; both exit 0 (57 and 64 mutations caught). The guards are project-owned, so the
+  write and name the file in the stop report, once. An editor write made under a pause is
+  recorded as seen, so it no longer reads as a shell write after the resume. Six new
+  cases in the Claude suite, five in the shell suite, two mutations in each; both exit 0
+  (57 and 64 mutations caught). The guards are project-owned, so the
   fix arrives through `/sdlc-update`'s walk-through.
 - **[adoption-only]** `TESTING.template.md`: a double's answers come from the real
   system, and one test goes past the next width boundary of any identifier the code

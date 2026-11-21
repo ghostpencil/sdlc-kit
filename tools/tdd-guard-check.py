@@ -1430,6 +1430,15 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
               and not any("before this edit" in l for l in d.loglines()), repr(out))
         g("checkout", "--", "tests/test_pay.py")
 
+        seg("D15 a denied editor write of a shell-written file")
+        sid = begin()
+        put("pay.py", "production the shell wrote\n")
+        out1 = d.run("pre-write", write(DR, [("Update", "pay.py")], sid=sid))
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D15 a shell-written file whose editor write is denied is named once, not twice",
+              "deny" in out1 and reason(out).count("pay.py") == 1, repr(out))
+        g("checkout", "--", "pay.py")
+
         # R: a RED needs the runner's own report (FEATURE_PLAN.md 84, sdlc-kit#16). A
         # wrapper failing before the runner starts exits with a failed test's code.
         def ctx(out):
@@ -1827,7 +1836,8 @@ MUTATIONS = [
      lambda s: s.replace('        printf \'%s\' "$prel" >> "$S/seen-writes"', '        :')),
     ("never ask at a file's first editor write (a heredoc-written test, touched once "
      "through the editor, is never reported - field reports 12 and 13)",
-     lambda s: s.replace('        ow=$(outside_writes)\n', '        ow=""\n')),
+     lambda s: s.replace('  ow=$(outside_writes)\n  [ -n "$ow" ] || return 0\n',
+                         '  ow=""\n  [ -n "$ow" ] || return 0\n')),
     ("hold the early files and never report them at stop",
      lambda s: s.replace('      [ -z "$early" ] || outside="${outside:+$outside$NL}$early"\n',
                          '      :\n')),

@@ -649,7 +649,7 @@ Without a stated trigger the graph ages silently and every run of the view repor
 freshness line was the only thing that said so (field, 2026-09-01).
 
 **Do not rely on the graph tool's own auto-update to do this.** Where the tool offers
-such a setting, it is the owner's choice, and the refreshes above stay the process's
+such a setting, it is the owner's choice, and the phase-end check above stays the process's
 own either way. Measured against the Understand Anything plugin (2.9.4 and 2.9.7, read
 2026-10-22): its `autoUpdate` flag defaults to off. Turning it on enables two hooks, and
 neither writes the graph. Each prints an instruction: the session-start hook when the
@@ -671,7 +671,7 @@ it discards both hooks' output forms, delivering only a top-level `additionalCon
 words rather than the line, and prints the plugin's message in the form Copilot
 delivers. Measured the same day, that form reaches the agent at session start and after
 a tool call. A setting named auto-update is exactly the kind of claim this process
-re-derives rather than trusts. The refreshes above are what make the view's freshness a
+re-derives rather than trusts. The phase-end check above is what makes the graph's coverage a
 property of this process instead of a property of a vendor's hook matcher.
 
 **Freshness answers one question only:** had the tree already moved on from the graph
@@ -695,8 +695,7 @@ UA's own generated files out of the project's changed-file denominator.
 Where the view fits: `/next-slice` records the slice base once the branch is settled and
 previews the footprint into the slice-ready hand-back; `/end-slice` regenerates after
 the record check, states **whether the footprint changed from that preview**, clears
-the spent base in the same pass, so the next slice can never compute against an old one,
-and then refreshes the graph where its switch is on;
+the spent base in the same pass, so the next slice can never compute against an old one;
 `/end-phase` runs it against the main branch the project's own records name for the
 acceptance hand-back, regenerates before the merge halt, stating any change since
 acceptance, and checks the graph's coverage after the merge where its switch is on.
@@ -934,7 +933,9 @@ Run `/end-slice` when the slice's exit criteria are met:
    stated in the hand-back, and the one-line outcome (`verify: ran (change-verify | inline) — <verdicts,
    naming the shell they ran in>; not exercised: <what could not be reached, and why |
    nothing>` / `verify: skipped — <reason>`) is recorded in the
-   slice commit body either way. **The `not exercised:` half is required and `nothing`
+   slice commit body either way. The `ran` form
+   names its route: the skill dispatched, or the behavior exercised inline under the same
+   report contract. **The `not exercised:` half is required and `nothing`
    is a real answer**: the skill's third verdict — *not exercised, and why* — is a
    first-class result that must never be folded into the first, and it is the half that
    disappeared on a real arc while every key stayed present and the record read as
@@ -973,7 +974,8 @@ Run `/end-slice` when the slice's exit criteria are met:
     detail lives in the phase spec and the commit message), deferred items appended,
     and any friction with the process itself written to the Kit friction log now,
     while the evidence is still accurate, in the log's one-line shape
-    (`- <date> — <friction> — open`) — then commit the docs change. That rule
+    (`- <date> — <friction> — open`; a step skipped for the same reason three slices
+    running is friction too, written once per reason per arc) — then commit the docs change. That rule
     carries a **budget of 25 added index lines** for this commit — the status line
     plus whatever backlog, gotcha, and friction entries the slice genuinely produced
     — and the close-out checker's `docs-check` mode counts them and reports against

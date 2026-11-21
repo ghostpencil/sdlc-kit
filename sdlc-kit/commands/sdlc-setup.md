@@ -627,7 +627,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    `autoUpdate` is absent or `false`, offer to set it `true` at the feedback halt.
    Never set it silently: it is the project's file, not the kit's. Say all three of
    these when you offer it, because the name overpromises and an owner who believes
-   the name will not run the slice-end and phase-boundary regenerations that actually
+   the name will not run the phase-end check, or their own rebuilds, that actually
    keep the graph current (`spec/SDLC.md`, *Architecture impact view*):
 
    - It **does not refresh; it orders the agent to.** Measured against the Understand
@@ -643,7 +643,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
      Copilot is a runtime.
    - Turning it on is the owner's call: the session-start staleness check is a real
      signal, and the price is the unprompted runs. Either way it is a supplement to the
-     process's own regenerations, never a substitute for them.
+     process's own phase-end check, never a substitute for it.
 
    **Install the cosmetic classifier — both CLIs, always, and grant-only.**
    `sdlc-cosmetic.template.py` → `.github/hooks/sdlc-cosmetic.py`, copied verbatim; it

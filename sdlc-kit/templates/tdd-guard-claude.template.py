@@ -562,6 +562,10 @@ if STATE in ("off", "paused"):
         if _rel and is_code(_rel) and not (match_any(_rel, TEST_PATH_PATTERN) or
                                            match_any(_rel.rsplit("/", 1)[-1], TEST_PATH_PATTERN)):
             log("paused: unguarded production write: %s" % _rel)
+        # An editor write made under a pause is still an editor write: recorded as seen,
+        # so it does not read as a shell write once the state resumes (0.41.0).
+        if _rel and is_code(_rel):
+            add_lines("seen-writes", [_rel])
     sys.exit(0)
 
 TOOL_INPUT = D.get("tool_input") or {}

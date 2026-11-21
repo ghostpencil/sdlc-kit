@@ -9038,3 +9038,38 @@ note lists what arrives by copy, the two retirements as owner decisions, the fol
 **The rest.** `KIT_INVARIANTS.md` invariant 13 and `/kit-check`'s copy of its denominator
 gain the guards' first-editor-write question and lose the two retired checks; CHANGELOG
 0.41.0; `VERSION`; the manifest. The standing clocks above are refreshed to §94.
+
+### 96.1 The release `/kit-check` — run 2026-11-21, twelve findings, all fixed in-session
+
+**Suites, all ten run on the final tree, all exit 0:** tdd-guard-check 64/64 mutations
+in 237 s, tdd-guard-claude 57, impact 43 cases / 54, close-out 28 + 7 / 17, gate-hook,
+skill-ledger 18 cases, shipped-lint 4 files / 5, rederive 8 / 7, sdlc-state, cosmetic on
+typescript 5.9.3 and 6.0.3. Mechanical: manifest 45 of 45 from committed content, the
+placeholder census in `sdlc-setup.md` only, the README tree 124 files.
+
+**Findings, by where they came from.** The retirements left five sentences behind:
+three in `SDLC.template.md` (*Architecture impact view* still had `/end-slice`
+refreshing the graph, and two plurals) and two in `sdlc-setup.md`. Command and template
+out of step: `/end-slice` step 7's commit template lacked the `verify:` route word, the
+stated-skip "once" rule was in the command only, and `/end-phase` named two of a stale
+graph's three causes. Derived lists: the lens-to-rule map had no entry for the new lens
+and said seven; invariant 13's two lists lacked the slice-close uniqueness assert, the
+second old-value search and the lens; one fold marker held a `|` that split its table
+cell; the root README's release count and the CHANGELOG's list of kit-owned templates
+were stale.
+
+**Two were defects in §95.2's guard change, found by reading it as code.** The shell
+guard asked its first-touch question before the deny decision, so a shell-written file
+whose editor write was denied was held, left unseen, and named twice at the stop; the
+question is now asked only of a write that goes through, as the Python guard does (case
+D15, and 36o on the Claude side). And an editor write made under a pause was never
+recorded as seen, so the same file touched again after the resume read as a shell write
+— a false report the first-touch question widened; both guards now record a paused
+editor write as seen (case 36p). §95.2's case counts are therefore six (36k–36p) and five
+(D11–D15).
+
+Passed with their denominators: invariant 3 (52 placeholders), 5 (about 75 pointers, the
+six new ones resolve), 6 (158 step references, none crossing the two numberings), 7, 8,
+9, 11, 12, 14, 15, 16. Not read in full by the invariant 1 pass: `sdlc-setup.md` and
+`sdlc-update.md` beyond their diffs. Pre-existing and left: `end-phase.md` names
+`CLAUDE.template.md` in a parenthesis whose content it restates inline.

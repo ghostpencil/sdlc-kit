@@ -73,8 +73,8 @@ invocation.
 **If the block reports `graph-freshness: may be stale`, say so in the hand-back** — the
 picture the owner is about to accept against was drawn from a tree older than this arc.
 A stale line means the graph was built before this arc branched and has not been
-rebuilt since, or the main branch has moved since the arc branched (a hotfix merged
-in) — say which. Do not refresh here: the owner is mid-review
+rebuilt since, or was built on a sibling branch, or the main branch has moved since the
+arc branched (a hotfix merged in) — say which. Do not refresh here: the owner is mid-review
 (`spec/SDLC.md`, *Architecture impact view*). The phase-end refresh is a full rebuild
 only when code went missing, so a stale graph with complete coverage is an owner
 decision: name `/understand` as the remedy rather than running it.
@@ -564,7 +564,8 @@ read before it is reconciled is a decision taken twice.
   carries the record it is declined against:** count the Kit friction log's lines
   ending `— open` and quote that count with the oldest open entry's date. "Nothing to
   teach" is a claim about that log, and one adoption declined seventeen offers running
-  while it grew to 154 entries, 118 of them open.
+  while it grew to 154 entries, 118 of them open. An offer made without the count is
+  this bullet not done; a project with no such log says so in its place.
 
 ## Notes
 

@@ -9,7 +9,7 @@ services, GUI apps, libraries. The process is the constant; the tooling (linter,
 checker, test runner) is configured per project during setup. It runs on **Claude Code**
 and **GitHub Copilot CLI**, and a project may use both.
 
-Since that first extraction the kit has shipped 51 releases, nearly all shaped by real use:
+Since that first extraction the kit has shipped 53 releases, nearly all shaped by real use:
 three adopting projects (Python, Java/Spring Boot, TypeScript) have run it across both
 CLIs, and thirteen field reports from them sit at the root of this repo. The theme of that
 work is in the next sections: the process no longer only *describes* the steps, it
