@@ -266,6 +266,21 @@ tool scratch as production source. Its theme: **the controls observe proxies
 instead of the facts they guard** — a test run read from the command's spelling, a
 failure from any non-zero exit, "nothing was written" from the absence of an Edit call.
 
+`FIELD_REPORT_2026-11-12.md` and `FIELD_REPORT_2026-11-19.md` are the **twelfth and
+thirteenth** — the first adopter's Phase 27 and Phase 30 retros (`sdlc-kit#19`, `#20`),
+both on 0.40.1 and generalized like their predecessors (do not de-anonymize them or their
+filenames). `FEATURE_PLAN.md` §93 triages them with #18, a single finding from the same
+adopter's Phase 18 close that stays an issue only. Read §93.1–§93.2 before acting on
+either priority table: the twelfth's "no lens fires" is half false (a doubles question
+exists; its wording is the gap — it was asked of both doubles that hid the field defects,
+and both passed), the 0.36.0 shell-write detector saw one of seven writes because it
+skips a file later touched through the editor, and the thirteenth's summary-line fix
+collides with a measured recipe rule. §93.4 adds a defect nobody filed: `/end-phase`'s
+old-value search runs before the write that makes a value old. Their themes: **rules the
+agent must remember fail, checks that run do not**, and **the defects that mattered
+lived outside any single diff** — in a procedure, in a clause no slice owned, in a ruling
+made mid-arc. §94 is the clock reading over the same adopter's Phases 13–32.
+
 ## Writing conventions for these files
 
 Command files are prompts, not documentation. The established shape is: a title, a

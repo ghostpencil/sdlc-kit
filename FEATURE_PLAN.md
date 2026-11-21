@@ -8815,3 +8815,122 @@ detector's blind route (3) and the Spec axis reading cited decisions (5, first h
 are 0.41.0; prevention is held one arc behind B(1) (4); the plan-time clause
 enumeration gets its own section (5, second half); #18's boundary prompt is held (6);
 and the clock reading is its own section, read before 0.41.0 is tagged (7).
+
+---
+
+## 94. Twenty-one unread arcs read against the standing clocks — two clocks fail on
+## their own terms, one is satisfied, every named lens has a catch, and the graph
+## machinery has not run once — 2026-11-21, rulings owed
+
+Ruling 93.7(7). The arcs are the first adopter's Phases 13 through 32 (19b included),
+merged 2026-10-25 → 2026-11-21: P13–P19 under 0.38.0, P19b–P32 under 0.40.1. ai-news and
+chainmail have closed no arc since §87. Read from that clone today: 720 commits, 223
+`lenses:` lines and 227 `verify:` lines in the slice commit bodies, `.git/sdlc-tdd/guard.log`
+(20,219 lines), `.git/sdlc-state.log` (487), and the friction log in its `spec/SDLC.md`.
+Under §87.2 (B) every eligible arc is the reading. **Counts below are from a script over
+the commit bodies; every catch named was read as text.** Nothing here is ruled.
+
+### 94.1 Clock by clock
+
+**(i) The named lenses — all seven kept on lens-named catches.** Applications, and the
+slices where the verdict is a finding fixed or deferred rather than `clean`:
+
+| lens | applied | findings | examples |
+|---|---|---|---|
+| `untrusted input` | 60 | 9 | an unquoted `href` slot let a space inject an attribute (P26 S2); a page path built from a manifest slug unchecked (P20 S5); heading injection into generated markdown (P14 S5a) |
+| `error propagation` | 44 | 6 | a failed reopen left a store enabled over no connection (P17 S5); a fetch error escaped as a traceback (P30 S2, S8) |
+| `logging and swallowed errors` | 27 | 4 fixed, 2 deferred | a parse error swallowed and scored as a clean no-match (P29 S2) |
+| `disposal-intent` | 20 | 1 | a test lost its `def` line and its assertions ran under another test (P30 S15) |
+| `shared state under concurrency` | 19 | 1 fixed, 2 deferred | an in-flight count taken at thread start, not accept (P17 S6) |
+| `verify the denominator` | 18 | 3 fixed, 1 deferred | unpriced answers added as $0 (P16); a rescore that double-counted four labels (P15 S7b) |
+| `unconsumed artifact` | 4 at slices | 1 | a constant defined and never used by its handler (P27 S10) |
+
+`untrusted input` was kept in §87 on the TypeScript adopter alone; it now has nine
+catches on the Python one. 97 of the 223 lines read `no lens triggered`.
+
+**(ii) The doubles question — and a correction to §93.1 A.** §93 said no record shows
+whether the question was asked. That is true of the kit's contract and false of this
+adopter's habit: 53 of the 223 `lenses:` lines carry a `test doubles:` verdict the kit
+never asked for. Four are fixes (a stub that always exited 0, P17 S8; three fakes missing
+`release()`, P20; doubles narrower than the real signature, P20 S4; stub fields without
+focus, P26 S6a). Two matter more: the Phase 18 fake that hid #18's four defects was
+reviewed and recorded `clean` ("model the exit codes the swap branches on"), and the
+page-test harness that later hid #19's Tab trap was recorded `clean` in P26 S6b. **The
+question was asked of both doubles, as worded, and both passed.** The finding is the
+wording, which is what 93.5(2) changes; the missing record is the smaller half. P27 S1,
+the slice that built the stubs, is among the lines without a doubles verdict.
+
+**(iii) The docs-only verification form — FAILS on its own terms.** The clock said the
+next docs slice anywhere decides. Six docs slices ran the form in this window (P15 three
+times, P19, P22, P26), opening every added path and checking claims against source; none
+found a broken command or path. With chainmail S11 that is seven runs and no catch. Two
+more docs slices skipped it with a stated reason. Deletion candidate (§80.3).
+
+**(iv) The slice-end graph refresh — FAILS on its own terms, twenty-one arcs over.** No
+slice-end refresh ran in the window. Through P18 it was skipped or blocked (a graph/meta
+commit mismatch, P16 S5 and P17 S8); from P19 the graph sits at one commit, 152 files
+behind by P21 and 394 by P30, past the plugin's own full-update threshold. No preview
+anywhere read `current at the base` because a previous slice had refreshed. Deletion
+candidate (§81), and its retirement removes the countable example from the stated-skip
+rule 93.1 F edits.
+
+**(v) The phase-end coverage trigger — not readable; the rule's premise did not hold.**
+`coverage` ran and named missing code files at four closes or more (46, 67, 80 and 180).
+Each time the rebuild was deferred to the owner, so "the full rebuild added them" never
+happened, and the graph's freshness never read current beside the gap. The command
+names the gap; the kit's text says the rebuild then runs. In the field it is an owner
+action every time.
+
+**(vi) IMPACT — arc two, with no comprehension event, and no arc that could have had
+one.** The two retros in the window report none, and no arc ran on a current graph.
+§87.7 ruling 6's terms make this a deletion candidate; the honest reading is that the
+view has not been tested, because the graph it reads was never rebuilt.
+
+**(vii) COSMETIC — SATISFIED.** Five production writes exempted as `cosmetic:
+python-ast` (P13's layout work, P18) and six test edits read as cosmetic so the red
+stood, against 1,626 `not cosmetic` readings. Each is a write the previous release would
+have denied or charged. Clock closed (§82).
+
+**(viii) The outside-the-editor report (§85) — its catch criterion, written now, and
+met.** Criterion: a block naming a code file that the session's own record confirms was
+written through the shell. Four blocks fall in the window and name real shell writes.
+It is kept, and it is blind to the commonest route (93.1 B), which 93.5(3) fixes.
+
+**(ix) STATE (§89.11) — not yet readable.** The criterion waits for every adopter to
+take 0.39.0 or later; two are on 0.38.0. Partial, for the record: about fourteen arcs
+under 0.40.x with every transition written by a command (180 `phase`, 146 `slice`, 130
+`close-out`, 15 `phase-end`, 15 `off`), one pause, and one `paused: unguarded` line.
+
+**Not read in this pass:** CONTRACT's walk, R3.8's aging beyond #19 f5, the fold markers,
+the baseline stamps, the coverage floor's recorded catch, and the skill ledger beyond
+the two retros' own counts. They carry to the next reading.
+
+### 94.2 The fact under (iv)–(vi)
+
+Three controls read one artifact, and the artifact's upkeep is an owner action that did
+not happen across twenty-one arcs — while the owner ran those arcs daily. The plugin's
+hooks said "you MUST update the graph" at every session and commit; the kit's rule
+deferred it; the friction log recorded the contradiction at least forty times. That is
+not three clocks failing separately. It is one question: does this adopter want the
+graph.
+
+### 94.3 Rulings owed
+
+1. **The docs-only verification form (iii).** Retire it — the docs-only slice keeps its
+   path and states its verification skipped, as two slices already did — or keep it on a
+   stated reason. *Recommended: retire, on the clock's terms.* Seven runs, no catch.
+2. **The slice-end graph refresh (iv).** Retire it: the `Graph refresh:` line keeps only
+   its phase-end half, `/end-slice` step 10's refresh and `refresh-check` go. *Recommended:
+   retire.* It has never produced its reading on any adopter.
+3. **IMPACT and the coverage trigger (v, vi).** (a) Retire both with the refresh; (b) keep
+   both for one more reading, on the condition that the graph is rebuilt first — no
+   rebuild before the next arc closes and both are deleted at that reading without a
+   further ruling; (c) keep the coverage step as a report that names an owner action,
+   which is what it is in the field, and retire only the slice and phase views.
+   *Recommended: (b).* Neither has been tested, and (a) deletes on the upkeep's failure,
+   not the control's.
+4. **COSMETIC's clock is closed and `untrusted input` is kept on the Python adopter
+   too** — recorded, no ruling needed unless the owner disagrees.
+
+Rulings 1 and 2 remove text; if taken they ship in 0.41.0 with the §93 batch, and F's
+stated-skip fix loses its graph example but stands for every other step.

@@ -11,7 +11,7 @@ and **GitHub Copilot CLI**, and a project may use both.
 
 Since that first extraction the kit has shipped 51 releases, nearly all shaped by real use:
 three adopting projects (Python, Java/Spring Boot, TypeScript) have run it across both
-CLIs, and eleven field reports from them sit at the root of this repo. The theme of that
+CLIs, and thirteen field reports from them sit at the root of this repo. The theme of that
 work is in the next sections: the process no longer only *describes* the steps, it
 *checks* them, and every check ships with proof that it can fail.
 
@@ -316,6 +316,8 @@ FIELD_REPORT_2026-08-17b.md          ← ai-news-dashboard Phase 05 (sdlc-kit#8)
 FIELD_REPORT_2026-08-21.md           ← findings from an 8th phase (sdlc-kit#9) — triaged in FEATURE_PLAN.md §70
 FIELD_REPORT_2026-09-01.md           ← findings from a 9th phase (sdlc-kit#10) — triaged in FEATURE_PLAN.md §76
 FIELD_REPORT_2026-10-19.md           ← a third adopter's Phase 01 (sdlc-kit#17) — triaged in FEATURE_PLAN.md §84
+FIELD_REPORT_2026-11-12.md           ← findings from a 27th phase (sdlc-kit#19) — triaged in FEATURE_PLAN.md §93
+FIELD_REPORT_2026-11-19.md           ← findings from a 30th phase (sdlc-kit#20) — triaged in FEATURE_PLAN.md §93
 CRITICAL_GAPS_ANALYSIS.md            ← external gap review at 0.7.0 — triaged in FEATURE_PLAN_HISTORY.md §11
 IMPROVEMENT_PLAN.md                  ← what was done about them (closed at v0.3.0)
 FEATURE_PLAN.md                      ← the live plan: standing decisions, clocks, active work
