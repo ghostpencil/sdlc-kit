@@ -196,7 +196,10 @@ skip.
    So a re-wrap the edit-time hook asks for *after* the red denies the next production
    write until the red is run again: on one adopter it cost exactly that, a denied write
    and a re-observed red. Apply the hook's fix to the test first, then run the red; if a
-   fix lands after it anyway, re-run the red before writing the code. **Format and test
+   fix lands after it anyway, re-run the red before writing the code. A red you
+   manufactured and then had to correct is the same case: correcting the test is a test
+   edit, so the corrected test is its own red–green pair, run red again before the
+   production write. **Format and test
    in separate calls**: a formatter chained onto the run (`<formatter> --write <file>;
    <test command> <file>`) makes it compound, and the guard counts only a single bare
    test command — one adopter's slice had seven runs refused for that shape alone.

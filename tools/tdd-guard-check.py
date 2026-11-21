@@ -1391,6 +1391,45 @@ def unit(guard_src, verbose=True, counter=None, parser=None, first_only=False,
         check("D10 a pull or merge of commits dated before the session reports nothing",
               out == "", repr(out))
 
+        # 0.41.0, the blind route: before this the pre-write recorded the path as seen
+        # and the stop skipped it - one adoption's log shows one report against seven.
+        seg("D11-D12 a shell write, then one editor touch")
+        sid = begin()
+        put("tests/test_pay.py", "a test body the shell wrote\n")
+        d.run("pre-write", write(DR, [("Update", "tests/test_pay.py")], sid=sid))
+        put("tests/test_pay.py", "a test body the shell wrote, renamed by the editor\n")
+        held = [l for l in d.loglines() if "before this edit" in l]
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D11 a shell-written test touched once through the editor still reports",
+              len(held) == 1 and "tests/test_pay.py" in held[0]
+              and "outside the editor tools this session: tests/test_pay.py" in reason(out),
+              repr(out) + " | " + repr(held))
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D12 ...once: the next stop does not name it again",
+              "outside the editor tools" not in reason(out), repr(out))
+        g("checkout", "--", "tests/test_pay.py")
+
+        seg("D13 the same for production source")
+        sid = begin(armed=False)
+        put("pay.py", "production the shell wrote\n")
+        d.run("pre-write", write(DR, [("Update", "pay.py")], sid=sid))
+        d.run("stop-check", stop(DR, sid=sid))
+        lg = [l for l in d.loglines() if "WOULD-REPORT" in l]
+        check("D13 the same for production source (logging mode: logged, named)",
+              len(lg) == 1 and "pay.py" in lg[0], repr(lg))
+        g("checkout", "--", "pay.py")
+
+        seg("D14 ordinary editor writes")
+        sid = begin()
+        d.run("pre-write", write(DR, [("Update", "tests/test_pay.py")], sid=sid))
+        put("tests/test_pay.py", "the editor wrote this, twice\n")
+        d.run("pre-write", write(DR, [("Update", "tests/test_pay.py")], sid=sid))
+        out = d.run("stop-check", stop(DR, sid=sid))
+        check("D14 an ordinary editor write, and a second to the same file, report nothing",
+              "outside the editor tools" not in reason(out)
+              and not any("before this edit" in l for l in d.loglines()), repr(out))
+        g("checkout", "--", "tests/test_pay.py")
+
         # R: a RED needs the runner's own report (FEATURE_PLAN.md 84, sdlc-kit#16). A
         # wrapper failing before the runner starts exits with a failed test's code.
         def ctx(out):
@@ -1657,7 +1696,7 @@ MUTATIONS = [
     ("classify by source glob before test pattern (the defect ENF.2 predicted)",
      lambda s: s.replace(
          'case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); '
-         'tfile="$SDLC_REPO_ROOT/$n"; printf \'%s\\n\' "$n" >> "$S/seen-writes"; '
+         'tfile="$SDLC_REPO_ROOT/$n"; tseen="$tseen$n$NL"; '
          'continue ;; esac',
          'case "$b" in {{SOURCE_GLOB}}) prod="$prod $p"; continue ;; esac')),
     ("never stand down on stop_hook_active (fights the documented block cap)",
@@ -1748,7 +1787,7 @@ MUTATIONS = [
      lambda s: s.replace(
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
          '"$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" '
-         '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" "$S/state-spoken" 2>/dev/null',
+         '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" "$S/outside-early" "$S/state-spoken" 2>/dev/null',
          'rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" '
          '"$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" 2>/dev/null')),
     ("drop G2's session scoping (the stop guard binds planning and docs sessions "
@@ -1786,6 +1825,12 @@ MUTATIONS = [
     ("never record an editor write as seen (every editor write reads as a shell "
      "write at stop)",
      lambda s: s.replace('        printf \'%s\' "$prel" >> "$S/seen-writes"', '        :')),
+    ("never ask at a file's first editor write (a heredoc-written test, touched once "
+     "through the editor, is never reported - field reports 12 and 13)",
+     lambda s: s.replace('        ow=$(outside_writes)\n', '        ow=""\n')),
+    ("hold the early files and never report them at stop",
+     lambda s: s.replace('      [ -z "$early" ] || outside="${outside:+$outside$NL}$early"\n',
+                         '      :\n')),
     ("record a DENIED write as seen (its shell retry goes unreported)",
      lambda s: s.replace('if [ -n "$ok" ] || [ ! -f "$S/deny-enabled" ]; then',
                          'if true; then')),

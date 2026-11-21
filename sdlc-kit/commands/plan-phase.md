@@ -106,7 +106,7 @@ subagent ever interacts with the owner.
   Each hit names its extra verification in the spec — in the slice's exit criteria or
   the acceptance-review checklist — and appears in Risks & Deferred. A hit absorbed
   silently is the finding; consequence and size are different axes, and smallness is
-  no exemption. Two questions every hit must answer:
+  no exemption. Three questions every hit must answer:
   - **Is it actually inert?** Any claim that a consequence is neutralized by
     configuration — a flag, an environment variable, "ships dormant", "off in prod",
     "merging changes nothing" — must name the variable **and quote its value from the
@@ -119,6 +119,14 @@ subagent ever interacts with the owner.
     alone. A control whose only lever also disables something unrelated — the identity
     layer, the whole feature set, the service — has no rollback, and that is a finding
     now rather than during the incident it causes.
+  - **What does its verification write, and where?** The sweep scans behaviors; this
+    question scans the checks. For every verification a hit names, and every
+    acceptance-checklist step that runs a command, say what it writes when run against
+    real data, and where — and whether "point it at a copy" redirects **every** store
+    the command touches, not only the one the instruction names. A rehearsal aimed at a
+    copied data directory once marked 35 real items as promoted, because a second store
+    lived outside that directory; every slice review was clean, the defect being in the
+    procedure and not in any diff.
 - **Cross-system sweep** — list every existing subsystem the feature reads or writes.
   Each touched system needs a stated interaction rule (or an explicit "unaffected").
 - **Persistence & compatibility sweep** — new/changed models → migration plan, seed/

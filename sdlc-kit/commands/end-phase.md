@@ -97,6 +97,16 @@ arc that bought this rule, the local pass found the arc's worst defect three com
 before the PR — 474 hermetic tests green throughout, the defect in the composition,
 invisible to every unit.
 
+**An arc whose output reaches production state — a deploy tool, a migration, a sync, a
+job that writes where real data lives — takes this run whether or not a slice ran the
+application, and a dry run is not it.** On one arc the dry run passed and the first
+real run found four defects that 1,790 green tests, mutation testing and six slice
+reviews had missed, each in what the tests' stand-ins assumed about the real system.
+**Before any such run, answer what it writes and where** (`/plan-phase`'s consequence
+sweep asks it of every acceptance step): a run against real data is also a write to
+it, and a rehearsal pointed at a copy is safe only if the copy covers every store the
+command touches.
+
 Tell the owner the phase is gate-green and ready for their acceptance pass, per the
 hand-back standard (`spec/SDLC.md`, *Owner halt points*): a plain-English executive
 summary in bullets — what the phase delivers, what to exercise, the exact command to
@@ -311,7 +321,9 @@ read before it is reconciled is a decision taken twice.
      in the same file: one arc recorded a coverage floor in four places, corrected the
      two that a bullet happened to name, and closed green with the other two wrong. The
      output of this leg is a **file list**, not a verdict, and an empty list is the only
-     pass. **A gate baseline with no `@ <short-sha>` stamp is stamped here, green or
+     pass. **This leg finds values superseded before this close; the bullets below
+     supersede more, so the search runs once again as this step's last check** (*Search
+     again*, below). **A gate baseline with no `@ <short-sha>` stamp is stamped here, green or
      red,** from step 2's run on the arc branch — including setup's
      `@ <stamped at close-out>` marker, which survives when the owner declined setup's
      commit. The red-baseline bullet below stamps the value it decides; this sentence
@@ -531,6 +543,18 @@ read before it is reconciled is a decision taken twice.
   may not happen, and incremental cannot add a file. The template says why. A graph missing whole files reads
   `current` while the view leaves those files out, which is what one real adoption
   measured: ten files absent at a phase close.
+- **Search again for every value this close superseded — the last check before the
+  commit.** The coverage-floor and red-baseline bullets above write new numbers after
+  the reconcile pass has run, and a search that ran before a write cannot see the
+  value that write made old. For each number this close changed — a threshold, the
+  measured coverage figure, the baseline, any count in *Records* — search the whole
+  spec set for the value it replaced and report every file and line still carrying it
+  as a current claim. An empty list is the only pass; a history note that names the
+  old value as old is not a hit. One adoption's coverage line was left stale at three
+  closes and found each time by the *next* close's search, one arc late: the search
+  had run on time and in the wrong order. Where a number has several homes, a gate
+  test asserting they agree is the better fix, and worth a backlog entry the first
+  time this search finds one.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
 - Then end the arc's state: `python .github/hooks/sdlc-state.py set off --by end-phase`
   — the kit's hooks stand down until `/plan-phase` begins the next one.
@@ -538,7 +562,11 @@ read before it is reconciled is a decision taken twice.
 - Offer `/sdlc-retro` — it extracts lessons from the phase just closed, while the
   evidence is fresh: project facts into PROJECT_INDEX, process findings into a report.
   An offer, not a step; declining is the right answer whenever the phase has nothing to
-  teach, and the command itself refuses to run on too little evidence.
+  teach, and the command itself refuses to run on too little evidence. **The offer
+  carries the record it is declined against:** count the Kit friction log's lines
+  ending `— open` and quote that count with the oldest open entry's date. "Nothing to
+  teach" is a claim about that log, and one adoption declined seventeen offers running
+  while it grew to 154 entries, 118 of them open.
 
 ## Notes
 

@@ -8934,3 +8934,68 @@ graph.
 
 Rulings 1 and 2 remove text; if taken they ship in 0.41.0 with the §93 batch, and F's
 stated-skip fix loses its graph example but stands for every other step.
+
+---
+
+## 95. The §93 batch built for 0.41.0 — 2026-11-21, on branch `0.41.0`, unreleased
+
+Rulings 93.7(2), (3) and (5, first half), built the same day. Not yet done, and waiting
+on §94.3's rulings because two of them remove text: the CHANGELOG entry, `VERSION`, the
+manifest, the 0.41.0 update note in `/sdlc-update` step 5, invariant 13's denominator,
+and the release `/kit-check`.
+
+### 95.1 The text batch — nine kit files
+
+- **A, the doubles lens.** `reference/REVIEW_LENSES.md` gains *test-double fidelity*,
+  triggered by a slice that adds or changes a double: name what the code depends on, ask
+  where each answer comes from, show one disagreement or run it once for real, and the
+  old side-effect question as its fourth point. The untriggered bullet is deleted from
+  `end-slice.md` step 4 and from `SDLC.template.md`'s slice-loop paragraph; both trigger
+  lists gain the clause. `TESTING.template.md` gains the derivation rule and #18's
+  boundary sentence (one test past the next width boundary).
+- **E with #18's third suggestion.** `plan-phase.md`'s consequence sweep asks a third
+  question — what does the verification write, and where — of every named verification
+  and every acceptance step that runs a command. `end-phase.md` step 3 makes the
+  real-data run unconditional for an arc that reaches production state, says a dry run is
+  not it, and asks the same question before the run. Both have their line in
+  `SDLC.template.md`.
+- **F.** `end-slice.md` step 9: the stated-skip line is written once per step and reason
+  per arc; later closes say one hand-back line.
+- **93.4.** `end-phase.md` step 7 gains *Search again* as the last check before the docs
+  commit, over every value the close superseded; subject 2 points at it, and the template
+  states it.
+- **G.** The retro offer quotes the friction log's open count and oldest open date
+  (`end-phase.md`, template); the `verify:` line says `ran (change-verify)` or
+  `ran (inline)` (`end-slice.md` step 6 and its format line, template); the pytest row in
+  `GATE_RECIPES.md` names `--tb=line` as the quiet form — the recipe's column, so no
+  instantiated pattern changes; `sort | uniq -d` at `end-slice.md` step 9 (template too);
+  one sentence in `next-slice.md` step 4 on a corrected manufactured red.
+- **C's second half.** `skills/diff-review/SKILL.md` Axis A gains *Cited decisions*: open
+  each decision or behavior the slice's entry cites and quote its wording beside what was
+  built.
+
+### 95.2 B(1), the detector's blind route — both guards, and one change from §93's wording
+
+At a file's first editor write of the session, before the path is recorded as seen, both
+guards ask the existing detector whether the file already differs from the session's
+start. A hit is written to `outside-early` and logged; the stop report names it with the
+rest. §93.1 B said "say so then". It is said at the stop instead: the Copilot dialect
+cannot speak from an allowed pre-tool call, the stop seat already speaks on both, and one
+seat keeps the two dialects the same. Cost: the detector's git calls once per file per
+session; a file already seen costs no fork in the shell guard and two small reads in the
+Python one.
+
+Proof, both suites exit 0:
+- `tools/tdd-guard-claude-check.py`: cases 36k–36n (a shell-written test touched once
+  still reports; once only; the same for production source in logging mode; ordinary
+  editor writes report nothing) and two mutations, 57 of 57 caught.
+- `tools/tdd-guard-check.py`: cases D11–D14, the same four, and two mutations, 64 of 64
+  caught in 240 s. Two existing mutation anchors moved with the code they replace.
+
+### 95.3 Clock for the new rules
+
+Under §16, two arcs from 0.41.0. *Test-double fidelity*: a lens-named finding that is
+about where a double's answer comes from, not what it drops. The pre-write check: an
+`outside-early` line the session's own record confirms. *Search again*: a stale home
+found at the close that made it stale. The side-effect question: a verification step
+changed at plan time because of what it would have written.

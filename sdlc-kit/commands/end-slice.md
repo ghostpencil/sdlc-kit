@@ -129,21 +129,20 @@ as findings, never as edits. A reviewer that "helpfully" reverts or rewrites a f
 destroying the very diff it was asked to review — a real arc lost two uncommitted fixes
 to exactly that.
 
-Two lenses the diff-shaped review structurally lacks — apply them explicitly:
+One lens the diff-shaped review structurally lacks — apply it explicitly:
 
 - **Consumers of changed behavior.** For every error/return path this slice changed
   (raises, handlers, status codes, return shapes), name each **consumer** of that path
   and state what it did with the *old* behavior. The defects that survive clean slice
   reviews live one layer away, in a consumer written against behavior that just
   changed — nothing in the diff itself looks wrong.
-- **Test doubles.** Does any double in this slice omit a side effect or simplify the
-  error surface of what it replaces? A double one field simpler than reality makes the
-  defect it hides structurally unreachable in tests (`spec/TESTING.md`, mock policy).
 
 If the slice changed error propagation, added a catch or failure path or logging
 around one, swept the codebase for a pattern or wrote a script or check whose output
 will be trusted, touched an object that outlives a request or is reachable
-from more than one, took in outside data or passed it to an interpreter, deleted,
+from more than one, took in outside data or passed it to an interpreter, added or
+changed a test double (a fake, stub, fixture, or harness method standing in for a real
+dependency — the question that was asked untriggered here until 0.41.0), deleted,
 skipped, or gutted a test `spec/PRODUCT_CONTRACT.md` names as a
 pin (opening the contract to check that is the disposal-intent lens's sanctioned
 exception to its read-at-phase-boundaries rule; a project without the file
@@ -333,6 +332,13 @@ fix commits later. The skill is installed at
 `.claude/skills/change-verify/` and is available on both CLIs; its own report contract
 applies (a transcript block per run — a pass not observed is not a pass).
 
+**Say which route ran.** The `verify:` line opens `ran (change-verify) —` when the skill
+was dispatched and `ran (inline) —` when the session exercised the behavior itself under
+the same report contract. Both count; an unmarked `ran` reads as inline. The skill
+ledger records dispatches only, so without the word a retro cannot tell an inline
+verification from one that never happened — one arc's ledger showed 3 runs against 16
+`verify:` lines.
+
 **Skipping is legitimate; skipping silently is not.** On a
 small or mechanical slice — config, a change the gate fully pins — state the skip and
 its reason in the hand-back (step 10).
@@ -347,7 +353,7 @@ neither writes `verify: skipped — no command or path added`. Either way the on
 outcome goes into the slice commit body (step 7), so the record outlives the session:
 
 ```
-verify: ran — <verdict per behavior, naming the shell it ran in>;
+verify: ran (change-verify | inline) — <verdict per behavior, naming the shell it ran in>;
         not exercised: <what could not be reached, and why | nothing>
 or
 verify: skipped — <reason>
@@ -477,6 +483,13 @@ Update `spec/PROJECT_INDEX.md`:
   same unordered list, and the document that scoped the next phase then named one of
   the numbers — resolving by content to one entry and by number to two, the other a
   legitimately open finding a scoping pass could have discarded on sight.
+  **Then assert the numbers are unique, at this close** — the same one `sort | uniq -d`
+  over the entry numbers that `/end-phase` step 7 runs, its output quoted in the
+  hand-back; empty is the pass. The read-the-maximum rule is prose, and prose minted
+  two entries under one number on adjacent days: every reference to that number was
+  ambiguous for thirteen slices, until the phase close renumbered one. A collision
+  found here is fixed here, the same way — renumber the later-provenance entry to the
+  next free integer and leave a pointer at the old number.
 - If this slice added a tool, runtime, or service the gate now requires, record it
   (*Records* → *The gate* in `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and
   add it to CI in the same commit — a gate dependency discovered by a contributor's red
@@ -515,7 +528,13 @@ Update `spec/PROJECT_INDEX.md`:
   zero entries, because no step ever prompted the writing. **A stated skip counts
   too:** a step this file or `/next-slice` prescribes, skipped for the same reason in
   this slice and the two before it, is friction whatever each slice's own verdict was.
-  Write one line naming the step, the reason, and the three slices. Count from the
+  Write one line naming the step, the reason, and the three slices — **once**. Where
+  the log already holds an open line for this step and this reason from this arc, write
+  nothing more: say in the hand-back that the skip stands, recorded <date>, and name
+  the owner action it waits on if there is one. A line repeated at every close records
+  nothing new and buries the entries that do — one adoption wrote the same line at
+  fifteen closes of one arc, each with that slice's real friction behind it. A changed
+  reason is a new line. Count from the
   arc's own records (`git log <base>..HEAD`; the earlier slices' commit bodies). The
   graph refresh is the one you can count mechanically: where the graph was built
   before the previous two slices' commits, this close is its third skip in a row. One

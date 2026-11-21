@@ -988,6 +988,42 @@ def unit(guard_src, verbose=True, counter=None, first_only=False):
         case("36j a pull or merge of commits dated before the session reports nothing",
              out == "")
 
+        # --- 0.41.0: the blind route - a shell write, then one editor touch ---
+        # Before this the pre-write recorded the path as seen and the stop skipped it:
+        # one adoption's log shows one report against seven such writes.
+        sid = begin()
+        put("tests/test_pay.py", "a test body the shell wrote\n")
+        d.run("pre-write", write(D, "tests/test_pay.py", sid=sid))
+        put("tests/test_pay.py", "a test body the shell wrote, renamed by the editor\n")
+        held = [l for l in d.loglines() if "before this edit" in l]
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36k a shell-written test touched once through the editor still reports",
+             len(held) == 1 and "tests/test_pay.py" in held[0]
+             and "outside the editor tools this session: tests/test_pay.py" in blocked(out))
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36l ...once: the next stop does not name it again",
+             "outside the editor tools" not in blocked(out))
+        g("checkout", "--", "tests/test_pay.py")
+
+        sid = begin(armed=False)
+        put("pay.py", "production the shell wrote\n")
+        d.run("pre-write", write(D, "pay.py", sid=sid))
+        d.run("stop-check", stop(D, sid=sid))
+        lg = [l for l in d.loglines() if "WOULD-REPORT" in l]
+        case("36m the same for production source (logging mode: logged, named)",
+             len(lg) == 1 and "pay.py" in lg[0])
+        g("checkout", "--", "pay.py")
+
+        sid = begin()
+        d.run("pre-write", write(D, "tests/test_pay.py", sid=sid))
+        put("tests/test_pay.py", "the editor wrote this, twice\n")
+        d.run("pre-write", write(D, "tests/test_pay.py", sid=sid))
+        out = d.run("stop-check", stop(D, sid=sid))
+        case("36n an ordinary editor write, and a second one to the same file, report nothing",
+             "outside the editor tools" not in blocked(out)
+             and not any("before this edit" in l for l in d.loglines()))
+        g("checkout", "--", "tests/test_pay.py")
+
         # --- SDLC state (FEATURE_PLAN.md 89.4): off / paused stand down, anything
         # else - absent and an unknown word included - guards exactly as before ------
         sfile = os.path.join(b.root, ".git", "sdlc-state")
@@ -1169,8 +1205,16 @@ MUTATIONS = [
     ("never record an editor write as seen (every Edit-tool write reads as a shell "
      "write at stop)",
      '    if ok or label or not present("deny-enabled"):\n'
+     '        outside_before(rel)\n'
      '        add_lines("seen-writes", [rel])',
      '    if False:\n        add_lines("seen-writes", [rel])'),
+    ("never ask at a file's first editor write (a heredoc-written test, touched once "
+     "through the editor, is never reported - field reports 12 and 13)",
+     '    if any(os.path.normcase(p) == key for p in changed_outside()):',
+     '    if False:'),
+    ("hold the early files and never report them at stop",
+     '    outside = sorted(set(changed_outside()) | set(early_outside()))',
+     '    outside = changed_outside()'),
     ("record a DENIED write as seen (its shell retry goes unreported)",
      '    if ok or label or not present("deny-enabled"):',
      '    if True:'),

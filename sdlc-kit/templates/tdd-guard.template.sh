@@ -433,7 +433,7 @@ CANDIDATES
 prev=""
 [ -f "$S/session" ] && IFS= read -r prev < "$S/session"
 if [ -n "$SID" ] && [ "$SID" != "$prev" ]; then
-  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" "$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" "$S/state-spoken" 2>/dev/null
+  rm -f "$S/red-observed" "$S/green-observed" "$S/last-test-edit" "$S/refactor-license" "$S/close-out-license" "$S/close-out-survivals" "$S/prod-write-observed" "$S/seen-writes" "$S/reported-writes" "$S/outside-early" "$S/state-spoken" 2>/dev/null
   printf '%s' "$SID" > "$S/session" 2>/dev/null
   log "new session $SID - previous observations cleared"
   record_start
@@ -523,7 +523,7 @@ case "$MODE" in
 
   pre-write)
     [ -n "$PATHS" ] || { log "no paths parsed from the write payload"; exit 0; }
-    prod=""; test_touched=""; nprod=0; pfile=""; ntest=0; tfile=""; prel=""
+    prod=""; test_touched=""; nprod=0; pfile=""; ntest=0; tfile=""; prel=""; tseen=""
     # The candidate repository roots (why there are three: inside the loop, below) were
     # built before the parser ran, which lowercased them: c1-c3 here, l1-l3 from it.
     c1=$SDLC_C1; c2=$SDLC_C2; c3=$SDLC_C3
@@ -611,10 +611,11 @@ case "$MODE" in
         case "$b" in {{SOURCE_GLOB}}) log "exempt from the guard (not production source, not a test): $n" ;; esac
         continue ;;
       esac
-      # A test write is never denied, so it is seen through the editor tools at once:
-      # the stop-time detector leaves it alone.
-      case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); tfile="$SDLC_REPO_ROOT/$n"; printf '%s\n' "$n" >> "$S/seen-writes"; continue ;; esac
-      case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); tfile="$SDLC_REPO_ROOT/$n"; printf '%s\n' "$n" >> "$S/seen-writes"; continue ;; esac
+      # A test write is never denied, so it is seen through the editor tools: the
+      # stop-time detector leaves it alone. Recorded after the loop (tseen), so the
+      # first-touch question below is asked before the path reads as seen.
+      case "$n" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); tfile="$SDLC_REPO_ROOT/$n"; tseen="$tseen$n$NL"; continue ;; esac
+      case "$b" in {{TEST_PATH_PATTERN}}) test_touched=1; ntest=$((ntest + 1)); tfile="$SDLC_REPO_ROOT/$n"; tseen="$tseen$n$NL"; continue ;; esac
       case "$b" in {{SOURCE_GLOB}})
         if [ -z "$prod" ]; then prod="$p"; else prod="$prod, $p"; fi
         nprod=$((nprod + 1)); pfile="$SDLC_REPO_ROOT/$n"; prel="$prel$n$NL" ;;
@@ -622,6 +623,44 @@ case "$MODE" in
     done <<PATHLIST
 $PATHS
 PATHLIST
+    # The detector's blind route (0.41.0). It skips every path a pre-write saw, so a
+    # test written by heredoc and then touched ONCE through the editor was never
+    # reported - the commonest route, and the one the rule exists for: one adoption's
+    # log shows one report against seven such writes (field reports 12 and 13). So at a
+    # file's FIRST editor write of the session, before it is recorded as seen: has it
+    # already changed outside the editor? A hit is held and reported from the stop
+    # seat. The membership test is shell-only, so a file already seen costs no fork;
+    # outside_writes runs once per file per session.
+    if [ "$STATE" != paused ] && [ -n "$tseen$prel" ]; then
+      fresh=""
+      while IFS= read -r fp; do
+        [ -n "$fp" ] || continue
+        known=""
+        for sfile in seen-writes reported-writes outside-early; do
+          [ -f "$S/$sfile" ] || continue
+          while IFS= read -r sl; do
+            if [ "$sl" = "$fp" ]; then known=1; break; fi
+          done < "$S/$sfile"
+          [ -z "$known" ] || break
+        done
+        [ -n "$known" ] || fresh="$fresh$fp$NL"
+      done <<FRESHLIST
+$tseen$prel
+FRESHLIST
+      if [ -n "$fresh" ]; then
+        ow=$(outside_writes)
+        if [ -n "$ow" ]; then
+          printf '%s' "$fresh" > "$S/.fresh"
+          printf '%s\n' "$ow" | awk 'FILENAME == ARGV[1] { f[tolower($0)] = 1; next } tolower($0) in f' "$S/.fresh" - > "$S/.early"
+          while IFS= read -r ep; do
+            [ -n "$ep" ] || continue
+            printf '%s\n' "$ep" >> "$S/outside-early"
+            log "pre-write: code changed outside the editor tools before this edit - held for the stop report: $ep"
+          done < "$S/.early"
+        fi
+      fi
+    fi
+    [ -z "$tseen" ] || printf '%s' "$tseen" >> "$S/seen-writes"
     if [ "$STATE" = paused ]; then
       [ -z "$prel" ] || while IFS= read -r pr; do [ -n "$pr" ] && log "paused: unguarded production write: $pr"; done <<PAUSEDLIST
 $prel
@@ -835,6 +874,12 @@ PAUSEDLIST
     # only code writes went through the shell never arms G2, and is exactly the one to
     # report.
     outside=$(outside_writes)
+    # ...plus the files a first editor write found already changed (0.41.0, above).
+    if [ -s "$S/outside-early" ]; then
+      : >> "$S/reported-writes"
+      early=$(awk 'FILENAME == ARGV[1] { r[tolower($0)] = 1; next } NF && !(tolower($0) in r) && !d[$0]++' "$S/reported-writes" "$S/outside-early")
+      [ -z "$early" ] || outside="${outside:+$outside$NL}$early"
+    fi
     said=""
     if [ -n "$outside" ]; then
       printf '%s\n' "$outside" >> "$S/reported-writes"

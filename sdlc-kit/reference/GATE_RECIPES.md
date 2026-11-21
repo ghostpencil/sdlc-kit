@@ -629,7 +629,7 @@ a pass, a missing wrapper binary and a CLI usage error):
 
 | Runner | `{{TEST_REPORT_PATTERN}}` | Quiet re-run when a noisy red is refused |
 |---|---|---|
-| pytest | `=+ (FAILURES\|ERRORS) =+` | not needed unless `-s`; drop it |
+| pytest | `=+ (FAILURES\|ERRORS) =+` | not needed unless `-s` (drop it); `--tb=no` prints no report header, so a red run under it is refused — use `--tb=line`, which keeps it (measured, pytest 9.0.3) |
 | vitest | `^\s*FAIL\s\|Test Files +\d+ failed` | `--silent=true --reporter=dot` (`--silent` alone keeps a failing test's console output in 4.1) |
 | jest | `^\s*FAIL\s\|Test Suites: \d+ failed` | `--silent` |
 | Maven (Surefire) | `<<< (FAILURE\|ERROR)!\|COMPILATION ERROR` | `-q` |

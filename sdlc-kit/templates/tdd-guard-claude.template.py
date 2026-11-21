@@ -417,6 +417,38 @@ def changed_outside():
     return [p for p in cands if now.get(p) != dirty.get(p, was.get(p, ""))]
 
 
+# The detector's blind route (0.41.0). It skips every path a pre-write saw, so a test
+# written by heredoc and then touched ONCE through the editor was never reported - the
+# commonest route, and the one the rule exists for: one adoption's log shows one report
+# against seven such writes (field reports 12 and 13). So the question is asked at a
+# file's FIRST editor write of the session, before the path is recorded as seen: has it
+# already changed outside the editor? A hit is held and reported from the stop seat,
+# the one seat both dialects can speak from. Same detector, same costs, same
+# fail-open; a file already seen pays nothing.
+def outside_before(rel):
+    key = os.path.normcase(rel)
+    if key in (lines_of("seen-writes") | lines_of("reported-writes")
+               | lines_of("outside-early")):
+        return
+    if any(os.path.normcase(p) == key for p in changed_outside()):
+        add_lines("outside-early", [rel])
+        log("pre-write: code changed outside the editor tools before this edit - "
+            "held for the stop report: %s" % rel)
+
+
+def early_outside():
+    done, out = lines_of("reported-writes"), []
+    try:
+        with open(sf("outside-early"), encoding="utf-8") as f:
+            for ln in f:
+                p = ln.rstrip("\n")
+                if p and os.path.normcase(p) not in done and p not in out:
+                    out.append(p)
+    except OSError:
+        pass
+    return out
+
+
 try:
     D = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
     if not isinstance(D, dict):
@@ -455,7 +487,7 @@ if SID:
         for n in ("red-observed", "green-observed", "last-test-edit",
                   "refactor-license", "close-out-license",
                   "close-out-survivals", "prod-write-observed",
-                  "seen-writes", "reported-writes", "state-spoken"):
+                  "seen-writes", "reported-writes", "outside-early", "state-spoken"):
             clear(n)
         try:
             with open(sf("session"), "w") as f:
@@ -582,7 +614,9 @@ if MODE == "pre-write":
             log("exempt from the guard (not production source, not a test): %s" % rel)
         sys.exit(0)
     if match_any(rel, TEST_PATH_PATTERN) or match_any(base, TEST_PATH_PATTERN):
-        # Seen through the editor tools: the stop-time detector leaves it alone.
+        # Seen through the editor tools: the stop-time detector leaves it alone -
+        # unless the file had already changed outside them (outside_before).
+        outside_before(rel)
         add_lines("seen-writes", [rel])
         # A comment or formatting edit to a test is not a new cycle. Before 0.36.0 the
         # edit-time hook's format fix on a test, landing after its red run, staled the
@@ -640,6 +674,7 @@ if MODE == "pre-write":
     # records it as seen. A denied write changed nothing; a shell retry of the same
     # file is exactly what the stop-time detector exists to catch.
     if ok or label or not present("deny-enabled"):
+        outside_before(rel)
         add_lines("seen-writes", [rel])
     # The marker records a production write that actually WENT THROUGH; the deny
     # branch sets nothing on purpose - a denied write leaves the tree unchanged,
@@ -804,7 +839,7 @@ if MODE == "stop-check":
         sys.exit(0)
     # Runs before the session scoping below on purpose: a session whose only code
     # writes went through the shell never arms G2, and is exactly the one to report.
-    outside = changed_outside()
+    outside = sorted(set(changed_outside()) | set(early_outside()))
     said = ""
     if outside:
         add_lines("reported-writes", outside)

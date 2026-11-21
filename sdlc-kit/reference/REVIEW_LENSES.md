@@ -195,6 +195,37 @@ internal bean, against the project's mock policy) during close-out, then dropped
 the move on effort, not principle. The guards' refactor license has since removed
 the price advantage that made the recipe attractive; this lens covers the residue.
 
+## Lens: test-double fidelity
+
+**Trigger:** the slice added or changed a fake, stub, fixture, or harness method that
+stands in for a real dependency — a remote system, a browser, a clock, a store, a model
+call.
+
+1. **Name what the code under test depends on.** For each double, list the behaviors of
+   the real thing the code relies on: ordering, filtering, visibility, exit codes, side
+   effects, the error surface. The double is reviewed against that list, not against the
+   tests that pass through it.
+2. **Ask where each answer comes from.** A double that computes its answer the way the
+   code under test does — the same sort, the same parse, the same assumed set of exit
+   codes — agrees with the code's bug. It must model the real system's behavior, taken
+   from the system or its documentation, never re-derived from the code. Mutation testing
+   cannot see this: there is no mutant to kill when both sides hold the same belief.
+3. **Show one disagreement, or run it once for real.** Point at a test where the double
+   and the real thing would give different answers if the code were wrong — or run that
+   test once against the real dependency and say so. With neither, the verdict names the
+   behavior left unpinned.
+4. **Does it omit a side effect or simplify the error surface?** The mock policy's
+   question (`spec/TESTING.md`) still stands: the flag production sets before raising,
+   the exception one field simpler than the real one.
+
+Provenance: this was an untriggered question in `/end-slice` step 4 until 0.41.0. One
+adoption answered it on 53 slices and fixed four doubles through it. It also recorded
+`clean` on a fake remote that sorted record names as text exactly as the code did, and on
+a page harness whose query ignored a hidden ancestor — the doubles behind that adoption's
+two worst escapes (four defects found by the first real run of a deploy tool; a keyboard
+trap found eleven slices later). Both were clean as the question was then worded: it
+asked what a double drops, not what its answers are derived from.
+
 ## Lens: the unconsumed artifact
 
 **Trigger:** the arc introduced a new artifact — an entity or table/column, an

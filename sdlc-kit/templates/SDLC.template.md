@@ -111,7 +111,9 @@ rather than chaining into `/end-slice` (see *Slice loop*).
    arc behavior-neutral by construction — `/end-phase` first runs the composed system
    locally against real data before the PR: the halt otherwise passes vacuously on a
    phase with no visible behavior yet, which is exactly when nothing has ever run
-   outside the test suite. **The run's log output is part of the acceptance
+   outside the test suite. An arc whose output reaches production state takes that run
+   regardless — a dry run is not it — and the run first answers what it writes and
+   where. **The run's log output is part of the acceptance
    surface**: read it against the logging conventions recorded in `CLAUDE.md` —
    silence at a boundary the conventions promise (a run that starts, finishes, or
    fails without the log saying so) is a finding, because absence never appears in
@@ -726,13 +728,16 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    persistence/compatibility sweep, testability
    sweep, contradiction sweep, minimal-version attack — the sweeps may fan out as
    parallel read-only subagents per the rule above). Every gap becomes
-   a question or a numbered decision — never an assumption. Two rules bind the
+   a question or a numbered decision — never an assumption. Three rules bind the
    consequence sweep's hits: a claim that a consequence **ships inert** (flag, env var,
    "off in prod", "merging changes nothing") names the variable and quotes its value
    from the artifact that configures **production** — never from the test environment,
    which is usually configured to make the claim true — and each hit names the lever
    that disables it **alone**, since a control sharing its only off switch with an
-   unrelated system has no rollback.
+   unrelated system has no rollback — and every verification a hit names, with every
+   acceptance-checklist step that runs a command, says what it **writes and where**
+   when run against real data: a rehearsal pointed at a copy is safe only if the copy
+   covers every store the command touches.
 3. Spec written to `spec/PHASE_NN_*.md` only once open questions are resolved: goal,
    numbered owner decisions (every library the phase adds that *Approved libraries*
    does not list is one, named, joining that list on approval), behaviors, non-goals,
@@ -863,7 +868,7 @@ Run `/end-slice` when the slice's exit criteria are met:
    propagation, added a catch or failure path or logging around one, swept for a
    pattern or wrote a script or check whose output will be trusted, touched an
    object that outlives a request or is reachable from more than one, took in outside
-   data or passed it to an interpreter, or added a test
+   data or passed it to an interpreter, added or changed a test double, or added a test
    the slice itself then deleted, skipped, or gutted — or deleted, skipped, or
    gutted a test `spec/PRODUCT_CONTRACT.md` names as a pin — or, under armed
    TDD-ordering guards, added a test reaching into internals the mock policy fences
@@ -873,10 +878,10 @@ Run `/end-slice` when the slice's exit criteria are met:
    the review hand-back is not retained and only a lens *finding* otherwise travels
    under its own name). The review is **read-only in the shared tree** —
    the reviewer reviews the uncommitted working diff, so no `git checkout/restore/stash`;
-   fixes come back as findings, never as edits. Two questions the diff alone cannot answer,
+   fixes come back as findings, never as edits. One question the diff alone cannot answer,
    asked explicitly: who **consumes** each changed error/return path, and what did that
-   consumer do with the old behavior; and does any **test double** omit a side effect
-   or simplify the error surface of what it replaces. **Every finding is verified
+   consumer do with the old behavior (the test-double question is the triggered
+   *test-double fidelity* lens since kit 0.41.0). **Every finding is verified
    against the source before it is fixed or deferred**, and the ones that do not survive
    verification are reported, not dropped — a finding is a claim about the code, and
    severity is asserted rather than measured. Apply CRITICAL/HIGH fixes now; defer the
@@ -936,7 +941,7 @@ Run `/end-slice` when the slice's exit criteria are met:
    alone, and minted a live token against a real account.
    Skipping it is a legitimate choice on a small
    or mechanical slice; skipping it silently is not — the skip and its reason are
-   stated in the hand-back, and the one-line outcome (`verify: ran — <verdicts,
+   stated in the hand-back, and the one-line outcome (`verify: ran (change-verify | inline) — <verdicts,
    naming the shell they ran in>; not exercised: <what could not be reached, and why |
    nothing>` / `verify: skipped — <reason>`) is recorded in the
    slice commit body either way. **The `not exercised:` half is required and `nothing`
@@ -1090,6 +1095,9 @@ Run `/end-phase` when the last slice is done:
      share. **Where a row's number is enforced somewhere, the value is searched for,
      not just the row:** take the number from the enforcing artifact, then search the
      whole spec set for the **old** value and report every file still carrying it.
+     The search runs again as the close's last bookkeeping act, over every value this
+     close itself superseded: a search run before a write cannot see the value that
+     write makes old.
      Reconciling one home says nothing about a second one three hundred lines away in
      the same file. An unstamped gate baseline is stamped here, green or red, from step
      1's run on the arc branch — setup's `@ <stamped at close-out>` marker included; the
@@ -1144,7 +1152,9 @@ Run `/end-phase` when the last slice is done:
 7. `/sdlc-retro` is **offered**, not required — it extracts the phase's lessons while
    the evidence is fresh, sorting each into a project lesson (into PROJECT_INDEX) or a
    kit lesson (into a report). Declining is the right answer when the phase has nothing
-   to teach, and the command refuses to run on too little evidence.
+   to teach, and the command refuses to run on too little evidence. The offer quotes
+   the Kit friction log's open count and its oldest open entry's date, so a decline
+   is made against the record.
 
 ## Bookkeeping rules
 
@@ -1166,7 +1176,8 @@ Run `/end-phase` when the last slice is done:
   becomes a cleanup slice by owner decision. **A backlog entry's identifier is the next
   integer above the file's current maximum, read from the file at the moment of the
   append** — every other step addresses entries by number, and nothing downstream can
-  detect a collision. The phase close asserts the identifiers are unique before it
+  detect a collision. Every slice close asserts the identifiers are unique (one
+  `sort | uniq -d`, empty is the pass), and the phase close asserts it again before it
   counts them.
 - **A check records its verdict whether or not it found anything.** A lens that ran
   clean, a sweep that triggered on nothing — each writes its negative result where the

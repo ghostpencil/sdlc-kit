@@ -101,6 +101,16 @@ production bug through four reviews, and a bare `PermissionError` hid a path-dis
 leak. Review asks it directly: *does any double omit a side effect or simplify the
 error surface of what it replaces?*
 
+**And its answers must come from the real system, not from the code under test.** A
+fake that sorts, parses, or enumerates the way the code does agrees with the code's bug:
+a fake remote that ordered record names as text, exactly as the code did, hid a check
+that stopped checking at the hundredth record, and no mutant could expose it. Model the
+dependency's own behavior — its ordering, its exit codes, the target platform's file
+modes — and give at least one test a value **past the next width boundary** of any
+identifier the code orders or parses: two digits becoming three, a size crossing a
+limit. Review asks this whenever a slice adds or changes a double (the *test-double
+fidelity* lens).
+
 ### Skip discipline
 
 A test must **fail**, not skip, when a tool or stand-in it requires is absent.

@@ -77,7 +77,7 @@ Report, per criterion, one of:
 - **Unverifiable from the diff** — say why. A criterion about behavior nobody can see
   in the change set is a real answer, not a failure of the review.
 
-Then two questions the criteria list cannot ask itself:
+Then three questions the criteria list cannot ask itself:
 
 - **Scope creep.** Is there anything in the diff that no criterion asked for? Name it.
   Unasked-for work is not automatically wrong — it is automatically *undiscussed*, and
@@ -86,6 +86,13 @@ Then two questions the criteria list cannot ask itself:
   the happy path only, one caller of three, a stub where behavior was specified? This
   is the failure the gate cannot catch, because a narrowed implementation is still
   green.
+- **Cited decisions.** Where the slice's entry in the phase spec cites ratified
+  decisions or behaviors by identifier, open each one and quote its observable wording
+  beside what the diff builds. Exit criteria are a summary written at plan time, and a
+  summary can be met while the decision behind it is not — a ratified count reading
+  "100+" was built as the number of rows listed, with every criterion met. A
+  difference is the spec conflict the severity rule below names, and this is the step
+  that loads the decisions that rule depends on.
 
 ### 3. Axis B — Standards
 
