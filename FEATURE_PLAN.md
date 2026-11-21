@@ -173,7 +173,7 @@ Everything the previous refresh listed as held has shipped or closed: the docs-o
 slice (0.32.0), §78 (0.31.1/0.31.2), §79 and §79.4 (0.31.3, 0.32.0), COSMETIC
 (0.34.0/0.34.1), and §77's residue, whose docs pass now asserts on the median (§82.10).
 
-**Standing inputs:** issues #18–#20 are open until 0.41.0 is released — the first adopter's Phase 18 finding and
+**Standing inputs:** issues #18–#20 were closed with replies on 2026-11-21 (§96.2) — the first adopter's Phase 18 finding and
 its Phase 27 and Phase 30 retros, the twelfth and thirteenth field reports — triaged in
 §93 (2026-11-21), ruled the same day (§93.7). The adopter table above is stale past 2026-10-23:
 TFit is on 0.40.1 and has closed Phases 13–32; ai-news and chainmail are on 0.38.0
@@ -9073,3 +9073,13 @@ six new ones resolve), 6 (158 step references, none crossing the two numberings)
 9, 11, 12, 14, 15, 16. Not read in full by the invariant 1 pass: `sdlc-setup.md` and
 `sdlc-update.md` beyond their diffs. Pre-existing and left: `end-phase.md` names
 `CLAUDE.template.md` in a parenthesis whose content it restates inline.
+
+### 96.2 Released 2026-11-21
+
+`main` fast-forwarded to 5e9416f, tag `v0.41.0`, release run 44949189890 green on its
+first run. The published archive was downloaded and verified: both checksums, `VERSION`
+0.41.0, manifest 45 of 45. Issues #18, #19 and #20 were closed with a reply each, giving
+the verdict per finding and what an update carries. Owed: the adopter updates (the first
+adopter 0.40.1 → 0.41.0; the other two 0.38.0 → 0.41.0) at their between-phase windows.
+The 0.41.0 rules' clocks (§95.3) and the condition on IMPACT and the coverage trigger
+(§94.4 ruling 3) start at the first adopter's next arc.
