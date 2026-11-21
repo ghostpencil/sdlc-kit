@@ -75,7 +75,7 @@ judgement calls.
   reason and is logged with who asked, and `/sdlc-retro` reads that log.
 - **Architecture impact, optional.** Where a project keeps an Understand Anything
   knowledge graph, each slice and each phase gets a picture of what its changes touched,
-  and the graph refreshes itself at slice end.
+  and the phase close checks the graph still holds every code file.
 - **A retro that feeds the kit.** `/sdlc-retro` turns a finished phase into lessons for
   the project and a field report for the kit. `/sdlc-update` brings an adopted project
   forward to a new release without overwriting what the project owns.

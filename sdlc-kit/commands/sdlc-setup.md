@@ -123,7 +123,7 @@ questionnaire.
     directory is dirtied by every auto-update after every commit, and the adapter
     writes its overlay only into an ignored one. For a tracked directory, ignore its
     scratch paths (`.ua/intermediate/`, `.ua/tmp/`, `.ua/diff-overlay.json`), and
-    say the slice-end refresh lands as its own `chore(graph):` commit.
+    say a graph rebuild lands as its own `chore(graph):` commit.
   - Either way, exclude the plugin's directory from the linter and the formatter
     (the formatter's ignore file, the linter's ignore list, or the stack's
     equivalent), or the gate reads the graph's JSON.
@@ -610,9 +610,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    clean tree and re-asserts it before the merge. If theirs is tracked, the summary
    still prints and the overlay does not — say so at the feedback halt rather than
    letting them discover it at a phase close. Tell them too that the instantiated
-   process file carries the `Graph refresh:` line with both switches on — an
-   incremental refresh at every slice end, a full rebuild at the phase end only when
-   code files are missing from the graph — and that either can be set `off` there.
+   process file carries the `Graph refresh:` line with its switch on — a full rebuild
+   at the phase end only when code files are missing from the graph — and that it can
+   be set `off` there.
    Do not ask: on is the default for every new adoption. Where Copilot CLI is a
    runtime, also offer `python .github/hooks/sdlc-impact.py plugin-fix` at the same
    halt. Copilot refuses the plugin's `understand` skill until that one frontmatter

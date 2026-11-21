@@ -234,8 +234,7 @@ must be seen to write no overlay; 0.33.0 — a graph built inside the change set
 seen to read current, one built on a sibling branch to read stale, and a tracked
 graph directory's own refresh commit must be seen not to count; 0.35.0 — a scan that
 fails or cannot run must be seen to report "cannot check" rather than a COMPLETE read
-off an empty list, a missing doc must be seen NOT to call for a full rebuild, and a
-graph already at HEAD must be seen to skip the slice-end refresh, and `plugin-fix` must
+off an empty list, a missing doc must be seen NOT to call for a full rebuild, and `plugin-fix` must
 be seen to leave a Claude Code install and every line past the frontmatter
 byte-identical, and the hooks it installs on Copilot must be seen to deliver top-level
 `additionalContext` from the project's directory, not the plugin's), the hook launchers'
@@ -252,9 +251,9 @@ drive-form path under a `/mnt/<drive>/` root must be seen to be production, not
 (0.31.3 — a Copilot-translated payload must be seen to stand down silently on a case
 that would otherwise log, gate, or block, and a native Copilot payload and a Claude
 payload carrying `timestamp` must be seen still to act), the **docs-only slice's
-confirmation** at `/end-slice` step 1 and its verification's docs form (0.32.0 — a
-source or test file in the diff must be seen to void the declaration, and a documented
-command that fails must be reported broken, never folded into a skip; since 0.34.0 a
+confirmation** at `/end-slice` step 1 (0.32.0 — a
+source or test file in the diff must be seen to void the declaration; its
+verification's docs form was retired in 0.41.0; since 0.34.0 a
 source file voids it unless the cosmetic classifier answers exit 0), the **cosmetic
 classifier** (0.34.0, `tools/cosmetic-check.py` — a code change, a moved directive, a
 parse error, a missing toolchain, a timeout and a broken cache must each be seen to
@@ -296,10 +295,10 @@ template, filled, plus the kept one, a drop the target does not cover must be se
 named `BEHAVIOR CHANGE`, and an unprinted number must be seen to stop it), the
 guards' **cosmetic test edit** (both guard suites: a comment-only test edit under a live
 red must be seen to keep the red and a refactor licence, and a real one must still be
-seen to stale it), and the impact adapter's **phase-scope untracked line**, **gone
-files** and **refresh-check count** (`tools/impact-check.py` — an untracked file must be
-seen outside the phase denominator, a gone file named and triggering nothing, and the
-graph directory's own commit left out of the count), the guards' **outside-the-editor
+seen to stale it), and the impact adapter's **phase-scope untracked line** and **gone
+files** (`tools/impact-check.py` — an untracked file must be
+seen outside the phase denominator, and a gone file named and triggering nothing; the
+refresh-check count went with its mode in 0.41.0), the guards' **outside-the-editor
 report** (both guard suites, on a real git repository: a code file written by the shell
 must be seen named at the stop and, armed, blocked once, while a file already dirty at
 the session's start, a mutation restored to its start content, and a commit dated
@@ -325,7 +324,10 @@ the `--by` caller in the file and the log, and an in-flight `off` that keeps its
 for `on`, with an `off` that needs no reason and an `off` that forgets its stage as
 mutations), `/sdlc-retro`'s state-log reading (0.40.0: a pause whose reason is a denial,
 or with slice work logged under it, is reported as a finding — a missed one reads as a
-clean caller count over a log that holds it) — the
+clean caller count over a log that holds it), the guards' **first-editor-write
+question** (0.41.0, both guard suites: a shell-written test touched once through the
+editor must be seen to report at the stop, once, and an ordinary editor write must be
+seen to report nothing) — the
 `tools/` proof suites, and `/kit-check` itself — must state how it is
 proven to **fail**, and is trusted only once it has been made to disagree.
 **This list is the check's denominator and goes stale silently**: a check added without

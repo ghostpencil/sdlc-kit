@@ -56,7 +56,7 @@ operator-performed, the policy names the moment to set it).
   process file wins. If it is voided, it is not docs-only and every step runs as
   written. If it holds, step 3 is skipped and step 5 is written as its stated skip
   without being walked — `mutation: none — no new guards` — step 4's review runs as
-  ever, and step 6 runs in its docs form.
+  ever, and step 6 is written as its stated skip, `verify: skipped — docs-only slice`.
 
 ### 2. Run the gate
 
@@ -343,13 +343,10 @@ verification from one that never happened — one arc's ledger showed 3 runs aga
 small or mechanical slice — config, a change the gate fully pins — state the skip and
 its reason in the hand-back (step 10).
 
-**A docs-only slice (step 1) does not skip — it runs the docs form.** Every command the
-diff adds or changes is run once and every file path it adds is opened, each result
-quoted as the skill's report contract requires: the documented command that does not
-work is a docs slice's characteristic defect, and this is the one moment it is cheap. A
-command that would reach anything not disposable — a deploy, a data reset, an outbound
-call — is not run; name it under `not exercised:` with that reason. A diff adding
-neither writes `verify: skipped — no command or path added`. Either way the one-line
+**A docs-only slice (step 1) states the skip:** `verify: skipped — docs-only slice`.
+From 0.32.0 to 0.40.1 it ran a narrower docs form instead — every added command run,
+every added path opened. Seven runs on two adopters found nothing broken, and the form
+was retired on its clock in 0.41.0. Either way the one-line
 outcome goes into the slice commit body (step 7), so the record outlives the session:
 
 ```
@@ -535,12 +532,10 @@ Update `spec/PROJECT_INDEX.md`:
   nothing new and buries the entries that do — one adoption wrote the same line at
   fifteen closes of one arc, each with that slice's real friction behind it. A changed
   reason is a new line. Count from the
-  arc's own records (`git log <base>..HEAD`; the earlier slices' commit bodies). The
-  graph refresh is the one you can count mechanically: where the graph was built
-  before the previous two slices' commits, this close is its third skip in a row. One
-  adoption skipped that refresh at all eleven slice closes, each with a stated cost
-  reason, while the graph fell from 15 files behind to 115, and never wrote a line,
-  because a stated skip does not read as friction from inside one slice.
+  arc's own records (`git log <base>..HEAD`; the earlier slices' commit bodies). One
+  adoption skipped one step at all eleven slice closes, each with a stated cost
+  reason, and never wrote a line, because a stated skip does not read as friction from
+  inside one slice.
 - Note the next slice up, so `/next-slice` in a fresh session can orient without help.
 
 Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next up <next>`).
@@ -601,40 +596,12 @@ the commit body's evidence keys, and an `UNAVAILABLE` is one stated line. A proj
 whose `spec/SDLC.md` has no such section predates the adapter — say so rather than
 guessing an invocation.
 
-**Then refresh the graph — last, only after the base is cleared, and only where the
-project's process file says so.** Read the `Graph refresh:` line in `spec/SDLC.md`,
-*Architecture impact view*:
-
-- **No such line** — the project predates the rule. Refresh nothing, and say so in one
-  line. The process file wins, and this command never refreshes on its own say-so.
-- **`slice-end incremental off`** — one line saying the switch is off; nothing runs.
-- **`slice-end incremental on`** — run
-
-  ```
-  python .github/hooks/sdlc-impact.py refresh-check
-  ```
-
-  and act on the line it prints. `refresh skipped` → state its reason and run nothing.
-  The graph is either already at HEAD, where `/understand` would stop to ask a
-  question, or has no build commit, where it would run a full analysis, which is the
-  phase end's job. `refresh needed` → run the graph tool's own incremental analysis
-  (`/understand`, never `--full` here), which re-analyses only the changed files.
-  Quote the files-behind count it prints. A needed refresh that is not run anyway
-  (the owner declines the cost, the tool cannot run) is stated with that count, so a
-  repeated skip reads as growing debt (step 9). `no knowledge graph` → one line.
-
-It runs after the block above so the close-out footprint is drawn from the same graph as
-the preview, and "changed from the preview" compares like with like; the next slice then
-starts exactly where the graph was built, and its preview reads `current at the base`.
-State one line in the hand-back — what it re-analysed, or that nothing structural
-changed. A refresh that writes into a **tracked** graph directory leaves the tree dirty;
-commit it on its own (`chore(graph): refresh after <slice>`) and push, rather than
-letting the next slice inherit it. Where the tool cannot run in this CLI, state one line
-and mark it as an owner action in the hand-back (`OWNER: run /understand`). It never
-blocks the slice. On Copilot CLI a `Skill not found` for `understand` is the known
-plugin defect: the owner action is `python .github/hooks/sdlc-impact.py plugin-fix`,
-then a new session. It writes outside the repository, so offer it and never run it
-yourself (`spec/SDLC.md`, *Architecture impact view*).
+**No graph refresh runs here.** From 0.33.0 to 0.40.1 this step ended with an
+incremental refresh. It never produced its reading on any adopter — one ran twenty-one
+arcs without it running once — and it was retired on its clock in 0.41.0. Between
+phase ends the graph is the owner's to refresh; `/end-phase` step 7 checks its
+coverage. A `slice-end incremental` half still on the `Graph refresh:` line in
+`spec/SDLC.md` is inert.
 
 ## Notes
 

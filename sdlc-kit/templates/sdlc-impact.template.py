@@ -41,7 +41,6 @@ Usage:
   python .github/hooks/sdlc-impact.py slice                  (slice footprint)
   python .github/hooks/sdlc-impact.py phase <base-ref>       (arc footprint)
   python .github/hooks/sdlc-impact.py clear-base             (at /end-slice)
-  python .github/hooks/sdlc-impact.py refresh-check          (at /end-slice, last)
   python .github/hooks/sdlc-impact.py coverage               (at /end-phase, last)
   python .github/hooks/sdlc-impact.py plugin-fix             (offered: Copilot CLI only)
 """
@@ -321,7 +320,7 @@ def freshness(root, ua_path, base):
     """v1 freshness: had the tree already moved on from the graph BEFORE this work began?
 
     A graph built between the base and HEAD answers no: it is newer than the start of
-    the work (the slice-end refresh, `spec/SDLC.md` *Architecture impact view*).
+    the work (a rebuild during the arc, `spec/SDLC.md` *Architecture impact view*).
 
     The comparison is graph-commit against the BASE, never against the working tree.
     That distinction is the whole rule: this change set's own edits are unseen by the
@@ -361,8 +360,8 @@ def freshness(root, ua_path, base):
     if not since:
         return "current at the base (graph at %s)" % commit[:8], False
     # A graph built INSIDE this change set - after the base, on the line HEAD is on - is
-    # newer than the tree the work started from, never older: the slice-end refresh puts
-    # it there by design, and the phase view's base is where the arc branched. Both
+    # newer than the tree the work started from, never older: a rebuild during the arc puts
+    # it there, and the phase view's base is where the arc branched. Both
     # ancestry tests are needed: a graph built on a sibling branch descends from the base
     # too, but describes a tree this branch never had.
     inside = (git("-C", root, "merge-base", "--is-ancestor", base, commit)[0] == 0
@@ -739,49 +738,6 @@ def cmd_plugin_fix():
     return 0
 
 
-def cmd_refresh_check(root):
-    """Should the slice-end incremental refresh run? One line, read before it does.
-
-    Understand Anything's `/understand` stops to ASK the user when the graph is already
-    at HEAD, and an automated close-out must never stall on a prompt - so that state is
-    "skip". A graph with no recorded build commit is also "skip": `/understand` would
-    run a full analysis, which is the phase end's job, not a slice's.
-    """
-    ua_path, _ = resolve_ua_dir(root)
-    if not ua_path or not os.path.isfile(os.path.join(ua_path, GRAPH_NAME)):
-        print("sdlc-impact: no knowledge graph - nothing to refresh")
-        return 0
-    commit = None
-    try:
-        with open(os.path.join(ua_path, META_NAME), "rb") as fh:
-            meta = json.loads(fh.read().decode("utf-8"))
-        commit = meta.get("gitCommitHash") or meta.get("commit")
-    except (ValueError, OSError, AttributeError):
-        pass
-    if not commit:
-        print("sdlc-impact: refresh skipped - no build commit in %s, so /understand "
-              "would run a full analysis rather than an incremental one" % META_NAME)
-        return 0
-    _, head = git("-C", root, "rev-parse", "HEAD")
-    if commit == head:
-        print("sdlc-impact: refresh skipped - the graph is already at HEAD (%s); "
-              "/understand would stop to ask" % head[:8])
-        return 0
-    # How far behind, in files: a skip stated at every slice close reads the same at
-    # 15 files as at 115 (one adoption, eleven slices), and the count is what makes a
-    # repeated skip visible as debt.
-    behind = "files behind: unknown"
-    code, out = git("-C", root, "diff", "--name-only", commit, "HEAD", "--")
-    if code == 0:
-        ua_name = os.path.basename(ua_path)
-        behind = "%d project files behind" % len(
-            [f for f in out.split("\n")
-             if f and f != ua_name and not f.startswith(ua_name + "/")])
-    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s, %s: run /understand"
-          % (commit[:8], head[:8], behind))
-    return 0
-
-
 def run(scope, root, base, base_branch):
     ua_path, ua_name = resolve_ua_dir(root)
     if not ua_path:
@@ -849,8 +805,6 @@ def main(argv):
         return cmd_record_base(root)
     if mode == "clear-base":
         return cmd_clear_base(root)
-    if mode == "refresh-check":
-        return cmd_refresh_check(root)
     if mode == "plugin-fix":
         return cmd_plugin_fix()
     if mode == "coverage":
@@ -882,7 +836,7 @@ def main(argv):
 
     return emit("ERROR", "unknown", [],
                 reason="unknown mode '%s' (usage: record-base | slice | "
-                       "phase <base-ref> | clear-base | refresh-check | coverage | "
+                       "phase <base-ref> | clear-base | coverage | "
                        "plugin-fix)" % mode)
 
 

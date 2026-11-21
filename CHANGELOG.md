@@ -14,6 +14,65 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.41.0 — 2026-11-21
+
+The twelfth and thirteenth field reports and one issue, all from the first adopter
+(`FEATURE_PLAN.md` §93), and the clock reading over that adopter's twenty-one unread arcs
+(§94). Two controls are retired on their own terms, one question becomes a lens, and the
+shell-write detector stops missing the route it was built for.
+
+### Removed
+- **[installable]** **The slice-end graph refresh.** `/end-slice` no longer refreshes the
+  architecture graph, `sdlc-impact.py` loses its `refresh-check` mode, and the
+  `Graph refresh:` line keeps only its phase-end half. No adopter ever saw the reading
+  the rule was written for; one ran twenty-one arcs without the refresh running once.
+  `tools/impact-check.py` drops five cases and four mutations with the mode (43 cases,
+  54 mutations).
+- **[installable]** **The docs-only slice's verification form.** Seven runs on two
+  adopters found no broken command or path. A docs-only slice now records
+  `verify: skipped — docs-only slice`.
+
+### Added
+- **[installable]** **The *test-double fidelity* lens** (`REVIEW_LENSES.md`), triggered
+  when a slice adds or changes a fake, stub, fixture or harness method. It asks where a
+  double's answers come from: one derived from the code under test agrees with the code's
+  bug. The untriggered doubles question in `/end-slice` step 4 is deleted; it had been
+  asked of both doubles behind the adopter's two worst escapes, and both passed as it was
+  worded.
+- **[installable]** **`/plan-phase`'s consequence sweep asks what a verification writes,
+  and where**, of every named verification and every acceptance step that runs a
+  command; `/end-phase` step 3 runs an arc that reaches production state for real — a dry
+  run is not it — and asks the same question first.
+- **[installable]** **`/end-phase` step 7 searches again for superseded values as its
+  last check.** The search ran before the bullets that write new numbers, so a stale
+  second home was found one arc late, three times on one adoption.
+- **[installable]** **`diff-review` reads the decisions a slice cites** and quotes their
+  wording beside what was built.
+- **[installable]** Smaller: the stated-skip friction line is written once per reason per
+  arc; the retro offer quotes the friction log's open count and oldest open date; the
+  `verify:` line says `ran (change-verify)` or `ran (inline)`; `/end-slice` step 9
+  asserts backlog numbers are unique; `/next-slice` step 4 says a corrected manufactured
+  red is its own red–green pair.
+
+### Fixed
+- **[adoption-only]** **Both TDD guards report a shell-written file that was then touched
+  through the editor.** The 0.36.0 detector skipped every path a pre-write had seen, so
+  a test written by heredoc and edited once was never reported: one adoption's log shows
+  one report against seven such writes. The guards now ask at a file's first editor
+  write and name the file in the stop report. Four cases and two mutations in each guard
+  suite; both exit 0 (57 and 64 mutations caught). The guards are project-owned, so the
+  fix arrives through `/sdlc-update`'s walk-through.
+- **[adoption-only]** `TESTING.template.md`: a double's answers come from the real
+  system, and one test goes past the next width boundary of any identifier the code
+  orders or parses. `GATE_RECIPES.md`: pytest's `--tb=no` prints no report header, so
+  `--tb=line` is the quiet form that counts as a red.
+
+### Held
+- A shell pre-tool check that blocks code writes (one arc behind the detector fix), the
+  plan-time clause-by-clause map of behaviors to exit criteria (its own design section),
+  and a plan-time prompt for data boundaries. IMPACT and the phase-end coverage check
+  are kept for one more reading on condition that the adopter's graph is rebuilt first.
+
 ## 0.40.1 — 2026-11-02
 
 One fix, found by the TFit 0.40.0 update (`FEATURE_PLAN.md` §92).

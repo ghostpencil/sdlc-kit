@@ -605,28 +605,18 @@ Its four states are worth knowing apart:
   belongs in the friction log; a graph that exists and will not parse reports here and
   never as a silent COMPLETE.
 
-Graph refresh: slice-end incremental on · phase-end full-when-code-missing on
+Graph refresh: phase-end full-when-code-missing on
 
-**Two refreshes keep the graph current, and they are this process's, not the graph
-tool's.** The line above is their switch: set either to `off` and the commands skip that
-refresh, saying so in one line. `on` and `off` are the only values. A process file
-without the line predates the rule, and the commands then refresh nothing and say that
-— they never refresh on their own say-so. Both refreshes run where the work is committed
-and nothing is mid-flight, so neither can invalidate work in progress.
+**One refresh keeps the graph complete, and it is this process's, not the graph tool's.**
+The line above is its switch: set it to `off` and `/end-phase` skips the check, saying
+so in one line. `on` and `off` are the only values. A process file without the line
+predates the rule, and the command then refreshes nothing and says that — it never
+refreshes on its own say-so. It runs where the work is merged and nothing is
+mid-flight. Between phase ends the graph is the owner's to refresh. (A `slice-end
+incremental` half on this line is from kits 0.35.0–0.40.1: the slice-end refresh was
+retired in 0.41.0, never having run to its reading on any adopter, and that half is
+inert.)
 
-- **Slice end — incremental.** `/end-slice`'s last act, *after* it has drawn the slice's
-  view and cleared the spent base, so the close-out footprint is drawn from the same
-  graph as `/next-slice`'s preview and "changed from the preview" compares like with
-  like. It first runs `python .github/hooks/sdlc-impact.py refresh-check`. Where the
-  graph is already at HEAD, `/understand` would stop to ask a question, so that state
-  skips; a graph with no recorded build commit skips too, because the tool would run a
-  full analysis instead. Otherwise the tool's own incremental analysis runs, re-analysing
-  only changed files: nothing is spent on a cosmetic change, and the Understand Anything
-  plugin's own estimate for a structural one is about 160 s. The next slice then starts
-  exactly where the graph was built, and its view reads `current at the base`. Where the
-  graph directory is **tracked**, the refresh is its own commit (`chore(graph): refresh
-  after <slice>`), pushed with the slice; freshness ignores the graph directory's own
-  files, so that commit does not read as staleness.
 - **Phase end — full, only when code went missing.** An incremental analysis cannot be
   trusted to add a file. Understand Anything 2.9.4 batches only the files its saved
   inventory lists, and 2.9.7 still skips a file that inventory listed but the graph never
@@ -638,7 +628,7 @@ and nothing is mid-flight, so neither can invalidate work in progress.
   measures what is **missing**, not what this phase added, so an earlier gap heals at
   the next close. Docs and config never trigger it. A doc missing from the graph shows
   in the view as an unmatched file (`PARTIAL`), and that is stated.
-- **Neither ever blocks.** Where node or the plugin is absent, coverage reports
+- **It never blocks.** Where node or the plugin is absent, coverage reports
   `UNAVAILABLE … cannot check`. In that case, or where the graph tool cannot run in the
   session's CLI, the command states one line and marks an owner action in the hand-back;
   the next session that can, runs it.
@@ -689,7 +679,7 @@ property of this process instead of a property of a vendor's hook matcher.
 phase **base**, never against the working tree — this change set's own edits are unseen
 by the graph by definition, and measuring against the tree would call every slice stale
 and make COMPLETE unreachable. A graph built **inside** the change set — its commit after
-the base and on the line HEAD is on, which is where the slice-end refresh puts it — is
+the base and on the line HEAD is on, which is where a rebuild during the arc puts it — is
 newer than the start of the work and reads current; one built on a sibling branch also
 descends from the base but describes a tree this branch never had, and reads stale. The
 graph directory's own files never count. No build metadata means `freshness unknown`
@@ -823,8 +813,8 @@ Run `/next-slice` in a **fresh session**:
    citing the ratified approach, and skip `spec/TESTING.md`, the TDD skill, and the loop:
    the record is the zero-form `RED: none — no behavior batches this slice`, and
    `/end-slice` skips step 6 and writes step 8 as its stated skip directly (`mutation:
-   none — no new guards`) rather than walking it to find nothing. Step 9 still runs, in its docs
-   form. **A comment- or layout-only source edit stays docs-only only on the cosmetic
+   none — no new guards`) rather than walking it to find nothing. Step 9 is written as its stated skip
+   too (`verify: skipped — docs-only slice`). **A comment- or layout-only source edit stays docs-only only on the cosmetic
    classifier's word at close-out** (`.github/hooks/sdlc-cosmetic.py`), never on the
    planner's. **A docstring is not a comment**: a string literal the parser keeps, as
    Python's is, is code to it, so a docstring edit is a behavior-preserving production
@@ -952,13 +942,8 @@ Run `/end-slice` when the slice's exit criteria are met:
    does not stand in for halt 4's owner acceptance.
    A break it observes is fixed through the same loop as a review fix: apply, re-run
    the gate, and any new guard joins step 8's mutation obligation.
-   **On a docs-only slice (step 4) the step runs in a narrower form and is not
-   optional:** every command the diff adds or changes is run once and every file path
-   it adds is opened, each result quoted like any run — a documented command that does
-   not work is a docs slice's characteristic defect, and this is the one moment it is
-   cheap to catch. A command that would reach anything not disposable (a deploy, a data
-   reset, an outbound call) is not run; it goes under `not exercised:` with that reason.
-   A diff that adds neither records `verify: skipped — no command or path added`.
+   **A docs-only slice (step 4) states the skip** — `verify: skipped — docs-only
+   slice`. Its narrower docs form (0.32.0–0.40.1) was retired on its clock.
 10. Commit — the multi-line message written in the shell tool's own literal form: a
     heredoc on a POSIX shell tool (Claude Code's Bash), a single-quoted here-string
     on a PowerShell one (Copilot CLI's measured shell tool). Subject line in the

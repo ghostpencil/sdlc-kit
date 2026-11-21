@@ -588,52 +588,6 @@ def c_cov_malformed_graph(b):
     return ("coverage",)
 
 
-# ---- refresh-check: whether the slice-end incremental refresh runs.
-
-def c_rc_graph_behind(b):
-    b.install_graph()
-    b.write("usage_store.py", "original\n")
-    built = b.commit("graph built here")
-    b.set_meta_commit(built)
-    b.write("usage_store.py", "the slice's change\n")
-    b.commit("the slice")
-    return ("refresh-check",)
-
-
-def c_rc_count_excludes_graph_files(b):
-    """A tracked graph directory: the refresh commit touches only UA files, and they
-    are not project files behind."""
-    b.install_graph()
-    b.write("usage_store.py", "original\n")
-    built = b.commit("graph built here")
-    b.set_meta_commit(built)
-    b.write("usage_store.py", "the slice's change\n")
-    b.write("tfit_qa_server.py", "the slice's other change\n")
-    b.commit("the slice")
-    return ("refresh-check",)
-
-
-def c_rc_graph_at_head(b):
-    b.install_graph()
-    b.write("usage_store.py", "original\n")
-    head = b.commit("the slice, and the graph is already here")
-    b.set_meta_commit(head)
-    return ("refresh-check",)
-
-
-def c_rc_no_meta(b):
-    b.install_graph(meta=False)
-    b.write("usage_store.py", "original\n")
-    b.commit("the slice")
-    return ("refresh-check",)
-
-
-def c_rc_no_graph(b):
-    b.write("usage_store.py", "original\n")
-    b.commit("the slice")
-    return ("refresh-check",)
-
-
 # ---- plugin-fix: Copilot CLI drops a skill whose argument-hint is a list.
 
 def write_hooks(b, plugin_parts, text):
@@ -1019,23 +973,6 @@ CASES = [
     ("coverage_malformed_graph_is_error", c_cov_malformed_graph,
      ["SDLC IMPACT: ERROR", "malformed"], ["COMPLETE", "PARTIAL"], None),
 
-    ("refresh_runs_when_the_graph_is_behind", c_rc_graph_behind,
-     ["refresh needed", "1 project files behind", "run /understand"], ["skipped"],
-     None),
-
-    ("refresh_count_leaves_out_the_graph_directory", c_rc_count_excludes_graph_files,
-     ["refresh needed", "2 project files behind"], ["skipped", "3 project files"],
-     None),
-
-    ("refresh_skipped_when_the_graph_is_at_head", c_rc_graph_at_head,
-     ["refresh skipped", "already at HEAD", "would stop to ask"], ["needed"], None),
-
-    ("refresh_skipped_without_a_build_commit", c_rc_no_meta,
-     ["refresh skipped", "full analysis"], ["needed"], None),
-
-    ("refresh_without_a_graph_has_nothing_to_do", c_rc_no_graph,
-     ["no knowledge graph - nothing to refresh"], ["needed", "skipped"], None),
-
     ("plugin_fix_makes_the_hint_a_string", c_pf_fixes_copilot,
      ["argument-hint made a string in understand,", "Copilot CLI plugins",
       "next Copilot session", "auto-update hooks rewritten to run on Copilot"],
@@ -1113,8 +1050,7 @@ CASES.append(("ua_files_excluded_even_when_git_sees_them",
 # UA's artifacts and the project's denominator.
 UNIGNORED = {"not_ignored_ua_dir_writes_nothing",
              "ua_files_excluded_even_when_git_sees_them",
-             "tracked_graph_refresh_commit_is_not_staleness",
-             "refresh_count_leaves_out_the_graph_directory"}
+             "tracked_graph_refresh_commit_is_not_staleness"}
 
 
 def case_pass(adapter_src, verbose=True, first_only=False):
@@ -1205,7 +1141,7 @@ MUTATIONS = [
      '        code, base = git("-C", root, "rev-parse", "--verify", "--quiet",\n'
      '                         base_ref + "^{commit}")',
      '        code, base = 0, base_ref'),
-    # coverage and refresh-check (§83)
+    # coverage (§83)
     ("docs_trigger_a_full_rebuild",
      'TRIGGER_CATEGORIES = ("code", "script")',
      'TRIGGER_CATEGORIES = ("code", "script", "docs", "config")'),
@@ -1251,21 +1187,6 @@ MUTATIONS = [
     ("gone_files_trigger_a_rebuild",
      '    fields.append(("full-rebuild", "needed - /understand --full" if missing',
      '    fields.append(("full-rebuild", "needed - /understand --full" if missing or gone'),
-    ("refresh_count_includes_the_graph_directory",
-     '            [f for f in out.split("\\n")\n'
-     '             if f and f != ua_name and not f.startswith(ua_name + "/")])',
-     '            [f for f in out.split("\\n")\n             if f])'),
-    ("refresh_count_dropped",
-     '    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s, %s: run /understand"\n'
-     '          % (commit[:8], head[:8], behind))',
-     '    print("sdlc-impact: refresh needed - graph at %s, HEAD at %s: run /understand"\n'
-     '          % (commit[:8], head[:8]))'),
-    ("refresh_never_skipped_at_head",
-     '    if commit == head:',
-     '    if False:'),
-    ("refresh_without_meta_runs_a_full_analysis",
-     '    if not commit:\n        print("sdlc-impact: refresh skipped',
-     '    if False:\n        print("sdlc-impact: refresh skipped'),
     # plugin-fix
     ("plugin_fix_reaches_past_the_frontmatter",
      '        if body.strip() == "---":\n            break',

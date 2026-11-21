@@ -72,10 +72,9 @@ invocation.
 
 **If the block reports `graph-freshness: may be stale`, say so in the hand-back** — the
 picture the owner is about to accept against was drawn from a tree older than this arc.
-Under the slice-end refresh any slice's refresh reads current here, so a stale line
-means no `/end-slice` in this arc refreshed the graph (its switch is off, the project
-predates it, or the tool could not run), or the main branch has moved since the arc
-branched (a hotfix merged in) — say which. Do not refresh here: the owner is mid-review
+A stale line means the graph was built before this arc branched and has not been
+rebuilt since, or the main branch has moved since the arc branched (a hotfix merged
+in) — say which. Do not refresh here: the owner is mid-review
 (`spec/SDLC.md`, *Architecture impact view*). The phase-end refresh is a full rebuild
 only when code went missing, so a stale graph with complete coverage is an owner
 decision: name `/understand` as the remedy rather than running it.
@@ -517,8 +516,7 @@ read before it is reconciled is a decision taken twice.
   unfindable by the rule that was supposed to make retirement safe.
 - Trim/align the phase spec if the review changed behavior described there.
 - **Check the architecture graph's coverage**, where the project carries one — the
-  phase-end refresh (`spec/SDLC.md`, *Architecture impact view*; the other is every
-  `/end-slice`). The tree is settled and no slice is mid-flight. Read the
+  phase-end refresh (`spec/SDLC.md`, *Architecture impact view*). The tree is settled and no slice is mid-flight. Read the
   `Graph refresh:` line there first. No such line → the project predates the rule: say
   so and run nothing. `phase-end full-when-code-missing off` → one line. `on` → run
   `python .github/hooks/sdlc-impact.py coverage` and quote its block:

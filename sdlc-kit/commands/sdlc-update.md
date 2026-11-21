@@ -283,11 +283,9 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.29.0 | the baseline names its commit | `commit it was measured at` |
 | 0.31.0 | `verify:` names what it did not exercise | `not exercised: <what could not be reached` |
 | 0.32.0 | the docs-only slice | `A docs-only slice is declared here` |
-| 0.32.0 | the verification's docs form | `the step runs in a narrower form` |
-| 0.33.0 | the slice-end graph refresh | `Slice end — incremental` |
 | 0.33.0 | a graph built inside the change set reads current | `one built on a sibling branch` |
 | 0.34.0 | a cosmetic edit keeps a slice docs-only | `docs-only only on the cosmetic` |
-| 0.35.0 | the graph refresh switch line | `Graph refresh: slice-end incremental` |
+| 0.35.0 | the graph refresh switch line | `phase-end full-when-code-missing` |
 | 0.35.0 | the scripted mutation runner | `whole-file restore is a scripted runner's, byte-exact` |
 | 0.35.0 | the approved libraries record | `### Approved libraries` |
 | 0.35.0 | a draft PR for CI is not the phase PR | `PR opened only so CI runs` |
@@ -299,6 +297,14 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.38.0 | slice step 6 is the close-out licence, not the quality pass | `Close-out licence, where the TDD guards are installed` |
 | 0.39.0 | the SDLC state | `whether the process is in force right now` |
 | 0.40.0 | any caller may pause or turn the state off | `Any caller may pause or turn the state off` |
+| 0.41.0 | a changed test double triggers its lens | `added or changed a test double` |
+| 0.41.0 | a verification says what it writes | `acceptance-checklist step that runs a command` |
+| 0.41.0 | an arc reaching production state is run for real | `reaches production state takes that run` |
+| 0.41.0 | the old-value search runs again after the writes | `runs again as the close's last bookkeeping act` |
+| 0.41.0 | the retro offer quotes the friction log | `oldest open entry's date` |
+| 0.41.0 | `verify:` names its route | `ran (change-verify | inline)` |
+| 0.41.0 | backlog numbers are unique at every slice close | `Every slice close asserts the identifiers are unique` |
+| 0.41.0 | a docs-only slice states its verification skipped | `states the skip` |
 
 ### 5. Apply
 
@@ -369,7 +375,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   updated `/next-slice` §4 lets a slice whose ratified test approach is `none` and which
   touches no source or test file skip the TDD loop, and `/end-slice` confirms that
   against the diff and runs `change-verify`'s new docs form (each command the diff adds
-  is run, each path it adds is opened). The commands and the skill arrive with the
+  is run, each path it adds is opened; 0.41.0 retired that form, so an update that also
+  crosses 0.41.0 folds the slice's stated skip instead — its marker row went with it). The commands and the skill arrive with the
   update; the canonical statement is in `templates/SDLC.template.md` slice-loop steps 4
   and 9, which an update never re-instantiates. Until the owner folds that diff, the
   project's process file says every slice runs the loop and **wins** — the safe
@@ -389,7 +396,9 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   `SDLC.template.md` *Architecture impact view*: hand the owner that diff to fold into
   `spec/SDLC.md`; until it is folded the project's process file names only the phase
   boundary and wins, so the slice-end refresh stays off. Where the graph directory is
-  **tracked**, say so: each refresh then needs its own commit.
+  **tracked**, say so: each refresh then needs its own commit. **Skip this fold when
+  the update also crosses 0.41.0, which retires the slice-end refresh;** its marker row
+  went with it, and the inside-the-change-set freshness rule stays.
 - **0.34.0 exempts comment- and layout-only source edits from the TDD guard, and lets
   them keep a slice docs-only.** One new kit-owned file, `.github/hooks/sdlc-cosmetic.py`,
   copied verbatim and installed unconditionally like the impact adapter: it can only
@@ -417,7 +426,10 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 - **0.35.0 puts the graph refreshes behind two switches** (`spec/SDLC.md`,
   *Architecture impact view*): `Graph refresh: slice-end incremental on · phase-end
   full-when-code-missing on`. Like 0.33.0's note, it matters only to a project carrying
-  an Understand Anything graph; for any other project it is currency only. The adapter
+  an Understand Anything graph; for any other project it is currency only. **When the
+  update also crosses 0.41.0, the line is `Graph refresh: phase-end
+  full-when-code-missing on` and only the phase-end half below applies** — 0.41.0
+  retired the slice-end refresh and `refresh-check`. The adapter
   (kit-owned, replaced as usual) gains two modes. `refresh-check` lets `/end-slice` skip
   the refresh when the graph is already at HEAD, where `/understand` would stop to ask.
   `coverage` runs the plugin's own scanner at `/end-phase` and calls for
@@ -694,6 +706,38 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   documents; the walk-through below carries it. A project that declines keeps hooks
   that ignore a CRLF-ended state word, harmless as long as the state is set through
   `sdlc-state.py`, which writes LF.
+- **0.41.0 retires two controls whose clocks failed, moves the test-double question
+  into a lens, and fixes the shell-write detector's blind route.**
+  - **Arrives by copy:** the commands, `REVIEW_LENSES.md` (it gains *test-double
+    fidelity*), the `diff-review` and `change-verify` skills, and
+    `.github/hooks/sdlc-impact.py`, which loses its `refresh-check` mode.
+  - **Two retirements, each put to the owner as one decision.** *The slice-end graph
+    refresh:* no adopter ever saw its reading. Hand the owner the fold for
+    `spec/SDLC.md` *Architecture impact view* — the `Graph refresh:` line keeps only
+    `phase-end full-when-code-missing on|off`, with the project's own value, and the
+    paragraph under it is the template's. Until folded, the leftover `slice-end
+    incremental` half is inert: no command reads it. *The docs-only verification
+    form:* seven runs on two adopters found nothing broken. A docs-only slice now
+    records `verify: skipped — docs-only slice`; fold slice-loop steps 4 and 9.
+  - **Rules to fold from `templates/SDLC.template.md`** — step 4's marker table
+    carries a row for each: the test-double trigger (and the untriggered doubles
+    question it replaces), the consequence sweep's third rule, the real-data run for an
+    arc reaching production state, the second old-value search, the retro offer's
+    count, the `verify:` route word, and unique backlog numbers at every slice close.
+    An older `verify: ran —` line with no route word still reads COMPLETE.
+  - **`spec/TESTING.md` is project-owned:** hand the owner the new paragraph under
+    *When a double stands in* (a double's answers come from the real system, and one
+    test goes past the next width boundary).
+  - **Both TDD guards change** (`templates/tdd-guard-claude.template.py`,
+    `templates/tdd-guard.template.sh`); the walk-through below carries it. At a
+    file's first editor write of a session the guard asks whether the file had
+    already changed outside the editor, and names it in the stop report. Before
+    this, a test written through the shell and then touched once through the editor
+    was never reported. What the owner may notice: a stop block naming such a file,
+    and one new state file, `outside-early`, beside the guard's others.
+  - **Nothing to fold for the pytest recipe:** the report pattern is unchanged.
+    Tell a pytest project that `--tb=no` prints no report header, so a red run under
+    it is refused, and `--tb=line` is the quiet form that counts.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from

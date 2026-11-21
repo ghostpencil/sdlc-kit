@@ -127,7 +127,7 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.40.1 that list is: the isolation
+  this invariant that goes stale silently. As of 0.41.0 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe and its
   dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
@@ -149,12 +149,12 @@ For each, read the named files in full — do not sample — and cite evidence p
   the update
   classifier, the release workflow's manifest verification, the impact adapter's
   four-state taxonomy (0.28.0; negative cases in `tools/impact-check.py`) and its
-  inside-the-change-set freshness rule (0.33.0) and its coverage, refresh-check and
-  plugin-fix modes (0.35.0, plugin-fix's Copilot hook script included), the hook
+  inside-the-change-set freshness rule (0.33.0) and its coverage and
+  plugin-fix modes (0.35.0; refresh-check retired in 0.41.0, plugin-fix's Copilot hook script included), the hook
   launchers' missing-script stop block, git-directory resolution through a linked
   worktree's `.git` file, and the guard's WSL mount candidate root (all 0.31.1), the
   Claude-dialect hooks' Copilot-payload stand-down (0.31.3), the docs-only slice's
-  confirmation and its verification's docs form (0.32.0) with its classifier clause,
+  confirmation (0.32.0; its verification's docs form retired in 0.41.0) with its classifier clause,
   the cosmetic classifier (negative cases in `tools/cosmetic-check.py`), and the guard
   patterns' shell-case-pattern check (`sh -n`; P1/P2 in `tools/tdd-guard-check.py`)
   (all 0.34.0), the shipped-Python lint check (0.34.1, `tools/shipped-lint-check.py`),
@@ -165,10 +165,10 @@ For each, read the named files in full — do not sample — and cite evidence p
   walk-through and its helper's stops (0.35.1), the helper's amendment retirement
   (`tools/rederive-check.py`), the guards' cosmetic test edit and their
   outside-the-editor report, `/sdlc-update`'s fold markers, the Claude Code launchers'
-  root anchor, and the impact adapter's phase-scope untracked line, gone files and
-  refresh-check count (all 0.36.0), the SDLC state's hook stand-down and its helper's
+  root anchor, and the impact adapter's phase-scope untracked line and gone files
+  (all 0.36.0), the SDLC state's hook stand-down and its helper's
   transitions (0.39.0) with the reason-required `off`, the recorded caller and the
-  in-flight `off`'s kept stage (0.40.0), the gate hooks' CR-ended state word (0.40.1), the retro's state-log reading (0.40.0), the
+  in-flight `off`'s kept stage (0.40.0), the gate hooks' CR-ended state word (0.40.1), the retro's state-log reading (0.40.0), the guards' first-editor-write question (0.41.0), the
   `tools/` proof suites, and this command.
 - **14 — recorded values name their enforcement:** enumerate every step in `commands/`
   and `templates/` that records a value or state (floors, baselines, statuses, deploy

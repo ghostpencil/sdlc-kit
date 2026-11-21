@@ -80,9 +80,10 @@ entry lives in the section it cites. The previous refresh (2026-09-27, at 0.31.0
 thing to the owner. A refresh is owed at every release that adds a rule, and at every
 arc an adopter closes.
 
-**Where the adopters stand.** All three are on 0.37.1, merged 2026-10-23
-(tfit-qa-app#36, ai-news-dashboard#24, chainmail-webfactory#4), and all three are
-between phases.
+**Where the adopters stand (2026-11-21).** TFit is on 0.40.1 and has closed Phases 13–32
+since the §87 reading; ai-news and chainmail are on 0.38.0 and have closed no arc.
+**§94 read TFit's twenty-one arcs (2026-11-21, ruled the same day, §94.4)**; the
+entries below carry its results, and the table that follows is §87's, kept as history.
 
 **Four arcs have run since the §76.5 reading, and §87 read them (2026-10-23, ruled the
 same day — §87.6, §87.7; built as §88, shipping as 0.38.0).** Three controls are retired
@@ -106,35 +107,25 @@ starts from. **The next reading is owed at the next arc any adopter closes.**
 
 **Clocks still running:**
 
-- **The docs-only verification form — §16 clock, two arcs, from 0.32.0** (§80.3). Catch:
-  a documented command or path a docs slice added, run or opened and found broken. **Arc
-  one read (§87.3 (vii)):** chainmail S11, the only docs slice in four arcs, found
-  nothing broken. The TFit arcs had no docs slice and do not count. The next docs slice
-  anywhere decides; no catch → deletion candidate.
-- **IMPACT — §66.6 clock STARTED at TFit P12** (§87.7 ruling 6), as arc one with zero
-  comprehension events. S3–S10 ran on a usable graph. chainmail P01 did not count: its
-  graph was stale for the whole arc. **Open question carried to the next reading:**
-  comprehension events are collected in the retro, and TFit skipped all three retros.
-  A second arc with no event → deletion candidate.
-- **The slice-end graph refresh — §16 clock, two arcs, from 0.33.0** (§81). Catch: a
-  slice preview that reads `current at the base` because the previous slice refreshed,
-  where it would otherwise have read `may be stale`. **Arc one (chainmail P01):** no such
-  reading. The refresh was skipped at all 11 closes, then ruled off. TFit and ai-news now
-  record `slice-end incremental on`, so either can supply arc two. No reading → deletion
-  candidate.
-- **COSMETIC — §16 clock from the release that armed it, 0.34.0** (§82). Catch: a
-  comment- or formatting-only write that would otherwise have needed a licence or been
-  denied, exempted with no behavioral change. **Eligible so far:** none. Pre-release
-  evidence: TFit P11's 7 comment-only refactor licences, each after a DENY (§87.3 (x)).
-- **The phase-end coverage trigger — §16 clock, two arcs, from 0.35.0** (§83). Catch: a
-  phase close where `coverage` named code or script files missing from a graph whose
-  freshness read current, and the full rebuild added them. **Eligible so far:** none.
+- **IMPACT and the phase-end coverage trigger — one more reading, on a condition**
+  (§94.1 (v)–(vi), §94.4 ruling 3). Neither has been tested: TFit's graph was not
+  rebuilt across twenty-one arcs, so no arc ran on a current graph and every
+  `full-rebuild: needed` was deferred to the owner. **If the graph is not rebuilt before
+  the next arc closes, both are deleted at that reading without a further ruling.** If
+  it is, IMPACT needs a comprehension event and the trigger its §83 catch.
 - **Rules shipped in 0.36.0–0.37.1 fall under the §16 regime with no catch criterion
   written yet.** These are the guards' outside-the-editor report (§85), `/sdlc-update`'s
   fold markers (§84.18) and its standing optional-hook record check, the setup and
   phase-close baseline stamps, and the coverage floor's recorded catch (§86.9). Each needs
   its catch stated at its first reading. The launcher anchor is a fix and carries no
-  clock. 0.38.0 adds no rule; it removes three.
+  clock. 0.38.0 adds no rule; it removes three. §94.1 (viii) wrote the outside-the-editor
+  report's criterion and read it met (four blocks naming real shell writes); the rest
+  were not read in §94 and carry.
+- **STATE — §89.11, not yet readable** (§94.1 (ix)): it waits for ai-news and chainmail
+  to take 0.39.0 or later.
+- **The 0.41.0 rules — §16 clock, two arcs, from 0.41.0** (§95.3): the *test-double
+  fidelity* lens, the guards' first-editor-write question, *Search again*, and the
+  consequence sweep's write question, each with its catch stated there.
 
 **Settled clocks and contingent keeps:**
 
@@ -143,6 +134,10 @@ starts from. **The next reading is owed at the next arc any adopter closes.**
 - **CONTRACT — clock satisfied** (§87.3 (iii), §87.7 ruling 5): the #161 contract walk
   found two owner-ratified clauses never built, one dropped and one restored and
   delivered.
+- **COSMETIC — clock satisfied** (§94.1 (vii)): five production writes and six test
+  edits exempted on TFit, each one the previous release would have denied or charged.
+- **Every named lens — kept on lens-named catches** (§94.1 (i)): all seven have
+  findings in TFit's Phases 13–32; `untrusted input` has nine there.
 - **`untrusted input` and `logging and swallowed errors` — kept on lens-named catches**
   (§87.3 (i)). `untrusted input` has 3 catches, all chainmail. `logging and swallowed
   errors` has 2, TFit P12 S7 and chainmail S6.
@@ -157,6 +152,10 @@ starts from. **The next reading is owed at the next arc any adopter closes.**
 two arcs), `stop-check` and with it the bare-flag arming question (zero catches, five
 false candidates), the `secrets and exposure` lens (zero catches in 15 applications), and
 §76.9(d)'s observer question (the restatement was enough, so nothing is built).
+
+**Retired by §94 (0.41.0):** the slice-end graph refresh with `refresh-check` (no
+reading on any adopter, twenty-two arcs) and the docs-only slice's verification form
+(seven runs, no catch).
 
 **Released as 0.40.1:** §92 — the two gate hooks read the state word raw, so a CR-ended
 `off`/`paused` was not honored (found by the TFit 0.40.0 update).
@@ -174,7 +173,7 @@ Everything the previous refresh listed as held has shipped or closed: the docs-o
 slice (0.32.0), §78 (0.31.1/0.31.2), §79 and §79.4 (0.31.3, 0.32.0), COSMETIC
 (0.34.0/0.34.1), and §77's residue, whose docs pass now asserts on the median (§82.10).
 
-**Standing inputs:** issues #18–#20 are open — the first adopter's Phase 18 finding and
+**Standing inputs:** issues #18–#20 are open until 0.41.0 is released — the first adopter's Phase 18 finding and
 its Phase 27 and Phase 30 retros, the twelfth and thirteenth field reports — triaged in
 §93 (2026-11-21), ruled the same day (§93.7). The adopter table above is stale past 2026-10-23:
 TFit is on 0.40.1 and has closed Phases 13–32; ai-news and chainmail are on 0.38.0
@@ -8999,3 +8998,43 @@ about where a double's answer comes from, not what it drops. The pre-write check
 `outside-early` line the session's own record confirms. *Search again*: a stale home
 found at the close that made it stale. The side-effect question: a verification step
 changed at plan time because of what it would have written.
+
+### 94.4 Ruled 2026-11-21
+
+All as recommended. The docs-only verification form is retired (1). The slice-end graph
+refresh is retired with `refresh-check` (2). IMPACT and the phase-end coverage trigger
+are kept for one more reading on the condition that the graph is rebuilt first; no
+rebuild before the next arc closes, and both are deleted at that reading without a
+further ruling (3, option b). COSMETIC's clock is closed and the lenses are kept (4).
+Rulings 1 and 2 are built in §96.
+
+---
+
+## 96. The §94 retirements built, and 0.41.0 assembled — 2026-11-21, unreleased
+
+**The slice-end graph refresh.** `end-slice.md` step 10 loses the refresh and says in one
+paragraph that none runs; step 9's stated-skip rule loses its graph example and keeps
+the rule. `SDLC.template.md` *Architecture impact view*: the line is now
+`Graph refresh: phase-end full-when-code-missing on`, the paragraph describes one
+refresh, and a leftover `slice-end incremental` half is stated inert. `end-phase.md`,
+`sdlc-setup.md` and the root README lose their mentions. `sdlc-impact.template.py`
+loses `cmd_refresh_check`, its dispatch and its usage lines; the inside-the-change-set
+freshness rule stays, since a rebuild during an arc still puts the graph there.
+`tools/impact-check.py` drops the mode's five cases and four mutations: 43 cases, 54
+mutations caught, exit 0.
+
+**The docs-only verification form.** `end-slice.md` steps 1 and 6, `SDLC.template.md`
+slice-loop steps 4 and 9, `skills/change-verify/SKILL.md` (the form's paragraph and its
+*How to use* clause) and `reference/SKILLS.md`'s row. A docs-only slice records
+`verify: skipped — docs-only slice`.
+
+**`/sdlc-update`.** The two retired rules' marker rows are gone and the 0.35.0 row's
+marker is now `phase-end full-when-code-missing`; eight 0.41.0 rows are added, and every
+marker in the table occurs on exactly one template line (checked by script). The 0.32.0,
+0.33.0 and 0.35.0 notes say what to skip when an update also crosses 0.41.0. The 0.41.0
+note lists what arrives by copy, the two retirements as owner decisions, the folds, the
+`spec/TESTING.md` paragraph, and the guard change the walk-through carries.
+
+**The rest.** `KIT_INVARIANTS.md` invariant 13 and `/kit-check`'s copy of its denominator
+gain the guards' first-editor-write question and lose the two retired checks; CHANGELOG
+0.41.0; `VERSION`; the manifest. The standing clocks above are refreshed to §94.
