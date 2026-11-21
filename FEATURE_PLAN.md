@@ -174,7 +174,11 @@ Everything the previous refresh listed as held has shipped or closed: the docs-o
 slice (0.32.0), §78 (0.31.1/0.31.2), §79 and §79.4 (0.31.3, 0.32.0), COSMETIC
 (0.34.0/0.34.1), and §77's residue, whose docs pass now asserts on the median (§82.10).
 
-**Standing inputs:** no issue is open on `sdlc-kit`. Issues #11–#17 are closed: #14–#16
+**Standing inputs:** issues #18–#20 are open — the first adopter's Phase 18 finding and
+its Phase 27 and Phase 30 retros, the twelfth and thirteenth field reports — triaged in
+§93 (2026-11-21), ruled the same day (§93.7). The adopter table above is stale past 2026-10-23:
+TFit is on 0.40.1 and has closed Phases 13–32; ai-news and chainmail are on 0.38.0
+(§93.6). Issues #11–#17 are closed: #14–#16
 with 0.35.0, the rest with 0.36.0. Every field report through the eleventh (#17, §84) is
 triaged, ruled and shipped. Adopter-side, TFit's friction log carries entries the 0.37.1
 update left for its next retro: two licence-revocation entries that are only partly
@@ -8556,3 +8560,258 @@ waits on the adopters' first arcs under 0.40.0.
 
 Released 2026-11-02 as 0.40.1 (CHANGELOG, the update note in `/sdlc-update` step 5,
 the invariant 13 denominator in both places).
+
+---
+
+## 93. Issues #18–#20 triaged — the test-double finding is half premise, the shell-write
+## detector is blind to the route it was built for, and one sequencing defect nobody
+## filed — 2026-11-21, ruled the same day
+
+Three issues from the first adopter, open and unread until now, verified against the tree
+at 2e40711 (0.40.1):
+
+| issue | filed | arc | kit | shape |
+|---|---|---|---|---|
+| #18 | 2026-10-29 | Phase 18 close | 0.38.0 | one finding, three suggested fixes |
+| #19 | 2026-11-12 | Phase 27 retro | 0.40.1 | six findings — the twelfth field report |
+| #20 | 2026-11-19 | Phase 30 retro | 0.40.1 | seven findings — the thirteenth |
+
+#19 says its citations were read "at the time of writing" and names no kit version; the
+adopter merged 0.40.1 on 2026-11-02, so both retros ran on the current release. Fourteen
+findings, eleven distinct: #18 and #19 f1 are one finding (the test double), #19 f2 and
+#20 f4 are one (shell writes), #19 f6 and #20 f3 are one (the graph-skip line).
+
+**Their themes, and what the triage adds.** #19: *rules the agent must remember fail;
+checks that run do not.* #20: *the defects that mattered lived outside any single diff* —
+in a procedure, in a clause no slice owned, in a ruling made mid-arc. The triage
+reproduces #19's theme inside the kit twice: the doubles question is a rule the reviewer
+must remember, with no trigger and no evidence line, and the old-value search is a check
+that runs **before** the write it is meant to check (93.4).
+
+### 93.1 The verdicts
+
+**A — the test double (#18, #19 f1). STANDS; the premise "no lens fires" is half false.**
+- The kit already asks about doubles at every slice: `commands/end-slice.md` step 4,
+  *Test doubles* ("Does any double in this slice omit a side effect or simplify the error
+  surface of what it replaces?"), restated in `templates/SDLC.template.md` (the slice-loop
+  review paragraph) and `templates/TESTING.template.md` (*When a double stands in*). §16
+  ruled "the doubles lens stays".
+- What is true: it is **not** in `reference/REVIEW_LENSES.md`, so it has no trigger and no
+  `lenses:` verdict. P27 S1's `lenses: no lens triggered` was an accurate line, and no
+  record anywhere says whether the doubles question was asked. Two arcs of evidence cannot
+  tell *asked and clean* from *never asked* — the exact defect 0.29.0 fixed for the named
+  lenses, left standing for this one.
+- And its wording is too narrow for both defects. The P27 stub ignored a `[hidden]`
+  ancestor; the P18 fake sorted names as text exactly as the code did. Neither omits a
+  side effect, and only P18's fourth defect (the fake never returned exit 255) simplifies
+  an error surface. The question asks what the double **drops**; both doubles failed on
+  what their answers were **derived from** — the code's own assumption, not the real
+  system's behavior. #18 names it: a double that re-implements the code's semantics agrees
+  with the bug, and mutation testing has no mutant to kill.
+- **Fix, re-aimed:** not a new lens beside the old question. Move the question into
+  `REVIEW_LENSES.md` as a named lens — trigger: the slice added or changed a fake, stub,
+  fixture or harness method standing in for a real dependency — widened with #19's
+  question (name each behavior of the real thing the code under test depends on; show one
+  test where the double and the real thing would disagree, or run it once against the real
+  thing), and delete the untriggered bullet. One rule in, one out; the verdict lands on
+  the `lenses:` line where a clock can read it. Three homes move together (step 4's
+  trigger sentence, the SDLC template's copy, the mock policy's closing sentence).
+- #18's second suggestion (one test past the next width boundary of any identifier the
+  code orders or parses) belongs in the same mock-policy section. Its first (a
+  `/plan-phase` prompt for data boundaries and platform differences) is a new sweep item
+  with one arc of evidence: held to the ruling (93.5).
+
+**B — shell writes to code (#19 f2, #20 f4). STANDS, and it reopens ruling 84.7(3)'s
+"detection, not prevention" with a measurement.**
+- The adopter's `.git/sdlc-tdd/guard.log` (read 2026-11-21, 20,219 lines) holds five
+  `code changed outside the editor tools` blocks since 0.36.0. One falls in the P27 window
+  (2026-11-12, after the last slice) and none in P30, against four self-reported shell
+  writes in P27 and three in P30. **The detector saw one of seven.**
+- Why, from `templates/tdd-guard-claude.template.py` `changed_outside`: it skips every
+  path in `seen-writes`, and a pre-write through the editor adds the path. So a test
+  written by heredoc and then touched once through Edit — #19's own words, "written by
+  heredoc and only renamed through Edit" — is seen, and never reported. That is the
+  commonest route, and the route the rule exists for: the shell-written test body then
+  counts as an observed test edit.
+- **Two fixes, different weights.** (1) Inside the standing ruling: at the editor's
+  pre-write, a code file whose content already differs from its session-start blob and is
+  not yet in `seen-writes` was changed outside the editor — say so then, before recording
+  it as seen. No new hook, both dialects, proof cases in both guard suites. (2) The
+  prevention both reports ask for — a pre-tool check on the shell tool — reverses 84.7(3)
+  and is an enforcement feature: it takes the §31.10 ramp (probe, pre-registered criteria,
+  logging trial, deny) and ships as an offer (§31.14). Its known costs, stated before any
+  design: it classifies a command by its spelling, which is §84's own theme (`python -c`,
+  a script file, and `git apply` all pass); a false denial blocks real work where hooks
+  are meant to fail open; and it needs both dialects. #20 adds a fact worth measuring
+  first: Claude Code's auto mode already refused these runs, so the hook's marginal catch
+  is the population without auto mode.
+- The adopter's owner ruled "block them" for that project on 2026-11-12. That is the same
+  owner; the kit ruling is still owed because the ramp is.
+
+**C — owner decisions routed to the backlog; ratified wording not checked (#19 f3).
+STANDS as adherence for the first half, as a real gap for the second.**
+- First half: `end-slice.md` step 4 already says an owner question halts and a spec
+  conflict takes halt 3. The slice review labelled a finding "OWNER DECISION" and filed
+  it. A second prose rule ("a backlog entry may not carry the marker") is the fix #19's
+  own theme argues against, and the marker is the adopter's spelling, not a kit
+  convention, so a grep in `docs-check` would observe a proxy.
+- Second half: `skills/diff-review/SKILL.md` Axis A takes the slice's exit criteria as
+  the intent and stops at the first source that exists. Its "spec conflict, CRITICAL"
+  class therefore has **no step that loads the decisions** — a conflict is found only if
+  the reviewer happens to read them. D14 ratified "100+", the slice built "N+", and the
+  review was clean by construction. Same gap as D below.
+
+**D — clauses no slice owns (#20 f2). STANDS, no collision.**
+- `plan-phase.md`: "Behaviors map onto slices — no behavior left unassigned" is stated,
+  never enumerated, and holds at item level. `next-slice.md` step 2 re-derives causes,
+  numbers and methods; an interpretation the owner rules inside the slice is checked
+  against nothing.
+- Cost to weigh: a clause-level map at plan time grows the spec the same step tells the
+  planner to keep lean. The cheaper leg closes C's second half as well: at slice end the
+  Spec axis reads each decision and behavior the slice's row **cites**, quoted beside the
+  built behavior. It would have caught D14 and F1 (S11 cited D18); it would not have
+  caught F2 (S9 cited D16 and D17, never B8) — that one needs the plan-time enumeration.
+
+**E — acceptance steps with side effects (#20 f1). STANDS, no collision.**
+- The consequence sweep (`plan-phase.md` step 4; `SDLC.template.md` planning paragraph)
+  scans behaviors and makes each hit name a verification. Nothing sweeps the
+  verification. The rehearsal marked 35 items promoted in the real store because
+  "point it at a copy" redirected one store of two.
+- **It must be designed with #18's third suggestion, which pulls the other way.** #18
+  wants `end-phase.md` step 3's real-data run made unconditional for any arc that reaches
+  production state, and says a dry run is not the composed run. #20 f1 is what a real run
+  costs when nobody asked what it writes. One rule serves both: every acceptance step and
+  every named verification that runs a command answers *what does it write, and where,
+  when run against real data — and does the redirection cover every store the command
+  touches?* — at plan time, and again at step 3 before the run.
+
+**F — the graph-skip line (#19 f6, #20 f3). STANDS, and the kit's own rule writes it.**
+- `end-slice.md` step 9, *A stated skip counts too* (0.36.0, from the eleventh report):
+  the third consecutive skip writes a friction line, and nothing ends the condition, so
+  every later close writes another. Fifteen lines in P30, eight in P27, and at least ten
+  more in P32 (the adopter's friction log, read today).
+- A second gap under it: `refresh-check` prints `refresh needed … run /understand` at 394
+  files behind, while the plugin itself demands a full update past its own threshold. The
+  kit has no state for "an incremental can no longer do this", so the adopter improvised
+  the owner routing the report describes.
+- **Fix:** the stated-skip line is written once per reason per arc and names the owner
+  action; later closes say one hand-back line and write nothing. `/end-phase`'s coverage
+  step is where it is raised again.
+- The larger fact is clock data, not a fix (93.6): the graph has sat at one commit since
+  Phase 19.
+
+**G — the smaller five.**
+- **#19 f4, multi-home numbers. STANDS; the cause is 93.4, not a skipped hand search.**
+  The report's fix (prefer a gate test where a number has several homes) is project-side
+  advice worth one sentence in the SDLC template's *Coverage floor*.
+- **#19 f5, the retro offer carries no evidence. STANDS, and it is the premise change
+  §87.7 ruling 7 recorded, now measured:** seventeen closes declined the offer, the log
+  holds 154 entries with 118 open. The fix is small and mechanical — the offer quotes the
+  open count and the oldest open entry's date, both greppable from the log's prescribed
+  shape. It reopens ruling 7 ("no rule change") on evidence the ruling did not have.
+- **#20 f5, the ledger against the commit lines. STANDS for `verify:` only.** The
+  `mutation-testing` half is closed by §70.7 ruling 4 (the inlined rules are the operative
+  path; zero dispatches is the expected reading). For verification, step 6 names the skill
+  and is silent on an inline run, and the `verify:` line does not say which ran: 3 of 16.
+  Fix as filed: the line states `(change-verify)` or `(inline)`.
+- **#20 f6, guard run counting. One of three parts is a fix, and not as filed.** "Accept
+  the `N failed` summary line" collides with `reference/GATE_RECIPES.md`'s measured rule
+  that the pattern is a marker the runner prints first, never its closing summary (both
+  CLIs truncate long output). Measured here on pytest 9.0.3: `--tb=no` prints no
+  `FAILURES` header, and prints `short test summary info` straight after the progress
+  line; `--tb=line` keeps the `FAILURES` header and is nearly as short. So: add
+  `short test summary info` as a third alternative in the pytest row, or have the recipe
+  name `--tb=line` as the quiet form. The other two parts — a compound run is not counted,
+  and a test edit after a red makes it stale — are the guard working as ruled; the second
+  wants one sentence in `/next-slice` step 4.
+- **#20 f7, duplicate backlog numbers mid-arc. STANDS.** `end-phase.md` step 7 runs
+  `sort | uniq -d`; `end-slice.md` step 9, the step that mints the numbers, has only the
+  read-the-maximum sentence. Two entries shared a number for 13 slices. Fix as filed.
+
+### 93.2 What does not survive as filed
+
+- #19 f1's "no lens fires" — a question exists; the gap is its wording and its record (A).
+- #19 f3's first fix — a second prose rule for a rule that already exists (C).
+- #20 f6's summary-line fix — against a measured recipe rule (G).
+- #19's step-evidence row "TDD guard: blind to the shell writes" — the 0.36.0 detector is
+  installed and armed there; it is blind to this **route**, which is the finding (B).
+- #20 f5's mutation half — ruled expected in §70.7 (G).
+
+### 93.3 Corroborated
+
+Nothing here comes from a second adopter: ai-news and chainmail are on 0.38.0 and have
+filed nothing since #17. The shell-write route was reported by chainmail in #16 and #17
+before the detector existed; whether its detector sees more than one in seven is unread.
+
+### 93.4 Found by the triage, not reported — the old-value search runs before the write
+
+`end-phase.md` step 7 runs the reconcile pass **first**, old-value search included, and
+says why: every later bullet reads a recorded number. The coverage-floor bullet then
+**writes** — a new threshold when coverage rose, a new measured figure either way — and
+asserts only that the *Records* row and the enforcing artifact agree. No search follows
+that write. So the value that just became old is searched for at the **next** close.
+#19 f4 shows it three times: the stale line was missed at the Phase 21, 24 and 26 closes
+and found by the Phase 22, 25 and 27 closes, each one arc late. The red-baseline bullet
+has the same shape. The report reads this as a hand search skipped; the sequence
+guarantees it for a search run perfectly.
+
+Fix: the search for a superseded value runs after the bullet that supersedes it — once,
+as step 7's last act over every number this close changed, with the same empty-list pass.
+
+### 93.5 Dispositions put to the owner
+
+1. **Reports become files.** #19 and #20 are retros: by ruling 84.7(5)'s precedent they
+   become `FIELD_REPORT_2026-11-12.md` and `FIELD_REPORT_2026-11-19.md`, generalized, with
+   README rows and CLAUDE.md paragraphs. #18 is a single finding and stays an issue, as
+   #11–#16 did. *Recommended.*
+2. **One text batch, no new machinery:** A (the doubles lens moved, widened, the old
+   bullet deleted, plus #18's boundary sentence), E with #18's third suggestion (one
+   question, two steps), F (once per reason per arc), 93.4 (the search moves to the end),
+   and G's four fixes (the retro offer's count, the `verify:` route word, the pytest row,
+   `uniq -d` at step 9). *Recommended, as 0.41.0.*
+3. **B(1), the detector's blind route**, in the same release: a fix inside ruling 84.7(3),
+   with proof cases in both guard suites. *Recommended.*
+4. **B(2), prevention.** Open a pre-registered design section for a shell pre-tool check
+   under the §31.10 ramp, or hold until B(1) has run one arc and its count is read.
+   *Recommended: hold one arc.* B(1) may close most of the gap, and the measurement that
+   decides the hook — how many shell writes reach a session without auto mode — does not
+   exist yet.
+5. **C's second half and D:** the Spec axis reads the decisions and behaviors the slice's
+   row cites (cheap, in the text batch), and the plan-time clause enumeration is designed
+   separately with its spec-size cost stated. *Recommended: the first now, the second as
+   its own section.*
+6. **#18's plan-time boundary prompt** (data boundaries, platform differences): held, one
+   arc of evidence, and A's widened question reaches the same two defects at review.
+   *Recommended: hold.*
+7. **The clock reading is owed and is larger than this triage** (93.6). *Recommended: its
+   own section, before 0.41.0 is tagged, because two of its likely outcomes remove text
+   this batch would otherwise edit (F).*
+
+### 93.6 What the two arcs say to the standing clocks — notes, not the reading
+
+The last reading (§87) covered arcs through 2026-10-19. The adopter has closed Phases 13
+through 32 since; only P18, P27 and P30 produced a report. From these reports and the one
+log read today, unverified beyond that:
+
+- **The slice-end graph refresh** (two arcs, from 0.33.0): skipped at every close of P27
+  and P30, no `current at the base` reading. With chainmail P01 that is its failure
+  condition on the reports' own evidence.
+- **IMPACT** and **the phase-end coverage trigger:** the graph has not been rebuilt since
+  Phase 19. P30's `coverage` named 180 code files missing — half the trigger's catch — and
+  the rebuild was deferred to the owner, so the other half did not happen. IMPACT has had
+  no usable graph for any arc in the window.
+- **The docs-only verification form:** P30 S13 ran it; the report records no catch.
+- **The outside-the-editor report** (§85, catch criterion unwritten): five blocks in the
+  log, one of seven in these two arcs (B).
+- **STATE** (§89.11, §91.3): P30 is an arc under 0.40.1 with no pause and no mid-arc
+  `off`; every transition was a command's.
+- **R3.8's aging rule:** #19 f5 is its premise failing in the field.
+- **`change-verify`:** 1 dispatch in P27, 3 in P30; the rest inline.
+
+### 93.7 Ruled 2026-11-21
+
+All seven as recommended. The reports become files (1); the text batch (2), the
+detector's blind route (3) and the Spec axis reading cited decisions (5, first half)
+are 0.41.0; prevention is held one arc behind B(1) (4); the plan-time clause
+enumeration gets its own section (5, second half); #18's boundary prompt is held (6);
+and the clock reading is its own section, read before 0.41.0 is tagged (7).
