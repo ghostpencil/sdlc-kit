@@ -168,6 +168,20 @@ reading on any adopter, twenty-two arcs) and the docs-only slice's verification 
 - **A second home for the gate's test command** (§86.1(6), "related, not a number"):
   `TESTING.template.md` restates the command `SDLC.template.md` *Records* holds, and the
   *Records* reconcile searches for numbers only. Not ruled.
+- **The plan-time clause enumeration — ruled to its own section, not yet written**
+  (§93.5 item 5's second half, §93.7): designed separately, with its spec-size cost
+  stated.
+- **Shell-write prevention — held one arc** (§93.5 item 4, §93.7): a shell pre-tool
+  check under the §31.10 ramp opens, or does not, on the count 0.41.0's detector fix
+  (§95.2) produces in its first arc.
+- **#18's plan-time boundary prompt — held one arc** (§93.5 item 6, §93.7): data
+  boundaries and platform differences asked at plan time; the widened doubles question
+  reaches the same two defects at review.
+- **Killer-first ordering and the segment-parallel unit pass** (§90.8): proof-suite
+  speed, order only. Whether a persisted hints file belongs in `tools/` is the owner's
+  call.
+- **Invariant 16's state row against setup's "nothing goes in *Records*"** (§91.4):
+  pre-existing, not ruled.
 
 Everything the previous refresh listed as held has shipped or closed: the docs-only
 slice (0.32.0), §78 (0.31.1/0.31.2), §79 and §79.4 (0.31.3, 0.32.0), COSMETIC
