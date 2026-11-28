@@ -9733,7 +9733,7 @@ is right and the remedy is not in `/sdlc-update`.**
 
 All six as recommended; C4 goes in 0.42.1 with the fold cost stated in the offer.
 
-### 99.6 Built for 0.42.1 — 2026-11-28, on branch `0.42.1`, unreleased
+### 99.6 Built for 0.42.1 — 2026-11-28, released the same day (§99.8)
 
 | finding | where it landed |
 |---|---|
@@ -9808,3 +9808,12 @@ owner as such, not decided silently.
 Left, pre-existing and outside the batch: `sdlc-update.md:125`'s "like the third",
 the `Fold marker answered:` line's absence from step 6's list, and `UPDATE_NOTES.md`'s
 0.14.0 wording on a pre-0.14.0 project's offered skills.
+
+### 99.8 Released 2026-11-28
+
+`main` fast-forwarded to 9a1364e, tag `v0.42.1`, release run 46178427310 green on its
+first run. The published archive was downloaded and verified: both checksums, `VERSION`
+0.42.1, manifest 45 of 45, the restated move check present in both commands and no
+comment-removal text in `sdlc-setup.md`. No adopter update is owed for it (ruling 6);
+all three stay on 0.42.0 until their next update. Owed: the owner's confirmation of the
+C4 hold (§99.7), and the three held design items in the standing list.
