@@ -244,7 +244,7 @@ lint error, naming the file), and the **reach note** the rule above requires:
      only reactively, at a refusal or a counted run (field, 2026-08-08 — before the
      guard spoke, a session that met them first as unexplained refusals thrashed and
      probed the guard instead of complying): a test run registers only as a single bare
-     command — no `;`, `&` or `|`; flags and single-test selectors are fine — and a
+     command — no `;`, `&` or `|`, quoted or not; flags and single-test selectors are fine — and a
      command that only names the runner (a reader, `git`, an install, a heredoc) is
      never one; a failing run is a RED only when the runner's own report is in its
      output (the resolved TEST_REPORT_PATTERN, named), so a wrapper's failure is
@@ -1219,7 +1219,10 @@ Run `/end-phase` when the last slice is done:
   an update replaces moves verbatim to `spec/PROJECT_INDEX_HISTORY.md` under its own
   heading (`## Superseded at Phase NN close — <date>`, or `## Superseded at the
   <version> update — <date>`), apart from the retired
-  entries; nothing is kept in place under a "Previous" label. Two guards go with it.
+  entries; nothing is kept in place under a "Previous" label. The move is checked
+  before the commit: each moved piece, read back from the history file, is one
+  byte-for-byte span of the last commit's copy of the file it left and is gone from the
+  working file. Two guards go with it.
   **Nothing owed is lost:** before a status line or START HERE block is replaced,
   anything it owes that no backlog entry or phase-spec line carries becomes a numbered
   backlog entry. **A live record never moves:** a current number or a decision still

@@ -14,36 +14,43 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
-## 0.42.1 — unreleased
+## 0.42.1 — 2026-11-28
 
 What the first three updates to 0.42.0 ran into (`FEATURE_PLAN.md` §99). No adopter
 needs an update for this release alone; it changes what the next update does.
 
 ### Fixed
-- **[installable]** **`/sdlc-update` copies only the skills a project has.** "Each
-  skills directory" installed the two Python-only optional skills into a Java project.
-- **[installable]** **The move check is the put-it-back proof.** A superseded note is
+- **[installable]** **`/sdlc-update` copies the two offered skills only where a project
+  has them.** "Each skills directory" installed the Python-only `python-pro/` and
+  `hypothesis-tests/` into a Java project. The four skills setup always installs are
+  still copied unconditionally. A non-Python project holding either offered skill is
+  told so and offered the removal.
+- **[installable]** **The move check reads the moved text back.** A superseded note is
   often a span inside a longer line, so comparing removed lines with added ones failed
-  on a correct move. `/end-phase` and `/sdlc-update` now say: each moved piece, restored
-  where it was cut, reproduces the committed file byte for byte.
-- **[installable]** **The one-time moves may carry forward what only a moved note
-  stated** — a catch, a ratification, a decision — shown as its own hunk. The write
-  exception said "nothing rewritten" while the rule beside it required the carry.
+  on a correct move. `/end-phase` and `/sdlc-update` now say: each moved piece, read
+  back from the history file, is one byte-for-byte span of the last commit's copy of
+  the file it left, and is gone from the working file.
+- **[installable]** **The 0.42.0 note names what is carried before a note moves** — a
+  catch with its reach note onto the row's current record, a ratification or decision
+  to its home — each shown as its own hunk. The write exception said "nothing
+  rewritten" while the rule beside it required the carry.
 - **[installable]** **Two marker rows from 0.9.0** join `/sdlc-update`'s table: an
   inert-ship claim quotes the production artifact, and each consequence names the
   lever that disables it alone.
 - **[installable]** **A long friction log may be shown in groups**, each with its count
-  and one member quoted.
+  and one member quoted, the counts summing to the stated total.
 
 ### Changed
-- **[installable]** **`/sdlc-setup` removes a template's instantiation comments once
-  they are resolved**, and its exit check counts them. One adopter carried 15.6 KB of
-  them in a 39 KB *Records*. `/sdlc-update` offers the same removal to a project that
-  kept them, as one decision, with its cost stated.
 - **[adoption-only]** **The TDD guards' compound-command message says a `;`, `&` or
   `|` inside quotes counts too.** The behavior is unchanged and is by design: stripping
   quotes safely needs a shell tokenizer, and a wrong strip records a false GREEN.
-- **[adoption-only]** `CLAUDE.template.md`: a missing full stop.
+  `SDLC.template.md`'s guard note says "quoted or not" in its one list of rules.
+- **[adoption-only]** `SDLC.template.md` states the move check beside the rule it
+  guards. `CLAUDE.template.md`: a missing full stop.
+
+Not in this release: removing template comments from instantiated files. It was built
+and withdrawn by the release pass — about a dozen template comments are standing rules
+with later readers, not notes to setup (`FEATURE_PLAN.md` §99.7).
 
 ## 0.42.0 — 2026-11-28
 

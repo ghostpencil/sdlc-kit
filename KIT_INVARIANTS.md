@@ -231,8 +231,9 @@ old side-effect question read it clean), the close-out checker's **loaded-size l
 (0.42.0, `tools/close-out-check.py`: three long lines that pass the line budget must be
 seen to read `ABOVE`, instruction files must be seen summed, and process text outside
 *Records* must be seen not counted), the phase close's **move check** (0.42.0, restated
-0.42.1: a moved piece that, put back where it was cut, does not reproduce the committed
-file byte for byte must be seen to stay in place and be named), the
+0.42.1: a moved piece that, read back from the history file, is not one byte-for-byte
+span of the last commit's copy of the file it left, or still occurs in the working
+file, must be seen to stay in place and be named), the
 retro's **open-ruling sweep** (an absorbed entry with nothing built must be seen to be
 reported beside the unabsorbed ones) and its **age-rule upstream re-check** (an aged
 entry whose defect the current kit release already fixed must be seen to be
@@ -291,7 +292,8 @@ fire), the **scripted mutation runner** (its sha256 assert must fail on bytes no
 restored, and the `git diff` after the run stays mandatory because a killed runner
 restores nothing), and `/sdlc-update`'s
 **friction enumeration** (an entry the release does not address must be seen listed as
-`nothing in range`, never dropped), and `/sdlc-update`'s **hook-script walk-through**
+`nothing in range`, never dropped; from 0.42.1 a grouped listing whose counts do not
+sum to the number of live entries must be seen as an entry dropped), and `/sdlc-update`'s **hook-script walk-through**
 (0.35.1 — its helper must be seen to stop, never propose, with `UNRESOLVED` on a
 placeholder the target template adds, `NO TARGET` on a tag that is not a release,
 `UNCOMMITTED` on a script with local changes, and `NO BASE` on values no release's

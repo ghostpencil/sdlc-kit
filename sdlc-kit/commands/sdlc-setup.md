@@ -858,19 +858,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    and on Copilot the same is true of `.github/skills/sdlc-setup/SKILL.md`. Name the
    instantiated files explicitly; a check whose scope drifted with the install path is
    a check that stopped covering the file it was written for.
-   Every other installed file is `{{`-free and stays that way.
-   **Then the same files' instantiation comments.** A `<!-- … -->` block in a template
-   is addressed to this command: it says how to resolve the placeholder or seed the
-   section beside it. Once that is done the comment has no reader, and it is loaded
-   with the file from then on — `spec/PROJECT_INDEX.md` whole at every slice,
-   `spec/SDLC.md` *Records* by every daily command. Delete each one as its placeholder
-   resolves, and check at the end: `grep -c '<!--' CLAUDE.md spec/*.md` reads 0, or
-   every block left is named with the reason it stays (a comment the project wrote
-   itself, in Existing mode's merged files, is not setup's to remove). One adoption
-   that kept them carried 15.6 KB of template comments in a 39 KB *Records*; two that
-   did not carried under 2 KB. The cost of removing them, stated so it is chosen: a
-   later `/sdlc-update` folds template changes into these files by hand, where
-   retained comments let some hunks apply by exact match. Re-run the gate one
+   Every other installed file is `{{`-free and stays that way. Re-run the gate one
    final time (New mode: must be green in this session's shell — the scope the
    baseline record names).
 2. Ask the owner: commit the setup? If yes — New mode: initial commit; Existing mode:

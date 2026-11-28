@@ -361,7 +361,7 @@ The whole procedure rests on this split:
 | Path in your project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | **kit** | Tracks upstream. Overwritten when provably unmodified; you decide when drifted. |
-| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the six `SKILL.md` files share a basename. Copy only the skills the project already has: two of the six are setup's offer to Python projects and are not installed by an update. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
+| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from `skills/`; this mapping starts at 0.14.0) | **kit** | Same rule — and copy skill **directories**, not lone files: the six `SKILL.md` files share a basename. The four skills setup always installs are copied whether or not the project still has them; the two setup only offers to Python projects (`python-pro/`, `hypothesis-tests/`) are copied only where the project already has them. Coming from ≤ 0.13.0 these are new files and their `.claude/commands/` originals are removed — one move, not two unrelated changes. |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | **kit** | Classified for the transition — removed when provably unmodified; you decide when drifted. |
 | `.github/skills/*/SKILL.md`, `.github/agents/explore.agent.md` (Copilot CLI projects) | **kit** | Same rule. The packaged skills are compared with their frontmatter block stripped — see the script below. |
 | `.github/hooks/sdlc-close-out.sh` (both CLIs, from 0.20.0: the close-out evidence checker) | **kit** | Same rule — compared against `templates/close-out.template.sh`, which it copies verbatim; one of the four kit-owned files in that directory (with `sdlc-impact.py`, `sdlc-cosmetic.py` and `sdlc-state.py`; a fifth, `sdlc-close-out.json`, is retired) — every other file there is project-owned. |
@@ -549,7 +549,7 @@ handed to you to fold in — and the per-version transition notes name each one.
    `open`, or absorbed as `RULING OPEN` — beside the changelog entry in the update range
    that addresses it, or `nothing in range`. The log names no implicated file, so there
    is nothing to filter on (a long log may be shown in groups by subject, each with its
-   count and one member quoted); one adopter's two entries stayed `RULING OPEN` for seven
+   count and one member quoted, the counts summing to the stated total); one adopter's two entries stayed `RULING OPEN` for seven
    weeks after the update that fixed them. A matched `RULING OPEN` entry is proposed for
    closure in step 6; an `open` one is left for the next retro.
 
@@ -701,12 +701,10 @@ handed to you to fold in — and the per-version transition notes name each one.
    the record it replaces moving verbatim to `spec/PROJECT_INDEX_HISTORY.md`),
    each written only on your word at that halt. A version note may also offer a
    one-time move of superseded text into `spec/PROJECT_INDEX_HISTORY.md` — the moved
-   text verbatim, with anything only the moved note stated copied onto the current
-   record and shown to you as its own hunk — and only on your yes. A note may likewise
-   offer to remove the template's own instantiation comments from those files, on
-   your yes. The empty `spec/PRODUCT_CONTRACT.md`
-   the 0.23.0 note (`reference/UPDATE_NOTES.md`) creates is the
-   other: a verbatim template copy, only when absent. An update that did not
+   text verbatim, with the carries and backlog entries that note names, each shown to
+   you as its own hunk — and only on your yes. The empty `spec/PRODUCT_CONTRACT.md`
+   the 0.23.0 note (`reference/UPDATE_NOTES.md`) creates is
+   another: a verbatim template copy, only when absent. An update that did not
    ask does not record an answer. And each `RULING OPEN` friction entry you confirm the
    release fixed — checked against the installed file — is flipped in place to
    `implemented in kit vX.Y.Z` (the release tag that shipped the fix); one you do not

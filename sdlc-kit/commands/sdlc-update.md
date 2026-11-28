@@ -14,7 +14,7 @@ the project owns.**
 | Path in this project | Owner | Update behavior |
 |---|---|---|
 | `.claude/commands/*.md` (from the kit's `commands/` and `reference/REVIEW_LENSES.md` — and from `skills/` too on kits ≤ 0.13.0) | kit | overwrite when provably unmodified; owner decides when drifted |
-| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from the kit's `skills/`; this mapping starts at 0.14.0) | kit | same rule; on a project coming from ≤ 0.13.0 these are *new* files and their `.claude/commands/` originals are *removed* |
+| `.claude/skills/*/SKILL.md` (+ `tdd/tdd-references/`, from the kit's `skills/`; this mapping starts at 0.14.0) | kit | same rule — the two skills setup only offers (`python-pro/`, `hypothesis-tests/`) are updated only where already installed; on a project coming from ≤ 0.13.0 these are *new* files and their `.claude/commands/` originals are *removed* |
 | `.claude/agents/*.md` (from kits 0.6.0–0.9.0; the `agents/` mapping was retired in 0.10.0) | kit | classified for the transition — removed when provably unmodified; owner decides when drifted |
 | `.github/skills/*/SKILL.md` (Copilot: the kit commands, packaged) | kit | same rule, but compared with the frontmatter block stripped — see step 3 |
 | `.github/agents/explore.agent.md` (Copilot: the read-only sweep profile) | kit | same rule; compared against `templates/explore.agent.template.md`, which it copies verbatim |
@@ -226,8 +226,9 @@ List each entry in `spec/PROJECT_INDEX.md` *Kit friction log* still `open` or ab
 as `RULING OPEN`, and beside each the changelog entry in the update range that
 addresses it, quoted, or `nothing in range`. Visit them all — where the log is too
 long to list entry by entry, entries about one subject may be shown as a group, each
-group with its **count and one member quoted**, so the denominator stays on the page
-and no entry is dropped silently: the log has no field
+group with its **count and one member quoted**, and **the group counts summing to the
+number of live entries, stated** — a sum that falls short is an entry dropped. They
+are all visited because the log has no field
 naming the file an entry implicates, so a filter has nothing to match on, and an
 entry's own words are the only evidence. The cost of skipping this is measured: an
 adopter's update shipped the exact fix for two such entries, the guard applied it 84
@@ -337,11 +338,13 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   its `description`, and replacing only the body below it — and
   `templates/explore.agent.template.md` copied over `.github/agents/explore.agent.md`.
   On either CLI: `sdlc-kit/reference/REVIEW_LENSES.md` into `.claude/commands/`, and
-  each `sdlc-kit/skills/<name>/` directory **the project already has installed** into
-  `.claude/skills/<name>/` — never one it lacks, unless this update's note says the
-  install set gained it: `python-pro/` and `hypothesis-tests/` are in the bundle for
-  setup's offer to Python projects, and copying "each directory" put both into a Java
-  project as live, model-invocable instructions — copied whole
+  the `sdlc-kit/skills/<name>/` directories into `.claude/skills/<name>/` — **the four
+  setup always installs (`tdd/`, `mutation-testing/`, `diff-review/`,
+  `change-verify/`) unconditionally, so a missing one is restored; the two setup only
+  offers to Python projects (`python-pro/`, `hypothesis-tests/`) only where the
+  project already has them.** Setup records no answer to that offer, so presence is the
+  only evidence it was accepted, and copying "each directory" put both into a Java
+  project as live, model-invocable instructions. Each is copied whole
   so `tdd/tdd-references/` travels with it — the `SKILL.md` files share a
   basename, so copy directories, not files. The gate hook is project-owned and is not
   copied over; a change to its template reaches it through the hook-script
@@ -791,41 +794,44 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
     superseded. Before moving a status line, give anything it says is owed a backlog
     number. Before moving anything, check it holds no live record — a current floor,
     baseline or decision goes to its home first, and a project whose own tests read a
-    value out of the index is told so before the text moves. Check the move by
-    putting the text back: each moved piece, restored where it was cut, must reproduce
-    the committed file byte for byte (`/end-phase` states the same check, and why a
-    line-for-line comparison is not it — a superseded note is often a span inside a
-    longer line). A piece that cannot be put back exactly stays where it was and is
-    listed for the owner. Decline lines (`Hook re-derive declined:`) are exempt and
-    stay, as their own rule says, and a catch that arose on its own is carried onto
-    the row's current record before the older note moves. These moves are one of the
+    value out of the index is told so before the text moves. Check the move in the
+    agent's shell, before the commit: each moved piece, read back from the history file, must occur byte for byte
+    as one span in the last commit's copy of the file it left (`git show
+    HEAD:<file>`), and must no longer occur in the working file
+    (`/end-phase` states the same check, and why a line-for-line comparison is not
+    it — a superseded note is often a span inside a longer line). A piece that fails
+    either half stays where it was and is listed for the owner. Decline lines
+    (`Hook re-derive declined:`) are exempt and stay, as their own rule says.
+    **What a moved note alone stated is carried first, each carry shown to the owner
+    as its own hunk:** a catch that arose on its own goes onto the row's current
+    record with its reach note; a ratification or decision still in force goes to its
+    home (the row's current record for a recorded value, the phase spec or START HERE
+    otherwise). These moves and carries are one of the
     writes step 6 names — made on the owner's yes, never as part of the copy. A project that declines keeps its files as they are, and the next
     phase close makes the same moves.
   - **Nothing to prove or record for the observer:** it is log-only, and its three
     budgets are constants in the kit-owned script.
-- **0.42.1 corrects four things the first 0.42.0 updates ran into, and makes one
-  offer.** All arrive by copy except the offer and the guard message.
-  - **The skills copy** (above) is over the skills the project has; the move check is
-    the put-it-back proof, not a line comparison; the one-time moves may carry onto
-    the current record what only a moved note stated; and a long friction log may be
-    shown in groups with counts. A project that took 0.42.0 has nothing to redo.
+- **0.42.1 corrects what the first 0.42.0 updates ran into.** The command arrives by
+  copy; the marker rows are a fold and the guard message rides the walk-through.
+  - **In the command:** the skills copy (above) installs the two offered skills only
+    where the project has them;
+    the move check reads each piece back from the history file instead of comparing
+    lines; the 0.42.0 note names what is carried before a note moves; and a long
+    friction log may be shown in groups whose counts sum to the total. A project
+    that took 0.42.0 has nothing to redo, with one exception: **a project that is
+    not Python and finds `python-pro/` or `hypothesis-tests/` under `.claude/skills/`
+    without having accepted setup's offer got them from a 0.42.0-or-earlier update's
+    copy** — name them to the owner and offer the removal.
   - **Two marker rows** join step 4's table, both rules from 0.9.0 that the table
     had never covered (an inert-ship claim, the lever that disables a consequence
     alone); a spec lacking either folds it now.
   - **The guards' compound-command message gains one clause** — a `;`, `&` or `|`
     inside quotes counts too, by design. The walk-through below carries it; a
-    project that declines keeps the older wording and the same behavior. A friction
-    entry about a quoted pipe refused as compound is proposed for closure as `ruled
-    unpreventable`.
-  - **The offer: remove the template's instantiation comments, as one decision.**
-    Count them first (`grep -c '<!--' CLAUDE.md spec/*.md`) and show the owner the
-    bytes they take in `spec/SDLC.md` *Records* and in the index. They were addressed
-    to setup and are loaded at every slice. State the cost with the offer: with them
-    gone, later updates fold template changes by hand where some hunks now apply by
-    exact match. On yes, delete only blocks that are the template's — compare against
-    the installed version's templates — in a docs commit of their own; a comment the
-    project wrote stays. A decline is recorded in `spec/SDLC.md` *Records*, one dated line, and not
-    re-asked.
+    project that declines keeps the older wording and the same behavior. Where the
+    friction log holds a `RULING OPEN` entry about a quoted separator refused as
+    compound, tell the owner the kit has ruled the behavior by design; closing the
+    entry as `ruled unpreventable` is the owner's flip, in the log's own grammar,
+    not a write this command makes.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from
@@ -1102,7 +1108,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   recorded URL is where `/sdlc-retro` will submit.
   **These lines are the only project-owned content an update may write** —
   and the latter two only when absent, never to overwrite an answer already recorded —
-  **with three stated exceptions**: the artifacts an accepted re-offer installs (the
+  **with these stated exceptions**: the artifacts an accepted re-offer installs (the
   TDD-guard pair; the ledger's Copilot JSON, or its `"Skill"` block merged into the
   existing `.claude/settings.json` the way setup's Existing mode merges hooks; a hook
   script the step-5 walk-through re-derived, with its proof's record — which replaces
@@ -1110,16 +1116,12 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   `spec/PROJECT_INDEX_HISTORY.md`), each
   written only on the owner's word at that halt, following setup's own step; the
   0.42.0 note's one-time moves of superseded text into
-  `spec/PROJECT_INDEX_HISTORY.md` — the moved text verbatim, plus one kind of
-  write beside it: a catch, a ratification or a decision that only the moved note
-  stated is copied onto the row's current record, shown to the owner as its own hunk —
-  and only on the
-  owner's yes to that note's one decision; the 0.42.1 note's removal of the
-  template's own instantiation comments from the instantiated files, likewise on
-  the owner's yes and never a comment the project wrote; and the
+  `spec/PROJECT_INDEX_HISTORY.md` — the moved text verbatim, with the carries and
+  the backlog entries that note names and nothing else, and only on the
+  owner's yes to that note's one decision; and the
   empty `spec/PRODUCT_CONTRACT.md` the 0.23.0 note (`reference/UPDATE_NOTES.md`) creates
   — a verbatim template copy, only when absent, never content.
-  **A third exception is the friction closure step 4 proposed:** once the verify above
+  **A further exception is the friction closure step 4 proposed:** once the verify above
   passes, for each `RULING OPEN` entry the owner confirms the release fixed — checked
   against the installed file, not the changelog's word — flip its disposition in place
   to `implemented in kit vX.Y.Z` — the release tag names the commit, and this update's

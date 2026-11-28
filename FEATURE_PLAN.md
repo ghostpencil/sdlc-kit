@@ -173,6 +173,15 @@ reading on any adopter, twenty-two arcs) and the docs-only slice's verification 
 
 **Held work — owed, not scheduled:**
 
+- **The backlog in its own file — a design section owed** (§97.7 ruling 5).
+- **Template comments sorted into setup's instructions and standing rules — held, to
+  be designed with the item above** (§99.7): about a dozen comments are rules with
+  later readers, two adopters have already lost them, and the third loads 15.6 KB of
+  comments in *Records*. Withdrawn from 0.42.1 by the release pass; the owner had
+  ruled it into 0.42.1 (§99.5), so this hold is theirs to confirm.
+- **The marker table's rules older than 0.15.0 — its own short section** (§99.4
+  ruling 4).
+
 - **JUDGE — queued, not scheduled** (§37.5): the LLM-assisted layer for contracts a
   script verifies structurally but not semantically. Precondition (VER.1) met; opens
   only when the owner schedules it.
@@ -9735,13 +9744,67 @@ All six as recommended; C4 goes in 0.42.1 with the fold cost stated in the offer
 | T3, grouping | `sdlc-update.md` step 4; root README step 4 |
 | C1, by design | one clause in both guard templates' compound-command message |
 | C3 | `CLAUDE.template.md` |
-| C4, instantiation comments | `sdlc-setup.md` close-out step 1 (delete as resolved; `grep -c '<!--'` reads 0 or each block left is named); the 0.42.1 note's offer; a fourth named exception in the write list and the README |
-
-No fold marker sits inside a template comment (checked: 51 rows, none), so removing
-the comments cannot make a marker read absent. The comment removal is a write to
-project-owned files, so it is named in the exception list from the start — the defect
-§98.5 found in 0.42.0's own moves.
+| C4, instantiation comments | built, then **withdrawn** by the release pass (§99.7) |
 
 Not built, by ruling: the pre-0.15.0 rule enumeration (ruling 4, its own section) and
-any adopter update. chainmail's quoted-pipe entry and its 15.6 KB of comments are
-handled at its next update, by the note.
+any adopter update. chainmail's quoted-pipe entry is put to the owner at its next
+update, by the note.
+
+### 99.7 The release `/kit-check` — run 2026-11-28; C4 withdrawn, sixteen other findings fixed
+
+Mechanical checks passed (manifest 45 of 45, the `{{` census, the README tree over 124
+files, the lens map 8 of 8, ten suites exit 0). Invariants 1, 3, 6, 11 and 12 passed.
+Three reviewers read the batch; all three, independently, found the same thing first.
+
+**C4's premise is false, and the item is withdrawn from 0.42.1.** The rule as built
+said a template comment "is addressed to this command" and "has no reader" once its
+placeholder resolves. About a dozen are standing rules with later readers:
+- `PROJECT_INDEX.template.md`: the *Agent CLI* line's "re-run /sdlc-setup, not editing
+  this line" (its only home in any installed file), the bounded/growing rule, one
+  number one home, the backlog numbering rule, the deploy-outcome forms, the
+  friction-log shape — which `sdlc-retro.md` cites as "the one shape the log's own
+  comment prescribes" — and the gotcha escalation rule.
+- `SDLC.template.md`: the `Hook re-derive declined:` rule ("never deleted"), and two
+  **claim-only** statements (approved libraries, model policy) that exist nowhere else,
+  so stripping them would breach invariant 14.
+- `PRODUCT_CONTRACT.template.md`: the entry grammar, in a file setup copies "as-is".
+- `CLAUDE.template.md`: add one row per new spec.
+
+So the 15,588 bytes measured on chainmail are not all removable, and TFit (0 bytes)
+and ai-news (1,541) have already lost rules the kit assumes they hold — that is the
+real finding, and it is larger than C4. The fix is a design, not a sentence: sort
+every template comment into *setup's instruction* (deleted at instantiation) or
+*standing rule* (moved into body text, where it is loaded on purpose and counted), then
+restore the standing rules to the adopters that lost them. **Held, to be designed with
+the backlog-file section, which rewrites the index template anyway** — ruling 3's own
+alternative. This reverses the owner's choice of "in 0.42.1"; it is flagged to the
+owner as such, not decided silently.
+
+**The other sixteen, all fixed:**
+- **The restated move check was wrong in a new way (two).** "Put the piece back and
+  reproduce the committed file" fails on every correct phase close, because the same
+  docs commit rewrites those files for other reasons, and it never read the history
+  file at all. It now reads each piece back from the history file, requires it to be
+  one span of the last commit's copy, and requires it gone from the working file. The
+  11 KB figure was the line's size, not the notes'.
+- **The skills rule was wider than its reason (three).** "Only skills the project
+  has" would never restore a missing always-installed skill. It is now: the four
+  always-installed skills unconditionally, the two offered ones only where present.
+  The ownership row and the README carry it, and a non-Python project still holding an
+  offered skill from an earlier update is told so.
+- **The write list (five).** "Three stated exceptions" listed four and called the
+  next one "a third"; the carry was stated five different ways and named no reach
+  note; the note's `ruled unpreventable` closure was a flip step 6 does not allow
+  (it is now the owner's flip, and only for a `RULING OPEN` entry); the README's
+  "those files" had no antecedent; and the note's headline miscounted its own items.
+- **Invariant 13 (three).** `kit-check.md` still said "As of 0.42.0"; the grouping
+  allowance let an entry vanish with no sum to show it (the counts now sum to a stated
+  total, in the command, the README and the ledger); the move check's ledger clause
+  inherited the defect above.
+- **Template mirrors (three).** The template stated no move check for a rule the
+  command enforces; its one list of guard rules lacked the quoted clause the message
+  gained; one quoted figure was restated wrongly.
+
+Left, pre-existing and outside the batch: `sdlc-update.md:125`'s "like the third",
+the `Fold marker answered:` line's absence from step 6's list, and `UPDATE_NOTES.md`'s
+0.14.0 wording on a pre-0.14.0 project's offered skills.

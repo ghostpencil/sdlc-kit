@@ -127,7 +127,7 @@ For each, read the named files in full — do not sample — and cite evidence p
 - **13 — negative cases:** every check the kit specifies states how it is proven to
   fail. Take the enumeration from the ledger's own list rather than from here, and treat
   a check that appears in neither as the finding it is — the denominator is the part of
-  this invariant that goes stale silently. As of 0.42.0 that list is: the isolation
+  this invariant that goes stale silently. As of 0.42.1 that list is: the isolation
   harness spec, the edit-time hook verification, the hook-environment probe and its
   dispatch check (the pinned-vs-unpinned probe pair, CLI version recorded), the
   TDD-guard proof step and its logging-to-deny ramp, the skill-ledger proof step, the
@@ -146,7 +146,7 @@ For each, read the named files in full — do not sample — and cite evidence p
   closing-marker re-read (0.27.0: it reads the friction line's disposition, so an entry
   marked `RULING OPEN` must be seen NOT to retire), the backlog uniqueness assert at
   the phase close and at every slice close (0.41.0), the phase close's second old-value
-  search and the test-double fidelity lens (both 0.41.0), the close-out checker's loaded-size line and the phase close's move check (both 0.42.0), the retro's open-ruling sweep and its age-rule upstream re-check,
+  search and the test-double fidelity lens (both 0.41.0), the close-out checker's loaded-size line and the phase close's move check (both 0.42.0; the move check restated 0.42.1), the retro's open-ruling sweep and its age-rule upstream re-check,
   the update
   classifier, the release workflow's manifest verification, the impact adapter's
   four-state taxonomy (0.28.0; negative cases in `tools/impact-check.py`) and its
