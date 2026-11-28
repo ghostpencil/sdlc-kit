@@ -80,8 +80,14 @@ entry lives in the section it cites. The previous refresh (2026-09-27, at 0.31.0
 thing to the owner. A refresh is owed at every release that adds a rule, and at every
 arc an adopter closes.
 
-**Where the adopters stand (2026-11-21).** TFit is on 0.40.1 and has closed Phases 13–32
-since the §87 reading; ai-news and chainmail are on 0.38.0 and have closed no arc.
+**Where the adopters stand (2026-11-28).** All three are on 0.42.0, merged and verified
+the day it shipped (TFit #78, ai-news #26, chainmail #6); no arc has run on it. TFit
+has closed Phases 13–41; ai-news and chainmail have closed no arc since the §87 reading.
+The update runs exposed six kit defects, not yet triaged: the move check assumes
+whole lines; carrying a catch forward is a rewrite the write exception forbids;
+`/sdlc-update`'s skills copy installs optional skills a project never took; the marker
+table lacks two older consequence-sweep rules; the friction enumeration does not scale
+to 167 open entries; and the Claude guard reads a quoted pipe as a compound command.
 **§94 read TFit's twenty-one arcs (2026-11-21, ruled the same day, §94.4)**; the
 entries below carry its results, and the table that follows is §87's, kept as history.
 
