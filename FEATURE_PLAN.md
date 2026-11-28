@@ -109,7 +109,7 @@ starts from. **The next reading is owed at the next arc any adopter closes.**
 
 - **The 0.42.0 rules — §16 clock, two arcs, from 0.42.0** (§98.3): the loaded-size
   line, replace-not-stack, and nothing-owed-is-lost, each with its catch stated there.
-  0.42.0 is built and unreleased as of 2026-11-28.
+  0.42.0 was released 2026-11-28 (§98.4); no arc has run on it.
 
 - **IMPACT and the phase-end coverage trigger — one more reading, on a condition**
   (§94.1 (v)–(vi), §94.4 ruling 3). Neither has been tested: TFit's graph was not
@@ -192,8 +192,8 @@ slice (0.32.0), §78 (0.31.1/0.31.2), §79 and §79.4 (0.31.3, 0.32.0), COSMETIC
 (0.34.0/0.34.1), and §77's residue, whose docs pass now asserts on the median (§82.10).
 
 **Standing inputs:** issues #21 and #22 (2026-11-28, the first adopter's `CLAUDE.md`
-and `spec/PROJECT_INDEX.md` growth) are open, triaged in §97, ruled the same day
-(§97.8) and built for 0.42.0 as §98, unreleased; the new rules' clocks are §98.3, and
+and `spec/PROJECT_INDEX.md` growth) were triaged in §97, ruled the same day
+(§97.8), built as §98 and released as 0.42.0 (§98.4), both closed with replies; the new rules' clocks are §98.3, and
 the backlog's own file is owed a design section (§97.7 ruling 5).
 Issues #18–#20 were closed with replies on 2026-11-21 (§96.2) — the first adopter's Phase 18 finding and
 its Phase 27 and Phase 30 retros, the twelfth and thirteenth field reports — triaged in
@@ -9438,7 +9438,7 @@ build (5); gotchas and retros stay where they are (6); the stale status line is 
 
 ---
 
-## 98. The §97 batch built for 0.42.0 — 2026-11-28, on branch `0.42.0`, unreleased
+## 98. The §97 batch built for 0.42.0 — 2026-11-28, released the same day
 
 Built the day it was ruled. Nothing forks by CLI: every file touched is one both CLIs
 read, and the observer is the one script both run.
@@ -9552,9 +9552,14 @@ Not covered by the pass: three reviewers split the reading invariants, and two o
 read the files outside the batch's regions by search, not in full, for invariants 5, 14
 and 15.
 
-### 98.4 Owed before release
+### 98.4 Released 2026-11-28
 
-The release itself, the replies on #21 and #22, and the design section
-for the backlog's own file (§97.7 ruling 5). The three adopter updates follow the
-release; the first adopter's hand trim already made most of the one-time moves, with
-*Records* the exception.
+`main` fast-forwarded to e539b10, tag `v0.42.0`, release run 46171621663 green on its
+first run. The published archive was downloaded and verified: both checksums, `VERSION`
+0.42.0, manifest 45 of 45. Issues #21 and #22 were closed with a reply each, giving the
+verdict per cause and what an update carries. Owed: the design section for the
+backlog's own file (§97.7 ruling 5), and the three adopter updates at their
+between-phase windows (the first adopter 0.40.1 → 0.42.0, the other two 0.38.0 →
+0.42.0); the first adopter's hand trim already made most of the one-time moves, with
+*Records* the exception. The 0.42.0 clocks (§98.3) start at the first arc any adopter
+runs on it.
