@@ -83,7 +83,8 @@ arc an adopter closes.
 **Where the adopters stand (2026-11-28).** All three are on 0.42.0, merged and verified
 the day it shipped (TFit #78, ai-news #26, chainmail #6); no arc has run on it. TFit
 has closed Phases 13–41; ai-news and chainmail have closed no arc since the §87 reading.
-The update runs exposed six kit defects, not yet triaged: the move check assumes
+The update runs exposed kit defects, triaged in §99 (nine findings, rulings owed,
+§99.4); the six first listed: the move check assumes
 whole lines; carrying a catch forward is a rewrite the write exception forbids;
 `/sdlc-update`'s skills copy installs optional skills a project never took; the marker
 table lacks two older consequence-sweep rules; the friction enumeration does not scale
@@ -9569,3 +9570,152 @@ between-phase windows (the first adopter 0.40.1 → 0.42.0, the other two 0.38.0
 0.42.0); the first adopter's hand trim already made most of the one-time moves, with
 *Records* the exception. The 0.42.0 clocks (§98.3) start at the first arc any adopter
 runs on it.
+
+---
+
+## 99. The 0.42.0 update runs triaged, adopter by adopter — nine findings, and the
+## largest is one nobody reported: setup never says whether template comments stay —
+## 2026-11-28, rulings owed
+
+All three adopters took 0.42.0 the day it shipped (TFit #78, ai-news #26, chainmail #6,
+merged and verified). Each run's agent reported kit defects; this section checks each
+against the tree at 50f75f1 (0.42.0), in the order the adopters were merged. Six were
+listed in the standing inputs; the reports held two smaller ones, and the triage adds
+one.
+
+### 99.1 chainmail (Claude Code, TypeScript)
+
+**C1 — the guard reads a quoted pipe as a compound command. STANDS as behavior; it is
+the design, stated in the code.**
+- `tdd-guard-claude.template.py` tests `any(c in cmd for c in (";", "&", "|"))` on the
+  **raw** command, and the comment above it says why: "The compound check deliberately
+  keeps reading the RAW command: a stripping bug there would admit a genuine compound
+  and record a false GREEN". `tdd-guard.template.sh` has the same rule and comment.
+- The cost is real and small: `pnpm vitest run <file> -t "gallery|About"` was not
+  counted, the bare re-run was (chainmail friction log, 2026-10-19, `RULING OPEN`).
+  One occurrence in the record.
+- The cheap fix is unsafe. Stripping quotes by regex, as the runner match two lines up
+  does, turns `pytest \"a ; echo done\"` (escaped quotes, a real compound) into no
+  compound at all. A correct fix is a shell tokenizer in both dialects, and the shell
+  dialect has none.
+- Disposition: rule it **by design** and say so where the adopter sees it — the
+  refusal message already names the three characters; add "also inside quotes; run
+  the test bare or filter another way". chainmail's entry then closes as `ruled
+  unpreventable`.
+
+**C2 — *Records* grew on the update itself (38,658 → 39,295). STANDS as an
+observation, and it led to C4.** The folded preamble paragraph and the new re-derive
+records outweighed what moved out. Not a defect in the note; no fix of its own.
+
+**C3 — `CLAUDE.template.md:87` ends a bullet without a full stop. STANDS.** A typo in
+the 0.39.0 state bullet ("…is a finding, not a route"). One character.
+
+**C4 — found by the triage: nothing says whether instantiation comments stay, and
+chainmail's are 40% of what it loads.**
+- `sdlc-setup.md` has no instruction either way: a search for stripping or removing
+  template comments finds nothing. §59 recorded "instantiation strips template comments
+  — measured zero in both adopters", which was a measurement of two sessions' habits,
+  not of a rule.
+- Measured in *Records* alone: TFit 0 bytes of comments, ai-news 1,541, chainmail
+  **15,588 of 39,295**. chainmail's `spec/SDLC.md` holds ten comment blocks, its index
+  ten, its `CLAUDE.md` three. The template's own *Records* is 20,012 bytes with
+  comments and 4,487 without.
+- So chainmail sits 705 bytes under the 40,000 budget with no project content to
+  trim, and its index carries the template's instructions to setup into every slice.
+- The comments are also load-bearing in one place: the update run folded 32 of 35
+  template hunks by exact match *because* chainmail kept them. Stripping them trades a smaller load for
+  hand-folds at every update.
+- Fix: setup strips an instantiation comment once the placeholder it annotates is
+  resolved — the comment's job is done — and the exit check counts `<!--` in the
+  instantiated files beside `{{`. The update note offers the same strip to a project
+  that kept them, as one decision, with the fold cost stated.
+
+### 99.2 ai-news (Copilot CLI, Java)
+
+**A1 — `/sdlc-update` installs optional skills a project never took. STANDS; a real
+install defect.**
+- `sdlc-update.md` step 5: "each `sdlc-kit/skills/<name>/` directory into
+  `.claude/skills/<name>/`, copied whole". The bundle holds six directories, and two
+  of them — `python-pro/`, `hypothesis-tests/` — are offered by setup to Python
+  projects only (`sdlc-setup.md:289`, `reference/SKILLS.md`).
+- Followed literally on a Java project it installed both; the agent noticed and
+  removed them. A skill in `.claude/skills/` is model-invocable on both CLIs, so the
+  defect is live instructions for a stack the project does not have.
+- Fix: the copy is over the skills the project **already has installed**, plus any
+  the target's install set adds unconditionally; an optional skill arrives only by
+  setup's offer. One sentence, and the classification table's row for skills says the
+  same.
+
+**A2 — the marker table has no row for two consequence-sweep rules. STANDS.**
+- `SDLC.template.md` phase-start step 2 binds three rules to the sweep's hits. The
+  third (0.41.0) has a row. The first two — an inert-ship claim quotes the production
+  artifact, and each hit names the lever that disables it alone — date from 0.9.0 and
+  have none, because the table starts at 0.15.0.
+- ai-news's spec had never stated either; the run found them by reading, not by the
+  table. This is the class the table exists for (§84.18), and the table's own
+  denominator is "rules since 0.15.0", not "rules".
+- Fix: two rows, versioned 0.9.0, markers `ships inert` and `disables it **alone**`.
+  Then the wider question the finding raises: enumerate the template's rules older
+  than 0.15.0 once and add a row for each that an update could have missed.
+  `tools/rederive-check.py` already asserts each marker occurs exactly once.
+
+**A3 — the move check cannot lift a sentence out of a live paragraph. STANDS; same
+defect as T1 below.** ai-news also could not move one paragraph at all: it holds the
+file's known raw CR, which a line-twin comparison would rewrite.
+
+### 99.3 TFit (Claude Code, Python)
+
+**T1 — the move check assumes superseded notes are whole lines. STANDS.**
+- `sdlc-update.md` (0.42.0 note) and `end-phase.md` (*Move what this close replaced*)
+  both state the check as "every line removed … appears added … unchanged; a removed
+  line with no added twin is the failure".
+- TFit's superseded notes were spans inside single table-cell lines of up to 11 KB.
+  Moving a span rewrites its line, so the check as written fails on every correct
+  move. The agent proved the move another way: rebuilding the old file byte for byte
+  from the new file plus the moved spans.
+- That proof is the better check and works for lines too. Fix: state it as the check —
+  the moved text, put back where it was cut, reproduces the previous commit's file —
+  and name the span case. A move that cannot be proven that way (A3's CR paragraph)
+  is left in place and listed.
+
+**T2 — carrying a catch forward is a rewrite; the write exception says "verbatim,
+nothing rewritten". STANDS; a contradiction 0.42.0's own `/kit-check` fixes created.**
+- §98.5 added "an on-its-own catch is carried onto the row's current record before
+  the older note moves". `sdlc-update.md`'s exception list still says the one-time
+  moves are "verbatim, nothing rewritten". TFit needed two carries (109 bytes).
+- Fix: the exception names the carry — verbatim moves, plus a catch or a ratification
+  that only the moved note stated, copied onto the current record and shown to the
+  owner as its own hunk. The root README's step 6 takes the same clause.
+
+**T3 — "visit every live friction entry" does not scale. STANDS as a cost; the rule
+is right and the remedy is not in `/sdlc-update`.**
+- Step 4 says to list every `open` or `RULING OPEN` entry with the changelog entry
+  that addresses it, and says why no filter is possible. TFit has 167 open entries;
+  the agent grouped them.
+- The rule was bought by a measured miss (§84) and its reasoning still holds. The
+  167 is the defect: `/sdlc-retro` is the step that closes entries, TFit has skipped
+  it since Phase 12 (R3.8's aging rule, already a contingent keep), and §94 declined
+  to change that.
+- Disposition: keep the rule; allow grouping by the entry's own subject **when the
+  group is listed with its count and one quoted member**, so the denominator stays
+  visible. The pile itself goes to the owner as a retro question, not a kit change.
+
+### 99.4 Dispositions put to the owner
+
+1. **A small fix release, 0.42.1:** A1 (the skills copy), T1 and A3 (the move check
+   restated as the rebuild proof, in both homes), T2 (the carry named in the
+   exception, both homes), A2's two rows, C1's message clause, C3's full stop.
+   *Recommended.* All text; the guard message changes two templates, so both guard
+   suites run.
+2. **C1 ruled by design**, and chainmail's `RULING OPEN` entry closed as `ruled
+   unpreventable` at its next update. *Recommended.*
+3. **C4, template comments:** setup strips resolved instantiation comments and its
+   exit check counts them; the update note offers the strip to a project that kept
+   them. *Recommended, in 0.42.1, with the fold cost stated in the offer* — or held
+   for the backlog-file design, which rewrites the index template anyway.
+4. **A2's wider enumeration** (rules older than 0.15.0): its own short section.
+   *Recommended: after 0.42.1.*
+5. **T3:** grouping allowed with count and one quoted member. *Recommended, in
+   0.42.1.* Whether TFit runs a retro against 167 open entries is the owner's.
+6. **No adopter update for 0.42.1 alone.** It changes what the *next* update does;
+   it rides that one, as 0.38.1 did. *Recommended.*
