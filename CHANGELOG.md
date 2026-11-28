@@ -14,7 +14,7 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
-## 0.42.0 — unreleased
+## 0.42.0 — 2026-11-28
 
 Issues #21 and #22 from the first adopter (`FEATURE_PLAN.md` §97): the files every
 session loads grew at every close and no step shortened them. The index reached 469 KB
