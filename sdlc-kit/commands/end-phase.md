@@ -471,15 +471,22 @@ read before it is reconciled is a decision taken twice.
   hope, and a real adoption held one typecheck count across four arcs and twelve
   recorded gate runs before anyone noticed the leg was inert. Never let an unchanged
   count be reported as "held" — see the rendering rule in `spec/SDLC.md`.
-- `spec/PROJECT_INDEX.md`: add the Phase History row, flip the Phase section to the next
-  state (next phase or STABILIZATION), fold deferred review findings into the backlog,
-  refresh START HERE.
+- `spec/PROJECT_INDEX.md`: add the Phase History row, **replace** the Phase section's
+  text with the next state (next phase or STABILIZATION), fold deferred review findings
+  into the backlog, and **replace** START HERE with the block a fresh session acts on
+  now. Replace means the old text leaves the section — it is not kept above or below the
+  new text under a "Previous" or "Superseded" label; the *Move what this close replaced*
+  bullet below is where it goes. **The Phase History row holds the phase, its title, the
+  PR, the merge date, and in Notes the deploy outcome word and at most one clause** —
+  what the arc decided and measured is the phase spec's. One adoption's "one cheap row per phase" reached 5.3 KB in a
+  single row.
 - **Archive the closed phase's detail.** If the project accumulated per-slice write-ups
   in PROJECT_INDEX during the arc, move them into that phase's own spec file where one
   exists — the historical home. A STABILIZATION cleanup arc has no phase spec; say so
   and leave its detail where the retirement bullet below can reach it. Leave the Phase
-  History row and
-  a short paragraph behind. The index's bounded sections (Phase, START HERE) are what
+  History row behind and nothing else — until 0.42.0 this bullet also left "a short
+  paragraph", which is one paragraph per closed phase in a section labelled bounded,
+  and 41 closes of one adoption made that section 73 KB. The index's bounded sections (Phase, START HERE) are what
   a fresh session reads first; they stop working as an answer to
   "what do I do next" once closed history sits above them, and one real adoption reached
   2,400 lines with the answer buried under five phases of merged detail. Nothing is
@@ -514,6 +521,32 @@ read before it is reconciled is a decision taken twice.
   this project's `CLAUDE.md` lacks the row — an adoption updated rather than
   re-instantiated — add it in this docs commit, or every retired item becomes
   unfindable by the rule that was supposed to make retirement safe.
+- **Move what this close replaced to `spec/PROJECT_INDEX_HISTORY.md`.** The retirement
+  bullet above is the exit path for closed *entries*; this one is the exit path for
+  *replaced text*, which no marker ever closes. Three kinds, each moved **verbatim**
+  under its own heading in the history file (created with its one-line header if this
+  is the first write to it) — `## Superseded at Phase NN close — <date>`, kept apart from the retired entries so the closing-marker re-read above
+  never mistakes it for an open entry:
+  - the Phase section's text and the START HERE block this close replaced, with any
+    status lines still stacked there from before 0.42.0;
+  - any closed-phase paragraph still sitting in a bounded section from an earlier
+    close — the first close on 0.42.0 or later clears the whole stack, once;
+  - **whatever this close replaced on a `spec/SDLC.md` *Records* row.** A row holds
+    the current value, its `@ <short-sha>` stamp, and its latest proof or catch. The
+    coverage-floor and red-baseline bullets above, and `/sdlc-update`'s re-derive
+    steps, each write a new note; the note it supersedes — the previous close's "held"
+    line, an earlier stamp, an older update's proof — moves here in the same commit
+    instead of staying on the row above or below the new one. The daily commands read
+    *Records* at every slice, and three adoptions on both CLIs measured it at 35, 39
+    and 74 KB against a template under 20.
+  **Before moving a START HERE block or a status line, read what it says is owed:**
+  anything owed that no backlog entry and no phase-spec line carries becomes a numbered
+  backlog entry first, because the history file is read by no session that acts.
+  **A live record never moves.** The current baseline, the current floor and its
+  latest catch, an owner decision still in force — if one sits in the text being moved,
+  it goes to its own home first (*Records* for a number; the phase spec or START HERE
+  for a decision). Text in the history file is history: the old-value searches in this
+  step do not report it.
 - Trim/align the phase spec if the review changed behavior described there.
 - **Check the architecture graph's coverage**, where the project carries one — the
   phase-end refresh (`spec/SDLC.md`, *Architecture impact view*). The tree is settled and no slice is mid-flight. Read the
@@ -554,6 +587,16 @@ read before it is reconciled is a decision taken twice.
   test asserting they agree is the better fix, and worth a backlog entry the first
   time this search finds one.
 - Commit the docs change (`docs: PROJECT_INDEX — Phase NN merged; next up <next>`).
+- **Run the close-out checker's `docs-check` mode on that commit and quote both its
+  lines** — the invocation recorded in `spec/SDLC.md` (*Records*), `docs-check` in place
+  of `check`, in the agent's shell, as `/end-slice` runs it. The second line,
+  `loaded size:`, is the reading this close is for: the bytes of the index, the
+  instruction files and *Records* at this commit, each against its budget. A close that
+  replaced rather than stacked reads a negative index delta. `ABOVE` after the moves
+  above is reported to the owner with the section that holds the bytes — it is
+  log-only and blocks nothing, and it is the one place growth made of individually
+  reasonable additions becomes visible. An install older than 0.42.0 prints one line;
+  say so.
 - Then end the arc's state: `python .github/hooks/sdlc-state.py set off --by end-phase`
   — the kit's hooks stand down until `/plan-phase` begins the next one.
 - Suggest any durable lessons worth saving to auto-memory.

@@ -25,8 +25,14 @@ project's own. It never opens an issue, never pushes, and never sends anything a
 
 Read `spec/PROJECT_INDEX.md` (Phase History, deferred backlog, Environment gotchas,
 Notes) and `spec/SDLC.md` (*Records* — gate definition and recorded baseline — plus
-the kit version in its header). Where `spec/PROJECT_INDEX_HISTORY.md` exists, read
-it too — **all its sections, not only the window's**: closed items retire there at
+the kit version in its header). Where `spec/PROJECT_INDEX_HISTORY.md` exists, sweep
+it too — **all its sections, not only the window's — by search, not by loading it**:
+pull the retired entry lines with their numbers, provenance tags and closing markers
+(and the friction lines with their dispositions), and open a dated section only when
+a hit needs its surrounding text. The file only grows — one adoption's reached 544 KB,
+more than a session can read — and from 0.42.0 it also holds `## Superseded at …`
+sections of replaced status text and records, which are history and not entries: no
+sweep counts them. The population is unchanged by this: closed items retire there at
 phase close dated by the close that retired them, not by origin, and the questions
 this file's sweeps ask (the same finding three times, what sat unaddressed longest)
 are cross-phase by nature — a sweep that reads only the index, or only the window's
@@ -58,7 +64,7 @@ none of them writes anything.
 
 - **Deferred-backlog provenance tags.** Entries are meant to record where they came from
   (`(slice review, <date>)`, `(whole-arc review, PR #N)`) — retired entries in
-  `spec/PROJECT_INDEX_HISTORY.md` included, per step 1's read. Cluster the ones that
+  `spec/PROJECT_INDEX_HISTORY.md` included, per step 1's search. Cluster the ones that
   do — and treat untagged entries as their own small finding. Ask: which review
   stage produced the most findings, which findings repeat across slices, what has been
   sitting unaddressed longest. Repetition is the signal — the same finding three times

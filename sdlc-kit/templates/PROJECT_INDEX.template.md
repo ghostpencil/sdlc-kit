@@ -25,7 +25,14 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      backlog entry, a CLOSED absorbed form on a friction line more than a phase old
      (an entry still marked RULING OPEN never retires) — into
      spec/PROJECT_INDEX_HISTORY.md, one dated section per close, numbering and
-     provenance preserved. An entry without its marker never retires. -->
+     provenance preserved. An entry without its marker never retires.
+     The bounded sections have an exit path too, and it is REPLACEMENT: /end-slice
+     rewrites the one status line, /end-phase rewrites Phase and START HERE, and the
+     text replaced moves to the history file under "## Superseded at Phase NN close".
+     Nothing is kept in place under a "Previous" label - a bounded section that keeps
+     one paragraph per closed phase is a growing one with the wrong name. Before a
+     line is replaced, anything it says is owed gets a backlog number. This file is
+     read whole at every slice: /end-slice's docs-check reports its size in bytes. -->
 
 <!-- ONE NUMBER, ONE HOME. Any number this project enforces somewhere - the gate
      baseline, the coverage floor, a cap, a threshold - is recorded in exactly one
@@ -74,7 +81,9 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
      Each entry carries an identifier, and the identifier is the next integer above
      this section's current maximum, READ FROM THIS FILE at the moment of the append —
      never carried from earlier in a session and never inferred from the entry count,
-     which drifts as entries retire. Every other step addresses entries by number and
+     which drifts as entries retire. Once spec/PROJECT_INDEX_HISTORY.md exists the
+     maximum is taken over both files (search the history file, do not load it): the
+     highest entry retiring would otherwise hand its number to the next append. Every other step addresses entries by number and
      none can detect a collision; /end-phase asserts uniqueness before it counts.
      One line each: what, where, why deferred — and where it came from, e.g.
      "(slice review, 2026-07-19)" or "(whole-arc review, PR #2)". Provenance is what
@@ -95,7 +104,9 @@ next. Updated at every `/end-slice` and `/end-phase` — never left for "later".
        | — | **SDLC adopted** | pre-SDLC | <date> | via /sdlc-setup |
      — plus a few back-filled pre-SDLC rows from git history, recorded so the arc of
      the project is visible, not because they followed this process ("pre-SDLC" is a
-     fine PR value). New Project mode: leave empty. Deploying projects: /end-phase
+     fine PR value). New Project mode: leave empty. A row is one line: the phase, its
+     title, the PR, the merge date, and in Notes the deploy outcome and at most one
+     clause - what the arc decided and measured lives in the phase spec. Deploying projects: /end-phase
      bookkeeping records the deploy outcome in Notes (`deployed+verified <date>` /
      `deploy pending — <where tracked>` / `deploy NOT verified — <what was seen>` /
      `n/a — no deploy`). -->

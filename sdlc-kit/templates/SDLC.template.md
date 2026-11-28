@@ -148,6 +148,13 @@ at the step that uses them instead: the run command and acceptance surface (*Pha
 end*, halt 4), the deploy note (*Phase end*, step 6), the main branch (*Shape*), the
 kit version (the header) — each read where it is used, never re-derived.
 
+**A row holds the current record, not its history.** Its value, the commit the value
+was measured at, and its latest proof or catch — and when a phase close or a kit
+update writes a new one, the note it supersedes moves to
+`spec/PROJECT_INDEX_HISTORY.md` in the same commit (*Bookkeeping rules*, *A close
+replaces*). This section is loaded at every slice; a "held at the Phase NN close" line
+per close and a re-derive proof per update are how it grows past the rest of the file.
+
 **Every row that records a control records what its proof could *see*.** The install
 proofs this kit prescribes are already catch-proofs — each one says *prove it by making
 it fail*, and a control seen only to run is not one of them. But a catch-proof
@@ -746,8 +753,8 @@ Run `/plan-phase` at a phase boundary (after `/end-phase` post-merge bookkeeping
    behind it) or **estimated** — the same distinction the deferred backlog draws about
    causes, applied where a number is first ratified. The spec stays lean enough to be
    read whole at every slice — decisions, behaviors, slices, and checklists are the spec;
-   bulk research and interview detail go to an appendix file the spec links, with its own
-   spec-loading row in `CLAUDE.md` naming its trigger, loaded only when a slice needs it
+   bulk research and interview detail go to an appendix file the spec links, covered by
+   the one appendix row in `CLAUDE.md`'s spec-loading table, loaded only when a slice needs it
    (`/next-slice` reads the phase spec at every slice).
 4. Owner approves the decisions + slice breakdown *(same halt, second checkpoint)*.
 5. Branch `feat/phase-NN-<slug>` created off `{{MAIN_BRANCH}}`; `spec/PROJECT_INDEX.md`
@@ -970,8 +977,9 @@ Run `/end-slice` when the slice's exit criteria are met:
     and re-run. The step is done only at COMPLETE, and it exists because the record
     is what `/sdlc-retro`'s step-evidence sweep reads off `git log`: a silently
     absent line there is a step nobody can later weigh.
-12. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**;
-    detail lives in the phase spec and the commit message), deferred items appended,
+12. Update `spec/PROJECT_INDEX.md` — slice marked done (**status only, one line**,
+    which replaces the previous slice's line once anything that line owed has a backlog
+    number; detail lives in the phase spec and the commit message), deferred items appended,
     and any friction with the process itself written to the Kit friction log now,
     while the evidence is still accurate, in the log's one-line shape
     (`- <date> — <friction> — open`; a step skipped for the same reason three slices
@@ -982,6 +990,10 @@ Run `/end-slice` when the slice's exit criteria are met:
     it: run it on the docs commit, in the agent's shell like the record check above,
     and quote its line. The number here is a copy; the enforcing home is that
     script's own `BUDGET` constant, and the mode's output quotes the budget it used.
+    The mode's second line, `loaded size:`, reports the bytes every session pays for
+    at that commit — the index, the instruction files together, and this file's
+    *Records* section, each against a constant in the same script — because a line
+    budget is met by longer lines; quote it too, and say what grew when it reads `ABOVE`.
     **Log-only**, always: it
     never fails the step and never blocks, because a number cannot tell a heavy but
     honest close from a per-slice write-up, so `OVER` is a question the hand-back
@@ -1132,10 +1144,13 @@ Run `/end-phase` when the last slice is done:
    decision (lower it here, schedule it, or ratify holding it with the arc count — see
    *Gate baseline* above); the backlog surfaced
    with severity counts for an owner decision (convert / defer / drop), PROJECT_INDEX
-   Phase History row + status flip, deferred-pile consolidation, **closed-phase detail
+   Phase History row + the Phase and START HERE text replaced, deferred-pile
+   consolidation, **closed-phase detail
    archived out of PROJECT_INDEX into the phase spec**, **closed items retired to
-   `spec/PROJECT_INDEX_HISTORY.md`** (see *Bookkeeping rules*), spec cleanup, memory
-   updates worth keeping.
+   `spec/PROJECT_INDEX_HISTORY.md`** and **the text this close replaced moved there
+   with them** (see *Bookkeeping rules*), spec cleanup, memory
+   updates worth keeping. The close-out checker's `docs-check` mode is run on the
+   bookkeeping commit and both its lines quoted.
 7. `/sdlc-retro` is **offered**, not required — it extracts the phase's lessons while
    the evidence is fresh, sorting each into a project lesson (into PROJECT_INDEX) or a
    kit lesson (into a report). Declining is the right answer when the phase has nothing
@@ -1163,7 +1178,10 @@ Run `/end-phase` when the last slice is done:
   becomes a cleanup slice by owner decision. **A backlog entry's identifier is the next
   integer above the file's current maximum, read from the file at the moment of the
   append** — every other step addresses entries by number, and nothing downstream can
-  detect a collision. Every slice close asserts the identifiers are unique (one
+  detect a collision. Once entries have retired, that maximum is taken over the index
+  and its history file together (the history file searched, not loaded): the highest
+  entry retiring lowers the index's own maximum, and the next append would reuse a
+  number an older reference already means. Every slice close asserts the identifiers are unique (one
   `sort | uniq -d`, empty is the pass), and the phase close asserts it again before it
   counts them.
 - **A check records its verdict whether or not it found anything.** A lens that ran
@@ -1190,6 +1208,28 @@ Run `/end-phase` when the last slice is done:
   file). The bounded ones are what a fresh session reads first and are kept short;
   per-slice detail is archived into the phase spec at phase close rather than
   accumulating above them.
+- **A close replaces; it does not stack.** Three places hold a *current* statement, and
+  each is rewritten rather than added to: the slice status line (every slice close),
+  the Phase section and START HERE (every phase close), and a *Records* row (whenever a
+  step writes a new value, stamp, proof or catch onto it). The text a phase close or
+  an update replaces moves verbatim to `spec/PROJECT_INDEX_HISTORY.md` under its own
+  heading (`## Superseded at Phase NN close — <date>`), apart from the retired
+  entries; nothing is kept in place under a "Previous" label. Two guards go with it.
+  **Nothing owed is lost:** before a status line or START HERE block is replaced,
+  anything it owes that no backlog entry or phase-spec line carries becomes a numbered
+  backlog entry. **A live record never moves:** a current number or a decision still
+  in force goes to its own home first. A Phase History row holds the phase, title, PR,
+  merge date and the deploy outcome — the rest is the phase spec's. Every one of these
+  additions is reasonable alone; one adoption's index reached 460 KB and its *Records*
+  74 KB with retirement running at every close, because the sections called bounded
+  had no step that removed anything.
+- **A file loaded into every session holds only what every session needs.**
+  `CLAUDE.md` keeps the rules that must hold whatever the task; a runbook, a
+  multi-step procedure or an annotated file tree goes in a file of its own, with the
+  outline, the standing rules and a when-to-open line left behind — a plain path,
+  never an `@` import, which loads the file anyway. Appendix files share one
+  spec-loading row. The same split governs this file: *Records* is what the daily
+  commands load, so it carries current records and nothing kept for history.
 - **Closed items retire out of the index at phase close.** The two growing record
   sections — the deferred backlog and the Kit friction log — gain entries at every
   slice close, and without an exit path they only grow: a real

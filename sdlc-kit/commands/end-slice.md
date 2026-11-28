@@ -456,7 +456,13 @@ the half a real arc lost while every key was present and the record read as comp
 
 Update `spec/PROJECT_INDEX.md`:
 - Mark the slice done in the current phase's status/START HERE section. **Status only —
-  one line.** The close-out records that the slice is done and what is next; the detail
+  one line, and it replaces the previous slice's line.** There is one current status
+  line, not a stack with the older ones marked "previous": the line it replaces is
+  already in the last docs commit, and nothing reads it again. **Before replacing it,
+  read what it says is owed.** Anything owed that no backlog entry and no phase-spec
+  line carries becomes a backlog entry in this commit, by the append rule below — a
+  status line is not a home for work, and one adoption found four owed items in its
+  stacked lines that existed nowhere else. The close-out records that the slice is done and what is next; the detail
   goes where it will live anyway — the phase spec — and the commit message is already
   the better record. A real adoption wrote 83–163 lines of per-slice detail into the
   index five times and paid an archiving step once per arc to move it back out; the
@@ -474,7 +480,11 @@ Update `spec/PROJECT_INDEX.md`:
   triage (**measured** / **suspected**). **The identifier is the next integer above
   the file's current maximum, read from the file at the moment of the append** — not
   carried from earlier in the session, and not guessed from the entry count, which
-  drifts the moment anything retires. Every step downstream addresses entries by
+  drifts the moment anything retires. **Where `spec/PROJECT_INDEX_HISTORY.md` exists,
+  the maximum is taken over both files** — search the history file for its highest
+  entry number, do not load it: when the highest-numbered entry is closed and retires,
+  the index's own maximum drops, and the next append would mint a number an older
+  reference already means. Every step downstream addresses entries by
   number and none of them can detect a collision: one arc minted two pairs of
   duplicates on a single day, two slice reviews writing into different regions of the
   same unordered list, and the document that scoped the next phase then named one of
@@ -543,8 +553,18 @@ Commit the docs change separately (`docs: PROJECT_INDEX — <slice> done; next u
 Then run the close-out checker's **`docs-check`** mode on that commit — in **the
 agent's shell tool**, the same scope as step 8 and the gate, using the invocation
 recorded in `spec/SDLC.md` (*Records*) with `docs-check` where step 8's line says
-`check` — and quote its line in the hand-back. It counts the lines the commit added to
-`spec/PROJECT_INDEX.md` and reports them against the budget. It is **log-only**: it
+`check` — and quote both its lines in the hand-back. The first counts the lines the
+commit added to `spec/PROJECT_INDEX.md` and reports them against the budget. The
+second, `loaded size:`, reports the bytes every session pays for at that commit: the
+index (with what this commit added or removed), the instruction files together
+(`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md` — whichever exist, since
+one CLI combines them), and `spec/SDLC.md`'s *Records* section, each against a constant
+in the script. Lines alone were the wrong unit: one adoption's log read OK 336 times in
+339 while its index went from 165 KB to 460 KB, because one "line" there ran to 6,881
+characters. `ABOVE` names what is past its budget and is answered the same way `OVER`
+is — in the hand-back, by saying what grew; the exit paths are `/end-phase`'s (the
+replaced status text and superseded records move to the history file). An install
+older than 0.42.0 prints the first line only. It is **log-only**: it
 never fails this step, never blocks, and exits 0 even on its own errors, because the
 payload it watches legitimately varies and a number cannot tell a genuine six-entry
 close from a write-up. `OVER` is a question for the hand-back — which shape was it? —

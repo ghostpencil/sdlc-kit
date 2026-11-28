@@ -54,6 +54,23 @@ exactly one instructions file on either CLI.
 This is a prohibition, not an omission. A future batch that "helpfully" adds
 `AGENTS.md` for cross-agent compatibility is reintroducing the defect.
 
+**What every session loads is measured as a set, not as `CLAUDE.md` (0.42.0,
+2026-11-28).** Because Copilot CLI combines the files above, the close-out checker's
+`loaded size:` line sums the tracked `CLAUDE.md`, `AGENTS.md` and
+`.github/copilot-instructions.md` — whichever exist — on either CLI, so a project that
+carries more than one sees one number. The home-directory file is outside the repo and
+is not counted. Two things keep that number small the same way on both CLIs:
+
+- **Detail moves to a plain file with a when-to-open line**, named in backticks. An
+  `@path` line in `CLAUDE.md` is an import on Claude Code (its memory documentation:
+  imported files are loaded with the file that names them) and plain text to Copilot
+  CLI, so it either undoes the move or does nothing.
+- **Neither CLI's path-scoped instruction format is used.** Each has one; they are two
+  formats, and a rule kept in both is the two-copies defect this section prohibits.
+
+Not measured on either CLI as of this date: whether an oversized instructions file is
+truncated or only warned about. The observer is log-only and does not depend on it.
+
 ### Why the skills live under `.claude/skills/` even on Copilot
 
 `.claude/skills` is one of the three project skill directories Copilot CLI reads

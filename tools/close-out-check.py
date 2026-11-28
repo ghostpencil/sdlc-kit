@@ -15,7 +15,10 @@ Four passes, and the last is the point:
      bench repos with real file writes, since the observer counts lines a commit
      actually added - under budget, exactly at it, over it, an index the commit
      never touched, a retirement commit that only deletes, an explicit ref, and
-     a bad ref (which must still exit 0: log-only never fails a step);
+     a bad ref (which must still exit 0: log-only never fails a step) - and, from
+     0.42.0, the mode's second line, the bytes every session loads: three long
+     lines that pass the line budget and break the byte one, the exact boundary,
+     a trim, instruction files summed, the Records section alone, an explicit ref;
   3. a worktree pass: docs-check from a REAL linked worktree, whose .git is a file;
   4. a mutation pass that breaks the checker - the count derived from the
      MUTATIONS list at run time, never stated here - and requires pass 1, 2 or 3
@@ -272,8 +275,8 @@ MUTATIONS = [
     # --- the retired stop-check (§87.7): the stub must keep a leftover launcher silent.
     ("stop_stub_removed", '[ "$MODE" = "stop-check" ] && exit 0\n', ""),
     # --- linked worktrees (FEATURE_PLAN.md 78).
-    ("docs_log_under_literal_dotgit", '"$MSG" >> "$GD/sdlc-close-out/log" 2>/dev/null',
-     '"$MSG" >> .git/sdlc-close-out/log 2>/dev/null'),
+    ("docs_log_under_literal_dotgit", '"$NOW" "$SIZE" >> "$GD/sdlc-close-out/log" 2>/dev/null',
+     '"$NOW" "$SIZE" >> .git/sdlc-close-out/log 2>/dev/null'),
     # --- docs-check (§67.3). Each models a plausible observer defect.
     ("docs_budget_relaxed", "  BUDGET=25 ", "  BUDGET=9999 "),
     ("docs_boundary_off_by_one", '[ "$ADDED" -gt "$BUDGET" ]', '[ "$ADDED" -ge "$BUDGET" ]'),
@@ -282,6 +285,21 @@ MUTATIONS = [
     ("docs_untouched_index_not_detected", 'if [ -z "$ADDED" ]; then', 'if [ -z "not empty" ]; then'),
     ("docs_pathspec_dropped", 'git show --numstat --format= "$REF" -- "$IDX"',
      'git show --numstat --format= "$REF"'),
+    # --- the loaded-size line (FEATURE_PLAN.md 97). Each models an observer that
+    # would have read "within" through the growth it exists to report.
+    ("size_index_budget_relaxed", "  IDX_MAX=64000 ", "  IDX_MAX=99999999 "),
+    ("size_index_boundary_off_by_one", '[ "$IDX_NOW" -gt "$IDX_MAX" ]',
+     '[ "$IDX_NOW" -ge "$IDX_MAX" ]'),
+    ("size_instruction_files_not_summed", "*) INS_NOW=$((INS_NOW + v)) ;;",
+     "*) INS_NOW=$v ;;"),
+    ("size_records_counts_whole_file", "on = ($0 ~ /^## Records/)", "on = 1"),
+    ("size_records_never_flagged", '[ "$REC_NOW" -gt "$REC_MAX" ] && PAST="$PAST Records"',
+     ""),
+    ("size_ignores_ref", '"$REF:$IDX" "$REF^:$IDX" "$REF:CLAUDE.md"',
+     '"HEAD:$IDX" "$REF^:$IDX" "$REF:CLAUDE.md"'),
+    ("size_delta_not_from_parent", '"$REF:$IDX" "$REF^:$IDX" "$REF:CLAUDE.md"',
+     '"$REF:$IDX" "$REF:$IDX" "$REF:CLAUDE.md"'),
+    ("size_line_not_logged", '"$NOW" "$MSG" "$NOW" "$SIZE" >>', '"$NOW" "$MSG" >>'),
 ]
 
 
@@ -339,6 +357,13 @@ class DocsBench(Bench):
             os.makedirs(d)
         io.open(path, "w", encoding="utf-8", newline="\n").write(
             "".join(x + "\n" for x in lines))
+
+    def write(self, rel, text):
+        path = os.path.join(self.root, *rel.split("/"))
+        d = os.path.dirname(path)
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        io.open(path, "w", encoding="utf-8", newline="\n").write(text)
 
     def add_commit(self, message):
         self.git("add", "-A")
@@ -403,8 +428,96 @@ def _d_bad_ref(b):
     return ["docs-check", "no-such-ref"]
 
 
+# ---- the loaded-size line. Sizes are exact: every file is ASCII with LF endings,
+# so a line of n characters is n + 1 bytes.
+
+def _s_small(b):
+    # 3 lines of 9 characters -> 30 bytes; the seed was 1 line of 6 -> 7 bytes.
+    _d_seed(b)
+    b.write_index(["012345678"] * 3)
+    b.add_commit("docs: PROJECT_INDEX - S1 done\n")
+    return ["docs-check"]
+
+def _s_long_lines(b):
+    # The measured shape: THREE added lines, far under the line budget, and an
+    # index past its byte budget. The line count alone reads OK here.
+    _d_seed(b)
+    b.write_index(["seed 0"] + ["x" * 21999] * 3)
+    b.add_commit("docs: PROJECT_INDEX - S1 done\n")
+    return ["docs-check"]
+
+def _s_index_at_budget(b):
+    # Exactly 64000 bytes is not past it: 64 lines of 999 characters.
+    _d_seed(b)
+    b.write_index(["y" * 999] * 64)
+    b.add_commit("docs: a full index\n")
+    return ["docs-check"]
+
+def _s_trim(b):
+    # A trim reads as a negative delta: 60 seed lines (470 bytes) down to 2 (14).
+    _d_seed(b, 60)
+    b.write_index(["seed 0", "seed 1"])
+    b.add_commit("docs: retire closed items\n")
+    return ["docs-check"]
+
+def _s_instruction_sum(b):
+    # Neither file is past the budget alone; a CLI that combines them loads both.
+    _d_seed(b)
+    b.write("CLAUDE.md", "c" * 24999 + "\n")
+    b.write("AGENTS.md", "a" * 19999 + "\n")
+    b.write(".github/copilot-instructions.md", "g" * 99 + "\n")
+    b.add_commit("docs: instructions\n")
+    return ["docs-check"]
+
+def _s_records_only(b):
+    # 50,000 bytes of process text outside Records must not count: the commands
+    # read the section, and the template itself is larger than any budget here.
+    _d_seed(b)
+    b.write("spec/SDLC.md", "# SDLC\n\n## Records\n\n" + "r" * 99 + "\n\n## Slice loop\n\n"
+            + ("p" * 99 + "\n") * 500)
+    b.add_commit("docs: SDLC\n")
+    return ["docs-check"]
+
+def _s_records_above(b):
+    _d_seed(b)
+    b.write("spec/SDLC.md", "# SDLC\n\n## Records\n\n" + ("r" * 99 + "\n") * 400
+            + "\n## Slice loop\n\nshort\n")
+    b.add_commit("docs: SDLC\n")
+    return ["docs-check"]
+
+def _s_explicit_ref(b):
+    # HEAD's index is small again; HEAD~1's is past the budget and is the one named.
+    _d_seed(b)
+    b.write_index(["z" * 999] * 70)
+    b.add_commit("docs: the heavy close\n")
+    b.write_index(["seed 0"])
+    b.add_commit("docs: the trim\n")
+    return ["docs-check", "HEAD~1"]
+
+
 # (name, setup(bench) -> argv, stdout must-contain, stdout must-NOT-contain)
 DOCS_CASES = [
+    ("size_small_index_reads_within", _s_small,
+     ["loaded size: within - spec/PROJECT_INDEX.md 30 bytes (+23 in HEAD) of 64000",
+      "instruction files 0 of 40000", "spec/SDLC.md Records 0 of 40000"], ["ABOVE"]),
+    ("size_three_long_lines_flag", _s_long_lines,
+     ["docs budget: OK - 3 lines added",
+      "loaded size: ABOVE - spec/PROJECT_INDEX.md. spec/PROJECT_INDEX.md 66007 bytes (+66000 in HEAD)",
+      "Log-only - nothing is blocked"], ["within", "OVER"]),
+    ("size_index_at_budget_is_within", _s_index_at_budget,
+     ["loaded size: within - spec/PROJECT_INDEX.md 64000 bytes"], ["ABOVE"]),
+    ("size_trim_is_a_negative_delta", _s_trim,
+     ["spec/PROJECT_INDEX.md 14 bytes (-456 in HEAD)"], ["ABOVE"]),
+    ("size_instruction_files_are_summed", _s_instruction_sum,
+     ["loaded size: ABOVE - instruction-files.", "instruction files 45100 of 40000"],
+     ["within"]),
+    ("size_records_section_only", _s_records_only,
+     ["loaded size: within", "spec/SDLC.md Records 113 of 40000"], ["ABOVE"]),
+    ("size_records_above", _s_records_above,
+     ["loaded size: ABOVE - Records.", "spec/SDLC.md Records 40013 of 40000"], ["within"]),
+    ("size_explicit_ref_is_read", _s_explicit_ref,
+     ["loaded size: ABOVE - spec/PROJECT_INDEX.md.", "70000 bytes (+69993 in HEAD~1)"],
+     ["within"]),
     ("docs_under_budget", _d_under,
      ["docs budget: OK - 3 lines added"], ["OVER", "n/a"]),
     ("docs_at_budget_is_not_over", _d_at_budget,
@@ -450,8 +563,12 @@ def docs_pass(src, verbose, first_only=False):
                     problems.append("output wrongly contains %r" % c)
             # Whatever it printed, it also has to leave in the log - the record
             # a later session reads is the log, not this session's scrollback.
-            if "CANNOT CHECK" not in out and out.strip() not in b.log_text():
-                problems.append("verdict not appended to .git/sdlc-close-out/log")
+            if "CANNOT CHECK" not in out:
+                log_text = b.log_text()
+                for line in out.strip().splitlines():
+                    if line not in log_text:
+                        problems.append("line not appended to .git/sdlc-close-out/log: %r"
+                                        % line[:40])
             if problems:
                 failures.append((name, problems, out))
             if verbose:

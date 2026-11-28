@@ -157,13 +157,20 @@ Load a spec file ONLY for its trigger. If you open a spec, say which one.
 | `spec/SDLC.md` | its *Records* section whenever a command reads a gate, baseline, coverage-floor, hook/guard/checker-note, or model-policy value (a handful of values live at the step that uses them — *Records*' preamble names each); the rest of the file only for process questions or when a command seems to conflict with process |
 | `spec/PROJECT_INDEX_HISTORY.md` | never at session start — only when tracing a retired (closed) backlog entry or friction line, or in `/sdlc-retro`'s closed-item sweeps |
 | `spec/TESTING.md` | invoking the TDD skill (always read first); writing/modifying tests |
-| `spec/PHASE_NN_*.md` | working the current phase (pointer in PROJECT_INDEX) |
+| `spec/PHASE_NN_*.md` | working the current phase (pointer in PROJECT_INDEX) — the phase spec itself, not its appendix (next row) |
+| `spec/PHASE_NN_*_NOTES.md` | any phase's appendix: only when a slice needs the evidence behind a decision the phase spec records — never at session start, never in place of the phase spec. This one row covers every phase; do not add a row per appendix |
 | `spec/PRODUCT_CONTRACT.md` | phase boundaries only — `/plan-phase` and `/end-phase` read it; slices get its entries via the phase spec's *Preserved Behaviors*. One exception: `/end-slice`'s review opens it when the slice deleted, skipped, or gutted a test (the pin check) |
 {{EXTRA_SPEC_ROWS}}
 <!-- As the project grows, add one row per new spec (ARCHITECTURE.md, DATA_MODEL.md,
      UI_SPEC.md, …) with a precise trigger. Precise triggers are what keep context small. -->
 
 - If spec conflicts with request → ask for override
+- **This file is loaded into every session, so it holds only what every session
+  needs.** A rule that must hold whatever the task stays here. Detail needed only while
+  doing one task — a runbook, a multi-step procedure, an annotated file tree — goes in
+  its own file, and this file keeps the outline, the standing rules, and one line saying
+  when to open it. Name that file as a plain path in backticks; an `@`-prefixed path is
+  an import on Claude Code and loads the file into every session anyway.
 
 ---
 

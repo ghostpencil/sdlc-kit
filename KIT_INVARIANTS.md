@@ -227,7 +227,10 @@ phase close's **second old-value search** (0.41.0: a value this close superseded
 be seen to be listed at this close, file and line, where the first search - run before
 the write - cannot see it), the **test-double fidelity lens** (0.41.0: a double whose
 answer is derived from the code under test must be seen to draw a finding, where the
-old side-effect question read it clean), the
+old side-effect question read it clean), the close-out checker's **loaded-size line**
+(0.42.0, `tools/close-out-check.py`: three long lines that pass the line budget must be
+seen to read `ABOVE`, instruction files must be seen summed, and process text outside
+*Records* must be seen not counted), the
 retro's **open-ruling sweep** (an absorbed entry with nothing built must be seen to be
 reported beside the unabsorbed ones) and its **age-rule upstream re-check** (an aged
 entry whose defect the current kit release already fixed must be seen to be

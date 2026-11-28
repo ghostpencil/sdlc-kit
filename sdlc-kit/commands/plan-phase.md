@@ -207,8 +207,13 @@ slices — no behavior left unassigned.
 **Keep the spec lean enough to be read whole at every slice.** Decisions, behaviors,
 slices, and checklists are the spec; interview transcripts, survey output, and other
 bulk research go to an appendix file the spec links
-(`spec/PHASE_NN_<SLUG>_NOTES.md`), loaded only when a slice needs it — add it a
-spec-loading row in `CLAUDE.md` with that trigger. `/next-slice` reads the phase spec
+(`spec/PHASE_NN_<SLUG>_NOTES.md`), loaded only when a slice needs it.
+`CLAUDE.md`'s spec-loading table carries one row for every such appendix
+(`spec/PHASE_NN_*_NOTES.md`): check the row is there, add it once if this project's
+table predates it, and add a row of this appendix's own only when its trigger differs
+from that one. A row per phase made one adoption's `CLAUDE.md` pay, in every session
+and permanently, a smaller version of the tax this rule exists to remove — 23 rows
+that differed only in the file name. `/next-slice` reads the phase spec
 at every slice: a real adoption's 173 KB phase spec taxed every session of its arc
 with detail no single slice used.
 

@@ -572,7 +572,9 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    adding a CLI later means adding its proven line, because nothing else will.
    **That one line serves the script's `docs-check` mode too** — same invocation,
    `docs-check` in place of `check` — which `/end-slice` runs on its docs commit to
-   count the lines added to `spec/PROJECT_INDEX.md` against a budget of 25. Nothing
+   count the lines added to `spec/PROJECT_INDEX.md` against a budget of 25, and to
+   report in bytes what every session loads — the index, the instruction files and
+   `spec/SDLC.md`'s *Records* — against constants in the same script. Nothing
    extra is proven, recorded, or offered for it: it is log-only on every install and
    exits 0 even on its own errors, and a mode that cannot fail a step cannot lie
    about one.

@@ -305,6 +305,12 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.41.0 | `verify:` names its route | `names its route: the skill dispatched` |
 | 0.41.0 | backlog numbers are unique at every slice close | `Every slice close asserts the identifiers are unique` |
 | 0.41.0 | a docs-only slice states its verification skipped | `states the skip` |
+| 0.42.0 | a close replaces current text instead of stacking it | `A close replaces; it does not stack` |
+| 0.42.0 | a *Records* row holds the current record | `A row holds the current record, not its history` |
+| 0.42.0 | an always-loaded file holds only what every session needs | `A file loaded into every session holds only what every session needs` |
+| 0.42.0 | the backlog maximum spans the index and its history file | `and its history file together` |
+| 0.42.0 | the observer reports bytes | `The mode's second line, ` |
+| 0.42.0 | one spec-loading row covers every appendix | `the one appendix row in` |
 
 ### 5. Apply
 
@@ -479,7 +485,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   refused) before it is trusted, and `sh -n` where the shell dialect is installed; the
   guard note in `spec/SDLC.md` *Records* then names both values and the proof's catch
   — the refused wrapper failure's `NOT counted` line, quoted — with its reach note, as
-  setup writes it. **If the project has its own guard tests, run them after the
+  setup writes it, **replacing the note an earlier update left** (step 5, *A re-derive
+  record replaces the last one*). **If the project has its own guard tests, run them after the
   re-derive.** A fixture that fakes a failing run must carry the runner's real report
   (the pattern's marker), because one without it is now refused — that is the guard
   working, as one adopter's update found. Fix the fixture; never loosen the pattern to
@@ -738,6 +745,44 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   - **Nothing to fold for the pytest recipe:** the report pattern is unchanged.
     Tell a pytest project that `--tb=no` prints no report header, so a red run under
     it is refused, and `--tb=line` is the quiet form that counts.
+- **0.42.0 gives the files every session loads an exit path and an observer that
+  counts bytes.** Nothing here forks by CLI: `CLAUDE.md`, `spec/` and the checker are
+  the same files on Claude Code and Copilot CLI.
+  - **Arrives by copy:** the commands, and `.github/hooks/sdlc-close-out.sh`, whose
+    `docs-check` mode prints a second line, `loaded size:`. Run it once after the copy
+    (the recorded invocation, `docs-check` in place of `check`) and show the owner the
+    line: it is this project's starting reading, and `ABOVE` names what the one-time
+    moves below are for.
+  - **Rules to fold from `templates/SDLC.template.md`** — step 4's marker table
+    carries a row for each: a close replaces instead of stacking, a *Records* row
+    holds the current record, an always-loaded file holds only what every session
+    needs, the backlog maximum spans both files, the observer's second line, and the
+    one appendix row.
+  - **`CLAUDE.md` is project-owned: hand the owner three changes.** (1) The
+    spec-loading table gains the row for `spec/PHASE_NN_*_NOTES.md`, and the
+    `spec/PHASE_NN_*.md` row says it means the phase spec, not its appendix — copy
+    both from `templates/CLAUDE.template.md`. (2) **Collapse the per-phase rows:** every
+    existing row for one phase's `_NOTES.md` whose trigger is the pattern row's is
+    deleted; one with a trigger of its own stays. (3) The bullet under the table that
+    says what this file holds. Where the file already carries runbooks, procedures or
+    a file tree, name them to the owner with their sizes and offer the move — verbatim
+    into a file of the project's choosing, leaving the outline, the standing rules and
+    a when-to-open line. Never move one unasked: which rules must hold in every
+    session is the owner's call.
+  - **One-time moves, offered as one decision, in a docs commit of their own.** Each
+    is verbatim, into `spec/PROJECT_INDEX_HISTORY.md` under `## Superseded at the
+    0.42.0 update — <date>`: status lines and Phase or START HERE paragraphs stacked
+    under the current one; closed-phase paragraphs the old archive bullet left
+    behind; and, in `spec/SDLC.md` *Records*, every note a newer note on the same row
+    superseded. Before moving a status line, give anything it says is owed a backlog
+    number. Before moving anything, check it holds no live record — a current floor,
+    baseline or decision goes to its home first, and a project whose own tests read a
+    value out of the index is told so before the text moves. Check the move the way
+    the retirement step checks its own: the lines removed and the lines added are the
+    same lines. A project that declines keeps its files as they are, and the next
+    phase close makes the same moves.
+  - **Nothing to prove or record for the observer:** it is log-only, and its three
+    budgets are constants in the kit-owned script.
 - **Project-owned hook scripts: walk the owner through every template change, and
   offer to apply it — with review.** Five scripts are instantiated from templates and
   then owned by the project: `.github/hooks/sdlc-gate.sh` (from
@@ -809,6 +854,15 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
      with an `sh` that resolves, Git Bash's on Windows; `python -m py_compile` for the
      `.py`), then run the proof `sdlc-setup.md` runs when it installs that file.
      Record the proof's catch, named, and its reach note, where setup records them.
+     **A re-derive record replaces the last one.** The row keeps one current record —
+     the kit version the script was last derived at, the date, the catch and its reach
+     note — and the record an earlier update wrote there moves verbatim to
+     `spec/PROJECT_INDEX_HISTORY.md` under `## Superseded at the <version> update —
+     <date>` in this update's commit (create the file with its one-line header if the
+     project has none yet). *Records* is loaded at every slice, and a proof transcript
+     kept per update is the largest single item in it on all three adoptions measured —
+     6 to 14 KB each. The transcript itself belongs in the update's commit message or
+     PR body; the row keeps the line that names the catch.
      A proof that fails puts the committed script back — from a POSIX shell, since
      PowerShell's `>` re-encodes the bytes: `git show HEAD:<path> > <path>` — and
      goes to the owner with its output. Never report a re-derived script as working

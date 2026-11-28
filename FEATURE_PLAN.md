@@ -107,6 +107,10 @@ starts from. **The next reading is owed at the next arc any adopter closes.**
 
 **Clocks still running:**
 
+- **The 0.42.0 rules — §16 clock, two arcs, from 0.42.0** (§98.3): the loaded-size
+  line, replace-not-stack, and nothing-owed-is-lost, each with its catch stated there.
+  0.42.0 is built and unreleased as of 2026-11-28.
+
 - **IMPACT and the phase-end coverage trigger — one more reading, on a condition**
   (§94.1 (v)–(vi), §94.4 ruling 3). Neither has been tested: TFit's graph was not
   rebuilt across twenty-one arcs, so no arc ran on a current graph and every
@@ -187,7 +191,11 @@ Everything the previous refresh listed as held has shipped or closed: the docs-o
 slice (0.32.0), §78 (0.31.1/0.31.2), §79 and §79.4 (0.31.3, 0.32.0), COSMETIC
 (0.34.0/0.34.1), and §77's residue, whose docs pass now asserts on the median (§82.10).
 
-**Standing inputs:** issues #18–#20 were closed with replies on 2026-11-21 (§96.2) — the first adopter's Phase 18 finding and
+**Standing inputs:** issues #21 and #22 (2026-11-28, the first adopter's `CLAUDE.md`
+and `spec/PROJECT_INDEX.md` growth) are open, triaged in §97, ruled the same day
+(§97.8) and built for 0.42.0 as §98, unreleased; the new rules' clocks are §98.3, and
+the backlog's own file is owed a design section (§97.7 ruling 5).
+Issues #18–#20 were closed with replies on 2026-11-21 (§96.2) — the first adopter's Phase 18 finding and
 its Phase 27 and Phase 30 retros, the twelfth and thirteenth field reports — triaged in
 §93 (2026-11-21), ruled the same day (§93.7). The adopter table above is stale past 2026-10-23:
 TFit is on 0.40.1 and has closed Phases 13–32; ai-news and chainmail are on 0.38.0
@@ -9097,3 +9105,410 @@ the verdict per finding and what an update carries. Owed: the adopter updates (t
 adopter 0.40.1 → 0.41.0; the other two 0.38.0 → 0.41.0) at their between-phase windows.
 The 0.41.0 rules' clocks (§95.3) and the condition on IMPACT and the coverage trigger
 (§94.4 ruling 3) start at the first adopter's next arc.
+
+---
+
+## 97. Issues #21 and #22 triaged — three files every session loads grow at every close
+## and nothing shortens them; the third nobody filed, and it is the one that grows on
+## both CLIs — 2026-11-28, ruled the same day
+
+Two issues from the first adopter, filed 2026-11-28 with one follow-up comment each,
+verified against the tree at c78130c (0.41.0) and against all three adopter clones:
+
+| issue | arc | kit | shape |
+|---|---|---|---|
+| #21 | 41 phases, hand trim 2026-11-27/28 | 0.40.1 | `CLAUDE.md` 177 KB; two sources, three fixes; the comment adds two more sources |
+| #22 | the same | 0.40.1 | `spec/PROJECT_INDEX.md` 469 KB; five causes, five fixes; the comment adds a layout and six gaps |
+
+Neither is a retro. 0.41.0 changed none of the text they cite, so every quote below was
+read at the current release.
+
+**Their theme, and what the triage adds.** Both say the same thing: *a file every
+session loads gains text at every close, each addition is reasonable, and no step ever
+removes any.* The triage finds the same shape in a third file, `spec/SDLC.md` *Records*
+(97.3 (a)), where the writers are the kit's own commands, and finds that the one
+observer built for this (0.26.0's `docs-check`) read OK 336 times out of 339 while the
+file it watches nearly tripled.
+
+**Measured, bytes** (first adopter: Claude Code, 41 phases; ai-news: Copilot CLI, five
+phases, no arc since August; chainmail: Claude Code, one arc; token cost is roughly
+bytes ÷ 4):
+
+| file | kit template | first adopter, peak | first adopter, after the trim | ai-news | chainmail |
+|---|---|---|---|---|---|
+| `CLAUDE.md` | 7,182 | 141,945 on 2026-11-20 (177 KB filed) | 34,460 | 8,912 | 10,640 |
+| `spec/PROJECT_INDEX.md` | 9,041 | 460,543 on 2026-11-27 (469 KB filed) | 42,002 | 7,093 | 24,268 |
+| `spec/SDLC.md` *Records* | 19,279 | 73,848 | not trimmed | 34,814 | 38,658 |
+| `spec/PROJECT_INDEX_HISTORY.md` | — | 544,194 | — | 8,827 | 4,330 |
+
+The template columns include the instantiation comments setup strips, so an adopter's
+starting size is smaller than shown. The first adopter's index by section the day before
+the trim: Deferred backlog 167,820; START HERE 110,775 (429 lines, in a section the
+template calls "one short block"); Phase 73,222; Phase History 57,185 in 65 rows. Its
+*Records* was 11,354 bytes on 2026-08-15 and has grown at every sample since.
+
+### 97.1 The verdicts
+
+**A — one spec-loading row per phase appendix (#21 source 1). STANDS.**
+- The instruction is in two homes: `commands/plan-phase.md` step 5 ("add it a
+  spec-loading row in `CLAUDE.md` with that trigger") and `templates/SDLC.template.md`
+  phase-start step 3 ("with its own spec-loading row in `CLAUDE.md`"). §59 shipped it.
+- Measured: 23 `_NOTES.md` rows in the adopter's `CLAUDE.md` on 2026-11-20. chainmail
+  has one, ai-news none.
+- **One citation does not carry the claim.** The `end-phase.md` quote ("Check that table
+  now") is about the single `PROJECT_INDEX_HISTORY.md` row, one row for one file. The
+  plan-phase quote is enough without it.
+- **Sharper than filed:** `CLAUDE.template.md` already ships a pattern row,
+  `spec/PHASE_NN_*.md` — "working the current phase". That glob matches
+  `PHASE_NN_<SLUG>_NOTES.md`, so with no appendix row the table tells a session to load
+  the appendix whenever it works the phase, which is the opposite of the rule.
+- `_PRESERVED.md`, which the issue's fix names, is not a kit artifact (no occurrence
+  under `sdlc-kit/`); the pattern row covers the appendix the kit defines.
+- Fix: the template ships one row for `spec/PHASE_NN_*_NOTES.md` (only when a slice
+  needs the evidence behind a decision; never at session start; never in place of the
+  phase spec), placed so it is read as the exception to the phase-spec row. Both homes
+  change to "the template's row covers it; add a row only when this appendix's trigger
+  differs". The update note tells an adopter to collapse existing per-phase rows, since
+  `CLAUDE.md`'s table diff arrives by hand (§59).
+
+**B — no home for operational material (#21 source 2 and the comment). STANDS as a
+silence; one adopter.**
+- No kit command asks for runbooks, procedures or an annotated file tree in `CLAUDE.md`,
+  and nothing says where they go. The adopter's file was already 32 KB on 2026-08-15,
+  most of it the project's own protocol, and reached 142 KB by 2026-11-20 on feature
+  switch runbooks.
+- ai-news and chainmail sit at 8.9 KB and 10.6 KB against a 7.2 KB template. That is
+  five phases and one arc against 41, so it neither corroborates nor refutes.
+- The comment's split is the right rule and fits in a sentence: *what must hold in every
+  session stays in `CLAUDE.md`; detail needed only while doing a task goes to its own
+  file, and `CLAUDE.md` keeps the outline, the standing rules, and one line saying when
+  to open it.* It goes in `CLAUDE.template.md` beside the spec-loading table and once in
+  `SDLC.template.md` *Bookkeeping rules*.
+- The named path does not survive: `docs/RUNBOOKS.md` is a project layout, and the kit
+  states no project facts. The rule ships; the path is the project's.
+
+**C — a size check (#21 fix 3). STANDS; built as E.** One observer covers all three
+files. The budget's proposed home (*Records*) does not survive: it adds a number to a
+section that is itself growing, plus a placeholder and a setup question. The 0.26.0
+precedent is a constant in the kit-owned script, which cannot diverge per project.
+
+**D — "bounded" sections with no exit path (#22 cause 1). STANDS, and the kit instructs
+the stacking.**
+- `end-phase.md` step 7 says "flip the Phase section" and "refresh START HERE"; neither
+  says the old text leaves. The archive bullet then says to "Leave the Phase History row
+  and a short paragraph behind" — one paragraph per closed phase, by instruction, in a
+  section labelled bounded. 41 closes produced the 73 KB Phase section.
+- `end-slice.md` step 9 says "Mark the slice done in the current phase's status/START
+  HERE section. **Status only — one line.**" It does not say the previous slice's line
+  is replaced, so each slice adds one. 18 lines in the 2026-11-27 index were marked
+  Previous or Superseded.
+- The retirement bullet names its population exactly — backlog entries and friction
+  lines with a closing marker — so superseded status text has no way out. The template
+  comment says of bounded sections "stale content leaves them"; no step does it.
+- Fix: both closes **replace**. `/end-slice` rewrites the one status line; `/end-phase`
+  rewrites the Phase paragraph and START HERE, and the replaced text moves verbatim to
+  the history file in the same commit (the phase spec where one exists). The archive
+  bullet's "a short paragraph behind" is deleted: the Phase History row is what stays.
+- **The fix needs gap 3 with it** (97.2): a status line that is replaced can take an
+  owed item with it. Before a line is replaced, anything it owes that no backlog entry
+  or phase-spec line carries becomes a backlog entry. The adopter found four such items
+  in 28 lines.
+
+**E — `docs-check` counts lines (#22 cause 2). STANDS, measured.**
+- `close-out.template.sh` reads `git show --numstat` and compares added lines with
+  `BUDGET=25`. The adopter's log holds 339 readings from 2026-08-26 to 2026-11-28:
+  **336 OK, 3 OVER**, over a window in which the index went from 165 KB to 460 KB.
+  One "line" there runs to 6,881 characters (filed); the longest line in its history
+  file is 8,132.
+- §67 set the budget from a measurement of 44–87 added lines per close. The writes then
+  changed shape to fit the count. This is the eleventh report's theme inside the kit's
+  own observer: it watches a proxy.
+- Fix: the mode reports bytes — bytes this commit added to the index, and the current
+  total of each of the three loaded files — from `git cat-file -s`, which needs no tool
+  beyond the git the script already requires. It stays log-only and spoken in the
+  hand-back (§67's reason holds: a number cannot tell a heavy honest close from a
+  write-up). The line count stays in the output; it costs nothing and still catches the
+  shape it was built for.
+
+**F — open backlog entries have no size rule (#22 cause 3). The number stands; the
+fix is declined as filed.** 249 open entries cost 168 KB, about 680 bytes each, and the
+longest is 4,689 characters, against a template that says "One line each". A stated cap
+is a second prose rule beside one that was already not followed. E's bytes-added reading
+is the check that runs. The entry count is the larger half of the cost and is I's
+subject.
+
+**G — Phase History rows (#22 cause 4). STANDS.** The template's table has a free
+*Notes* column and `end-phase.md` calls the section "one cheap row per phase" with
+nothing behind it; one row reached 5.3 KB. Fix: the template and the close name what a
+row holds (phase, title, PR, merge date, the deploy outcome word) and send the rest to
+the phase spec. No numeric cap, for F's reason.
+
+**H — a live record inside the history stack (#22 cause 5). Does not survive as a kit
+defect; D is the real one.** The template has made the Phase section's floor line a
+pointer since 0.37.0, with *Records* the one home, and ai-news's index carries exactly
+that pointer. The adopter's gate test reads the floor from the index, which is the
+project's own arrangement. The proposed fix (a named section for live records) is
+already the design. What let a live paragraph sit among closed ones is the stack.
+
+**I — the layout: backlog, gotchas and retros in their own files (#22 comment). The
+backlog half STANDS and is a design of its own; the other two do not survive.**
+- The backlog is the only section of the three with a kit-defined population that grows
+  by rule. It was 168 KB of a 460 KB index, and `/next-slice` reads the index whole at
+  every slice while using the backlog only when a slice works an entry.
+- §59 measured the same adopter at 69% backlog and ruled that closed items retire and
+  open ones stay. Since then about 270 entries have retired and 250 are open: the exit path
+  works, and the open pile is now the cost. The rule that drains it ("a big enough pile
+  becomes a cleanup slice by owner decision") has not.
+- Cost of the move: the section names are cited on 51 lines in nine kit files
+  (`end-phase` 10, `sdlc-retro` 9, `sdlc-setup` 7, `end-slice` 4, `plan-phase` 2,
+  `next-slice` 1, `sdlc-update` 1, `change-verify` 1, `SDLC.template.md` 16), plus the
+  observer's `IDX` constant, the index template, a `CLAUDE.template.md` row, and a
+  migration step for three adopters. It also splits a population, which is where this
+  lineage's defects come from: the id maximum, the `uniq -d` assertion, the phase-close
+  count and the retro's sweeps each need their denominator re-enumerated.
+- The adopter has already made the move, with a redirect in its index and `CLAUDE.md`
+  while the installed commands still name the index. That holds until the kit either
+  adopts the layout or the adopter carries it as a standing local amendment.
+- **Environment gotchas** is a bounded section with its own rule (one line each, delete
+  when fixed). The adopter's 14 KB of gotchas were six top-level `## Environment gotcha`
+  sections outside that section, one of them 7.6 KB. That is the rule not followed, not
+  a missing file. **Retros** is not a template section at all; the kit's home for a
+  retro is its report file.
+- The comment's index pointer carries "the count and highest id". That is a second home
+  for two numbers, against the template's own *one number, one home* rule, and the
+  comment says as much in gap 6. A pointer names the file and when to open it; the
+  count is derived from the file by the step that needs it.
+
+### 97.2 The six gaps in #22's comment
+
+1. **Commands hard-code the section's home.** True, and it is I's cost, counted there.
+2. **The id rule says "this file's current maximum".** Stands, and it is a defect today
+   without any split — 97.3 (b).
+3. **An owed item with no backlog id.** Stands; folded into D, which cannot ship
+   without it.
+4. **A status line stale against the commit log.** One observation. Held: D leaves one
+   line to keep true where there were 28.
+5. **The live record in closed history.** H.
+6. **The count in the index is a second home.** Stands, and argues against the pointer
+   shape proposed in the same comment (I, last bullet).
+
+### 97.3 Found by the triage, not reported
+
+**(a) `spec/SDLC.md` *Records* is the third file, and the kit's commands are what grow
+it.** §59 built *Records* as "one bounded leading section" so that reading a baseline
+would not load the whole file; the `CLAUDE.template.md` row sends every command that
+reads a gate, baseline or floor value there, and `end-slice`, `end-phase` and
+`next-slice` cite it 17 times between them. It is 34.8 KB on ai-news, 38.7 KB on
+chainmail and 73.8 KB on the first adopter. The largest items, by adopter:
+
+- first adopter: the baseline paragraph, 29.9 KB, with a note from each close; a
+  gate-hook re-derive record from one kit update, 14.0 KB; the coverage-floor row,
+  10.3 KB, carrying a "held at" note per close.
+- chainmail: a re-derive proof from the 0.37.1 update, 8.0 KB; the guard record, 4.7 KB.
+- ai-news: a hand-applied fix record, 6.4 KB; a proof dated 2026-10-23, 6.3 KB.
+
+The writers are kit steps: `end-phase.md`'s floor bullet ("Record the catch on the
+floor's *Records* row"), its red-baseline bullet ("record which, with how many arcs the
+number has now been unchanged"), and `sdlc-update.md`'s re-derive steps ("Record the
+proof's catch, named, and its reach note"). None says the previous record is replaced.
+ai-news has closed no arc since 2026-08-17, so its growth since then came from
+kit updates, not arcs. This is the tenth report's theme measured: the kit's own controls
+are the source.
+
+Fix: a *Records* row holds the current value, its stamp, and the latest proof or catch.
+The step that writes a new one moves the one it supersedes to the history file in the
+same commit. §86.9's requirement survives unchanged, because the latest catch is still
+on the row.
+
+(The first adopter's whole `spec/SDLC.md` is 342 KB. Outside *Records*, 93 KB is one
+*Bookkeeping rules* bullet and 70 KB a friction log that project keeps in that file by
+its own arrangement. Neither is a kit instruction; both are the same shape.)
+
+**(b) A retired entry's number can be minted again.** `end-slice.md` step 9, the index
+template and `SDLC.template.md` all say the next identifier is "the next integer above
+the file's current maximum". Retirement moves closed entries out of that file. When the
+highest-numbered entry is closed and retires, the maximum drops, and the next append
+reuses its number; an old `#NNN` then resolves to two entries in two files, and the
+`uniq -d` assertion reads only one of them. Latent, not observed: the first adopter's
+open maximum is 522, its retired maximum 517, and no number appears in both files. Fix:
+the maximum is taken over the index and the history file, by search, not by loading
+either.
+
+**(c) The retro reads the exit path's destination whole.** `sdlc-retro.md` step 1 reads
+`spec/PROJECT_INDEX_HISTORY.md` — "all its sections, not only the window's". That file
+is 544 KB at the first adopter, about 136k tokens, and D, G and 97.3 (a) all send more
+text to it. The cross-phase sweeps it serves (the same finding three times, what sat
+longest) need the entries' lines, not the file. Fix: the step searches the history file
+for the sweep's population — entry lines and their markers — and opens a dated section
+only when a hit needs its context.
+
+### 97.4 Both CLIs
+
+Every file in this triage is one the two CLIs share, so no fix forks by dialect:
+`CLAUDE.md` is read directly by Copilot CLI (`reference/COPILOT.md`, *Which files this
+affects*), `spec/` is plain files, the command text is the same text packaged twice, and
+`sdlc-close-out.sh` has been one body for both since 0.31.1. Five points follow from the
+differences that do exist.
+
+1. **The observer uses git alone.** Copilot CLI's shell tool resolves no `sh`, and the
+   invocation derives one from git (the close-out checker's row in the same table).
+   `git cat-file -s <ref>:<path>` gives a byte size with no `wc`, and the script already
+   uses `awk`, which is enough to size one section of a file.
+2. **"The instructions file" is a different set on each CLI.** Copilot CLI combines
+   `CLAUDE.md`, `AGENTS.md` and `.github/copilot-instructions.md` with no precedence.
+   Claude Code loads `CLAUDE.md` and whatever it imports. A reading of `CLAUDE.md` alone
+   under-counts on either. The observer sums the tracked instruction files of both CLIs
+   whichever one is running it, so a dual-CLI repo gets one number. The exact list is
+   verified against each CLI's dated docs at build, as `COPILOT.md` requires of any
+   claim it carries.
+3. **A pointer is a backticked path, never an `@` import.** On Claude Code an
+   `@path` line in `CLAUDE.md` loads that file into every session, which undoes the
+   move; on Copilot CLI it is plain text. B's sentence says so. The first adopter's
+   trimmed file has none.
+4. **No CLI-specific lazy loading.** Each CLI has its own path-scoped instruction
+   format. Using either means two copies in two formats, which is the defect §23.1's
+   one-file prohibition exists to prevent. A plain file with an open-when line works
+   identically on both.
+5. **A procedure does not become a skill.** `.claude/skills/` is read by both CLIs and
+   would lazy-load a runbook for free, but a skill is model-invocable unbidden, which
+   is why the kit's own commands stay out of that directory. A procedure with a
+   rollback or an owner-run step is the wrong thing to make invocable.
+
+**The evidence is one-sided.** Everything #21 and #22 report is Claude Code. The Copilot
+adopter has run five phases; its index is 7.1 KB and its `CLAUDE.md` 8.9 KB. The only
+growth measured on Copilot CLI is 97.3 (a). Not measured on either CLI: whether a large
+instruction file is truncated or only warned about. The fixes do not depend on the
+answer, and the bench (§29.3) can give it if a threshold ruling wants it.
+
+### 97.5 What does not survive as filed
+
+- #21's `end-phase.md` quote as evidence of per-artifact rows (A).
+- #21 fix 2's named `docs/RUNBOOKS.md` — the rule ships, the path does not (B).
+- #21 fix 3's budget recorded in *Records* (C).
+- #22's cap on backlog entry length and its stated maximum for a row, as numbers (F, G).
+- #22's named section for live records — already the design (H).
+- The comment's separate files for gotchas and retros, and its count-carrying pointer
+  (I).
+
+### 97.6 Corroborated
+
+By a second adopter: only 97.3 (a), on both of them and on both CLIs. chainmail's index
+is 24 KB after one arc, 9.3 KB of it friction log, which is the same curve early.
+Everything else rests on one adopter at 41 phases, and no other adopter is past five.
+
+### 97.7 Dispositions put to the owner
+
+1. **Both stay issues; no field-report file.** Neither is a retro (the #11–#16 and #18
+   precedent). *Recommended.*
+2. **One text batch, as 0.42.0:** A (the pattern row, both homes, the glob), B (the
+   split sentence, with 97.4 point 3), D with gap 3 (replace, not stack; nothing owed
+   is lost), G (what a row holds), 97.3 (a) (a *Records* row holds the current record),
+   97.3 (b) (the maximum over both files), 97.3 (c) (the retro searches the history
+   file). The update note carries the one-time moves: collapse the per-phase rows, and
+   move already-stacked Phase, START HERE and *Records* text to the history file.
+   *Recommended.*
+3. **The observer, in the same release:** `docs-check` reports bytes added to the index
+   and the totals of the index, the instruction files and *Records*; log-only; proof
+   cases in the close-out suite. `/end-phase` runs it on its bookkeeping commit and
+   quotes it. *Recommended.*
+4. **The thresholds, as constants in the script.** These are judgment, not measurement,
+   and are the owner's: index 64 KB, instruction files 40 KB, *Records* 40 KB (about
+   16k, 10k and 10k tokens). At those values the first adopter reads OVER on *Records*
+   only, chainmail and ai-news read OK everywhere with *Records* close under.
+   *Recommended, with the values open.*
+5. **The backlog in its own file (I): its own design section, its own release.** It
+   touches 51 lines in nine files and moves a population, so it is pre-registered, with
+   each denominator named, before anything is built. *Recommended: design next, after
+   this batch is built, so the design is written against the replaced text.*
+6. **Gotchas and retros in their own files: declined.** *Recommended.*
+7. **Gap 4, the stale status line: held**, one observation. *Recommended.*
+8. **A truncation probe on the Copilot bench: not run** unless ruling 4 wants a
+   measured ceiling. *Recommended: not run.*
+
+Every rule in 2 and 3 falls under the §16 regime at two arcs from 0.42.0; the catch
+criteria are written at build, as §95.3 did.
+
+### 97.8 Ruled 2026-11-28
+
+All eight as recommended, the thresholds at the proposed values (64,000 / 40,000 /
+40,000 bytes). Both stay issues (1); the text batch (2) and the observer (3, 4) are
+0.42.0, built as §98; the backlog's own file gets its own design section after the
+build (5); gotchas and retros stay where they are (6); the stale status line is held
+(7); no truncation probe (8).
+
+---
+
+## 98. The §97 batch built for 0.42.0 — 2026-11-28, on branch `0.42.0`, unreleased
+
+Built the day it was ruled. Nothing forks by CLI: every file touched is one both CLIs
+read, and the observer is the one script both run.
+
+### 98.1 The text batch — eight kit files
+
+| §97 item | where it landed |
+|---|---|
+| A, the appendix row | `CLAUDE.template.md` (the row, and the phase-spec row says it is not the appendix); `plan-phase.md` step 5; `SDLC.template.md` phase-start step 3 |
+| B, the split rule | `CLAUDE.template.md` (a bullet under the table, with the `@`-import warning); `SDLC.template.md` *Bookkeeping rules* |
+| D with gap 3, replace not stack | `end-slice.md` step 9; `end-phase.md` step 7 (the index bullet, the archive bullet loses "a short paragraph", a new *Move what this close replaced* bullet); `SDLC.template.md` slice step 12, phase-end step 6, *Bookkeeping rules*; `PROJECT_INDEX.template.md` |
+| G, what a row holds | `end-phase.md`; both templates |
+| 97.3 (a), a *Records* row holds the current record | `SDLC.template.md` *Records* preamble; `end-phase.md`'s new bullet; `sdlc-update.md` (both re-derive steps) |
+| 97.3 (b), the maximum over both files | `end-slice.md` step 9; both templates |
+| 97.3 (c), the retro searches | `sdlc-retro.md` step 1 and its provenance sweep |
+| the update note | `sdlc-update.md` step 5 (0.42.0) and six marker rows in step 4 |
+
+Replaced text goes to the history file under `## Superseded at Phase NN close`, apart
+from the retired entries, so the retirement step's closing-marker re-read does not pull
+it back as an open entry, and the retro's sweeps do not count it. Two guards ship with
+the rule: nothing owed is lost, and a live record never moves.
+
+`reference/COPILOT.md` gains a dated paragraph under the one-instructions-file
+prohibition: which files the observer sums, why a pointer is never an `@` import, and
+that neither CLI's path-scoped format is used.
+
+### 98.2 The observer
+
+`close-out.template.sh`'s `docs-check` mode prints a second line:
+
+```
+loaded size: within - spec/PROJECT_INDEX.md 7093 bytes (+0 in HEAD) of 64000; instruction files 8912 of 40000; spec/SDLC.md Records 34814 of 40000
+```
+
+- Sizes are read at the ref, from `git cat-file`: one `--batch-check` call for five
+  objects and one `awk` pass for the *Records* section. Run against throwaway clones of
+  the three adopters it takes 0.37–0.46 s and reads as §97.7 ruling 4 predicted: ai-news
+  and chainmail `within`, the first adopter `ABOVE - Records` (74,738), and that
+  adopter's 2026-11-27 commit `ABOVE` on all three while the first line reads
+  `OK - 1 lines added`.
+- `ABOVE` and `within` are chosen so the existing cases' `OVER` and `OK -` assertions
+  still mean the first line.
+- Both lines are logged, each with the timestamp.
+- `/end-phase` now runs the mode on its bookkeeping commit.
+- `tools/close-out-check.py`: 8 new docs cases and 8 new mutations, all caught; the
+  suite is green at 28 unit + 15 docs cases, the worktree pass, 25 mutations. The log
+  assertion now checks each printed line, and one mutation anchor moved with the log
+  write.
+
+### 98.3 Clocks for the new rules — §16, two arcs from 0.42.0
+
+- **The loaded-size line.** Catch: an `ABOVE` reading followed, within the same arc, by
+  a commit that reads a negative index delta or a smaller *Records*. Fails if two arcs
+  show `ABOVE` readings and no such commit, which would mean log-only does not move
+  behavior and the line needs a different seat.
+- **Replace, not stack.** Catch: a phase close whose `docs-check` reads a negative
+  index delta, or a history file gaining a `## Superseded` section. Fails if an
+  adopter's index again holds a line marked Previous or Superseded after a close on
+  0.42.0.
+- **Nothing owed is lost.** Catch: a backlog entry whose provenance names a status
+  line.
+- **The maximum over both files.** No catch is expected; it guards a collision not yet
+  observed. Read as a fix, no clock.
+- **The appendix row, the retro's search, the row's content.** Text corrections to
+  existing rules; no clock.
+
+### 98.4 Owed before release
+
+`/kit-check`, the manifest regenerated after it (regenerated once at build, in text
+mode, 45 of 45), the release itself, the replies on #21 and #22, and the design section
+for the backlog's own file (§97.7 ruling 5). The three adopter updates follow the
+release; the first adopter's hand trim already made most of the one-time moves, with
+*Records* the exception.

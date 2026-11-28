@@ -14,6 +14,47 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.42.0 — unreleased
+
+Issues #21 and #22 from the first adopter (`FEATURE_PLAN.md` §97): the files every
+session loads grew at every close and no step shortened them. The index reached 469 KB
+and `CLAUDE.md` 177 KB there; the triage found `spec/SDLC.md` *Records* growing the same
+way on all three adopters, on both CLIs. Every change here is the same on Claude Code
+and Copilot CLI.
+
+### Changed
+- **[installable]** **A close replaces current text instead of stacking it.**
+  `/end-slice` rewrites the one status line; `/end-phase` rewrites the Phase section
+  and START HERE and no longer leaves "a short paragraph" per closed phase. What a
+  close replaces moves verbatim to `spec/PROJECT_INDEX_HISTORY.md` under a
+  `## Superseded at …` heading. Before a status line is replaced, anything it says is
+  owed gets a backlog number.
+- **[installable]** **A *Records* row holds the current record.** The note a phase
+  close or a kit update supersedes on a row moves to the history file in the same
+  commit. `/sdlc-update` keeps one re-derive record per script, not one per update.
+- **[installable]** **`docs-check` reports bytes.** The close-out checker's log-only
+  mode prints a second line, `loaded size:`, with the size of the index, the
+  instruction files together (`CLAUDE.md`, `AGENTS.md`,
+  `.github/copilot-instructions.md`) and *Records*, against 64,000, 40,000 and 40,000
+  bytes. `/end-phase` now runs the mode too. One adopter's log read OK 336 times in
+  339 on the line budget while its index went from 165 KB to 460 KB.
+  `tools/close-out-check.py` gains 8 cases and 8 mutations (43 cases, 25 mutations).
+- **[installable]** **One spec-loading row covers every phase appendix.**
+  `/plan-phase` no longer adds a `CLAUDE.md` row per `PHASE_NN_<SLUG>_NOTES.md`.
+- **[installable]** **The backlog's next number is taken over the index and its
+  history file**, so the highest entry retiring cannot hand its number to the next
+  append.
+- **[installable]** **`/sdlc-retro` searches the history file instead of loading
+  it.** One adopter's is 544 KB.
+- **[installable]** **A Phase History row is named:** phase, title, PR, merge date,
+  deploy outcome.
+- **[adoption-only]** `CLAUDE.template.md` gains the appendix row and a bullet saying
+  the file holds only what every session needs, with task detail in its own file
+  behind a plain-path pointer. `SDLC.template.md` and `PROJECT_INDEX.template.md`
+  carry the rules above. `reference/COPILOT.md` records which instruction files the
+  observer sums and why. The update note says what to carry over by hand, including
+  the one-time moves of text already stacked.
+
 ## 0.41.0 — 2026-11-21
 
 The twelfth and thirteenth field reports and one issue, all from the first adopter

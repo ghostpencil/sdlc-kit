@@ -37,12 +37,17 @@
 #              counts lines added to spec/PROJECT_INDEX.md by a close-out docs
 #              commit and reports them against a budget. It observes a rule
 #              whose payload legitimately varies, so it reports a number and
-#              never a verdict.
+#              never a verdict. Since 0.42.0 it prints a second line, the
+#              BYTES every session pays for: the index, the instruction files
+#              and spec/SDLC.md's Records section, each against a constant
+#              below. Lines alone were the wrong unit - one adoption's log
+#              read OK 336 times in 339 while its index went from 165 KB to
+#              460 KB, because a "line" there ran to 6,881 characters.
 #
 # Invocation:  sh .github/hooks/sdlc-close-out.sh check [<ref>]      (default HEAD)
 #              sh .github/hooks/sdlc-close-out.sh docs-check [<ref>] (default HEAD)
 # This file takes no per-project values - the four keys are fixed by the process,
-# the index path is canonical, and the budget is a constant below - so it is
+# the index path is canonical, and the budgets are constants below - so it is
 # copied verbatim.
 
 MODE=$1
@@ -150,12 +155,60 @@ if [ "$MODE" = "docs-check" ]; then
     MSG="docs budget: OK - $ADDED lines added to $IDX against a budget of $BUDGET"
   fi
 
-  printf '%s
-' "$MSG"
+  # ---- the loaded-size line (0.42.0). Read at REF, never from the working
+  # tree, so it describes the commit the first line describes. Three sizes:
+  #   the index            /next-slice reads it whole at every slice;
+  #   instruction files    CLAUDE.md, AGENTS.md and .github/copilot-instructions.md
+  #                        summed - Copilot CLI combines all three and Claude Code
+  #                        reads the first, so one number serves a repo on either
+  #                        CLI or both. Path-scoped instruction files are not
+  #                        counted: they load by path, not in every session;
+  #   Records              the one section of spec/SDLC.md the daily commands read.
+  # One batch-check call sizes five objects and one awk pass sizes the section:
+  # forks are the cost on Windows sh, and this mode runs at every slice close.
+  # An absent file is 0 bytes, and so is anything this block fails to read - it
+  # is as log-only as the line above it.
+  IDX_MAX=64000            # bytes, spec/PROJECT_INDEX.md
+  INS_MAX=40000            # bytes, the instruction files together
+  REC_MAX=40000            # bytes, spec/SDLC.md's Records section
+  SIZES=$(printf '%s\n' "$REF:$IDX" "$REF^:$IDX" "$REF:CLAUDE.md" "$REF:AGENTS.md" \
+    "$REF:.github/copilot-instructions.md" \
+    | git cat-file --batch-check='%(objectsize)' 2>/dev/null)
+  i=0; IDX_NOW=0; IDX_WAS=0; INS_NOW=0
+  while IFS= read -r v; do
+    i=$((i + 1))
+    case $v in ''|*[!0-9]*) v=0 ;; esac
+    case $i in
+      1) IDX_NOW=$v ;;
+      2) IDX_WAS=$v ;;
+      *) INS_NOW=$((INS_NOW + v)) ;;
+    esac
+  done <<SIZES_END
+$SIZES
+SIZES_END
+  REC_NOW=$(git cat-file -p "$REF:spec/SDLC.md" 2>/dev/null | LC_ALL=C awk '
+    /^## / { on = ($0 ~ /^## Records/) }
+    on     { n += length($0) + 1 }
+    END    { print n + 0 }')
+  case $REC_NOW in ''|*[!0-9]*) REC_NOW=0 ;; esac
+  DELTA=$((IDX_NOW - IDX_WAS))
+  [ "$DELTA" -ge 0 ] && DELTA="+$DELTA"
+  PAST=""
+  [ "$IDX_NOW" -gt "$IDX_MAX" ] && PAST="$PAST $IDX"
+  [ "$INS_NOW" -gt "$INS_MAX" ] && PAST="$PAST instruction-files"
+  [ "$REC_NOW" -gt "$REC_MAX" ] && PAST="$PAST Records"
+  BODY="$IDX $IDX_NOW bytes ($DELTA in $REF) of $IDX_MAX; instruction files $INS_NOW of $INS_MAX; spec/SDLC.md Records $REC_NOW of $REC_MAX"
+  if [ -n "$PAST" ]; then
+    SIZE="loaded size: ABOVE -$PAST. $BODY. Every session pays for these bytes. A close replaces a status line or a record instead of adding one, and the replaced text moves to spec/PROJECT_INDEX_HISTORY.md; detail needed only for one task belongs in a file opened for that task. Log-only - nothing is blocked. State in the hand-back what grew."
+  else
+    SIZE="loaded size: within - $BODY"
+  fi
+
+  printf '%s\n%s\n' "$MSG" "$SIZE"
   if [ -n "$GD" ]; then
     mkdir -p "$GD/sdlc-close-out" 2>/dev/null
-    printf '%s %s
-' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$MSG" >> "$GD/sdlc-close-out/log" 2>/dev/null
+    NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    printf '%s %s\n%s %s\n' "$NOW" "$MSG" "$NOW" "$SIZE" >> "$GD/sdlc-close-out/log" 2>/dev/null
   fi
   exit 0
 fi
