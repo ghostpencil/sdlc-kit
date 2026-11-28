@@ -309,7 +309,7 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
 | 0.42.0 | a *Records* row holds the current record | `A row holds the current record, not its history` |
 | 0.42.0 | an always-loaded file holds only what every session needs | `A file loaded into every session holds only what every session needs` |
 | 0.42.0 | the backlog maximum spans the index and its history file | `and its history file together` |
-| 0.42.0 | the observer reports bytes | `The mode's second line, ` |
+| 0.42.0 | the observer reports bytes | `reports the bytes every session pays for` |
 | 0.42.0 | one spec-loading row covers every appendix | `the one appendix row in` |
 
 ### 5. Apply
@@ -485,8 +485,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   refused) before it is trusted, and `sh -n` where the shell dialect is installed; the
   guard note in `spec/SDLC.md` *Records* then names both values and the proof's catch
   — the refused wrapper failure's `NOT counted` line, quoted — with its reach note, as
-  setup writes it, **replacing the note an earlier update left** (step 5, *A re-derive
-  record replaces the last one*). **If the project has its own guard tests, run them after the
+  setup writes it, **replacing the note an earlier update left** (the walk-through below, *A
+  re-derive record replaces the last one*). **If the project has its own guard tests, run them after the
   re-derive.** A fixture that fakes a failing run must carry the runner's real report
   (the pattern's marker), because one without it is now refused — that is the guard
   working, as one adopter's update found. Fix the fixture; never loosen the pattern to
@@ -749,16 +749,21 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   counts bytes.** Nothing here forks by CLI: `CLAUDE.md`, `spec/` and the checker are
   the same files on Claude Code and Copilot CLI.
   - **Arrives by copy:** the commands, and `.github/hooks/sdlc-close-out.sh`, whose
-    `docs-check` mode prints a second line, `loaded size:`. Run it once after the copy
-    (the recorded invocation, `docs-check` in place of `check`) and show the owner the
+    `docs-check` mode prints a second line, `loaded size:`. Run it once after the copy,
+    in the agent's shell (the recorded invocation, `docs-check` in place of `check`; it
+    reads the last commit, not the update's uncommitted edits) and show the owner the
     line: it is this project's starting reading, and `ABOVE` names what the one-time
     moves below are for.
   - **Rules to fold from `templates/SDLC.template.md`** — step 4's marker table
     carries a row for each: a close replaces instead of stacking, a *Records* row
     holds the current record, an always-loaded file holds only what every session
     needs, the backlog maximum spans both files, the observer's second line, and the
-    one appendix row.
-  - **`CLAUDE.md` is project-owned: hand the owner three changes.** (1) The
+    one appendix row. Phase-end step 6 has no row of its own: fold its sentence that
+    `docs-check` runs on the bookkeeping commit with the first row.
+  - **`CLAUDE.md` is project-owned: hand the owner four changes.** (0) The
+    `spec/PROJECT_INDEX_HISTORY.md` row's trigger widens: superseded status lines and
+    records are traced there, and `/end-slice` searches it for the highest backlog
+    number. (1) The
     spec-loading table gains the row for `spec/PHASE_NN_*_NOTES.md`, and the
     `spec/PHASE_NN_*.md` row says it means the phase spec, not its appendix — copy
     both from `templates/CLAUDE.template.md`. (2) **Collapse the per-phase rows:** every
@@ -777,9 +782,13 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
     superseded. Before moving a status line, give anything it says is owed a backlog
     number. Before moving anything, check it holds no live record — a current floor,
     baseline or decision goes to its home first, and a project whose own tests read a
-    value out of the index is told so before the text moves. Check the move the way
-    the retirement step checks its own: the lines removed and the lines added are the
-    same lines. A project that declines keeps its files as they are, and the next
+    value out of the index is told so before the text moves. Check the move in the
+    commit's own diff: the lines removed from the index and *Records* are the lines
+    added to the history file, and nothing else changed; a removed line with no added
+    twin is the failure. Decline lines (`Hook re-derive declined:`) are exempt and
+    stay, as their own rule says, and a catch that arose on its own is carried onto
+    the row's current record before the older note moves. These moves are one of the
+    writes step 6 names — made on the owner's yes, never as part of the copy. A project that declines keeps its files as they are, and the next
     phase close makes the same moves.
   - **Nothing to prove or record for the observer:** it is log-only, and its three
     budgets are constants in the kit-owned script.
@@ -858,8 +867,8 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
      the kit version the script was last derived at, the date, the catch and its reach
      note — and the record an earlier update wrote there moves verbatim to
      `spec/PROJECT_INDEX_HISTORY.md` under `## Superseded at the <version> update —
-     <date>` in this update's commit (create the file with its one-line header if the
-     project has none yet). *Records* is loaded at every slice, and a proof transcript
+     <date>` in this update's commit (where the project has no history file yet,
+     create it with the one-line header `/end-phase`'s retirement bullet gives). *Records* is loaded at every slice, and a proof transcript
      kept per update is the largest single item in it on all three adoptions measured —
      6 to 14 KB each. The transcript itself belongs in the update's commit message or
      PR body; the row keeps the line that names the catch.
@@ -1062,8 +1071,13 @@ their release's note, which is how they were missed. A note dated before 0.32.0 
   **with three stated exceptions**: the artifacts an accepted re-offer installs (the
   TDD-guard pair; the ledger's Copilot JSON, or its `"Skill"` block merged into the
   existing `.claude/settings.json` the way setup's Existing mode merges hooks; a hook
-  script the step-5 walk-through re-derived, with its proof's record), each
-  written only on the owner's word at that halt, following setup's own step; and the
+  script the step-5 walk-through re-derived, with its proof's record — which replaces
+  the record an earlier update left, that one moving verbatim to
+  `spec/PROJECT_INDEX_HISTORY.md`), each
+  written only on the owner's word at that halt, following setup's own step; the
+  0.42.0 note's one-time moves of superseded text into
+  `spec/PROJECT_INDEX_HISTORY.md` — verbatim, nothing rewritten, and only on the
+  owner's yes to that note's one decision; and the
   empty `spec/PRODUCT_CONTRACT.md` the 0.23.0 note (`reference/UPDATE_NOTES.md`) creates
   — a verbatim template copy, only when absent, never content.
   **A third exception is the friction closure step 4 proposed:** once the verify above

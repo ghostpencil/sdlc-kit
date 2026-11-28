@@ -496,7 +496,7 @@ Update `spec/PROJECT_INDEX.md`:
   two entries under one number on adjacent days: every reference to that number was
   ambiguous for thirteen slices, until the phase close renumbered one. A collision
   found here is fixed here, the same way — renumber the later-provenance entry to the
-  next free integer and leave a pointer at the old number.
+  next integer above the maximum (the append rule's, over both files) and leave a pointer at the old number.
 - If this slice added a tool, runtime, or service the gate now requires, record it
   (*Records* → *The gate* in `spec/SDLC.md`; Environment gotchas in PROJECT_INDEX) and
   add it to CI in the same commit — a gate dependency discovered by a contributor's red
@@ -591,8 +591,8 @@ deferred / N discarded as unverified, naming those), mutation-check outcome (N g
 checked, each seen to fail), **RED evidence per behavior batch** (the command, the failing
 line, the exit code — with `not observed` stated, never omitted), **verification outcome**
 (the verdicts, or skipped with the reason), **the record check's quoted output** (step 8 —
-COMPLETE, or how an INCOMPLETE was remediated), **the docs budget line** (step 9 — quoted,
-and an `OVER` answered rather than merely reported), **`unguarded while paused: N`**
+COMPLETE, or how an INCOMPLETE was remediated), **the docs budget lines** (step 9 — both quoted,
+and an `OVER` or `ABOVE` answered rather than merely reported), **`unguarded while paused: N`**
 (step 1's count, with each pause's logged reason when it is not `0`), **the final architecture footprint**
 (below, where the project has one), any tool substituted for one this file names, and
 commit hashes. End with: **safe to `/clear`**.

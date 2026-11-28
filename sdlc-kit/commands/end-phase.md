@@ -300,7 +300,8 @@ read before it is reconciled is a decision taken twice.
      closed with 106 entries under 104 identifiers, minted the same day by two slice
      reviews, and the document scoping the next phase already named one of the
      duplicates. Fix a collision here by renumbering the **later-provenance** entry to
-     the next free integer and leaving a pointer at the old number.
+     the next integer above the maximum — taken over the index and, where it exists,
+     `spec/PROJECT_INDEX_HISTORY.md`, as `/end-slice`'s append rule takes it — and leaving a pointer at the old number.
   2. **Every row of `spec/SDLC.md` *Records*, not only the two rows that have bullets
      of their own.** Check each against this close's gate run and report it
      recorded-vs-measured — the gate baseline and the coverage floor, which keep their
@@ -477,7 +478,8 @@ read before it is reconciled is a decision taken twice.
   now. Replace means the old text leaves the section — it is not kept above or below the
   new text under a "Previous" or "Superseded" label; the *Move what this close replaced*
   bullet below is where it goes. **The Phase History row holds the phase, its title, the
-  PR, the merge date, and in Notes the deploy outcome word and at most one clause** —
+  PR, the merge date, and in Notes the deploy outcome in its recorded form, anything the
+  deploy turned on, and at most one further clause** —
   what the arc decided and measured is the phase spec's. One adoption's "one cheap row per phase" reached 5.3 KB in a
   single row.
 - **Archive the closed phase's detail.** If the project accumulated per-slice write-ups
@@ -505,8 +507,9 @@ read before it is reconciled is a decision taken twice.
   burial the disposition exists to prevent. (Environment gotchas are a bounded section
   with their own rule — delete when fixed — and never retire; Phase History stays,
   one cheap row per phase.) On first retirement create the file with a one-line
-  header — "Retired from
-  `spec/PROJECT_INDEX.md` — closed items only." — then, this
+  header — "History of `spec/PROJECT_INDEX.md` and `spec/SDLC.md` *Records* — retired
+  entries and superseded text; nothing here is open." (a file created before 0.42.0
+  says "closed items only"; leave it) — then, this
   close and every close, append one dated section (`## Retired at Phase NN close —
   <date>`) and move the entries **verbatim** — any numbering, provenance tags, and
   markers intact, so an old reference to an entry still resolves. Then the step's
@@ -516,23 +519,29 @@ read before it is reconciled is a decision taken twice.
   acts on the index; the check fails visibly by producing a pulled-back entry.
   Nothing is deleted, and no session reads the history file at start — its
   spec-loading trigger belongs in `CLAUDE.md`'s table (the `CLAUDE.template.md`
-  row: never at session start, only tracing a retired item; `/sdlc-retro`'s
-  closed-item sweeps are the other sanctioned read). **Check that table now**: if
+  row: never at session start, only tracing a retired item or a superseded status
+  line or record; `/sdlc-retro`'s closed-item sweeps and `/end-slice`'s search for
+  the highest backlog number are the other sanctioned reads, both by search). **Check that table now**: if
   this project's `CLAUDE.md` lacks the row — an adoption updated rather than
   re-instantiated — add it in this docs commit, or every retired item becomes
   unfindable by the rule that was supposed to make retirement safe.
 - **Move what this close replaced to `spec/PROJECT_INDEX_HISTORY.md`.** The retirement
   bullet above is the exit path for closed *entries*; this one is the exit path for
   *replaced text*, which no marker ever closes. Three kinds, each moved **verbatim**
-  under its own heading in the history file (created with its one-line header if this
-  is the first write to it) — `## Superseded at Phase NN close — <date>`, kept apart from the retired entries so the closing-marker re-read above
+  under its own heading in the history file (created with the retirement bullet's
+  one-line header if this is the first write to it) — `## Superseded at Phase NN close — <date>`, kept apart from the retired entries so the closing-marker re-read above
   never mistakes it for an open entry:
   - the Phase section's text and the START HERE block this close replaced, with any
     status lines still stacked there from before 0.42.0;
   - any closed-phase paragraph still sitting in a bounded section from an earlier
     close — the first close on 0.42.0 or later clears the whole stack, once;
-  - **whatever this close replaced on a `spec/SDLC.md` *Records* row.** A row holds
-    the current value, its `@ <short-sha>` stamp, and its latest proof or catch. The
+  - **whatever this close replaced on a `spec/SDLC.md` *Records* row — and, at the
+    first close on 0.42.0 or later, every older note a newer one on the same row had
+    already superseded.** A row holds
+    the current value, its `@ <short-sha>` stamp, and its latest proof or catch with
+    the reach note — a catch that arose on its own is carried onto the new record,
+    never superseded by a proof constructed later. Decline lines stay on their row,
+    as their own rule says. The
     coverage-floor and red-baseline bullets above, and `/sdlc-update`'s re-derive
     steps, each write a new note; the note it supersedes — the previous close's "held"
     line, an earlier stamp, an older update's proof — moves here in the same commit
@@ -542,8 +551,11 @@ read before it is reconciled is a decision taken twice.
   **Before moving a START HERE block or a status line, read what it says is owed:**
   anything owed that no backlog entry and no phase-spec line carries becomes a numbered
   backlog entry first, because the history file is read by no session that acts.
+  **The move checks itself, in the docs commit's own diff:** every line removed from
+  the index or *Records* by this bullet appears added in the history file, unchanged; a
+  removed line with no added twin is the failure, and it is put back before the commit.
   **A live record never moves.** The current baseline, the current floor and its
-  latest catch, an owner decision still in force — if one sits in the text being moved,
+  latest catch and reach note, an owner decision still in force — if one sits in the text being moved,
   it goes to its own home first (*Records* for a number; the phase spec or START HERE
   for a decision). Text in the history file is history: the old-value searches in this
   step do not report it.
@@ -592,11 +604,15 @@ read before it is reconciled is a decision taken twice.
   of `check`, in the agent's shell, as `/end-slice` runs it. The second line,
   `loaded size:`, is the reading this close is for: the bytes of the index, the
   instruction files and *Records* at this commit, each against its budget. A close that
-  replaced rather than stacked reads a negative index delta. `ABOVE` after the moves
+  replaced rather than stacked usually reads a negative index delta; a positive one is
+  answered by saying what was added. `ABOVE` after the moves
   above is reported to the owner with the section that holds the bytes — it is
   log-only and blocks nothing, and it is the one place growth made of individually
-  reasonable additions becomes visible. An install older than 0.42.0 prints one line;
-  say so.
+  reasonable additions becomes visible. The first line's budget of 25 is a slice's:
+  a phase close adds the history row and folds the backlog, so `OVER` here is
+  expected and is answered in one clause. An install older than 0.42.0 prints one
+  line, and a project whose `spec/SDLC.md` has no checker note has no line to run —
+  say so either way; never guess an invocation.
 - Then end the arc's state: `python .github/hooks/sdlc-state.py set off --by end-phase`
   — the kit's hooks stand down until `/plan-phase` begins the next one.
 - Suggest any durable lessons worth saving to auto-memory.

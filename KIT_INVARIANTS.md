@@ -230,7 +230,9 @@ answer is derived from the code under test must be seen to draw a finding, where
 old side-effect question read it clean), the close-out checker's **loaded-size line**
 (0.42.0, `tools/close-out-check.py`: three long lines that pass the line budget must be
 seen to read `ABOVE`, instruction files must be seen summed, and process text outside
-*Records* must be seen not counted), the
+*Records* must be seen not counted), the phase close's **move check** (0.42.0: a line
+removed from the index or *Records* with no unchanged twin added to the history file
+must be seen in the docs commit's diff and put back), the
 retro's **open-ruling sweep** (an absorbed entry with nothing built must be seen to be
 reported beside the unabsorbed ones) and its **age-rule upstream re-check** (an aged
 entry whose defect the current kit release already fixed must be seen to be

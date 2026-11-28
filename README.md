@@ -651,7 +651,9 @@ handed to you to fold in — and the per-version transition notes name each one.
    edit and whether it is carried, each merge conflict with both sides and a
    recommended resolution, what keeping the script costs, and the full diff of the file
    it would write. On your yes it writes that file, checks its syntax, runs the proof
-   setup runs for it and records the catch, named, with its reach note; a failing proof
+   setup runs for it and records the catch, named, with its reach note — replacing the
+   record an earlier update left, which moves verbatim to
+   `spec/PROJECT_INDEX_HISTORY.md`; a failing proof
    puts the committed script back and reports. On your no it records the decline in
    `spec/SDLC.md`, one dated line per declined offer, so it is not re-asked until the
    template changes again; a later yes marks the line superseded. The command carries
@@ -694,8 +696,11 @@ handed to you to fold in — and the per-version transition notes name each one.
    offer, the skill-ledger offer and each declined hook-script re-derive record your
    answer in `spec/SDLC.md`, a decline included, so no later update re-asks
    it — and an **accepted** offer also installs its artifacts (the guard pair, the
-   ledger hook, a hook script re-derived at the walk-through, with its proof's record),
-   each written only on your word at that halt. The empty `spec/PRODUCT_CONTRACT.md`
+   ledger hook, a hook script re-derived at the walk-through, with its proof's record,
+   the record it replaces moving verbatim to `spec/PROJECT_INDEX_HISTORY.md`),
+   each written only on your word at that halt. A version note may also offer a
+   one-time move of superseded text into `spec/PROJECT_INDEX_HISTORY.md` — verbatim,
+   nothing rewritten, and only on your yes. The empty `spec/PRODUCT_CONTRACT.md`
    the 0.23.0 note (`reference/UPDATE_NOTES.md`) creates is the
    other: a verbatim template copy, only when absent. An update that did not
    ask does not record an answer. And each `RULING OPEN` friction entry you confirm the

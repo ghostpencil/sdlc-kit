@@ -9483,8 +9483,9 @@ loaded size: within - spec/PROJECT_INDEX.md 7093 bytes (+0 in HEAD) of 64000; in
   still mean the first line.
 - Both lines are logged, each with the timestamp.
 - `/end-phase` now runs the mode on its bookkeeping commit.
-- `tools/close-out-check.py`: 8 new docs cases and 8 new mutations, all caught; the
-  suite is green at 28 unit + 15 docs cases, the worktree pass, 25 mutations. The log
+- `tools/close-out-check.py`: 9 new docs cases and 11 new mutations, all caught (one
+  case and three mutations added by the release pass, §98.5); the suite is green at
+  28 unit + 16 docs cases, the worktree pass, 28 mutations. The log
   assertion now checks each printed line, and one mutation anchor moved with the log
   write.
 
@@ -9505,10 +9506,55 @@ loaded size: within - spec/PROJECT_INDEX.md 7093 bytes (+0 in HEAD) of 64000; in
 - **The appendix row, the retro's search, the row's content.** Text corrections to
   existing rules; no clock.
 
+### 98.5 The release `/kit-check` — run 2026-11-28, eighteen findings, all fixed in-session
+
+The mechanical checks and the suites passed: manifest 45 of 45 against committed
+content, the `{{` census in `sdlc-setup.md` only, the README tree over 124 tracked
+files, the lens map 8 of 8, and all ten proof suites exit 0, run one at a time
+(`cosmetic-check` against TypeScript 5 and 6.0.3). Invariants 1, 3, 6, 7, 11 and 12
+passed on a full read. The findings were all the batch's own text, for the sixth pass
+running:
+
+- **A rule added in one home and not its neighbours (invariant 2, eight).** The
+  hand-back still named one docs line; collision renumbering still said "next free
+  integer"; the Phase History row's new definition left no room for the newly-live
+  controls an older bullet puts there; the history file's header still said "closed
+  items only"; the sanctioned-reads statement missed `/end-slice`'s new search; the
+  one-appendix-row rule was a flat prohibition in the template and had an exception
+  in the command; the template named one `Superseded` heading for two writers; and
+  the index template implied a slice's replaced line moves.
+- **`/sdlc-update` wrote project-owned files its own closed list excluded
+  (invariant 8).** The re-derive record's move and the one-time moves are now named
+  exceptions in the command and in the root README, each on the owner's yes.
+- **Pointers (invariant 5, three).** A check described by a simile to a step that
+  does no such check; a header created by a file that never states it; and
+  `docs-check` still described as slice-only in the template and setup.
+- **The record rule against invariant 16 (two).** "Latest proof or catch" dropped the
+  reach note and would let a constructed proof supersede a catch that arose on its
+  own; and replace-not-stack contradicted the never-deleted decline lines. Both are
+  now stated: the reach note travels, an on-its-own catch is carried forward, decline
+  lines are exempt.
+- **Invariant 13 (three).** The move had no stated failure form and was in neither
+  list; it is now stated in `/end-phase` and in the ledger. The suite had no case for
+  byte counting under a UTF-8 locale and no mutation for the two sizes read at the
+  ref other than the index: one case and three mutations added, all caught. The
+  suite's docstring and median comment were stale.
+- **Invariant 14 (one)** is the Phase History row above.
+
+Left, with reasons: the 0.42.0 note hands over no `PROJECT_INDEX.md` comment text
+(setup strips those comments, so an adopted index never held them); the maximum-over-
+both-files rule has no observer (§98.3, read as a fix); and four pre-existing notes the
+reviewers raised outside the batch (`plan-phase.md` naming halt 3 for acceptance, a
+comment in `sdlc-update.md`'s classifier, `COPILOT.md`'s pre-0.35.1 sentence on hook
+recipes, and an unseeded SDLC-state row) are not this release's.
+
+Not covered by the pass: three reviewers split the reading invariants, and two of them
+read the files outside the batch's regions by search, not in full, for invariants 5, 14
+and 15.
+
 ### 98.4 Owed before release
 
-`/kit-check`, the manifest regenerated after it (regenerated once at build, in text
-mode, 45 of 45), the release itself, the replies on #21 and #22, and the design section
+The release itself, the replies on #21 and #22, and the design section
 for the backlog's own file (§97.7 ruling 5). The three adopter updates follow the
 release; the first adopter's hand trim already made most of the one-time moves, with
 *Records* the exception.

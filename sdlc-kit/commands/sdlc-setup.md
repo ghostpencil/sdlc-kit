@@ -571,7 +571,7 @@ Keep interviewing until a round surfaces nothing new. Then scaffold, in order:
    machine and these CLIs: a teammate's clone re-proves before trusting it, and
    adding a CLI later means adding its proven line, because nothing else will.
    **That one line serves the script's `docs-check` mode too** — same invocation,
-   `docs-check` in place of `check` — which `/end-slice` runs on its docs commit to
+   `docs-check` in place of `check` — which `/end-slice` and `/end-phase` run on their docs commits to
    count the lines added to `spec/PROJECT_INDEX.md` against a budget of 25, and to
    report in bytes what every session loads — the index, the instruction files and
    `spec/SDLC.md`'s *Records* — against constants in the same script. Nothing

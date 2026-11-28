@@ -149,10 +149,13 @@ end*, halt 4), the deploy note (*Phase end*, step 6), the main branch (*Shape*),
 kit version (the header) — each read where it is used, never re-derived.
 
 **A row holds the current record, not its history.** Its value, the commit the value
-was measured at, and its latest proof or catch — and when a phase close or a kit
+was measured at, and its latest proof or catch with the reach note — a catch that
+arose on its own is carried onto the new record, never superseded by a proof
+constructed later. Decline lines are exempt: their own rule keeps them, marked
+superseded, on the row. When a phase close or a kit
 update writes a new one, the note it supersedes moves to
 `spec/PROJECT_INDEX_HISTORY.md` in the same commit (*Bookkeeping rules*, *A close
-replaces*). This section is loaded at every slice; a "held at the Phase NN close" line
+replaces; it does not stack*). This section is loaded at every slice; a "held at the Phase NN close" line
 per close and a re-derive proof per update are how it grows past the rest of the file.
 
 **Every row that records a control records what its proof could *see*.** The install
@@ -366,7 +369,7 @@ lint error, naming the file), and the **reach note** the rule above requires:
      THE SAME NOTE's invocation serves the script's `docs-check` mode too — same
      line, `docs-check` in place of `check` — so nothing extra is proven or
      recorded for it. That mode is log-only on every install, exits 0 even on its
-     own errors, and is read at slice step 12; it is not part of what the note
+     own errors, and is read at slice step 12 and at the phase close; it is not part of what the note
      proves, because a mode that cannot fail a step cannot lie about one.
      -->
 
@@ -1096,7 +1099,8 @@ Run `/end-phase` when the last slice is done:
      whole spec set for the **old** value and report every file still carrying it.
      The search runs again as the close's last bookkeeping act, over every value this
      close itself superseded: a search run before a write cannot see the value that
-     write makes old.
+     write makes old. `spec/PROJECT_INDEX_HISTORY.md` is not reported by either
+     search — it holds old values by construction.
      Reconciling one home says nothing about a second one three hundred lines away in
      the same file. An unstamped gate baseline is stamped here, green or red, from step
      1's run on the arc branch — setup's `@ <stamped at close-out>` marker included; the
@@ -1150,7 +1154,7 @@ Run `/end-phase` when the last slice is done:
    `spec/PROJECT_INDEX_HISTORY.md`** and **the text this close replaced moved there
    with them** (see *Bookkeeping rules*), spec cleanup, memory
    updates worth keeping. The close-out checker's `docs-check` mode is run on the
-   bookkeeping commit and both its lines quoted.
+   bookkeeping commit, in the agent's shell as at slice step 12, and both its lines quoted.
 7. `/sdlc-retro` is **offered**, not required — it extracts the phase's lessons while
    the evidence is fresh, sorting each into a project lesson (into PROJECT_INDEX) or a
    kit lesson (into a report). Declining is the right answer when the phase has nothing
@@ -1213,13 +1217,15 @@ Run `/end-phase` when the last slice is done:
   the Phase section and START HERE (every phase close), and a *Records* row (whenever a
   step writes a new value, stamp, proof or catch onto it). The text a phase close or
   an update replaces moves verbatim to `spec/PROJECT_INDEX_HISTORY.md` under its own
-  heading (`## Superseded at Phase NN close — <date>`), apart from the retired
+  heading (`## Superseded at Phase NN close — <date>`, or `## Superseded at the
+  <version> update — <date>`), apart from the retired
   entries; nothing is kept in place under a "Previous" label. Two guards go with it.
   **Nothing owed is lost:** before a status line or START HERE block is replaced,
   anything it owes that no backlog entry or phase-spec line carries becomes a numbered
   backlog entry. **A live record never moves:** a current number or a decision still
   in force goes to its own home first. A Phase History row holds the phase, title, PR,
-  merge date and the deploy outcome — the rest is the phase spec's. Every one of these
+  merge date, and in Notes the deploy outcome in its recorded form, anything the deploy
+  turned on, and at most one further clause — the rest is the phase spec's. Every one of these
   additions is reasonable alone; one adoption's index reached 460 KB and its *Records*
   74 KB with retirement running at every close, because the sections called bounded
   had no step that removed anything.
@@ -1227,7 +1233,7 @@ Run `/end-phase` when the last slice is done:
   `CLAUDE.md` keeps the rules that must hold whatever the task; a runbook, a
   multi-step procedure or an annotated file tree goes in a file of its own, with the
   outline, the standing rules and a when-to-open line left behind — a plain path,
-  never an `@` import, which loads the file anyway. Appendix files share one
+  never an `@` import, which loads the file anyway. Appendix files (unless one's trigger differs) share one
   spec-loading row. The same split governs this file: *Records* is what the daily
   commands load, so it carries current records and nothing kept for history.
 - **Closed items retire out of the index at phase close.** The two growing record
@@ -1242,7 +1248,7 @@ Run `/end-phase` when the last slice is done:
   `— implemented in kit vX.Y.Z` as `/sdlc-update` writes it, or `— ruled
   unpreventable`) more
   than one phase ago — move verbatim to
-  `spec/PROJECT_INDEX_HISTORY.md` (created on first retirement), one dated section
+  `spec/PROJECT_INDEX_HISTORY.md` (created on first write), one dated section
   per phase close, any numbering and all provenance preserved so an old reference
   to an entry still resolves. **A half-delivered entry is split, never half-marked:**
   when an arc closes part of an entry and leaves the rest, the delivered part takes the
@@ -1262,6 +1268,7 @@ Run `/end-phase` when the last slice is done:
   added in the same docs commit, because a retired item nothing points at is
   unfindable by the rule that made retiring it safe. Nothing is deleted;
   and a retro's sweep over **closed** items (repeat counts, oldest-unaddressed)
-  reads the history file too — retirement splits that population across two
+  reads the history file too (by search, not by loading it, and not counting its
+  `## Superseded` sections) — retirement splits that population across two
   files, and a sweep that reads only the index has a denominator it did not
   enumerate.

@@ -38,7 +38,7 @@ and Copilot CLI.
   `.github/copilot-instructions.md`) and *Records*, against 64,000, 40,000 and 40,000
   bytes. `/end-phase` now runs the mode too. One adopter's log read OK 336 times in
   339 on the line budget while its index went from 165 KB to 460 KB.
-  `tools/close-out-check.py` gains 8 cases and 8 mutations (43 cases, 25 mutations).
+  `tools/close-out-check.py` gains 9 cases and 11 mutations (44 cases, 28 mutations).
 - **[installable]** **One spec-loading row covers every phase appendix.**
   `/plan-phase` no longer adds a `CLAUDE.md` row per `PHASE_NN_<SLUG>_NOTES.md`.
 - **[installable]** **The backlog's next number is taken over the index and its
@@ -47,7 +47,7 @@ and Copilot CLI.
 - **[installable]** **`/sdlc-retro` searches the history file instead of loading
   it.** One adopter's is 544 KB.
 - **[installable]** **A Phase History row is named:** phase, title, PR, merge date,
-  deploy outcome.
+  and in Notes the deploy outcome, anything the deploy turned on, and one clause.
 - **[adoption-only]** `CLAUDE.template.md` gains the appendix row and a bullet saying
   the file holds only what every session needs, with task detail in its own file
   behind a plain-path pointer. `SDLC.template.md` and `PROJECT_INDEX.template.md`

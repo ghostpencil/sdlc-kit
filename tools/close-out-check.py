@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46, §67, §88).
+"""Re-runnable proof for templates/close-out.template.sh (FEATURE_PLAN.md §46, §67, §88, §97).
 
 Four passes, and the last is the point:
 
@@ -16,9 +16,11 @@ Four passes, and the last is the point:
      actually added - under budget, exactly at it, over it, an index the commit
      never touched, a retirement commit that only deletes, an explicit ref, and
      a bad ref (which must still exit 0: log-only never fails a step) - and, from
-     0.42.0, the mode's second line, the bytes every session loads: three long
-     lines that pass the line budget and break the byte one, the exact boundary,
-     a trim, instruction files summed, the Records section alone, an explicit ref;
+     0.42.0, the mode's second line (FEATURE_PLAN.md 97, 98), the bytes every
+     session loads: a small index reading within, three long lines that pass the
+     line budget and break the byte one, the exact boundary, a trim, instruction
+     files summed, the Records section alone and past its budget, an explicit ref
+     read for all three sizes, and multibyte text counted in bytes;
   3. a worktree pass: docs-check from a REAL linked worktree, whose .git is a file;
   4. a mutation pass that breaks the checker - the count derived from the
      MUTATIONS list at run time, never stated here - and requires pass 1, 2 or 3
@@ -300,6 +302,11 @@ MUTATIONS = [
     ("size_delta_not_from_parent", '"$REF:$IDX" "$REF^:$IDX" "$REF:CLAUDE.md"',
      '"$REF:$IDX" "$REF:$IDX" "$REF:CLAUDE.md"'),
     ("size_line_not_logged", '"$NOW" "$MSG" "$NOW" "$SIZE" >>', '"$NOW" "$MSG" >>'),
+    ("size_records_ignores_ref", 'git cat-file -p "$REF:spec/SDLC.md"',
+     'git cat-file -p "HEAD:spec/SDLC.md"'),
+    ("size_instruction_files_ignore_ref", '"$REF:CLAUDE.md" "$REF:AGENTS.md"',
+     '"HEAD:CLAUDE.md" "$REF:AGENTS.md"'),
+    ("size_records_counts_characters", "| LC_ALL=C awk '", "| awk '"),
 ]
 
 
@@ -339,8 +346,10 @@ class Bench:
             argv = ["powershell", "-NoProfile", "-Command", cmd]
         else:
             argv = ["sh", self.script] + args
-        p = subprocess.run(argv, cwd=self.root, capture_output=True)
+        p = subprocess.run(argv, cwd=self.root, capture_output=True, env=self.env)
         return p.returncode, p.stdout.decode("utf-8", "replace"), time.perf_counter() - t0
+
+    env = None  # a case may set its own child environment (the multibyte case does)
 
 
 class DocsBench(Bench):
@@ -487,12 +496,28 @@ def _s_records_above(b):
 
 def _s_explicit_ref(b):
     # HEAD's index is small again; HEAD~1's is past the budget and is the one named.
+    # All three sizes differ between the two commits, so each must be read at the ref:
+    # CLAUDE.md 100 bytes then 10, Records 111 bytes then 13.
     _d_seed(b)
     b.write_index(["z" * 999] * 70)
+    b.write("CLAUDE.md", "c" * 99 + "\n")
+    b.write("spec/SDLC.md", "## Records\n" + "r" * 99 + "\n")
     b.add_commit("docs: the heavy close\n")
     b.write_index(["seed 0"])
+    b.write("CLAUDE.md", "c" * 9 + "\n")
+    b.write("spec/SDLC.md", "## Records\nr\n")
     b.add_commit("docs: the trim\n")
     return ["docs-check", "HEAD~1"]
+
+def _s_records_multibyte(b):
+    # Bytes, not characters: 100 em dashes are 300 bytes. The child runs in a UTF-8
+    # locale, where an awk without LC_ALL=C counts them as 100 - measured on Git
+    # Bash's gawk - and a Records section full of dashes would read a third its size.
+    _d_seed(b)
+    b.write("spec/SDLC.md", "## Records\n\n" + u"—" * 100 + "\n\n## Slice loop\n")
+    b.add_commit("docs: SDLC\n")
+    b.env = dict(os.environ, LC_ALL="C.UTF-8")
+    return ["docs-check"]
 
 
 # (name, setup(bench) -> argv, stdout must-contain, stdout must-NOT-contain)
@@ -516,8 +541,11 @@ DOCS_CASES = [
     ("size_records_above", _s_records_above,
      ["loaded size: ABOVE - Records.", "spec/SDLC.md Records 40013 of 40000"], ["within"]),
     ("size_explicit_ref_is_read", _s_explicit_ref,
-     ["loaded size: ABOVE - spec/PROJECT_INDEX.md.", "70000 bytes (+69993 in HEAD~1)"],
+     ["loaded size: ABOVE - spec/PROJECT_INDEX.md.", "70000 bytes (+69993 in HEAD~1)",
+      "instruction files 100 of 40000; spec/SDLC.md Records 111 of 40000"],
      ["within"]),
+    ("size_records_counts_bytes_not_characters", _s_records_multibyte,
+     ["loaded size: within", "spec/SDLC.md Records 314 of 40000"], ["ABOVE"]),
     ("docs_under_budget", _d_under,
      ["docs budget: OK - 3 lines added"], ["OVER", "n/a"]),
     ("docs_at_budget_is_not_over", _d_at_budget,
@@ -725,7 +753,7 @@ def main():
     # The MEDIAN, like the unit pass (§77). This pass was the last to read
     # its max, and failed the 0.34.0 release run on exactly the §77 artifact: 5409 ms
     # slowest under concurrent suite load, against 412-424 ms slowest re-run idle three
-    # times (FEATURE_PLAN.md 82.10). With 7 samples the median is the 4th, which one
+    # times (FEATURE_PLAN.md 82.10). With 16 samples the median is the 9th, which one
     # stall cannot move. The slowest stays printed: a real regression moves both.
     print("median docs invocation: %.0f ms (S2 budget: 1000 ms; slowest: %.0f ms,"
           " observed not asserted)" % (docs_pass.median * 1000, slowest * 1000))
