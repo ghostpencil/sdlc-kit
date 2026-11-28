@@ -14,6 +14,37 @@ non-installed reference docs, which are read at `/sdlc-setup` time and never re-
 to an already-adopted project; where one changes a project-owned file's template, the
 update command's version note says what to carry over by hand.
 
+## 0.42.1 — unreleased
+
+What the first three updates to 0.42.0 ran into (`FEATURE_PLAN.md` §99). No adopter
+needs an update for this release alone; it changes what the next update does.
+
+### Fixed
+- **[installable]** **`/sdlc-update` copies only the skills a project has.** "Each
+  skills directory" installed the two Python-only optional skills into a Java project.
+- **[installable]** **The move check is the put-it-back proof.** A superseded note is
+  often a span inside a longer line, so comparing removed lines with added ones failed
+  on a correct move. `/end-phase` and `/sdlc-update` now say: each moved piece, restored
+  where it was cut, reproduces the committed file byte for byte.
+- **[installable]** **The one-time moves may carry forward what only a moved note
+  stated** — a catch, a ratification, a decision — shown as its own hunk. The write
+  exception said "nothing rewritten" while the rule beside it required the carry.
+- **[installable]** **Two marker rows from 0.9.0** join `/sdlc-update`'s table: an
+  inert-ship claim quotes the production artifact, and each consequence names the
+  lever that disables it alone.
+- **[installable]** **A long friction log may be shown in groups**, each with its count
+  and one member quoted.
+
+### Changed
+- **[installable]** **`/sdlc-setup` removes a template's instantiation comments once
+  they are resolved**, and its exit check counts them. One adopter carried 15.6 KB of
+  them in a 39 KB *Records*. `/sdlc-update` offers the same removal to a project that
+  kept them, as one decision, with its cost stated.
+- **[adoption-only]** **The TDD guards' compound-command message says a `;`, `&` or
+  `|` inside quotes counts too.** The behavior is unchanged and is by design: stripping
+  quotes safely needs a shell tokenizer, and a wrong strip records a false GREEN.
+- **[adoption-only]** `CLAUDE.template.md`: a missing full stop.
+
 ## 0.42.0 — 2026-11-28
 
 Issues #21 and #22 from the first adopter (`FEATURE_PLAN.md` §97): the files every

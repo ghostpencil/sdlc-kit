@@ -551,9 +551,12 @@ read before it is reconciled is a decision taken twice.
   **Before moving a START HERE block or a status line, read what it says is owed:**
   anything owed that no backlog entry and no phase-spec line carries becomes a numbered
   backlog entry first, because the history file is read by no session that acts.
-  **The move checks itself, in the docs commit's own diff:** every line removed from
-  the index or *Records* by this bullet appears added in the history file, unchanged; a
-  removed line with no added twin is the failure, and it is put back before the commit.
+  **The move checks itself by putting the text back:** each moved piece, restored at
+  the place it was cut from, must reproduce the file as the last commit holds it, byte
+  for byte. A superseded note is often a span inside a longer line — one table cell
+  held 11 KB of them in one adoption — so comparing removed lines with added lines
+  fails on a correct move and is not the check. A piece that cannot be put back
+  exactly is the failure: it stays where it was, and is named in the hand-back.
   **A live record never moves.** The current baseline, the current floor and its
   latest catch and reach note, an owner decision still in force — if one sits in the text being moved,
   it goes to its own home first (*Records* for a number; the phase spec or START HERE

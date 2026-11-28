@@ -765,7 +765,8 @@ if MODE == "observe-test":
             "compound's, not the test's): %s" % cmd)
         speak("TDD ordering: that test run was NOT counted - the command is "
               "compound (contains ';', '&' or '|'), so its outcome is not the "
-              "test's. The run itself is unaffected; it just registers nothing. "
+              "test's. One inside quotes counts too, by design: filter another "
+              "way. The run itself is unaffected; it just registers nothing. "
               "Flags and single-test selectors are fine - to trim output use the "
               "runner's quiet flag, not a pipe. Re-run as one bare command to "
               "register the RED or GREEN.")

@@ -84,7 +84,7 @@ If unsure → ask
   back (`/sdlc on` after an `off`); pass `--by agent`, and the log keeps who and why
   for the retro. A denied write
   of the slice's own work takes the TDD path or declares a licence (the deny message
-  names them); a pause with a denial as its reason is a finding, not a route
+  names them); a pause with a denial as its reason is a finding, not a route.
 - {{LANGUAGE_AND_VERSION}}
 {{PROJECT_SPECIFIC_RULES}}
 <!-- Examples of project-specific rules worth adding here:

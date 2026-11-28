@@ -828,7 +828,7 @@ PAUSEDLIST
     case "$CMD" in
       *";"*|*"&"*|*"|"*)
         log "test run NOT counted (compound command - the exit code would be the compound's, not the test's): $CMD"
-        emit_context "TDD ordering: that test run was NOT counted - the command is compound (contains ';', '&' or '|'), so its exit code is not the test's. The run itself is unaffected; it just registers nothing. Flags and single-test selectors are fine - to trim output use the runner's quiet flag, not a pipe. Re-run as one bare command to register the RED or GREEN."
+        emit_context "TDD ordering: that test run was NOT counted - the command is compound (contains ';', '&' or '|'), so its exit code is not the test's. One inside quotes counts too, by design: filter another way. The run itself is unaffected; it just registers nothing. Flags and single-test selectors are fine - to trim output use the runner's quiet flag, not a pipe. Re-run as one bare command to register the RED or GREEN."
         exit 0 ;;
     esac
     if [ -z "$CODE" ]; then

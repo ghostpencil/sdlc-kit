@@ -9719,3 +9719,29 @@ is right and the remedy is not in `/sdlc-update`.**
    0.42.1.* Whether TFit runs a retro against 167 open entries is the owner's.
 6. **No adopter update for 0.42.1 alone.** It changes what the *next* update does;
    it rides that one, as 0.38.1 did. *Recommended.*
+
+### 99.5 Ruled 2026-11-28
+
+All six as recommended; C4 goes in 0.42.1 with the fold cost stated in the offer.
+
+### 99.6 Built for 0.42.1 — 2026-11-28, on branch `0.42.1`, unreleased
+
+| finding | where it landed |
+|---|---|
+| A1, the skills copy | `sdlc-update.md` step 5; root README's ownership row |
+| T1 / A3, the move check | `end-phase.md` (*Move what this close replaced*), the 0.42.0 note in `sdlc-update.md`, the ledger's invariant-13 sentence |
+| T2, the carry | `sdlc-update.md`'s write-exception list; root README step 6 |
+| A2, two rows | `sdlc-update.md` step 4, versioned 0.9.0; the README's sentence on where the table starts |
+| T3, grouping | `sdlc-update.md` step 4; root README step 4 |
+| C1, by design | one clause in both guard templates' compound-command message |
+| C3 | `CLAUDE.template.md` |
+| C4, instantiation comments | `sdlc-setup.md` close-out step 1 (delete as resolved; `grep -c '<!--'` reads 0 or each block left is named); the 0.42.1 note's offer; a fourth named exception in the write list and the README |
+
+No fold marker sits inside a template comment (checked: 51 rows, none), so removing
+the comments cannot make a marker read absent. The comment removal is a write to
+project-owned files, so it is named in the exception list from the start — the defect
+§98.5 found in 0.42.0's own moves.
+
+Not built, by ruling: the pre-0.15.0 rule enumeration (ruling 4, its own section) and
+any adopter update. chainmail's quoted-pipe entry and its 15.6 KB of comments are
+handled at its next update, by the note.
